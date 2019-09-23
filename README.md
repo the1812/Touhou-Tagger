@@ -12,7 +12,9 @@ thtag
 ```
 启动后会询问专辑名称, 如果留空直接回车就取文件夹的名字; 如果按照这个名称没有**精确匹配**的专辑(**精确匹配**在 THBWiki 中表现为输入到搜索框回车能直接跳转到词条), 则会列出以此名称在 THBWiki 中的搜索结果, 可以继续选择一项作为专辑信息. (有精确匹配的话会直接开始下载专辑信息)
 
-[图片示例: bunny rhyTHm - 覚めぬ夢 届かぬ恋](./thtag-example.jpg)
+<details><summary><strong>图片示例: bunny rhyTHm - 覚めぬ夢 届かぬ恋</strong></summary>
+<img src="./thtag-example.jpg" alt="example" width="1000">
+</details>
 
 ## 选项
 ### 保存封面为单独的文件
