@@ -3,15 +3,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const readline = require("readline");
 const path_1 = require("path");
+const fs_1 = require("fs");
 const getMetadata = async (album) => {
     console.log(`下载专辑信息中: ${album}`);
     const { thbWiki } = await Promise.resolve().then(() => require('../core/metadata/thb-wiki'));
     const metadata = await thbWiki.getMetadata(album);
     console.log('创建文件中...');
     const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
-    const writerMappings = (await Promise.resolve().then(() => require('../core/writer/writer-mappings'))).default;
+    const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
     const fileTypes = Object.keys(writerMappings);
     const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type)));
+    if (files.length === 0) {
+        console.log('未找到任何支持的音乐文件.');
+        process.exit();
+    }
     const targetFiles = files.map((file, index) => {
         const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2);
         return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`;
@@ -25,6 +30,16 @@ const getMetadata = async (album) => {
         const type = path_1.extname(file);
         return writerMappings[type].write(metadata[index], file);
     }));
+    const coverBuffer = metadata[0].coverImage;
+    if (coverBuffer) {
+        const imageType = await Promise.resolve().then(() => require('image-type'));
+        const type = imageType(coverBuffer);
+        if (type !== null) {
+            const coverFilename = `cover.${type.ext}`;
+            console.log(coverFilename);
+            fs_1.writeFileSync(coverFilename, coverBuffer);
+        }
+    }
     console.log(`成功写入了专辑信息: ${album}`);
     process.exit();
 };
