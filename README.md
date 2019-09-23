@@ -35,6 +35,12 @@ thtag -s 'xxx'
 ```powershell
 thtag --source 'xxx'
 ```
+
+## 待填的坑
+- [ ] 错误处理: 非同人专辑词条
+- [ ] FLAC 支持
+- [ ] 歌词获取
+
 ## 魔改示例
 (需要已安装 `Node.js` 及 `Typescript`)
 ### 安装依赖项
