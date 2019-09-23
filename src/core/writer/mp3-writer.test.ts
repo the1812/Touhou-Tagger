@@ -4,7 +4,7 @@ import * as id3 from 'node-id3'
 import { Metadata } from '../metadata/metadata'
 
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3'
-const outputFilename = 'test-files/tagged/06 音轨 06.mp3'
+const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3'
 const coverFilename = 'test-files/cover.jpg'
 test('MP3 Metadata Write', async () => {
   copyFileSync(inputFilename, outputFilename)

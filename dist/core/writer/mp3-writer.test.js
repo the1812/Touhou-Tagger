@@ -4,7 +4,7 @@ const fs_1 = require("fs");
 const mp3_writer_1 = require("./mp3-writer");
 const id3 = require("node-id3");
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3';
-const outputFilename = 'test-files/tagged/06 音轨 06.mp3';
+const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3';
 const coverFilename = 'test-files/cover.jpg';
 test('MP3 Metadata Write', async () => {
     fs_1.copyFileSync(inputFilename, outputFilename);
