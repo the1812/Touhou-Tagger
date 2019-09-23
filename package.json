@@ -1,7 +1,7 @@
 {
   "name": "touhou-tagger",
   "version": "1.0.0",
-  "description": "从THBWiki获取专辑信息, 并自动写入CD曲目.",
+  "description": "从 THBWiki 自动填写东方Project CD曲目信息.",
   "main": "dist/core/index.js",
   "bin": {
     "thtag": "dist/cli/index.js"
@@ -17,7 +17,10 @@
   },
   "keywords": [
     "touhou",
-    "music"
+    "touhou-project",
+    "music-tagger",
+    "mp3",
+    "metadata"
   ],
   "author": "Grant Howard",
   "license": "MIT",
