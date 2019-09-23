@@ -5,14 +5,16 @@ import { writeFileSync } from 'fs'
 import * as commandLineArgs from 'command-line-args'
 
 const cliOptions = commandLineArgs([
-  { name: 'cover', alias: 'c', type: Boolean, defaultValue: false }
+  { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
+  { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' }
 ]) as {
   cover: boolean
+  source: string
 }
 const getMetadata = async (album: string) => {
   console.log(`下载专辑信息中: ${album}`)
-  const { thbWiki } = await import('../core/metadata/thb-wiki')
-  const metadata = await thbWiki.getMetadata(album)
+  const { sourceMappings } = await import(`../core/metadata/source-mappings`)
+  const metadata = await sourceMappings[cliOptions.source].getMetadata(album)
   console.log('创建文件中...')
   const { readdirSync, renameSync } = await import('fs')
   const { writerMappings } = await import('../core/writer/writer-mappings')
@@ -58,8 +60,12 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
     album = defaultAlbumName
   }
   console.log('搜索中...')
-  const { thbWiki } = await import('../core/metadata/thb-wiki')
-  const searchResult = await thbWiki.resolveAlbumName(album)
+  const { sourceMappings } = await import(`../core/metadata/source-mappings`)
+  const metadataSource = sourceMappings[cliOptions.source]
+  if (!metadataSource) {
+    console.log(`未找到与'${cliOptions.source}'相关联的数据源.`)
+  }
+  const searchResult = await metadataSource.resolveAlbumName(album)
   if (typeof searchResult === 'string') {
     await getMetadata(album)
   } else {

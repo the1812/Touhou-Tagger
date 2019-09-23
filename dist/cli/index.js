@@ -6,12 +6,13 @@ const path_1 = require("path");
 const fs_1 = require("fs");
 const commandLineArgs = require("command-line-args");
 const cliOptions = commandLineArgs([
-    { name: 'cover', alias: 'c', type: Boolean, defaultValue: false }
+    { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
+    { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' }
 ]);
 const getMetadata = async (album) => {
     console.log(`下载专辑信息中: ${album}`);
-    const { thbWiki } = await Promise.resolve().then(() => require('../core/metadata/thb-wiki'));
-    const metadata = await thbWiki.getMetadata(album);
+    const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
+    const metadata = await sourceMappings[cliOptions.source].getMetadata(album);
     console.log('创建文件中...');
     const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
     const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
@@ -57,8 +58,12 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
         album = defaultAlbumName;
     }
     console.log('搜索中...');
-    const { thbWiki } = await Promise.resolve().then(() => require('../core/metadata/thb-wiki'));
-    const searchResult = await thbWiki.resolveAlbumName(album);
+    const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
+    const metadataSource = sourceMappings[cliOptions.source];
+    if (!metadataSource) {
+        console.log(`未找到与'${cliOptions.source}'相关联的数据源.`);
+    }
+    const searchResult = await metadataSource.resolveAlbumName(album);
     if (typeof searchResult === 'string') {
         await getMetadata(album);
     }
