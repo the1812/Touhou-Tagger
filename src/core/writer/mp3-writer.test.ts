@@ -28,5 +28,5 @@ test('MP3 Metadata Write', async () => {
   expect(tag.comment.text).toEqual(metadata.comments)
   expect(tag.trackNumber).toEqual(metadata.trackNumber)
   expect(tag.year).toEqual(metadata.year)
-  expect(tag.image.imageBuffer).toEqual(metadata.coverImage)
+  expect(tag.image!.imageBuffer).toEqual(metadata.coverImage)
 })

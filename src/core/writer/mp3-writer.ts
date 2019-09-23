@@ -3,7 +3,7 @@ import { Metadata } from '../metadata/metadata'
 import * as id3 from 'node-id3'
 
 const getNodeId3Tag = (metadata: Metadata) => {
-  const tag: any = {
+  const tag: id3.NodeID3Tag = {
     title: metadata.title,
     artist: metadata.artists.join(', '),
     album: metadata.album,
