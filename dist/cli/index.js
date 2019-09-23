@@ -62,6 +62,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
     const metadataSource = sourceMappings[cliOptions.source];
     if (!metadataSource) {
         console.log(`未找到与'${cliOptions.source}'相关联的数据源.`);
+        process.exit();
     }
     const searchResult = await metadataSource.resolveAlbumName(album);
     if (typeof searchResult === 'string') {
