@@ -91,6 +91,24 @@ export const writerMappings = {
   '.xxx': xxxWriter,
 } as { [type: string]: MetadataWriter }
 ```
+
+<!--
+### 导出API
+若需要导出API, 可在`src/core/index.ts`中添加相应导出:
+```TypeScript
+export * from './writer/metadata-writer'
+export * from './writer/mp3-writer'
+export * from './writer/writer-mappings'
+export * from './metadata/metadata'
+export * from './metadata/metadata-source'
+export * from './metadata/source-mappings'
+export * from './metadata/thb-wiki'
+
+export * from './writer/xxx-writer'
+export * from './metadata/xxx'
+```
+-->
+
 ### 编译
 ```powershell
 tsc
