@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as readline from "readline"
-import { basename } from 'path'
+import { basename, extname } from 'path'
 
 const getMetadata = async (album: string) => {
   console.log(`下载专辑信息中: ${album}`)
@@ -8,17 +8,22 @@ const getMetadata = async (album: string) => {
   const metadata = await thbWiki.getMetadata(album)
   console.log('创建文件中...')
   const { readdirSync, renameSync } = await import('fs')
-  const files = readdirSync('.').filter(file => file.endsWith('.mp3'))
-  const targetFiles = files.map((_, index) => {
+  const writerMappings = (await import('../core/writer/writer-mappings')).default
+  const fileTypes = Object.keys(writerMappings)
+  const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type)))
+  const targetFiles = files.map((file, index) => {
     const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2)
-    return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}.mp3`
+    return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${extname(file)}`
   })
   files.forEach((file, index) => {
     renameSync(file, targetFiles[index])
   })
   console.log('写入专辑信息中...')
-  const { mp3Writer } = await import('../core/writer/mp3-writer')
-  await mp3Writer.writeAll(metadata, targetFiles)
+  await Promise.all(targetFiles.map((file, index) => {
+    console.log(file)
+    const type = extname(file)
+    return writerMappings[type].write(metadata[index], file)
+  }))
   console.log(`成功写入了专辑信息: ${album}`)
   process.exit()
 }

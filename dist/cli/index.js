@@ -9,17 +9,22 @@ const getMetadata = async (album) => {
     const metadata = await thbWiki.getMetadata(album);
     console.log('创建文件中...');
     const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
-    const files = readdirSync('.').filter(file => file.endsWith('.mp3'));
-    const targetFiles = files.map((_, index) => {
+    const writerMappings = (await Promise.resolve().then(() => require('../core/writer/writer-mappings'))).default;
+    const fileTypes = Object.keys(writerMappings);
+    const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type)));
+    const targetFiles = files.map((file, index) => {
         const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2);
-        return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}.mp3`;
+        return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`;
     });
     files.forEach((file, index) => {
         renameSync(file, targetFiles[index]);
     });
     console.log('写入专辑信息中...');
-    const { mp3Writer } = await Promise.resolve().then(() => require('../core/writer/mp3-writer'));
-    await mp3Writer.writeAll(metadata, targetFiles);
+    await Promise.all(targetFiles.map((file, index) => {
+        console.log(file);
+        const type = path_1.extname(file);
+        return writerMappings[type].write(metadata[index], file);
+    }));
     console.log(`成功写入了专辑信息: ${album}`);
     process.exit();
 };
