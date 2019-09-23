@@ -1,0 +1,39 @@
+{
+  "name": "touhou-tagger",
+  "version": "1.0.0",
+  "description": "从THBWiki获取专辑信息, 并自动写入CD曲目.",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "thtag": "dist/cli/index.js"
+  },
+  "scripts": {
+    "test:mp3-writer": "jest dist/core/writer/mp3-writer.test.js",
+    "test:thb-wiki": "jest dist/core/metadata/thb-wiki.test.js",
+    "start": "node dist/cli/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the1812/Touhou-Tagger.git"
+  },
+  "keywords": [
+    "touhou",
+    "music"
+  ],
+  "author": "Grant Howard",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/the1812/Touhou-Tagger/issues"
+  },
+  "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "jsdom": "^15.1.1",
+    "node-id3": "^0.1.11"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/jsdom": "^12.2.4",
+    "@types/node": "^12.7.5",
+    "jest": "^24.9.0"
+  }
+}

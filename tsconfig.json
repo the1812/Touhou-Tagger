@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "sourceMap": false,
+    "outDir": "dist/"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
