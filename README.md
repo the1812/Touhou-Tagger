@@ -1,6 +1,20 @@
 # Touhou Tagger
 从 [THBWiki](http://thwiki.cc/首页) 自动填写东方Project CD曲目信息.
 
+支持的曲目信息包括:
+- 标题
+- 作者 (Vocal + 编曲者, 原创曲时为作曲者)
+- 曲目编号
+- 光盘编号
+- 作曲者 (通常是原创曲时出现)
+- 注释 (原曲信息)
+- 作词者
+- 专辑名称
+- 专辑作者 (通常为社团名称)
+- 流派
+- 发布年份
+- 封面图片
+
 ## 安装
 ```powershell
 npm install -g touhou-tagger
