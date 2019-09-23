@@ -2,7 +2,7 @@
   "name": "touhou-tagger",
   "version": "1.0.0",
   "description": "从THBWiki获取专辑信息, 并自动写入CD曲目.",
-  "main": "dist/cli/index.js",
+  "main": "dist/core/index.js",
   "bin": {
     "thtag": "dist/cli/index.js"
   },
