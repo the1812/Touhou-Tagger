@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const readline = require("readline");
 const path_1 = require("path");
 const fs_1 = require("fs");
+const commandLineArgs = require("command-line-args");
+const cliOptions = commandLineArgs([
+    { name: 'cover', alias: 'c', type: Boolean, defaultValue: false }
+]);
 const getMetadata = async (album) => {
     console.log(`下载专辑信息中: ${album}`);
     const { thbWiki } = await Promise.resolve().then(() => require('../core/metadata/thb-wiki'));
@@ -31,7 +35,7 @@ const getMetadata = async (album) => {
         return writerMappings[type].write(metadata[index], file);
     }));
     const coverBuffer = metadata[0].coverImage;
-    if (coverBuffer) {
+    if (cliOptions.cover && coverBuffer) {
         const imageType = await Promise.resolve().then(() => require('image-type'));
         const type = imageType(coverBuffer);
         if (type !== null) {

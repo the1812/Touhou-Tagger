@@ -2,7 +2,13 @@
 import * as readline from "readline"
 import { basename, extname } from 'path'
 import { writeFileSync } from 'fs'
+import * as commandLineArgs from 'command-line-args'
 
+const cliOptions = commandLineArgs([
+  { name: 'cover', alias: 'c', type: Boolean, defaultValue: false }
+]) as {
+  cover: boolean
+}
 const getMetadata = async (album: string) => {
   console.log(`下载专辑信息中: ${album}`)
   const { thbWiki } = await import('../core/metadata/thb-wiki')
@@ -30,7 +36,7 @@ const getMetadata = async (album: string) => {
     return writerMappings[type].write(metadata[index], file)
   }))
   const coverBuffer = metadata[0].coverImage
-  if (coverBuffer) {
+  if (cliOptions.cover && coverBuffer) {
     const imageType = await import('image-type')
     const type = imageType(coverBuffer)
     if (type !== null) {
