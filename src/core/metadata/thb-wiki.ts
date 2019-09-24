@@ -71,6 +71,7 @@ export class THBWiki implements MetadataSource {
       编曲: defaultInfoParser('arrangers'),
       作曲: defaultInfoParser('composers'),
       演唱: defaultInfoParser('vocals'),
+      演奏: defaultInfoParser('instruments'),
       作词: defaultInfoParser('lyricists'),
       原曲: (data) => {
         let result = `原曲: `
@@ -114,13 +115,11 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = infos
-      .filter(it => it.name === 'vocals')
-      .map(it => it.result as string[])
-      .concat(infos
-        .filter(it => it.name === 'arrangers')
-        .map(it => it.result as string[]))
-      .flat()
+    const artists = ['vocals', 'instruments', 'arrangers']
+      .flatMap(name => infos
+        .filter(it => it.name === name)
+        .map(it => it.result as string[])
+        .flat())
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])

@@ -69,6 +69,7 @@ class THBWiki {
             编曲: defaultInfoParser('arrangers'),
             作曲: defaultInfoParser('composers'),
             演唱: defaultInfoParser('vocals'),
+            演奏: defaultInfoParser('instruments'),
             作词: defaultInfoParser('lyricists'),
             原曲: (data) => {
                 let result = `原曲: `;
@@ -113,13 +114,11 @@ class THBWiki {
         const [comments] = infos
             .filter(it => it.name === 'comments')
             .map(it => it.result);
-        const artists = infos
-            .filter(it => it.name === 'vocals')
+        const artists = ['vocals', 'instruments', 'arrangers']
+            .flatMap(name => infos
+            .filter(it => it.name === name)
             .map(it => it.result)
-            .concat(infos
-            .filter(it => it.name === 'arrangers')
-            .map(it => it.result))
-            .flat();
+            .flat());
         const [composers] = infos
             .filter(it => it.name === 'composers')
             .map(it => it.result);
