@@ -70,6 +70,7 @@ export class THBWiki implements MetadataSource {
     const data = trackInfoRow.querySelector('.text') as HTMLElement
     const actions: { [infoName: string]: (data: HTMLElement) => TrackParseInfo } = {
       编曲: defaultInfoParser('arrangers'),
+      再编曲: defaultInfoParser('remix'),
       作曲: defaultInfoParser('composers'),
       演唱: defaultInfoParser('vocals'),
       演奏: defaultInfoParser('instruments'),
@@ -116,7 +117,7 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = ['vocals', 'instruments', 'arrangers']
+    const artists = ['vocals', 'instruments', 'remix', 'arrangers']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
