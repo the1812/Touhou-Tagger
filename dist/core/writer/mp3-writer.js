@@ -2,18 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const metadata_writer_1 = require("./metadata-writer");
 const id3 = require("node-id3");
+const core_config_1 = require("../core-config");
 const getNodeId3Tag = (metadata) => {
     const tag = {
         title: metadata.title,
-        artist: metadata.artists.join(', '),
+        artist: metadata.artists.join(core_config_1.MetadataSeparator),
         album: metadata.album,
         partOfSet: metadata.discNumber,
         trackNumber: metadata.trackNumber,
-        composer: metadata.composers ? metadata.composers.join(', ') : '',
-        genre: metadata.genres ? metadata.genres.join(', ') : '',
+        composer: metadata.composers ? metadata.composers.join(core_config_1.MetadataSeparator) : '',
+        genre: metadata.genres ? metadata.genres.join(core_config_1.MetadataSeparator) : '',
         year: metadata.year || '',
-        textWriter: metadata.lyricists ? metadata.lyricists.join(', ') : '',
-        performerInfo: metadata.albumArtists ? metadata.albumArtists.join(', ') : '',
+        textWriter: metadata.lyricists ? metadata.lyricists.join(core_config_1.MetadataSeparator) : '',
+        performerInfo: metadata.albumArtists ? metadata.albumArtists.join(core_config_1.MetadataSeparator) : '',
         comment: {
             text: metadata.comments || '',
         },

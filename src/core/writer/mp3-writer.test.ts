@@ -2,6 +2,7 @@ import { copyFileSync, readFileSync } from 'fs'
 import { mp3Writer } from './mp3-writer'
 import * as id3 from 'node-id3'
 import { Metadata } from '../metadata/metadata'
+import { MetadataSeparator } from '../core-config'
 
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3'
 const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3'
@@ -22,8 +23,8 @@ test('MP3 Metadata Write', async () => {
   await mp3Writer.write(metadata, outputFilename)
   const tag = id3.read(outputFilename)
   expect(tag.title).toEqual(metadata.title)
-  expect(tag.artist).toEqual(metadata.artists.join(', '))
-  expect(tag.performerInfo).toEqual(metadata.albumArtists!.join(', '))
+  expect(tag.artist).toEqual(metadata.artists.join(MetadataSeparator))
+  expect(tag.performerInfo).toEqual(metadata.albumArtists!.join(MetadataSeparator))
   expect(tag.album).toEqual(metadata.album)
   expect(tag.comment.text).toEqual(metadata.comments)
   expect(tag.trackNumber).toEqual(metadata.trackNumber)

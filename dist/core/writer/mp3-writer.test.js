@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const mp3_writer_1 = require("./mp3-writer");
 const id3 = require("node-id3");
+const core_config_1 = require("../core-config");
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3';
 const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3';
 const coverFilename = 'test-files/cover.jpg';
@@ -22,8 +23,8 @@ test('MP3 Metadata Write', async () => {
     await mp3_writer_1.mp3Writer.write(metadata, outputFilename);
     const tag = id3.read(outputFilename);
     expect(tag.title).toEqual(metadata.title);
-    expect(tag.artist).toEqual(metadata.artists.join(', '));
-    expect(tag.performerInfo).toEqual(metadata.albumArtists.join(', '));
+    expect(tag.artist).toEqual(metadata.artists.join(core_config_1.MetadataSeparator));
+    expect(tag.performerInfo).toEqual(metadata.albumArtists.join(core_config_1.MetadataSeparator));
     expect(tag.album).toEqual(metadata.album);
     expect(tag.comment.text).toEqual(metadata.comments);
     expect(tag.trackNumber).toEqual(metadata.trackNumber);
