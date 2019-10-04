@@ -52,7 +52,6 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
             else {
                 const mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(!metadata.coverImage, DefaultVendor, getVorbisComments(metadata));
                 this.push(mdbVorbis.publish());
-                console.log('push comments');
             }
         });
         pictureProcessor.on('preprocess', function (mdb) {
@@ -65,7 +64,6 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 const info = imageinfo(metadata.coverImage);
                 const mdbPicture = flac.data.MetaDataBlockPicture.create(!!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
                 this.push(mdbPicture.publish());
-                console.log('push picture');
             }
         });
         const fileBuffer = fs_1.readFileSync(filePath);
@@ -78,9 +76,6 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
         const writer = fs_1.createWriteStream(filePath);
         reader.pipe(commentsProcessor).pipe(pictureProcessor).pipe(writer);
         await util_1.promisify(stream_1.finished)(writer);
-    }
-    async update(metadata, filePath) {
-        throw new Error('Method not implemented.');
     }
 }
 exports.FlacWriter = FlacWriter;

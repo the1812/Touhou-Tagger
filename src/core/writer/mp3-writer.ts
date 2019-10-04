@@ -41,11 +41,11 @@ export class Mp3Writer extends MetadataWriter {
       throw new Error(`Write operation failed. filePath = ${filePath}`)
     }
   }
-  async update(metadata: Metadata, filePath: string) {
-    const result = id3.update(getNodeId3Tag(metadata), filePath)
-    if (result === false) {
-      throw new Error(`Update operation failed. filePath = ${filePath}`)
-    }
-  }
+  // async update(metadata: Metadata, filePath: string) {
+  //   const result = id3.update(getNodeId3Tag(metadata), filePath)
+  //   if (result === false) {
+  //     throw new Error(`Update operation failed. filePath = ${filePath}`)
+  //   }
+  // }
 }
 export const mp3Writer = new Mp3Writer()

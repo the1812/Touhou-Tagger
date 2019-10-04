@@ -41,12 +41,6 @@ class Mp3Writer extends metadata_writer_1.MetadataWriter {
             throw new Error(`Write operation failed. filePath = ${filePath}`);
         }
     }
-    async update(metadata, filePath) {
-        const result = id3.update(getNodeId3Tag(metadata), filePath);
-        if (result === false) {
-            throw new Error(`Update operation failed. filePath = ${filePath}`);
-        }
-    }
 }
 exports.Mp3Writer = Mp3Writer;
 exports.mp3Writer = new Mp3Writer();

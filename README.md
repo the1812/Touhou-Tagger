@@ -93,10 +93,8 @@ import { MetadataWriter } from './metadata-writer'
 import { Metadata } from './metadata'
 
 export class XxxWriter extends MetadataWriter {
-  // 将信息写入文件, 覆盖其他专辑信息
+  // 将专辑信息写入文件
   async write(metadata: Metadata, filePath: string): Promise<void> { /* ... */ }
-  // 将信息写入文件, 仅更新 metadata 中有效的条目
-  async update(metadata: Metadata, filePath: string): Promise<void> { /* ... */ }
 }
 export const xxxWriter = new XxxWriter()
 ```

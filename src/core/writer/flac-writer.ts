@@ -54,7 +54,6 @@ export class FlacWriter extends MetadataWriter {
           DefaultVendor,
           getVorbisComments(metadata))
         this.push(mdbVorbis.publish())
-        console.log('push comments')
       }
     })
     pictureProcessor.on('preprocess', function (mdb: any) {
@@ -76,7 +75,6 @@ export class FlacWriter extends MetadataWriter {
           metadata.coverImage
         )
         this.push(mdbPicture.publish())
-        console.log('push picture')
       }
     }
     )
@@ -90,9 +88,6 @@ export class FlacWriter extends MetadataWriter {
     const writer = createWriteStream(filePath)
     reader.pipe(commentsProcessor).pipe(pictureProcessor).pipe(writer)
     await promisify(finished)(writer)
-  }
-  async update(metadata: Metadata, filePath: string) {
-    throw new Error('Method not implemented.')
   }
 }
 export const flacWriter = new FlacWriter()

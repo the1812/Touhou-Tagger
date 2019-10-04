@@ -30,11 +30,18 @@ const getMetadata = async (album) => {
         renameSync(file, targetFiles[index]);
     });
     console.log('写入专辑信息中...');
-    await Promise.all(targetFiles.map((file, index) => {
+    for (let i = 0; i < targetFiles.length; i++) {
+        const file = targetFiles[i];
         console.log(file);
         const type = path_1.extname(file);
-        return writerMappings[type].write(metadata[index], file);
-    }));
+        await writerMappings[type].write(metadata[i], file);
+    }
+    // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
+    // await Promise.all(targetFiles.map((file, index) => {
+    //   console.log(file)
+    //   const type = extname(file)
+    //   return writerMappings[type].write(metadata[index], file)
+    // }))
     const coverBuffer = metadata[0].coverImage;
     if (cliOptions.cover && coverBuffer) {
         const imageType = await Promise.resolve().then(() => require('image-type'));
