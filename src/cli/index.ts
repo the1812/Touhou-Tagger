@@ -74,8 +74,16 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
     process.exit()
   }
   const searchResult = await metadataSource.resolveAlbumName(album)
+  const handleError = (error: any) => {
+    if (error instanceof Error) {
+      console.error(`错误: ${error.message}`)
+      process.exit()
+    } else {
+      throw error
+    }
+  }
   if (typeof searchResult === 'string') {
-    await getMetadata(album)
+    await getMetadata(album).catch(handleError)
   } else {
     console.log('未找到匹配专辑, 以下是搜索结果:')
     console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'))
@@ -84,7 +92,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
       if (isNaN(index) || index < 1 || index > searchResult.length) {
         process.exit()
       }
-      await getMetadata(searchResult[index - 1])
+      await getMetadata(searchResult[index - 1]).catch(handleError)
     })
   }
 })

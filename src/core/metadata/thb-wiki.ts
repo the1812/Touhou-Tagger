@@ -142,6 +142,9 @@ export class THBWiki implements MetadataSource {
     const dom = new JSDOM(response.data)
     const document = dom.window.document
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
+    if (!infoTable) {
+      throw new Error('页面不是同人专辑词条')
+    }
     const {
       album,
       albumArtists,

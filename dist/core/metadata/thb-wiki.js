@@ -141,6 +141,9 @@ class THBWiki {
         const dom = new jsdom_1.JSDOM(response.data);
         const document = dom.window.document;
         const infoTable = document.querySelector('.doujininfo');
+        if (!infoTable) {
+            throw new Error('页面不是同人专辑词条');
+        }
         const { album, albumArtists, genres, year } = this.getAlbumData(infoTable);
         const coverImageElement = document.querySelector('.cover-artwork img');
         const coverImage = coverImageElement ? await this.getAlbumCover(coverImageElement) : undefined;
