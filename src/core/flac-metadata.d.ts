@@ -26,7 +26,7 @@ declare module 'flac-metadata' {
     pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T;
     eventNames(): (string | symbol)[];
     constructor(options?: ProcessorOption);
-    static MDB_TYPE_STREAM_INFO: number;
+    static MDB_TYPE_STREAMINFO: number;
     static MDB_TYPE_VORBIS_COMMENT: number;
     static MDB_TYPE_PICTURE: number;
   }
