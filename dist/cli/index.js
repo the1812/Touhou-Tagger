@@ -24,7 +24,7 @@ const getMetadata = async (album) => {
     }
     const targetFiles = files.map((file, index) => {
         const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2);
-        return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`;
+        return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
     });
     files.forEach((file, index) => {
         renameSync(file, targetFiles[index]);
