@@ -19,7 +19,7 @@ const getMetadata = async (album: string) => {
   const { readdirSync, renameSync } = await import('fs')
   const { writerMappings } = await import('../core/writer/writer-mappings')
   const fileTypes = Object.keys(writerMappings)
-  const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type)))
+  const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type))).slice(0, metadata.length)
   if (files.length === 0) {
     console.log('未找到任何支持的音乐文件.')
     process.exit()
