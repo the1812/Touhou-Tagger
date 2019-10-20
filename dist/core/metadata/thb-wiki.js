@@ -25,7 +25,7 @@ class THBWiki {
         return response.data;
     }
     getAlbumData(infoTable) {
-        const getTableItem = (labelName) => {
+        function getTableItem(labelName, multiple = false) {
             const labelElements = [...infoTable.querySelectorAll('.label')]
                 .filter(it => it.innerHTML.trim() === labelName);
             if (labelElements.length === 0) {
@@ -33,12 +33,18 @@ class THBWiki {
             }
             const [item] = labelElements.map(it => {
                 const nextElement = it.nextElementSibling;
-                return nextElement.textContent.trim();
+                if (multiple) {
+                    return [...nextElement.querySelectorAll('a')]
+                        .map(element => element.textContent);
+                }
+                else {
+                    return nextElement.textContent.trim();
+                }
             });
             return item;
-        };
+        }
         const album = getTableItem('名称');
-        const albumArtists = getTableItem('制作方').split('\n');
+        const albumArtists = getTableItem('制作方', true);
         const genres = getTableItem('风格类型').split('，');
         const year = parseInt(getTableItem('首发日期')).toString();
         return {
@@ -71,6 +77,7 @@ class THBWiki {
             再编曲: defaultInfoParser('remix'),
             作曲: defaultInfoParser('composers'),
             演唱: defaultInfoParser('vocals'),
+            翻唱: defaultInfoParser('coverVocals'),
             演奏: defaultInfoParser('instruments'),
             作词: defaultInfoParser('lyricists'),
             原曲: (data) => {
@@ -116,7 +123,7 @@ class THBWiki {
         const [comments] = infos
             .filter(it => it.name === 'comments')
             .map(it => it.result);
-        const artists = ['vocals', 'instruments', 'remix', 'arrangers']
+        const artists = ['vocals', 'coverVocals', 'instruments', 'remix', 'arrangers']
             .flatMap(name => infos
             .filter(it => it.name === name)
             .map(it => it.result)

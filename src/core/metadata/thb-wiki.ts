@@ -27,7 +27,9 @@ export class THBWiki implements MetadataSource {
     return response.data as Buffer
   }
   private getAlbumData(infoTable: Element) {
-    const getTableItem = (labelName: string) => {
+    function getTableItem(labelName: string): string;
+    function getTableItem(labelName: string, multiple: true): string[];
+    function getTableItem(labelName: string, multiple = false) {
       const labelElements = [...infoTable.querySelectorAll('.label')]
         .filter(it => it.innerHTML.trim() === labelName)
       if (labelElements.length === 0) {
@@ -35,12 +37,17 @@ export class THBWiki implements MetadataSource {
       }
       const [item] = labelElements.map(it => {
         const nextElement = it.nextElementSibling as HTMLElement
-        return nextElement.textContent!.trim()
+        if (multiple) {
+          return [...nextElement.querySelectorAll('a')]
+            .map(element => element.textContent)
+        } else {
+          return nextElement.textContent!.trim()
+        }
       })
       return item
     }
     const album = getTableItem('名称')
-    const albumArtists = getTableItem('制作方').split('\n')
+    const albumArtists = getTableItem('制作方', true)
     const genres = getTableItem('风格类型').split('，')
     const year = parseInt(getTableItem('首发日期')).toString()
     return {
@@ -73,6 +80,7 @@ export class THBWiki implements MetadataSource {
       再编曲: defaultInfoParser('remix'),
       作曲: defaultInfoParser('composers'),
       演唱: defaultInfoParser('vocals'),
+      翻唱: defaultInfoParser('coverVocals'),
       演奏: defaultInfoParser('instruments'),
       作词: defaultInfoParser('lyricists'),
       原曲: (data) => {
@@ -117,7 +125,7 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = ['vocals', 'instruments', 'remix', 'arrangers']
+    const artists = ['vocals', 'coverVocals', 'instruments', 'remix', 'arrangers']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
