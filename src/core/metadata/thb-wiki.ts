@@ -81,6 +81,9 @@ export class THBWiki implements MetadataSource {
       作曲: defaultInfoParser('composers'),
       演唱: defaultInfoParser('vocals'),
       翻唱: defaultInfoParser('coverVocals'),
+      和声: defaultInfoParser('harmonyVocals'),
+      伴唱: defaultInfoParser('accompanyVocals'),
+      合唱: defaultInfoParser('chorusVocals'),
       演奏: defaultInfoParser('instruments'),
       作词: defaultInfoParser('lyricists'),
       原曲: (data) => {
@@ -125,7 +128,7 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = ['vocals', 'coverVocals', 'instruments', 'remix', 'arrangers']
+    const artists = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals','instruments', 'remix', 'arrangers']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
