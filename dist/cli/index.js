@@ -15,16 +15,27 @@ const getMetadata = async (album) => {
     const metadata = await sourceMappings[cliOptions.source].getMetadata(album);
     console.log('创建文件中...');
     const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
+    const { dirname } = await Promise.resolve().then(() => require('path'));
     const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
     const fileTypes = Object.keys(writerMappings);
-    const files = readdirSync('.').filter(file => fileTypes.some(type => file.endsWith(type))).slice(0, metadata.length);
+    const fileTypeFilter = (file) => fileTypes.some(type => file.endsWith(type));
+    const dir = readdirSync('.');
+    const discFiles = dir.filter(f => f.match(/^Disc (\d+)/)).flatMap(f => readdirSync(f).map(inner => `${f}/${inner}`));
+    const files = dir.filter(fileTypeFilter).concat(discFiles).slice(0, metadata.length);
     if (files.length === 0) {
         console.log('未找到任何支持的音乐文件.');
         process.exit();
     }
     const targetFiles = files.map((file, index) => {
         const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2);
-        return `${(index + 1).toString().padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
+        let dir = dirname(file);
+        if (dir === '.') {
+            dir = '';
+        }
+        else {
+            dir += '/';
+        }
+        return dir + `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
     });
     files.forEach((file, index) => {
         renameSync(file, targetFiles[index]);

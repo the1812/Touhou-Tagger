@@ -128,11 +128,12 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals','instruments', 'remix', 'arrangers']
+    const artists = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals', 'instruments', 'remix', 'arrangers']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
-        .flat())
+        .flat()
+      )
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
@@ -141,11 +142,11 @@ export class THBWiki implements MetadataSource {
     }
     return {
       title,
-      artists: [...new Set(artists)],
+      artists: [...new Set(artists)].map(it => it.replace('（人物）', '')),
       trackNumber,
       comments,
-      lyricists,
-      composers,
+      lyricists: lyricists ? lyricists.map(it => it.replace('（人物）', '')) : lyricists,
+      composers: composers ? composers.map(it => it.replace('（人物）', '')) : composers,
     }
   }
   async getMetadata(albumName: string) {
