@@ -1,6 +1,5 @@
 .vscode/
 .node_modules/
-package-lock.json
 test-files/
 test.json
 test.html
