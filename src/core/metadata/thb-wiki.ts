@@ -67,9 +67,19 @@ export class THBWiki implements MetadataSource {
   private parseRelatedRowInfo(trackInfoRow: Element): TrackParseInfo {
     const defaultInfoParser = (name: string): (data: Element) => TrackParseInfo => {
       return (data: Element) => {
+        let textContent = data.textContent!
+        /*
+          要是这个值就是一个_, THBWiki 会转成一个警告...
+          例如疯帽子茶会'千年战争'中出现的编曲者就有一个_
+          https://thwiki.cc/%E5%8D%83%E5%B9%B4%E6%88%98%E4%BA%89%EF%BD%9Eiek_loin_staim_haf_il_dis_o-del_al
+        */
+        const warningMatch = textContent.match(/包含无效字符或不完整，并因此在查询或注释过程期间导致意外结果。\[\[(.+)\]\]/)
+        if (warningMatch) {
+          textContent = warningMatch[1]
+        }
         return {
           name,
-          result: data.textContent!.trim().split('，')
+          result: textContent.trim().split('，')
         }
       }
     }
@@ -116,6 +126,19 @@ export class THBWiki implements MetadataSource {
     }
     return action(data)
   }
+  private rowDataNormalize(rowData: any) {
+    const normalizeAction = (str: string) => {
+      return str.replace('（人物）', '')
+    }
+    for (const [key, value] of Object.entries(rowData)) {
+      if (typeof value === 'string') {
+        rowData[key] = normalizeAction(value)
+      }
+      if (Array.isArray(value)) {
+        rowData[key] = value.map(v => normalizeAction(v))
+      }
+    }
+  }
   private parseRow(trackNumberElement: Element) {
     const trackNumber = parseInt(trackNumberElement.textContent!, 10).toString()
     const trackNumberRow = trackNumberElement.parentElement as HTMLTableRowElement
@@ -128,26 +151,35 @@ export class THBWiki implements MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const artists = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals', 'instruments', 'remix', 'arrangers']
+    const arrangers = ['remix', 'arrangers']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
         .flat()
       )
+    const performers = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals', 'instruments']
+      .flatMap(name => infos
+        .filter(it => it.name === name)
+        .map(it => it.result as string[])
+        .flat()
+      )
+    const artists = performers.concat(arrangers)
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
-    if (artists.length === 0) {
+    if (arrangers.length === 0) {
       artists.push(...composers)
     }
-    return {
+    const rowData = {
       title,
-      artists: [...new Set(artists)].map(it => it.replace('（人物）', '')),
+      artists: [...new Set(artists)],
       trackNumber,
       comments,
-      lyricists: lyricists ? lyricists.map(it => it.replace('（人物）', '')) : lyricists,
-      composers: composers ? composers.map(it => it.replace('（人物）', '')) : composers,
+      lyricists,
+      composers,
     }
+    this.rowDataNormalize(rowData)
+    return rowData
   }
   async getMetadata(albumName: string) {
     const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
