@@ -1,21 +1,43 @@
 #!/usr/bin/env node
-import * as readline from "readline"
+import * as readline from 'readline'
 import { basename, extname } from 'path'
 import { writeFileSync } from 'fs'
 import * as commandLineArgs from 'command-line-args'
+import { LyricConfig, MetadataConfig } from '../core/core-config'
+import { Metadata, writerMappings } from '../core'
+import { log, setDebug } from '../core/debug'
 
 const cliOptions = commandLineArgs([
   { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
-  { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' }
+  { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
+  { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
+  { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
+  { name: 'lyric-type', alias: 't', type: String, defaultValue: 'original' },
+  { name: 'lyric-output', alias: 'o', type: String, defaultValue: 'metadata' },
 ]) as {
   cover: boolean
+  debug: boolean
   source: string
+  lyric: boolean
+  'lyric-type': string
+  'lyric-output': string
 }
-const getMetadata = async (album: string) => {
-  console.log(`下载专辑信息中: ${album}`)
+setDebug(cliOptions.debug)
+const metadataConfig: MetadataConfig = {
+  lyric: cliOptions.lyric ? {
+    type: cliOptions['lyric-type'],
+    output: cliOptions['lyric-output'],
+  } as LyricConfig : undefined
+}
+log(cliOptions, metadataConfig)
+
+const downloadMetadata = async (album: string) => {
   const { sourceMappings } = await import(`../core/metadata/source-mappings`)
-  const metadata = await sourceMappings[cliOptions.source].getMetadata(album)
-  console.log('创建文件中...')
+  const metadataSource = sourceMappings[cliOptions.source]
+  metadataSource.config = metadataConfig
+  return await metadataSource.getMetadata(album)
+}
+const createFiles = async (metadata: Metadata[]) => {
   const { readdirSync, renameSync } = await import('fs')
   const { dirname } = await import('path')
   const { writerMappings } = await import('../core/writer/writer-mappings')
@@ -41,12 +63,19 @@ const getMetadata = async (album: string) => {
   files.forEach((file, index) => {
     renameSync(file, targetFiles[index])
   })
-  console.log('写入专辑信息中...')
+  return targetFiles
+}
+const writeMetadataToFile = async (metadata: Metadata[], targetFiles: string[]) => {
   for (let i = 0; i < targetFiles.length; i++) {
     const file = targetFiles[i]
     console.log(file)
     const type = extname(file)
-    await writerMappings[type].write(metadata[i], file)
+    const writer = writerMappings[type]
+    writer.config = metadataConfig
+    await writer.write(metadata[i], file)
+    if (cliOptions.lyric && cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
+      writeFileSync(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric)
+    }
   }
   // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
   // await Promise.all(targetFiles.map((file, index) => {
@@ -64,6 +93,14 @@ const getMetadata = async (album: string) => {
       writeFileSync(coverFilename, coverBuffer)
     }
   }
+}
+const fetchMetadata = async (album: string) => {
+  console.log(`下载专辑信息中: ${album}`)
+  const metadata = await downloadMetadata(album)
+  console.log('创建文件中...')
+  const targetFiles = await createFiles(metadata)
+  console.log('写入专辑信息中...')
+  await writeMetadataToFile(metadata, targetFiles)
   console.log(`成功写入了专辑信息: ${album}`)
   process.exit()
 }
@@ -93,7 +130,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
     }
   }
   if (typeof searchResult === 'string') {
-    await getMetadata(album).catch(handleError)
+    await fetchMetadata(album).catch(handleError)
   } else if (searchResult.length > 0) {
     console.log('未找到匹配专辑, 以下是搜索结果:')
     console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'))
@@ -102,7 +139,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
       if (isNaN(index) || index < 1 || index > searchResult.length) {
         process.exit()
       }
-      await getMetadata(searchResult[index - 1]).catch(handleError)
+      await fetchMetadata(searchResult[index - 1]).catch(handleError)
     })
   } else {
     console.log('未找到匹配专辑, 且没有搜索结果, 请尝试使用更准确的专辑名称.')

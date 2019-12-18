@@ -1,6 +1,8 @@
 import { Metadata } from './metadata'
+import { MetadataConfig } from '../core-config'
 
-export interface MetadataSource {
-  resolveAlbumName: (albumName: string) => Promise<string[] | string>
-  getMetadata: (albumName: string) => Promise<Metadata[]>
+export abstract class MetadataSource {
+  config: MetadataConfig = {}
+  abstract resolveAlbumName(albumName: string): Promise<string[] | string>
+  abstract getMetadata(albumName: string): Promise<Metadata[]>
 }

@@ -43,6 +43,7 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
     async write(metadata, filePath) {
         const commentsProcessor = new flac.Processor({ parseMetaDataBlocks: true });
         const pictureProcessor = new flac.Processor({ parseMetaDataBlocks: true });
+        const lyricConfig = this.config.lyric;
         commentsProcessor.on('preprocess', function (mdb) {
             if (!mdb.isLast) {
                 if (mdb.type === flac.Processor.MDB_TYPE_VORBIS_COMMENT) {
@@ -50,7 +51,11 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 }
             }
             else {
-                const mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(!metadata.coverImage, DefaultVendor, getVorbisComments(metadata));
+                let vorbisComments = getVorbisComments(metadata);
+                if (lyricConfig && lyricConfig.output === 'lrc') {
+                    vorbisComments = vorbisComments.filter(c => !c.startsWith('LYRICS='));
+                }
+                const mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(!metadata.coverImage, DefaultVendor, vorbisComments);
                 this.push(mdbVorbis.publish());
             }
         });

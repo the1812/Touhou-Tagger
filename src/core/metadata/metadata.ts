@@ -6,6 +6,7 @@ export interface Metadata {
   trackNumber: string
   composers?: string[]
   comments?: string
+  lyricLanguage?: string
   lyric?: string
   lyricists?: string[]
   // Album data

@@ -1,6 +1,8 @@
 import { Metadata } from '../metadata/metadata';
+import { MetadataConfig } from '../core-config'
 
 export abstract class MetadataWriter {
+  config: MetadataConfig = {}
   abstract write(metadata: Metadata, filePath: string): Promise<void>
   // abstract update(metadata: Metadata, filePath: string): Promise<void>
   async writeAll(metadatas: Metadata[], filePaths: string[]) {

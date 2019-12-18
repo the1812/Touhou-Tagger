@@ -7,5 +7,6 @@ __export(require("./writer/metadata-writer"));
 __export(require("./writer/mp3-writer"));
 __export(require("./writer/flac-writer"));
 __export(require("./writer/writer-mappings"));
+__export(require("./metadata/metadata-source"));
 __export(require("./metadata/source-mappings"));
 __export(require("./metadata/thb-wiki"));

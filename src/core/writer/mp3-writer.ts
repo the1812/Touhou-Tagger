@@ -3,6 +3,14 @@ import { Metadata } from '../metadata/metadata'
 import * as id3 from 'node-id3'
 import { MetadataSeparator } from '../core-config'
 
+const languageCodeConvert = (code: string | undefined) => {
+  const mapping = {
+    ja: 'jpn',
+    de: 'deu',
+    zh: 'zho'
+  }
+  return code ? (mapping[code] || 'jpn') : 'jpn'
+}
 const getNodeId3Tag = (metadata: Metadata) => {
   const tag: id3.NodeID3Tag = {
     title: metadata.title,
@@ -19,6 +27,7 @@ const getNodeId3Tag = (metadata: Metadata) => {
       text: metadata.comments || '',
     },
     unsynchronisedLyrics: {
+      language: languageCodeConvert(metadata.lyricLanguage),
       text: metadata.lyric || '',
     },
   }
@@ -36,7 +45,12 @@ const getNodeId3Tag = (metadata: Metadata) => {
 }
 export class Mp3Writer extends MetadataWriter {
   async write(metadata: Metadata, filePath: string) {
-    const result = id3.write(getNodeId3Tag(metadata), filePath)
+    const tag = getNodeId3Tag(metadata)
+    if (this.config.lyric && this.config.lyric.output === 'lrc') {
+      tag.unsynchronisedLyrics.text = ''
+      tag.unsynchronisedLyrics.language = undefined
+    }
+    const result = id3.write(tag, filePath)
     if (result === false) {
       throw new Error(`Write operation failed. filePath = ${filePath}`)
     }

@@ -5,15 +5,31 @@ const readline = require("readline");
 const path_1 = require("path");
 const fs_1 = require("fs");
 const commandLineArgs = require("command-line-args");
+const core_1 = require("../core");
+const debug_1 = require("../core/debug");
 const cliOptions = commandLineArgs([
     { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
-    { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' }
+    { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
+    { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
+    { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
+    { name: 'lyric-type', alias: 't', type: String, defaultValue: 'original' },
+    { name: 'lyric-output', alias: 'o', type: String, defaultValue: 'metadata' },
 ]);
-const getMetadata = async (album) => {
-    console.log(`下载专辑信息中: ${album}`);
+debug_1.setDebug(cliOptions.debug);
+const metadataConfig = {
+    lyric: cliOptions.lyric ? {
+        type: cliOptions['lyric-type'],
+        output: cliOptions['lyric-output'],
+    } : undefined
+};
+debug_1.log(cliOptions, metadataConfig);
+const downloadMetadata = async (album) => {
     const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
-    const metadata = await sourceMappings[cliOptions.source].getMetadata(album);
-    console.log('创建文件中...');
+    const metadataSource = sourceMappings[cliOptions.source];
+    metadataSource.config = metadataConfig;
+    return await metadataSource.getMetadata(album);
+};
+const createFiles = async (metadata) => {
     const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
     const { dirname } = await Promise.resolve().then(() => require('path'));
     const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
@@ -40,12 +56,19 @@ const getMetadata = async (album) => {
     files.forEach((file, index) => {
         renameSync(file, targetFiles[index]);
     });
-    console.log('写入专辑信息中...');
+    return targetFiles;
+};
+const writeMetadataToFile = async (metadata, targetFiles) => {
     for (let i = 0; i < targetFiles.length; i++) {
         const file = targetFiles[i];
         console.log(file);
         const type = path_1.extname(file);
-        await writerMappings[type].write(metadata[i], file);
+        const writer = core_1.writerMappings[type];
+        writer.config = metadataConfig;
+        await writer.write(metadata[i], file);
+        if (cliOptions.lyric && cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
+            fs_1.writeFileSync(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric);
+        }
     }
     // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
     // await Promise.all(targetFiles.map((file, index) => {
@@ -63,6 +86,14 @@ const getMetadata = async (album) => {
             fs_1.writeFileSync(coverFilename, coverBuffer);
         }
     }
+};
+const fetchMetadata = async (album) => {
+    console.log(`下载专辑信息中: ${album}`);
+    const metadata = await downloadMetadata(album);
+    console.log('创建文件中...');
+    const targetFiles = await createFiles(metadata);
+    console.log('写入专辑信息中...');
+    await writeMetadataToFile(metadata, targetFiles);
     console.log(`成功写入了专辑信息: ${album}`);
     process.exit();
 };
@@ -93,7 +124,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
         }
     };
     if (typeof searchResult === 'string') {
-        await getMetadata(album).catch(handleError);
+        await fetchMetadata(album).catch(handleError);
     }
     else if (searchResult.length > 0) {
         console.log('未找到匹配专辑, 以下是搜索结果:');
@@ -103,7 +134,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
             if (isNaN(index) || index < 1 || index > searchResult.length) {
                 process.exit();
             }
-            await getMetadata(searchResult[index - 1]).catch(handleError);
+            await fetchMetadata(searchResult[index - 1]).catch(handleError);
         });
     }
     else {

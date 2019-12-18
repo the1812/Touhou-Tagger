@@ -14,6 +14,7 @@ declare module 'node-id3' {
       text: string
     }
     unsynchronisedLyrics: {
+      language?: string
       text: string
     }
     image?: {

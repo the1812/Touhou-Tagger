@@ -3,6 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const metadata_writer_1 = require("./metadata-writer");
 const id3 = require("node-id3");
 const core_config_1 = require("../core-config");
+const languageCodeConvert = (code) => {
+    const mapping = {
+        ja: 'jpn',
+        de: 'deu',
+        zh: 'zho'
+    };
+    return code ? (mapping[code] || 'jpn') : 'jpn';
+};
 const getNodeId3Tag = (metadata) => {
     const tag = {
         title: metadata.title,
@@ -19,6 +27,7 @@ const getNodeId3Tag = (metadata) => {
             text: metadata.comments || '',
         },
         unsynchronisedLyrics: {
+            language: languageCodeConvert(metadata.lyricLanguage),
             text: metadata.lyric || '',
         },
     };
@@ -36,7 +45,12 @@ const getNodeId3Tag = (metadata) => {
 };
 class Mp3Writer extends metadata_writer_1.MetadataWriter {
     async write(metadata, filePath) {
-        const result = id3.write(getNodeId3Tag(metadata), filePath);
+        const tag = getNodeId3Tag(metadata);
+        if (this.config.lyric && this.config.lyric.output === 'lrc') {
+            tag.unsynchronisedLyrics.text = '';
+            tag.unsynchronisedLyrics.language = undefined;
+        }
+        const result = id3.write(tag, filePath);
         if (result === false) {
             throw new Error(`Write operation failed. filePath = ${filePath}`);
         }

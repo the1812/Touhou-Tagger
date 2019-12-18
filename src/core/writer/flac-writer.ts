@@ -43,16 +43,21 @@ export class FlacWriter extends MetadataWriter {
   async write(metadata: Metadata, filePath: string) {
     const commentsProcessor = new flac.Processor({ parseMetaDataBlocks: true })
     const pictureProcessor = new flac.Processor({ parseMetaDataBlocks: true })
+    const lyricConfig = this.config.lyric
     commentsProcessor.on('preprocess', function (mdb: any) {
       if (!mdb.isLast) {
         if (mdb.type === flac.Processor.MDB_TYPE_VORBIS_COMMENT) {
           mdb.remove()
         }
       } else {
+        let vorbisComments = getVorbisComments(metadata)
+        if (lyricConfig && lyricConfig.output === 'lrc') {
+          vorbisComments = vorbisComments.filter(c => !c.startsWith('LYRICS='))
+        }
         const mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(
           !metadata.coverImage,
           DefaultVendor,
-          getVorbisComments(metadata))
+          vorbisComments)
         this.push(mdbVorbis.publish())
       }
     })

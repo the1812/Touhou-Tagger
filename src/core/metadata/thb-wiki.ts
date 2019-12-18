@@ -1,15 +1,15 @@
 import { MetadataSource } from './metadata-source'
 import { Metadata } from './metadata'
-import axios from 'axios'
+import Axios from 'axios'
 import { JSDOM } from 'jsdom'
-import { MetadataSeparator } from '../core-config'
+import { MetadataSeparator, MetadataConfig } from '../core-config'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 
-export class THBWiki implements MetadataSource {
+export class THBWiki extends MetadataSource {
   async resolveAlbumName(albumName: string) {
     const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-    const document = new JSDOM((await axios.get(url)).data).window.document
+    const document = new JSDOM((await Axios.get(url)).data).window.document
     const header = document.querySelector('#firstHeading')
     // 未找到精确匹配, 返回搜索结果
     if (header && header.textContent === '搜索结果') {
@@ -23,12 +23,12 @@ export class THBWiki implements MetadataSource {
   private async getAlbumCover(img: HTMLImageElement) {
     const src = img.src.replace('/thumb/', '/')
     const url = src.substring(0, src.lastIndexOf('/'))
-    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const response = await Axios.get(url, { responseType: 'arraybuffer' })
     return response.data as Buffer
   }
   private getAlbumData(infoTable: Element) {
-    function getTableItem(labelName: string): string;
-    function getTableItem(labelName: string, multiple: true): string[];
+    function getTableItem(labelName: string): string
+    function getTableItem(labelName: string, multiple: true): string[]
     function getTableItem(labelName: string, multiple = false) {
       const labelElements = [...infoTable.querySelectorAll('.label')]
         .filter(it => it.innerHTML.trim() === labelName)
@@ -139,10 +139,22 @@ export class THBWiki implements MetadataSource {
       }
     }
   }
-  private parseRow(trackNumberElement: Element) {
+  private async parseRow(trackNumberElement: Element) {
     const trackNumber = parseInt(trackNumberElement.textContent!, 10).toString()
     const trackNumberRow = trackNumberElement.parentElement as HTMLTableRowElement
     const title = trackNumberRow.querySelector('.title')!.textContent!.trim()
+    const { lyricLanguage, lyric } = await (async () => {
+      const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)') as HTMLAnchorElement
+      if (this.config.lyric && lyricLink) {
+        const { downloadLyrics } = await import('./thb-wiki-lyrics')
+        return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric)
+      } else {
+        return {
+          lyric: undefined,
+          lyricLanguage: undefined
+        }
+      }
+    })()
     const relatedInfoRows = this.getRelatedRows(trackNumberRow)
     const infos = relatedInfoRows.map(it => this.parseRelatedRowInfo(it))
     const [lyricists] = infos
@@ -177,13 +189,16 @@ export class THBWiki implements MetadataSource {
       comments,
       lyricists,
       composers,
+      lyric,
+      lyricLanguage,
     }
     this.rowDataNormalize(rowData)
     return rowData
   }
-  async getMetadata(albumName: string) {
+  async getMetadata(albumName: string, config?: MetadataConfig) {
+    this.config = Object.assign(this.config, config)
     const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-    const response = await axios.get(url)
+    const response = await Axios.get(url)
     const dom = new JSDOM(response.data)
     const document = dom.window.document
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
@@ -212,7 +227,7 @@ export class THBWiki implements MetadataSource {
           genres,
           year,
           coverImage,
-          ...this.parseRow(trackNumberElement)
+          ...(await this.parseRow(trackNumberElement))
         }
         metadatas.push(metadata)
       }

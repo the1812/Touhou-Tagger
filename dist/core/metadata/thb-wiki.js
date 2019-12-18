@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const metadata_source_1 = require("./metadata-source");
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
 const core_config_1 = require("../core-config");
-class THBWiki {
+class THBWiki extends metadata_source_1.MetadataSource {
     async resolveAlbumName(albumName) {
         const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
         const document = new jsdom_1.JSDOM((await axios_1.default.get(url)).data).window.document;
@@ -137,10 +138,23 @@ class THBWiki {
             }
         }
     }
-    parseRow(trackNumberElement) {
+    async parseRow(trackNumberElement) {
         const trackNumber = parseInt(trackNumberElement.textContent, 10).toString();
         const trackNumberRow = trackNumberElement.parentElement;
         const title = trackNumberRow.querySelector('.title').textContent.trim();
+        const { lyricLanguage, lyric } = await (async () => {
+            const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)');
+            if (this.config.lyric && lyricLink) {
+                const { downloadLyrics } = await Promise.resolve().then(() => require('./thb-wiki-lyrics'));
+                return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric);
+            }
+            else {
+                return {
+                    lyric: undefined,
+                    lyricLanguage: undefined
+                };
+            }
+        })();
         const relatedInfoRows = this.getRelatedRows(trackNumberRow);
         const infos = relatedInfoRows.map(it => this.parseRelatedRowInfo(it));
         const [lyricists] = infos
@@ -173,11 +187,14 @@ class THBWiki {
             comments,
             lyricists,
             composers,
+            lyric,
+            lyricLanguage,
         };
         this.rowDataNormalize(rowData);
         return rowData;
     }
-    async getMetadata(albumName) {
+    async getMetadata(albumName, config) {
+        this.config = Object.assign(this.config, config);
         const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
         const response = await axios_1.default.get(url);
         const dom = new jsdom_1.JSDOM(response.data);
@@ -202,7 +219,7 @@ class THBWiki {
                     genres,
                     year,
                     coverImage,
-                    ...this.parseRow(trackNumberElement)
+                    ...(await this.parseRow(trackNumberElement))
                 };
                 metadatas.push(metadata);
             }
