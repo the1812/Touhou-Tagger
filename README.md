@@ -12,6 +12,7 @@
 - 专辑名称
 - 专辑作者 (通常为社团名称)
 - 流派
+- 歌词
 - 发布年份
 - 封面图片
 
@@ -43,17 +44,32 @@ thtag --cover
 ### 更换数据源
 (默认为 `thb-wiki`)
 ```powershell
-thtag -s 'xxx'
+thtag -s xxx
 ```
 或
 ```powershell
-thtag --source 'xxx'
+thtag --source xxx
 ```
+### 下载歌词
+#### 选项说明
+- `-l` / `--lyric`: 启用歌词下载
+- `-t` / `--lyric-type`: 歌词类型
+  - **`original`(默认)**: 原版歌词
+  - `translated`: 译文歌词, 没有译文时会回退到原版歌词
+  - `mixed`: 混合原文和译文的歌词, 没有译文时同原版歌词
+- `-o` / `--lyric-output`: 歌词输出
+  - **`metadata`(默认)**: 写入到元数据中
+  - `lrc`: 创建额外的`.lrc`歌词文件 (**⚠此功能尚未完善**)
 
-## 待填的坑
-- [x] 错误处理: 非同人专辑词条
-- [x] FLAC 支持
-- [ ] 歌词获取
+#### 示例
+启用歌词下载, 写入原版歌词到元数据中
+```powershell
+thtag -l
+```
+启用歌词下载, 写入混合原文和译文的歌词到元数据中
+```powershell
+thtag -l -t mixed
+```
 
 ## 魔改示例
 (需要已安装 `Node.js` 及 `Typescript`)
@@ -62,17 +78,18 @@ thtag --source 'xxx'
 npm install
 ```
 ### 添加其他数据源
-在`src/core/metadata/`中添加文件`xxx.ts`, 实现`MetadataSource`接口:
+在`src/core/metadata/`中添加文件`xxx.ts`, 继承`MetadataSource`类:
 ```TypeScript
 import { MetadataSource } from './metadata-source'
 import { Metadata } from './metadata'
 
-export const xxx: MetadataSource = {
+export class XXX extends MetadataSource {
   // 搜索专辑, 返回 string 表示精确匹配, 返回 string[] 表示未找到精确匹配, 内容是根据 albumName 搜索得到的结果
   async resolveAlbumName(albumName: string): Promise<string[] | string> { /* ... */ }
   // 下载专辑信息, 返回 Metadata[]
   async getMetadata(albumName: string): Promise<Metadata[]> { /* ... */ }
 }
+export const xxx = new XXX()
 ```
 然后在`src/core/metadata/source-mappings.ts`中添加对应项:
 ```TypeScript
