@@ -36,7 +36,7 @@ const createFiles = async (metadata) => {
     const fileTypes = Object.keys(writerMappings);
     const fileTypeFilter = (file) => fileTypes.some(type => file.endsWith(type));
     const dir = readdirSync('.');
-    const discFiles = dir.filter(f => f.match(/^Disc (\d+)/)).flatMap(f => readdirSync(f).map(inner => `${f}/${inner}`));
+    const discFiles = dir.filter(f => f.match(/^Disc (\d+)/)).flatMap(f => readdirSync(f).map(inner => `${f}/${inner}`)).filter(fileTypeFilter);
     const files = dir.filter(fileTypeFilter).concat(discFiles).slice(0, metadata.length);
     if (files.length === 0) {
         console.log('未找到任何支持的音乐文件.');
@@ -53,6 +53,7 @@ const createFiles = async (metadata) => {
         }
         return dir + `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
     });
+    debug_1.log(files, targetFiles);
     files.forEach((file, index) => {
         renameSync(file, targetFiles[index]);
     });
