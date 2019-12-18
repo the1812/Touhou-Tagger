@@ -6,16 +6,20 @@ const debug_1 = require("../debug");
 const findLanguage = (table, config) => {
     const [row] = [...table.querySelectorAll('tbody > tr:not(.tt-lyrics-header)')];
     const [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')];
+    const hasTranslatedData = translatedData && translatedData.textContent;
     switch (config.type) {
         case 'original': {
             return originalData.getAttribute('lang');
         }
         case 'translated': {
-            return (translatedData || originalData).getAttribute('lang');
+            if (hasTranslatedData) {
+                return translatedData.getAttribute('lang');
+            }
+            return originalData.getAttribute('lang');
         }
         case 'mixed':
         default:
-            if (translatedData) {
+            if (hasTranslatedData) {
                 return undefined;
             }
             else {
@@ -33,7 +37,8 @@ const downloadMetadataLyrics = async (table, config) => {
         }
         else {
             let [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')];
-            if (!translatedData) {
+            const hasTranslatedData = translatedData && translatedData.textContent;
+            if (!hasTranslatedData) {
                 translatedData = originalData;
             }
             switch (config.type) {
@@ -46,7 +51,10 @@ const downloadMetadataLyrics = async (table, config) => {
                     break;
                 }
                 case 'mixed': {
-                    lyric += originalData.textContent + '\n' + translatedData.textContent + '\n';
+                    lyric += originalData.textContent + '\n';
+                    if (hasTranslatedData) {
+                        lyric += translatedData.textContent + '\n';
+                    }
                     break;
                 }
             }
