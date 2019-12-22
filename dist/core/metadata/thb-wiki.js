@@ -99,7 +99,9 @@ class THBWiki extends metadata_source_1.MetadataSource {
             演奏: (data) => {
                 const name = 'instruments';
                 const rows = data.innerHTML.split('<br>').map(it => {
-                    const [instrument, performer] = it.trim().split('：');
+                    const [instrument, performer] = it.trim().split('：').map(row => {
+                        return new jsdom_1.JSDOM(row).window.document.body.textContent;
+                    });
                     return performer ? performer : instrument;
                 });
                 return {

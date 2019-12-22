@@ -101,7 +101,9 @@ export class THBWiki extends MetadataSource {
       演奏: (data) => {
         const name = 'instruments'
         const rows = data.innerHTML.split('<br>').map(it => {
-          const [instrument, performer] = it.trim().split('：')
+          const [instrument, performer] = it.trim().split('：').map(row => {
+            return new JSDOM(row).window.document.body.textContent!!
+          })
           return performer ? performer : instrument
         })
         return {
