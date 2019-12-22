@@ -1,6 +1,6 @@
 import { copyFileSync, readFileSync } from 'fs'
 import { mp3Writer } from './mp3-writer'
-import * as id3 from 'node-id3'
+import * as id3 from '../node-id3'
 import { Metadata } from '../metadata/metadata'
 import { MetadataSeparator } from '../core-config'
 
@@ -14,6 +14,7 @@ test('MP3 Metadata Write', async () => {
     artists: ['缨缨Ei', '琉芸Miruku'],
     comments: '原曲: 年中夢中の好奇心',
     albumArtists: ['bunny rhyTHm'],
+    albumOrder: 'BRTH-005',
     album: '覚めぬ夢 届かぬ恋',
     discNumber: '1',
     trackNumber: '6',

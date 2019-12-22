@@ -1,6 +1,6 @@
 import { MetadataWriter } from './metadata-writer'
 import { Metadata } from '../metadata/metadata'
-import * as id3 from 'node-id3'
+import * as id3 from '../node-id3'
 import { MetadataSeparator } from '../core-config'
 
 const languageCodeConvert = (code: string | undefined) => {
@@ -30,9 +30,7 @@ const getNodeId3Tag = (metadata: Metadata) => {
       language: languageCodeConvert(metadata.lyricLanguage),
       text: metadata.lyric || '',
     },
-    raw: {
-      TSOA: metadata.albumOrder
-    },
+    TSOA: metadata.albumOrder,
   }
   if (metadata.coverImage) {
     tag.image = {

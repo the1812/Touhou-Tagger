@@ -12,6 +12,7 @@ test('FLAC Metadata Write', async () => {
         artists: ['缨缨Ei', '琉芸Miruku'],
         comments: '原曲: 年中夢中の好奇心',
         albumArtists: ['bunny rhyTHm'],
+        albumOrder: 'BRTH-005',
         album: '覚めぬ夢 届かぬ恋',
         discNumber: '1',
         trackNumber: '6',

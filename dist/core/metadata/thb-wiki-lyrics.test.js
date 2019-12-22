@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const __1 = require("..");
 const fs_1 = require("fs");
 const mp3_writer_1 = require("../writer/mp3-writer");
-const id3 = require("node-id3");
+const id3 = require("../node-id3");
 const debug_1 = require("../debug");
 test('Write lyrics to mp3', async () => {
     const album = 'POP｜CULTURE 8';

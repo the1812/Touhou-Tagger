@@ -36,8 +36,7 @@
     "flac-metadata": "^0.1.1",
     "image-type": "^4.1.0",
     "imageinfo": "^1.0.4",
-    "jsdom": "^15.1.1",
-    "node-id3": "^0.1.11"
+    "jsdom": "^15.1.1"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",

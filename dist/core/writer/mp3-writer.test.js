@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const mp3_writer_1 = require("./mp3-writer");
-const id3 = require("node-id3");
+const id3 = require("../node-id3");
 const core_config_1 = require("../core-config");
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3';
 const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3';
@@ -14,6 +14,7 @@ test('MP3 Metadata Write', async () => {
         artists: ['缨缨Ei', '琉芸Miruku'],
         comments: '原曲: 年中夢中の好奇心',
         albumArtists: ['bunny rhyTHm'],
+        albumOrder: 'BRTH-005',
         album: '覚めぬ夢 届かぬ恋',
         discNumber: '1',
         trackNumber: '6',
