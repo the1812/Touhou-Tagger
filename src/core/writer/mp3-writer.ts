@@ -30,6 +30,9 @@ const getNodeId3Tag = (metadata: Metadata) => {
       language: languageCodeConvert(metadata.lyricLanguage),
       text: metadata.lyric || '',
     },
+    raw: {
+      TSOA: metadata.albumOrder
+    },
   }
   if (metadata.coverImage) {
     tag.image = {

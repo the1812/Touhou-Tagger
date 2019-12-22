@@ -25,6 +25,7 @@ declare module 'node-id3' {
       description: string
       imageBuffer: Buffer
     }
+    raw: { [name: string]: any }
   }
   export function write(tag: NodeID3Tag, file: string): boolean
   export function update(tag: NodeID3Tag, file: string): boolean

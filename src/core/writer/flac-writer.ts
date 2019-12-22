@@ -13,6 +13,7 @@ const getVorbisComments = (metadata: Metadata): string[] => {
     `ARTIST=${metadata.artists.join(MetadataSeparator)}`,
     `TITLE=${metadata.title}`,
     `ALBUM=${metadata.album}`,
+    `ALBUMSORT=${metadata.albumOrder}`,
     `TRACKNUMBER=${metadata.trackNumber}`,
     `DISCNUMBER=${metadata.discNumber}`,
   ]

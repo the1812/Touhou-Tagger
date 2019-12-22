@@ -11,6 +11,7 @@ export interface Metadata {
   lyricists?: string[]
   // Album data
   album: string
+  albumOrder: string
   albumArtists?: string[]
   genres?: string[]
   year?: string

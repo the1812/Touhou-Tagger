@@ -47,11 +47,13 @@ export class THBWiki extends MetadataSource {
       return item
     }
     const album = getTableItem('名称')
+    const albumOrder = getTableItem('编号')
     const albumArtists = getTableItem('制作方', true)
     const genres = getTableItem('风格类型').split('，')
     const year = parseInt(getTableItem('首发日期')).toString()
     return {
       album,
+      albumOrder,
       albumArtists,
       genres,
       year
@@ -94,8 +96,19 @@ export class THBWiki extends MetadataSource {
       和声: defaultInfoParser('harmonyVocals'),
       伴唱: defaultInfoParser('accompanyVocals'),
       合唱: defaultInfoParser('chorusVocals'),
-      演奏: defaultInfoParser('instruments'),
+      // 演奏: defaultInfoParser('instruments'),
       作词: defaultInfoParser('lyricists'),
+      演奏: (data) => {
+        const name = 'instruments'
+        const rows = data.innerHTML.split('<br>').map(it => {
+          const [instrument, performer] = it.trim().split('：')
+          return performer ? performer : instrument
+        })
+        return {
+          name,
+          result: rows
+        }
+      },
       原曲: (data) => {
         let result = `原曲: `
         const sources = [...data.querySelectorAll('.ogmusic,.source')] as Element[]
@@ -207,6 +220,7 @@ export class THBWiki extends MetadataSource {
     }
     const {
       album,
+      albumOrder,
       albumArtists,
       genres,
       year
@@ -223,6 +237,7 @@ export class THBWiki extends MetadataSource {
         const metadata: Metadata = {
           discNumber: discNumber.toString(),
           album,
+          albumOrder,
           albumArtists,
           genres,
           year,
