@@ -6,6 +6,7 @@ const path_1 = require("path");
 const fs_1 = require("fs");
 const commandLineArgs = require("command-line-args");
 const debug_1 = require("../core/debug");
+let spinner;
 const cliOptions = commandLineArgs([
     { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
     { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
@@ -38,7 +39,8 @@ const createFiles = async (metadata) => {
     const discFiles = dir.filter(f => f.match(/^Disc (\d+)/)).flatMap(f => readdirSync(f).map(inner => `${f}/${inner}`)).filter(fileTypeFilter);
     const files = dir.filter(fileTypeFilter).concat(discFiles).slice(0, metadata.length);
     if (files.length === 0) {
-        console.log('未找到任何支持的音乐文件.');
+        spinner.fail('未找到任何支持的音乐文件.');
+        // console.log('未找到任何支持的音乐文件.')
         process.exit();
     }
     const targetFiles = files.map((file, index) => {
@@ -62,7 +64,7 @@ const writeMetadataToFile = async (metadata, targetFiles) => {
     const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
     for (let i = 0; i < targetFiles.length; i++) {
         const file = targetFiles[i];
-        console.log(file);
+        debug_1.log(file);
         const type = path_1.extname(file);
         const writer = writerMappings[type];
         writer.config = metadataConfig;
@@ -73,7 +75,7 @@ const writeMetadataToFile = async (metadata, targetFiles) => {
     }
     // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
     // await Promise.all(targetFiles.map((file, index) => {
-    //   console.log(file)
+    //   log(file)
     //   const type = extname(file)
     //   return writerMappings[type].write(metadata[index], file)
     // }))
@@ -83,19 +85,23 @@ const writeMetadataToFile = async (metadata, targetFiles) => {
         const type = imageType(coverBuffer);
         if (type !== null) {
             const coverFilename = `cover.${type.ext}`;
-            console.log(coverFilename);
+            debug_1.log(coverFilename);
             fs_1.writeFileSync(coverFilename, coverBuffer);
         }
     }
 };
 const fetchMetadata = async (album) => {
-    console.log(`下载专辑信息中: ${album}`);
+    spinner.start(`下载专辑信息中: ${album}`);
+    // console.log(`下载专辑信息中: ${album}`)
     const metadata = await downloadMetadata(album);
-    console.log('创建文件中...');
+    spinner.text = '创建文件中';
+    // console.log('创建文件中...')
     const targetFiles = await createFiles(metadata);
-    console.log('写入专辑信息中...');
+    spinner.text = '写入专辑信息中';
+    // console.log('写入专辑信息中...')
     await writeMetadataToFile(metadata, targetFiles);
-    console.log(`成功写入了专辑信息: ${album}`);
+    spinner.succeed(`成功写入了专辑信息: ${album}`);
+    // console.log(`成功写入了专辑信息: ${album}`)
     process.exit();
 };
 const reader = readline.createInterface({
@@ -107,17 +113,27 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
     if (!album) {
         album = defaultAlbumName;
     }
-    console.log('搜索中...');
+    const ora = await Promise.resolve().then(() => require('ora'));
+    spinner = ora({
+        text: '搜索中',
+        spinner: {
+            interval: 500,
+            frames: ['.  ', '.. ', '...']
+        }
+    }).start();
+    // console.log('搜索中...')
     const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
     const metadataSource = sourceMappings[cliOptions.source];
     if (!metadataSource) {
-        console.log(`未找到与'${cliOptions.source}'相关联的数据源.`);
+        spinner.fail(`未找到与'${cliOptions.source}'相关联的数据源.`);
+        // console.log(`未找到与'${cliOptions.source}'相关联的数据源.`)
         process.exit();
     }
     const searchResult = await metadataSource.resolveAlbumName(album);
     const handleError = (error) => {
         if (error instanceof Error) {
-            console.error(`错误: ${error.message}`);
+            spinner.fail(`错误: ${error.message}`);
+            // console.error(`错误: ${error.message}`)
             process.exit();
         }
         else {
@@ -128,7 +144,8 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
         await fetchMetadata(album).catch(handleError);
     }
     else if (searchResult.length > 0) {
-        console.log('未找到匹配专辑, 以下是搜索结果:');
+        spinner.info('未找到匹配专辑, 以下是搜索结果:');
+        // console.log('未找到匹配专辑, 以下是搜索结果:')
         console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'));
         reader.question('输入序号可选择相应条目, 或输入其他任意字符退出程序: ', async (answer) => {
             const index = parseInt(answer);
@@ -139,7 +156,8 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async (album) =>
         });
     }
     else {
-        console.log('未找到匹配专辑, 且没有搜索结果, 请尝试使用更准确的专辑名称.');
+        spinner.fail('未找到匹配专辑, 且没有搜索结果, 请尝试使用更准确的专辑名称.');
+        // console.log('未找到匹配专辑, 且没有搜索结果, 请尝试使用更准确的专辑名称.')
         process.exit();
     }
 });

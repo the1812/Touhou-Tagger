@@ -28,7 +28,7 @@ const downloadLrcLyrics = async (title: string, index: number) => {
       lyricLanguage: undefined
     }
   } catch (error) {
-    console.log(`下载歌词失败: ${url}`)
+    console.error(`下载歌词失败: ${url}`)
     return {
       lyric: '',
       lyricLanguage: undefined
@@ -37,7 +37,7 @@ const downloadLrcLyrics = async (title: string, index: number) => {
 }
 const lyricDocumentCache = new Map<string, Document>()
 export const downloadLyrics = async (url: string, title: string, config: LyricConfig) => {
-  console.log(`下载歌词中: ${title}`)
+  log(`下载歌词中: ${title}`)
   let document = lyricDocumentCache.get(url)
   if (!document) {
     const response = await Axios.get(url)

@@ -29,7 +29,7 @@ const downloadLrcLyrics = async (title, index) => {
         };
     }
     catch (error) {
-        console.log(`下载歌词失败: ${url}`);
+        console.error(`下载歌词失败: ${url}`);
         return {
             lyric: '',
             lyricLanguage: undefined
@@ -38,7 +38,7 @@ const downloadLrcLyrics = async (title, index) => {
 };
 const lyricDocumentCache = new Map();
 exports.downloadLyrics = async (url, title, config) => {
-    console.log(`下载歌词中: ${title}`);
+    debug_1.log(`下载歌词中: ${title}`);
     let document = lyricDocumentCache.get(url);
     if (!document) {
         const response = await axios_1.default.get(url);
