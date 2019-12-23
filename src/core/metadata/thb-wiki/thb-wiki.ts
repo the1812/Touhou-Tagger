@@ -1,8 +1,8 @@
-import { MetadataSource } from './metadata-source'
-import { Metadata } from './metadata'
+import { MetadataSource } from '../metadata-source'
+import { Metadata } from '../metadata'
 import Axios from 'axios'
 import { JSDOM } from 'jsdom'
-import { MetadataSeparator, MetadataConfig } from '../core-config'
+import { MetadataSeparator, MetadataConfig } from '../../core-config'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 
@@ -161,7 +161,7 @@ export class THBWiki extends MetadataSource {
     const { lyricLanguage, lyric } = await (async () => {
       const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)') as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
-        const { downloadLyrics } = await import('./thb-wiki-lyrics')
+        const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics')
         return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric)
       } else {
         return {

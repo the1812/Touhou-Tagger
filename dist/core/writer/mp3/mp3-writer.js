@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const metadata_writer_1 = require("./metadata-writer");
-const id3 = require("../node-id3");
-const core_config_1 = require("../core-config");
+const metadata_writer_1 = require("../metadata-writer");
+const id3 = require("../../node-id3");
+const core_config_1 = require("../../core-config");
 const languageCodeConvert = (code) => {
     const mapping = {
         ja: 'jpn',

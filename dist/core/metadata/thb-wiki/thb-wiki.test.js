@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const thb_wiki_1 = require("./thb-wiki");
-const mp3_writer_1 = require("../writer/mp3-writer");
+const mp3_writer_1 = require("../../writer/mp3/mp3-writer");
 test('Fetch metadata of "Violetium"', async () => {
     const expectedResult = [
         {

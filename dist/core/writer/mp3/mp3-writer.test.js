@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const mp3_writer_1 = require("./mp3-writer");
-const id3 = require("../node-id3");
-const core_config_1 = require("../core-config");
+const id3 = require("../../node-id3");
+const core_config_1 = require("../../core-config");
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3';
 const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3';
 const coverFilename = 'test-files/cover.jpg';

@@ -1,8 +1,8 @@
 import { copyFileSync, readFileSync } from 'fs'
 import { mp3Writer } from './mp3-writer'
-import * as id3 from '../node-id3'
-import { Metadata } from '../metadata/metadata'
-import { MetadataSeparator } from '../core-config'
+import * as id3 from '../../node-id3'
+import { Metadata } from '../../metadata/metadata'
+import { MetadataSeparator } from '../../core-config'
 
 const inputFilename = 'test-files/untagged/06 音轨 06.mp3'
 const outputFilename = 'test-files/tagged/06 kiRa☆rhyTHm.mp3'

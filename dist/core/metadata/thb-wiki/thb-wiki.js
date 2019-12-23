@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const metadata_source_1 = require("./metadata-source");
+const metadata_source_1 = require("../metadata-source");
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
-const core_config_1 = require("../core-config");
+const core_config_1 = require("../../core-config");
 class THBWiki extends metadata_source_1.MetadataSource {
     async resolveAlbumName(albumName) {
         const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
@@ -160,7 +160,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
         const { lyricLanguage, lyric } = await (async () => {
             const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)');
             if (this.config.lyric && lyricLink) {
-                const { downloadLyrics } = await Promise.resolve().then(() => require('./thb-wiki-lyrics'));
+                const { downloadLyrics } = await Promise.resolve().then(() => require('./lyrics/thb-wiki-lyrics'));
                 return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric);
             }
             else {

@@ -1,6 +1,6 @@
 import { readdirSync, copyFileSync } from 'fs'
 import { thbWiki } from './thb-wiki'
-import { mp3Writer } from '../writer/mp3-writer'
+import { mp3Writer } from '../../writer/mp3/mp3-writer'
 
 test('Fetch metadata of "Violetium"', async () => {
   const expectedResult = [

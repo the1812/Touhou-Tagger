@@ -1,4 +1,4 @@
-import { thbWiki } from './thb-wiki';
+import { thbWiki } from './thb-wiki/thb-wiki';
 import { MetadataSource } from './metadata-source';
 
 export const sourceMappings = {

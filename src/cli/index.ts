@@ -3,9 +3,9 @@ import * as readline from 'readline'
 import { basename, extname } from 'path'
 import { writeFileSync } from 'fs'
 import * as commandLineArgs from 'command-line-args'
-import { LyricConfig, MetadataConfig } from '../core/core-config'
-import { Metadata, writerMappings } from '../core'
-import { log, setDebug } from '../core/debug'
+import { setDebug, log } from '../core/debug'
+import { MetadataConfig, LyricConfig } from '../core/core-config'
+import { Metadata } from '../core'
 
 const cliOptions = commandLineArgs([
   { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
@@ -67,6 +67,7 @@ const createFiles = async (metadata: Metadata[]) => {
   return targetFiles
 }
 const writeMetadataToFile = async (metadata: Metadata[], targetFiles: string[]) => {
+  const { writerMappings } = await import('../core/writer/writer-mappings')
   for (let i = 0; i < targetFiles.length; i++) {
     const file = targetFiles[i]
     console.log(file)

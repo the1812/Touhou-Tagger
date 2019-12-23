@@ -1,5 +1,5 @@
 import { copyFileSync, readFileSync, createReadStream } from 'fs'
-import { Metadata } from '../metadata/metadata'
+import { Metadata } from '../../metadata/metadata'
 import * as flac from 'flac-metadata'
 import { flacWriter } from './flac-writer'
 import { promisify } from 'util'

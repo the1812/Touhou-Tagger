@@ -5,7 +5,6 @@ const readline = require("readline");
 const path_1 = require("path");
 const fs_1 = require("fs");
 const commandLineArgs = require("command-line-args");
-const core_1 = require("../core");
 const debug_1 = require("../core/debug");
 const cliOptions = commandLineArgs([
     { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
@@ -60,11 +59,12 @@ const createFiles = async (metadata) => {
     return targetFiles;
 };
 const writeMetadataToFile = async (metadata, targetFiles) => {
+    const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
     for (let i = 0; i < targetFiles.length; i++) {
         const file = targetFiles[i];
         console.log(file);
         const type = path_1.extname(file);
-        const writer = core_1.writerMappings[type];
+        const writer = writerMappings[type];
         writer.config = metadataConfig;
         await writer.write(metadata[i], file);
         if (cliOptions.lyric && cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {

@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const metadata_writer_1 = require("./metadata-writer");
+const metadata_writer_1 = require("../metadata-writer");
 const flac = require("flac-metadata");
 const imageinfo = require("imageinfo");
 const fs_1 = require("fs");
-const core_config_1 = require("../core-config");
+const core_config_1 = require("../../core-config");
 const stream_1 = require("stream");
 const util_1 = require("util");
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101';

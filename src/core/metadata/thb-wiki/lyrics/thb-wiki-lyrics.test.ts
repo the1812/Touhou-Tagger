@@ -1,8 +1,8 @@
-import { thbWiki } from '..'
+import { thbWiki } from '../../..'
 import { copyFileSync } from 'fs'
-import { mp3Writer } from '../writer/mp3-writer'
-import * as id3 from '../node-id3'
-import { setDebug } from '../debug'
+import { mp3Writer } from '../../../writer/mp3/mp3-writer'
+import * as id3 from '../../../node-id3'
+import { setDebug } from '../../../debug'
 
 test('Write lyrics to mp3', async () => {
   const album = 'POP｜CULTURE 8'
