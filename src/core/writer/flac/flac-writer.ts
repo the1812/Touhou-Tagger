@@ -6,6 +6,7 @@ import { createWriteStream, readFileSync } from 'fs'
 import { MetadataSeparator } from '../../core-config'
 import { Readable, finished } from 'stream'
 import { promisify } from 'util'
+import { log } from '../../debug'
 
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101'
 const getVorbisComments = (metadata: Metadata): string[] => {
@@ -68,7 +69,17 @@ export class FlacWriter extends MetadataWriter {
           mdb.remove()
         }
       } else if (metadata.coverImage) {
-        const info = imageinfo(metadata.coverImage)
+        let info = imageinfo(metadata.coverImage)
+        if (info === undefined) {
+          log('image info failed!')
+          info = {
+            mimeType: '',
+            width: 0,
+            height: 0,
+            type: '',
+            format: '',
+          }
+        }
         const mdbPicture = flac.data.MetaDataBlockPicture.create(
           !!metadata.coverImage,
           3 /* front cover */,

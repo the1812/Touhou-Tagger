@@ -7,6 +7,7 @@ const fs_1 = require("fs");
 const core_config_1 = require("../../core-config");
 const stream_1 = require("stream");
 const util_1 = require("util");
+const debug_1 = require("../../debug");
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101';
 const getVorbisComments = (metadata) => {
     const comments = [
@@ -67,7 +68,17 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 }
             }
             else if (metadata.coverImage) {
-                const info = imageinfo(metadata.coverImage);
+                let info = imageinfo(metadata.coverImage);
+                if (info === undefined) {
+                    debug_1.log('image info failed!');
+                    info = {
+                        mimeType: '',
+                        width: 0,
+                        height: 0,
+                        type: '',
+                        format: '',
+                    };
+                }
                 const mdbPicture = flac.data.MetaDataBlockPicture.create(!!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
                 this.push(mdbPicture.publish());
             }
