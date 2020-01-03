@@ -14,7 +14,6 @@ exports.createFiles = async (metadata) => {
     const files = dir.filter(fileTypeFilter).concat(discFiles).slice(0, metadata.length);
     if (files.length === 0) {
         spinner_1.spinner.fail('未找到任何支持的音乐文件.');
-        // console.log('未找到任何支持的音乐文件.')
         process.exit();
     }
     const targetFiles = files.map((file, index) => {
