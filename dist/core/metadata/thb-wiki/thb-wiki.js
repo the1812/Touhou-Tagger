@@ -5,18 +5,35 @@ const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
 const core_config_1 = require("../../core-config");
 class THBWiki extends metadata_source_1.MetadataSource {
+    // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
     async resolveAlbumName(albumName) {
-        const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
-        const document = new jsdom_1.JSDOM((await axios_1.default.get(url)).data).window.document;
-        const header = document.querySelector('#firstHeading');
-        // 未找到精确匹配, 返回搜索结果
-        if (header && header.textContent === '搜索结果') {
-            return [...document.querySelectorAll('.mw-search-result-heading a')]
-                .map(it => it.textContent)
-                .filter(it => !it.startsWith('歌词:'));
+        // const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
+        // const document = new JSDOM((await Axios.get(url)).data).window.document
+        // const header = document.querySelector('#firstHeading')
+        // // 未找到精确匹配, 返回搜索结果
+        // if (header && header.textContent === '搜索结果') {
+        //   return [...document.querySelectorAll('.mw-search-result-heading a')]
+        //     .map(it => it.textContent!)
+        //     .filter(it => !it.startsWith('歌词:'))
+        // } else {
+        //   return albumName
+        // }
+        const url = `https://thwiki.cc/api.php?action=opensearch&format=json&search=${encodeURIComponent(albumName)}&limit=20&suggest=true`;
+        const response = await axios_1.default.get(url, {
+            responseType: 'json'
+        });
+        if (response.status === 200) {
+            const [, names] = response.data;
+            const [name] = names.filter(it => !it.startsWith('歌词:'));
+            if (name === albumName) {
+                return name;
+            }
+            else {
+                return names;
+            }
         }
         else {
-            return albumName;
+            return [];
         }
     }
     async getAlbumCover(img) {
