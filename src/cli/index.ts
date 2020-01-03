@@ -1,118 +1,9 @@
 #!/usr/bin/env node
 import * as readline from 'readline'
-import { basename, extname } from 'path'
-import { writeFileSync } from 'fs'
-import * as commandLineArgs from 'command-line-args'
-import { setDebug, log } from '../core/debug'
-import { MetadataConfig, LyricConfig } from '../core/core-config'
-import { Metadata } from '../core'
-import { Ora } from 'ora'
+import { basename } from 'path'
+import { resetSpinner, spinner } from './spinner'
+import { cliOptions } from './options'
 
-let spinner: Ora
-const cliOptions = commandLineArgs([
-  { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
-  { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
-  { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
-  { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
-  { name: 'lyric-type', alias: 't', type: String, defaultValue: 'original' },
-  { name: 'lyric-output', alias: 'o', type: String, defaultValue: 'metadata' },
-]) as {
-  cover: boolean
-  debug: boolean
-  source: string
-  lyric: boolean
-  'lyric-type': string
-  'lyric-output': string
-}
-setDebug(cliOptions.debug)
-const metadataConfig: MetadataConfig = {
-  lyric: cliOptions.lyric ? {
-    type: cliOptions['lyric-type'],
-    output: cliOptions['lyric-output'],
-  } as LyricConfig : undefined
-}
-log(cliOptions, metadataConfig)
-
-const downloadMetadata = async (album: string) => {
-  const { sourceMappings } = await import(`../core/metadata/source-mappings`)
-  const metadataSource = sourceMappings[cliOptions.source]
-  metadataSource.config = metadataConfig
-  return await metadataSource.getMetadata(album)
-}
-const createFiles = async (metadata: Metadata[]) => {
-  const { readdirSync, renameSync } = await import('fs')
-  const { dirname } = await import('path')
-  const { writerMappings } = await import('../core/writer/writer-mappings')
-  const fileTypes = Object.keys(writerMappings)
-  const fileTypeFilter = (file: string) => fileTypes.some(type => file.endsWith(type))
-  const dir = readdirSync('.')
-  const discFiles = dir.filter(f => f.match(/^Disc (\d+)/)).flatMap(f => readdirSync(f).map(inner => `${f}/${inner}`)).filter(fileTypeFilter)
-  const files = dir.filter(fileTypeFilter).concat(discFiles).slice(0, metadata.length)
-  if (files.length === 0) {
-    spinner.fail('未找到任何支持的音乐文件.')
-    // console.log('未找到任何支持的音乐文件.')
-    process.exit()
-  }
-  const targetFiles = files.map((file, index) => {
-    const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2)
-    let dir = dirname(file)
-    if (dir === '.') {
-      dir = ''
-    } else {
-      dir += '/'
-    }
-    return dir + `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '')
-  })
-  log(files, targetFiles)
-  files.forEach((file, index) => {
-    renameSync(file, targetFiles[index])
-  })
-  return targetFiles
-}
-const writeMetadataToFile = async (metadata: Metadata[], targetFiles: string[]) => {
-  const { writerMappings } = await import('../core/writer/writer-mappings')
-  for (let i = 0; i < targetFiles.length; i++) {
-    const file = targetFiles[i]
-    log(file)
-    const type = extname(file)
-    const writer = writerMappings[type]
-    writer.config = metadataConfig
-    await writer.write(metadata[i], file)
-    if (cliOptions.lyric && cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
-      writeFileSync(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric)
-    }
-  }
-  // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
-  // await Promise.all(targetFiles.map((file, index) => {
-  //   log(file)
-  //   const type = extname(file)
-  //   return writerMappings[type].write(metadata[index], file)
-  // }))
-  const coverBuffer = metadata[0].coverImage
-  if (cliOptions.cover && coverBuffer) {
-    const imageType = await import('image-type')
-    const type = imageType(coverBuffer)
-    if (type !== null) {
-      const coverFilename = `cover.${type.ext}`
-      log(coverFilename)
-      writeFileSync(coverFilename, coverBuffer)
-    }
-  }
-}
-const fetchMetadata = async (album: string) => {
-  spinner.start(`下载专辑信息中: ${album}`)
-  // console.log(`下载专辑信息中: ${album}`)
-  const metadata = await downloadMetadata(album)
-  spinner.text = '创建文件中'
-  // console.log('创建文件中...')
-  const targetFiles = await createFiles(metadata)
-  spinner.text = '写入专辑信息中'
-  // console.log('写入专辑信息中...')
-  await writeMetadataToFile(metadata, targetFiles)
-  spinner.succeed(`成功写入了专辑信息: ${album}`)
-  // console.log(`成功写入了专辑信息: ${album}`)
-  process.exit()
-}
 const reader = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -122,14 +13,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
   if (!album) {
     album = defaultAlbumName
   }
-  const ora = await import('ora')
-  spinner = ora({
-    text: '搜索中',
-    spinner: {
-      interval: 500,
-      frames: ['.  ', '.. ', '...']
-    }
-  }).start()
+  await resetSpinner()
   // console.log('搜索中...')
   const { sourceMappings } = await import(`../core/metadata/source-mappings`)
   const metadataSource = sourceMappings[cliOptions.source]
@@ -148,6 +32,7 @@ reader.question(`请输入专辑名称(${defaultAlbumName}): `, async album => {
       throw error
     }
   }
+  const { fetchMetadata } = await import('./fetch-metadata')
   if (typeof searchResult === 'string') {
     await fetchMetadata(album).catch(handleError)
   } else if (searchResult.length > 0) {
