@@ -87,7 +87,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 let textContent = data.textContent;
                 /*
                   要是这个值就是一个_, THBWiki 会转成一个警告...
-                  例如疯帽子茶会'千年战争'中出现的编曲者就有一个_
+                  例如疯帽子茶会'千年战争'中出现的编曲者就有一个_ (现已更名为'底线')
                   https://thwiki.cc/%E5%8D%83%E5%B9%B4%E6%88%98%E4%BA%89%EF%BD%9Eiek_loin_staim_haf_il_dis_o-del_al
                 */
                 const warningMatch = textContent.match(/包含无效字符或不完整，并因此在查询或注释过程期间导致意外结果。\[\[(.+)\]\]/);

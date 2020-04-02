@@ -14,12 +14,14 @@ const cliOptions = commandLineArgs([
     { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
     { name: 'lyric-type', alias: 't', type: String, defaultValue: 'original' },
     { name: 'lyric-output', alias: 'o', type: String, defaultValue: 'metadata' },
+    { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
 ]);
 debug_1.setDebug(cliOptions.debug);
 const metadataConfig = {
     lyric: cliOptions.lyric ? {
         type: cliOptions['lyric-type'],
         output: cliOptions['lyric-output'],
+        time: !cliOptions['no-lyric-time']
     } : undefined
 };
 debug_1.log(cliOptions, metadataConfig);

@@ -8,7 +8,8 @@ test('Write lyrics to mp3', async () => {
   const album = 'POP｜CULTURE 8'
   thbWiki.config.lyric = {
     type: 'original',
-    output: 'metadata'
+    output: 'metadata',
+    time: false,
   }
   setDebug(true)
   const metadata = (await thbWiki.getMetadata(album))[1]

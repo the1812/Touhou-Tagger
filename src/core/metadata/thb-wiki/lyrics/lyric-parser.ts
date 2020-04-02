@@ -3,19 +3,21 @@ import { log } from '../../../debug'
 
 export abstract class LyricParser {
   protected rows: Element[]
-  protected rowData: { originalData: Element, translatedData: Element, hasTranslatedData: boolean }[]
+  protected rowData: { originalData: Element, translatedData: Element, hasTranslatedData: boolean, time: string }[]
   protected get firstRow() { return this.rows[0] }
   protected get firstRowData() { return this.rowData[0] }
-  constructor(protected table: Element) {
+  constructor(protected table: Element, public config: LyricConfig) {
     this.rows = [...table.querySelectorAll('tbody > tr:not(.tt-lyrics-header)')]
     log('rows length: ', this.rows.length)
     this.rowData = this.rows.map(row => {
+      const time = row.querySelector('td.tt-time') as Element
       let [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')]
       const hasTranslatedData = Boolean(translatedData && translatedData.textContent)
       if (!hasTranslatedData) {
         translatedData = originalData
       }
       return {
+        time: time ? `[${time.textContent}] ` : '',
         originalData,
         translatedData,
         hasTranslatedData,
@@ -30,6 +32,7 @@ export abstract class LyricParser {
         return this.readLyricRow(row)
       }
     }).join('\n')
+    // TODO: lyric timeline
   }
   protected abstract readLyricRow(row: Element): string
   protected getRowData(row: Element) {
@@ -43,7 +46,11 @@ class OriginalLyricParser extends LyricParser {
     return this.firstRowData.originalData.getAttribute('lang')!!
   }
   readLyricRow(row: Element): string {
-    return this.getRowData(row).originalData.textContent!!
+    const { originalData, time } = this.getRowData(row)
+    if (this.config.time) {
+      return time + originalData.textContent
+    }
+    return originalData.textContent!!
   }
   getLrcFileSuffix(): string {
     return ''
@@ -58,7 +65,11 @@ class TranslatedLyricParser extends LyricParser {
     return originalData.getAttribute('lang')!!
   }
   readLyricRow(row: Element): string {
-    return this.getRowData(row).translatedData.textContent!!
+    const { translatedData, time } = this.getRowData(row)
+    if (this.config.time) {
+      return time + translatedData.textContent
+    }
+    return translatedData.textContent!!
   }
   getLrcFileSuffix(): string {
     return '.' + this.findLanguage()
@@ -74,10 +85,13 @@ class MixedLyricParser extends LyricParser {
     }
   }
   readLyricRow(row: Element): string {
-    const { originalData, translatedData, hasTranslatedData } = this.getRowData(row)
+    const { originalData, translatedData, hasTranslatedData, time } = this.getRowData(row)
     let lyric = originalData.textContent!!
     if (hasTranslatedData) {
       lyric += '\n' + translatedData.textContent
+    }
+    if (this.config.time) {
+      lyric = time + lyric
     }
     return lyric
   }
@@ -88,8 +102,8 @@ class MixedLyricParser extends LyricParser {
 export const getLyricParser = (table: Element, config: LyricConfig) => {
   switch (config.type) {
     default: // fallthrough
-    case 'original': return new OriginalLyricParser(table)
-    case 'translated': return new TranslatedLyricParser(table)
-    case 'mixed': return new MixedLyricParser(table)
+    case 'original': return new OriginalLyricParser(table, config)
+    case 'translated': return new TranslatedLyricParser(table, config)
+    case 'mixed': return new MixedLyricParser(table, config)
   }
 }
