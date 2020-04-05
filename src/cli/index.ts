@@ -45,16 +45,17 @@ if (configFile !== null) {
     cliOptions['translation-separator'] = configFile.lyric.translationSeparator
   }
 }
+const lyricConfig = {
+  type: cliOptions['lyric-type'] || 'original',
+  output: cliOptions['lyric-output'] || 'metadata',
+  time: !cliOptions['no-lyric-time'],
+  translationSeparator: cliOptions['translation-separator'] || ' // '
+} as LyricConfig
 const metadataConfig: MetadataConfig = {
-  lyric: cliOptions.lyric ? {
-    type: cliOptions['lyric-type'] || 'original',
-    output: cliOptions['lyric-output'] || 'metadata',
-    time: !cliOptions['no-lyric-time'],
-    translationSeparator: cliOptions['translation-separator'] || ' // '
-  } as LyricConfig : undefined
+  lyric: cliOptions.lyric ? lyricConfig : undefined
 }
 log(cliOptions, metadataConfig)
-saveConfigFile(metadataConfig)
+saveConfigFile({ lyric: lyricConfig })
 
 const downloadMetadata = async (album: string) => {
   const { sourceMappings } = await import(`../core/metadata/source-mappings`)
