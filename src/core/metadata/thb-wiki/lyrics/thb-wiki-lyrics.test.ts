@@ -10,6 +10,7 @@ test('Write lyrics to mp3', async () => {
     type: 'original',
     output: 'metadata',
     time: false,
+    translationSeparator: '\n',
   }
   setDebug(true)
   const metadata = (await thbWiki.getMetadata(album))[1]

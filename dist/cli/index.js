@@ -6,25 +6,44 @@ const path_1 = require("path");
 const fs_1 = require("fs");
 const commandLineArgs = require("command-line-args");
 const debug_1 = require("../core/debug");
+const config_file_1 = require("./config-file");
 let spinner;
 const cliOptions = commandLineArgs([
     { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
     { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
     { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
     { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
-    { name: 'lyric-type', alias: 't', type: String, defaultValue: 'original' },
-    { name: 'lyric-output', alias: 'o', type: String, defaultValue: 'metadata' },
+    { name: 'lyric-type', alias: 't', type: String },
+    { name: 'lyric-output', alias: 'o', type: String },
     { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
 ]);
 debug_1.setDebug(cliOptions.debug);
+const configFile = config_file_1.loadConfigFile();
+if (configFile !== null) {
+    debug_1.log('config file: ', configFile);
+    if (configFile.lyric !== undefined) {
+        if (cliOptions['lyric-output'] === undefined) {
+            cliOptions['lyric-output'] = configFile.lyric.output;
+        }
+        if (cliOptions['lyric-type'] === undefined) {
+            cliOptions['lyric-type'] = configFile.lyric.type;
+        }
+        // if (cliOptions['no-lyric-time'] === undefined) {
+        //   cliOptions['no-lyric-time'] = !configFile.lyric.time
+        // }
+        cliOptions['translation-separator'] = configFile.lyric.translationSeparator;
+    }
+}
 const metadataConfig = {
     lyric: cliOptions.lyric ? {
-        type: cliOptions['lyric-type'],
-        output: cliOptions['lyric-output'],
-        time: !cliOptions['no-lyric-time']
+        type: cliOptions['lyric-type'] || 'original',
+        output: cliOptions['lyric-output'] || 'metadata',
+        time: !cliOptions['no-lyric-time'],
+        translationSeparator: cliOptions['translation-separator'] || ' // '
     } : undefined
 };
 debug_1.log(cliOptions, metadataConfig);
+config_file_1.saveConfigFile(metadataConfig);
 const downloadMetadata = async (album) => {
     const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
     const metadataSource = sourceMappings[cliOptions.source];

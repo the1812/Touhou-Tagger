@@ -38,7 +38,7 @@ const downloadLrcLyrics = async (title, index) => {
 };
 const lyricDocumentCache = new Map();
 exports.downloadLyrics = async (url, title, config) => {
-    debug_1.log(`下载歌词中: ${title}`);
+    debug_1.log(`\n下载歌词中: ${title}`);
     let document = lyricDocumentCache.get(url);
     if (!document) {
         const response = await axios_1.default.get(url);

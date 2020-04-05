@@ -8,14 +8,15 @@ class LyricParser {
         this.rows = [...table.querySelectorAll('tbody > tr:not(.tt-lyrics-header)')];
         debug_1.log('rows length: ', this.rows.length);
         this.rowData = this.rows.map(row => {
-            const time = row.querySelector('td.tt-time');
+            const time = row.querySelector('td.tt-time,td.tt-sep');
             let [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')];
             const hasTranslatedData = Boolean(translatedData && translatedData.textContent);
             if (!hasTranslatedData) {
                 translatedData = originalData;
             }
+            const hasTime = Boolean(time && time.textContent.trim() !== '');
             return {
-                time: time ? `[${time.textContent}] ` : '',
+                time: hasTime ? `[${time.textContent.trim()}] ` : '',
                 originalData,
                 translatedData,
                 hasTranslatedData,
@@ -27,16 +28,19 @@ class LyricParser {
     readLyric() {
         return this.rows.map(row => {
             if (row.classList.contains('tt-lyrics-sep')) {
-                return '';
+                return this.readEmptyRow(row);
             }
             else {
                 return this.readLyricRow(row);
             }
         }).join('\n');
-        // TODO: lyric timeline
     }
     getRowData(row) {
         return this.rowData[this.rows.indexOf(row)];
+    }
+    readEmptyRow(row) {
+        const { time } = this.getRowData(row);
+        return time;
     }
 }
 exports.LyricParser = LyricParser;
@@ -88,10 +92,10 @@ class MixedLyricParser extends LyricParser {
         const { originalData, translatedData, hasTranslatedData, time } = this.getRowData(row);
         let lyric = originalData.textContent;
         if (hasTranslatedData) {
-            lyric += '\n' + translatedData.textContent;
+            lyric += this.config.translationSeparator + translatedData.textContent;
         }
         if (this.config.time) {
-            lyric = time + lyric;
+            lyric = lyric.split('\n').map(it => time + it).join('\n');
         }
         return lyric;
     }

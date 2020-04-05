@@ -37,7 +37,7 @@ const downloadLrcLyrics = async (title: string, index: number) => {
 }
 const lyricDocumentCache = new Map<string, Document>()
 export const downloadLyrics = async (url: string, title: string, config: LyricConfig) => {
-  log(`下载歌词中: ${title}`)
+  log(`\n下载歌词中: ${title}`)
   let document = lyricDocumentCache.get(url)
   if (!document) {
     const response = await Axios.get(url)
