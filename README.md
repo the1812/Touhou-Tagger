@@ -19,6 +19,10 @@
 
 ## 安装
 ```powershell
+yarn global add touhou-tagger
+```
+或者
+```powershell
 npm install -g touhou-tagger
 ```
 ## 使用
@@ -87,6 +91,10 @@ thtag -l -t mixed
 ## 魔改示例
 (需要已安装 `Node.js` 及 `Typescript`)
 ### 安装依赖项
+```powershell
+yarn
+```
+或者
 ```powershell
 npm install
 ```
