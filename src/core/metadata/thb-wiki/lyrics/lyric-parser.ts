@@ -16,9 +16,9 @@ export abstract class LyricParser {
       if (!hasTranslatedData) {
         translatedData = originalData
       }
-      const hasTime = Boolean(time && time.textContent!!.trim() !== '')
+      const hasTime = Boolean(time && time.textContent!.trim() !== '')
       return {
-        time: hasTime ? `[${time.textContent!!.trim()}] ` : '',
+        time: hasTime ? `[${time.textContent!.trim()}] ` : '',
         originalData,
         translatedData,
         hasTranslatedData,
@@ -47,14 +47,14 @@ export abstract class LyricParser {
 }
 class OriginalLyricParser extends LyricParser {
   findLanguage(): string | undefined {
-    return this.firstRowData.originalData.getAttribute('lang')!!
+    return this.firstRowData.originalData.getAttribute('lang')!
   }
   readLyricRow(row: Element): string {
     const { originalData, time } = this.getRowData(row)
     if (this.config.time) {
       return time + originalData.textContent
     }
-    return originalData.textContent!!
+    return originalData.textContent!
   }
   getLrcFileSuffix(): string {
     return ''
@@ -64,16 +64,16 @@ class TranslatedLyricParser extends LyricParser {
   findLanguage(): string | undefined {
     const { originalData, translatedData, hasTranslatedData } = this.firstRowData
     if (hasTranslatedData) {
-      return translatedData.getAttribute('lang')!!
+      return translatedData.getAttribute('lang')!
     }
-    return originalData.getAttribute('lang')!!
+    return originalData.getAttribute('lang')!
   }
   readLyricRow(row: Element): string {
     const { translatedData, time } = this.getRowData(row)
     if (this.config.time) {
       return time + translatedData.textContent
     }
-    return translatedData.textContent!!
+    return translatedData.textContent!
   }
   getLrcFileSuffix(): string {
     return '.' + this.findLanguage()
@@ -85,12 +85,12 @@ class MixedLyricParser extends LyricParser {
     if (hasTranslatedData) {
       return undefined
     } else {
-      return originalData.getAttribute('lang')!!
+      return originalData.getAttribute('lang')!
     }
   }
   readLyricRow(row: Element): string {
     const { originalData, translatedData, hasTranslatedData, time } = this.getRowData(row)
-    let lyric = originalData.textContent!!
+    let lyric = originalData.textContent!
     if (hasTranslatedData) {
       lyric += this.config.translationSeparator + translatedData.textContent
     }

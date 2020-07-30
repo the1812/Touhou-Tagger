@@ -3,6 +3,7 @@ import { Metadata } from '../metadata'
 import Axios from 'axios'
 import { JSDOM } from 'jsdom'
 import { MetadataSeparator, MetadataConfig } from '../../core-config'
+import { log } from '../../debug'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 
@@ -107,6 +108,7 @@ export class THBWiki extends MetadataSource {
       编曲: defaultInfoParser('arrangers'),
       再编曲: defaultInfoParser('remix'),
       作曲: defaultInfoParser('composers'),
+      剧本: defaultInfoParser('scripts'),
       演唱: defaultInfoParser('vocals'),
       翻唱: defaultInfoParser('coverVocals'),
       和声: defaultInfoParser('harmonyVocals'),
@@ -114,17 +116,41 @@ export class THBWiki extends MetadataSource {
       合唱: defaultInfoParser('chorusVocals'),
       // 演奏: defaultInfoParser('instruments'),
       作词: defaultInfoParser('lyricists'),
+      配音: (data) => {
+        const name = 'voices'
+        const rows = data.innerHTML.split('<br>').map(it => {
+          const document = new JSDOM(it).window.document
+          const anchors = [...document.querySelectorAll('a:not(.external)')]
+          const artists = anchors.map(a => {
+            const isRealArtist = a.previousSibling && a.previousSibling.textContent === '（'
+              && a.nextSibling && a.nextSibling.textContent === '）'
+            if (isRealArtist) {
+              return a.textContent!
+            }
+            return ''
+          })
+          if (artists.every(a => a === '')) {
+            return anchors.map(a => a.textContent!)
+          }
+          return artists.filter(a => a !== '')
+        })
+        log(rows.flat())
+        return {
+          name,
+          result: rows.flat(),
+        }
+      },
       演奏: (data) => {
         const name = 'instruments'
         const rows = data.innerHTML.split('<br>').map(it => {
           const [instrument, performer] = it.trim().split('：').map(row => {
-            return new JSDOM(row).window.document.body.textContent!!
+            return new JSDOM(row).window.document.body.textContent!
           })
           return performer ? performer : instrument
         })
         return {
           name,
-          result: rows
+          result: rows,
         }
       },
       原曲: (data) => {
@@ -194,23 +220,31 @@ export class THBWiki extends MetadataSource {
     const [comments] = infos
       .filter(it => it.name === 'comments')
       .map(it => it.result as string)
-    const arrangers = ['remix', 'arrangers']
+    const arrangers = ['remix', 'arrangers', 'scripts']
       .flatMap(name => infos
         .filter(it => it.name === name)
         .map(it => it.result as string[])
         .flat()
       )
-    const performers = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals', 'instruments']
-      .flatMap(name => infos
-        .filter(it => it.name === name)
-        .map(it => it.result as string[])
-        .flat()
-      )
+    const performers = [
+      'vocals',
+      'coverVocals',
+      'harmonyVocals',
+      'accompanyVocals',
+      'chorusVocals',
+      'instruments',
+      'voices',
+    ].flatMap(name => infos
+      .filter(it => it.name === name)
+      .map(it => it.result as string[])
+      .flat()
+    )
     const artists = performers.concat(arrangers)
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
-    if (arrangers.length === 0) {
+    log('artists:', artists)
+    if (arrangers.length === 0 && composers) {
       artists.push(...composers)
     }
     const rowData = {

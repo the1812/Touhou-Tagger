@@ -81,7 +81,7 @@ export class FlacWriter extends MetadataWriter {
           }
         }
         const mdbPicture = flac.data.MetaDataBlockPicture.create(
-          !!metadata.coverImage,
+          !metadata.coverImage,
           3 /* front cover */,
           info.mimeType,
           metadata.album,

@@ -50,7 +50,7 @@ export const downloadLyrics = async (url: string, title: string, config: LyricCo
   log('tables length: ', tables.length)
   if (tables.length > 1) { // 歌词可能有多个版本
     const titles = tables.map(table => {
-      const t = table.parentElement!!.title
+      const t = table.parentElement!.title
       return t.substring(0, t.length - 1) // 移除最后一个'版'字
     })
     log(titles)
@@ -73,7 +73,7 @@ export const downloadLyrics = async (url: string, title: string, config: LyricCo
     default:
       return await downloadMetadataLyrics()
     case 'lrc':
-      const originalTitle = document.querySelector('.firstHeading')!!.textContent!!.replace('歌词:', '')
+      const originalTitle = document.querySelector('.firstHeading')!.textContent!.replace('歌词:', '')
       return await downloadLrcLyrics(originalTitle, tables.indexOf(table))
   }
 }

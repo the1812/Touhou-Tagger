@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.error = exports.warn = exports.log = exports.setDebug = void 0;
 let debug = false;
 exports.setDebug = (value) => {
     debug = value;

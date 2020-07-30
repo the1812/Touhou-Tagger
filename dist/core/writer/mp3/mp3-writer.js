@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.mp3Writer = exports.Mp3Writer = void 0;
 const metadata_writer_1 = require("../metadata-writer");
 const id3 = require("../../node-id3");
 const core_config_1 = require("../../core-config");

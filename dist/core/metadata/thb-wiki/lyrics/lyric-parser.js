@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getLyricParser = exports.LyricParser = void 0;
 const debug_1 = require("../../../debug");
 class LyricParser {
     constructor(table, config) {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.downloadLyrics = void 0;
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
 const debug_1 = require("../../../debug");

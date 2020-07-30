@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.flacWriter = exports.FlacWriter = void 0;
 const metadata_writer_1 = require("../metadata-writer");
 const flac = require("flac-metadata");
 const imageinfo = require("imageinfo");
@@ -79,7 +80,7 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                         format: '',
                     };
                 }
-                const mdbPicture = flac.data.MetaDataBlockPicture.create(!!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
+                const mdbPicture = flac.data.MetaDataBlockPicture.create(!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
                 this.push(mdbPicture.publish());
             }
         });

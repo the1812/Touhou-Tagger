@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.thbWiki = exports.THBWiki = void 0;
 const metadata_source_1 = require("../metadata-source");
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
 const core_config_1 = require("../../core-config");
+const debug_1 = require("../../debug");
 class THBWiki extends metadata_source_1.MetadataSource {
     // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
     async resolveAlbumName(albumName) {
@@ -106,6 +108,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
             编曲: defaultInfoParser('arrangers'),
             再编曲: defaultInfoParser('remix'),
             作曲: defaultInfoParser('composers'),
+            剧本: defaultInfoParser('scripts'),
             演唱: defaultInfoParser('vocals'),
             翻唱: defaultInfoParser('coverVocals'),
             和声: defaultInfoParser('harmonyVocals'),
@@ -113,6 +116,30 @@ class THBWiki extends metadata_source_1.MetadataSource {
             合唱: defaultInfoParser('chorusVocals'),
             // 演奏: defaultInfoParser('instruments'),
             作词: defaultInfoParser('lyricists'),
+            配音: (data) => {
+                const name = 'voices';
+                const rows = data.innerHTML.split('<br>').map(it => {
+                    const document = new jsdom_1.JSDOM(it).window.document;
+                    const anchors = [...document.querySelectorAll('a:not(.external)')];
+                    const artists = anchors.map(a => {
+                        const isRealArtist = a.previousSibling && a.previousSibling.textContent === '（'
+                            && a.nextSibling && a.nextSibling.textContent === '）';
+                        if (isRealArtist) {
+                            return a.textContent;
+                        }
+                        return '';
+                    });
+                    if (artists.every(a => a === '')) {
+                        return anchors.map(a => a.textContent);
+                    }
+                    return artists.filter(a => a !== '');
+                });
+                debug_1.log(rows.flat());
+                return {
+                    name,
+                    result: rows.flat(),
+                };
+            },
             演奏: (data) => {
                 const name = 'instruments';
                 const rows = data.innerHTML.split('<br>').map(it => {
@@ -123,7 +150,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 });
                 return {
                     name,
-                    result: rows
+                    result: rows,
                 };
             },
             原曲: (data) => {
@@ -195,13 +222,20 @@ class THBWiki extends metadata_source_1.MetadataSource {
         const [comments] = infos
             .filter(it => it.name === 'comments')
             .map(it => it.result);
-        const arrangers = ['remix', 'arrangers']
+        const arrangers = ['remix', 'arrangers', 'scripts']
             .flatMap(name => infos
             .filter(it => it.name === name)
             .map(it => it.result)
             .flat());
-        const performers = ['vocals', 'coverVocals', 'harmonyVocals', 'accompanyVocals', 'chorusVocals', 'instruments']
-            .flatMap(name => infos
+        const performers = [
+            'vocals',
+            'coverVocals',
+            'harmonyVocals',
+            'accompanyVocals',
+            'chorusVocals',
+            'instruments',
+            'voices',
+        ].flatMap(name => infos
             .filter(it => it.name === name)
             .map(it => it.result)
             .flat());
@@ -209,7 +243,8 @@ class THBWiki extends metadata_source_1.MetadataSource {
         const [composers] = infos
             .filter(it => it.name === 'composers')
             .map(it => it.result);
-        if (arrangers.length === 0) {
+        debug_1.log('artists:', artists);
+        if (arrangers.length === 0 && composers) {
             artists.push(...composers);
         }
         const rowData = {
