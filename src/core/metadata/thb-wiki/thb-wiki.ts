@@ -134,7 +134,7 @@ export class THBWiki extends MetadataSource {
           }
           return artists.filter(a => a !== '')
         })
-        log(rows.flat())
+        // log(rows.flat())
         return {
           name,
           result: rows.flat(),
@@ -243,7 +243,7 @@ export class THBWiki extends MetadataSource {
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
-    log('artists:', artists)
+    // log('artists:', artists)
     if (arrangers.length === 0 && composers) {
       artists.push(...composers)
     }
@@ -258,6 +258,7 @@ export class THBWiki extends MetadataSource {
       lyricLanguage,
     }
     this.rowDataNormalize(rowData)
+    log(rowData)
     return rowData
   }
   async getMetadata(albumName: string, config?: MetadataConfig) {

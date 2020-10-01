@@ -134,7 +134,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                     }
                     return artists.filter(a => a !== '');
                 });
-                debug_1.log(rows.flat());
+                // log(rows.flat())
                 return {
                     name,
                     result: rows.flat(),
@@ -243,7 +243,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
         const [composers] = infos
             .filter(it => it.name === 'composers')
             .map(it => it.result);
-        debug_1.log('artists:', artists);
+        // log('artists:', artists)
         if (arrangers.length === 0 && composers) {
             artists.push(...composers);
         }
@@ -258,6 +258,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
             lyricLanguage,
         };
         this.rowDataNormalize(rowData);
+        debug_1.log(rowData);
         return rowData;
     }
     async getMetadata(albumName, config) {

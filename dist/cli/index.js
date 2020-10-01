@@ -107,7 +107,7 @@ const writeMetadataToFile = async (metadata, targetFiles) => {
         const type = imageType(coverBuffer);
         if (type !== null) {
             const coverFilename = `cover.${type.ext}`;
-            debug_1.log(coverFilename);
+            debug_1.log('cover file', coverFilename);
             fs_1.writeFileSync(coverFilename, coverBuffer);
         }
     }
