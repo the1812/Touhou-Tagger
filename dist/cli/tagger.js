@@ -130,7 +130,7 @@ class CliTagger {
             await this.fetchMetadata(album).catch(handleError);
         }
         else if (this.cliOptions['no-interactive']) {
-            this.spinner.fail('未找到匹配专辑');
+            this.spinner.fail('未找到匹配专辑或有多个搜索结果');
         }
         else if (searchResult.length > 0) {
             this.spinner.fail('未找到匹配专辑, 以下是搜索结果:');

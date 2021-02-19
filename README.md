@@ -88,6 +88,30 @@ thtag -l
 thtag -l -t mixed
 ```
 
+### 禁止交互
+不做任何询问, 按照理想行为运行到底, 例如:
+- 专辑名称不再询问, 直接取文件夹的名称
+- 根据文件夹名称搜索不到/搜索到多个专辑时: 直接判为失败并退出
+```powershell
+thtag -I
+```
+或
+```powershell
+thtag --no-interactive
+```
+
+### 批量运行
+假设总的文件夹叫`folder`, 里面有多个文件夹, 每个文件夹包含一张专辑, 文件夹名称为专辑名称
+(当前路径就在`folder`里的时候, 用`thtag -b .`就行了, `.`表示当前文件夹)
+```powershell
+thtag -b folder
+```
+或
+```powershell
+thtag --batch folder
+```
+程序会将里面的子文件夹逐个进行专辑信息获取, 并且自动[禁止交互](#禁止交互).
+
 ## 魔改示例
 (需要已安装 `Node.js` 及 `Typescript`)
 ### 安装依赖项
@@ -109,6 +133,8 @@ export class XXX extends MetadataSource {
   async resolveAlbumName(albumName: string): Promise<string[] | string> { /* ... */ }
   // 下载专辑信息, 返回 Metadata[]
   async getMetadata(albumName: string): Promise<Metadata[]> { /* ... */ }
+  // 下载专辑封面, 返回封面的 Buffer, 无封面返回 undefined
+  async getCover(albumName: string): Promise<Buffer | undefined> { /* ... */ }
 }
 export const xxx = new XXX()
 ```

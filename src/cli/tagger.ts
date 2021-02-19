@@ -131,7 +131,7 @@ export class CliTagger {
     if (typeof searchResult === 'string') {
       await this.fetchMetadata(album).catch(handleError)
     } else if (this.cliOptions['no-interactive']) {
-      this.spinner.fail('未找到匹配专辑')
+      this.spinner.fail('未找到匹配专辑或有多个搜索结果')
     } else if (searchResult.length > 0) {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
       console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'))
