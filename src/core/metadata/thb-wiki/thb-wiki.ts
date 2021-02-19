@@ -8,6 +8,7 @@ import { log } from '../../debug'
 type TrackParseInfo = { name: string, result: string | string[] }
 
 export class THBWiki extends MetadataSource {
+  dom: Document
   // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
   async resolveAlbumName(albumName: string) {
     // const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
@@ -261,12 +262,28 @@ export class THBWiki extends MetadataSource {
     log(rowData)
     return rowData
   }
+  async getCover(albumName: string) {
+    if (this.coverBuffer) {
+      return this.coverBuffer
+    }
+    if (!this.dom) {
+      await this.getMetadata(albumName)
+    }
+    const document = this.dom
+    const coverImageElement = document.querySelector('.cover-artwork img') as HTMLImageElement
+    const coverImage = coverImageElement ? await this.getAlbumCover(coverImageElement) : undefined
+    this.coverBuffer = coverImage
+    return coverImage
+  }
   async getMetadata(albumName: string, config?: MetadataConfig) {
+    if (!this.dom) {
+      const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
+      const response = await Axios.get(url)
+      const dom = new JSDOM(response.data)
+      this.dom = dom.window.document
+    }
     this.config = Object.assign(this.config, config)
-    const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-    const response = await Axios.get(url)
-    const dom = new JSDOM(response.data)
-    const document = dom.window.document
+    const document = this.dom
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
     if (!infoTable) {
       throw new Error('页面不是同人专辑词条')
@@ -278,8 +295,7 @@ export class THBWiki extends MetadataSource {
       genres,
       year
     } = this.getAlbumData(infoTable)
-    const coverImageElement = document.querySelector('.cover-artwork img') as HTMLImageElement
-    const coverImage = coverImageElement ? await this.getAlbumCover(coverImageElement) : undefined
+    const coverImage = this.coverBuffer
 
     const musicTables = [...document.querySelectorAll('.musicTable')] as HTMLTableElement[]
     let discNumber = 1
