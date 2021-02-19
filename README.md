@@ -18,10 +18,12 @@
 - 封面图片
 
 ## 安装
+需要事先装有 [Node.js](https://nodejs.org/en/)
+然后使用以下命令来安装此工具:
 ```powershell
 yarn global add touhou-tagger
 ```
-或者
+没有 [yarn](https://yarnpkg.com/getting-started/install) 的话也可以用
 ```powershell
 npm install -g touhou-tagger
 ```
