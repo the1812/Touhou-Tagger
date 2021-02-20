@@ -15,27 +15,23 @@ export class CliTagger {
     public metadataConfig: MetadataConfig,
     public spinner: Ora,
   ) {}
-  async downloadCover(album: string) {
+  async getLocalCover() {
+    const localCoverFiles = readdirSync(this.workingDir, { withFileTypes: true })
+      .filter(f => f.isFile() && f.name.match(/^cover\.(jpg|jpeg|jpe|tif|tiff|bmp|png)$/))
+      .map(f => f.name)
+    if (localCoverFiles.length === 0) {
+      return undefined
+    }
+    const [coverFile] = localCoverFiles
+    const buffer = readFileSync(resolve(this.workingDir, coverFile))
+    return buffer
+  }
+  async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
     const metadataSource = sourceMappings[this.cliOptions.source]
     metadataSource.config = this.metadataConfig
     this.metadataSource = metadataSource
-    const localCoverFiles = readdirSync(this.workingDir, { withFileTypes: true })
-      .filter(f => f.isFile() && f.name.match(/^cover\.(jpg|jpeg|jpe|tif|tiff|bmp|png)$/))
-      .map(f => f.name)
-    if (localCoverFiles.length > 0) {
-      const [coverFile] = localCoverFiles
-      const buffer = readFileSync(resolve(this.workingDir, coverFile))
-      metadataSource.coverBuffer = buffer
-      return buffer
-    }
-    return await metadataSource.getCover(album)
-  }
-  async downloadMetadata(album: string) {
-    if (!this.metadataSource) {
-      await this.downloadCover(album)
-    }
-    return await this.metadataSource.getMetadata(album)
+    return await this.metadataSource.getMetadata(album, cover)
   }
   async createFiles(metadata: Metadata[]) {
     const { readdirSync, renameSync } = await import('fs')
@@ -101,10 +97,9 @@ export class CliTagger {
     }
   }
   async fetchMetadata(album: string) {
-    this.spinner.start(`下载专辑封面中: ${album}`)
-    await this.downloadCover(album)
-    this.spinner.text = `下载专辑信息中: ${album}`
-    const metadata = await this.downloadMetadata(album)
+    this.spinner.start(`下载专辑信息中: ${album}`)
+    const localCover = await this.getLocalCover()
+    const metadata = await this.downloadMetadata(album, localCover)
     this.spinner.text = '创建文件中'
     const targetFiles = await this.createFiles(metadata)
     this.spinner.text = '写入专辑信息中'

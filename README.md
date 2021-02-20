@@ -133,10 +133,8 @@ import { Metadata } from './metadata'
 export class XXX extends MetadataSource {
   // 搜索专辑, 返回 string 表示精确匹配, 返回 string[] 表示未找到精确匹配, 内容是根据 albumName 搜索得到的结果
   async resolveAlbumName(albumName: string): Promise<string[] | string> { /* ... */ }
-  // 下载专辑信息, 返回 Metadata[]
-  async getMetadata(albumName: string): Promise<Metadata[]> { /* ... */ }
-  // 下载专辑封面, 返回封面的 Buffer, 无封面返回 undefined
-  async getCover(albumName: string): Promise<Buffer | undefined> { /* ... */ }
+  // 下载专辑信息, 返回 Metadata[], cover 如果传入现成的封面图片 Buffer, 将跳过封面下载节省时间
+  async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> { /* ... */ }
 }
 export const xxx = new XXX()
 ```

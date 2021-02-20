@@ -7,6 +7,10 @@ const jsdom_1 = require("jsdom");
 const core_config_1 = require("../../core-config");
 const debug_1 = require("../../debug");
 class THBWiki extends metadata_source_1.MetadataSource {
+    constructor() {
+        super(...arguments);
+        this.cache = new Map();
+    }
     // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
     async resolveAlbumName(albumName) {
         // const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
@@ -261,34 +265,26 @@ class THBWiki extends metadata_source_1.MetadataSource {
         debug_1.log(rowData);
         return rowData;
     }
-    async getCover(albumName) {
-        if (this.coverBuffer) {
-            return this.coverBuffer;
-        }
-        if (!this.dom) {
-            await this.getMetadata(albumName);
-        }
-        const document = this.dom;
-        const coverImageElement = document.querySelector('.cover-artwork img');
-        const coverImage = coverImageElement ? await this.getAlbumCover(coverImageElement) : undefined;
-        this.coverBuffer = coverImage;
-        return coverImage;
-    }
-    async getMetadata(albumName, config) {
-        if (!this.dom) {
-            const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
-            const response = await axios_1.default.get(url);
-            const dom = new jsdom_1.JSDOM(response.data);
-            this.dom = dom.window.document;
-        }
-        this.config = Object.assign(this.config, config);
-        const document = this.dom;
+    async getMetadata(albumName, cover) {
+        const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
+        const response = await axios_1.default.get(url);
+        const dom = new jsdom_1.JSDOM(response.data);
+        const document = dom.window.document;
         const infoTable = document.querySelector('.doujininfo');
         if (!infoTable) {
             throw new Error('页面不是同人专辑词条');
         }
         const { album, albumOrder, albumArtists, genres, year } = this.getAlbumData(infoTable);
-        const coverImage = this.coverBuffer;
+        const coverImageElement = document.querySelector('.cover-artwork img');
+        const coverImage = await (async () => {
+            if (cover) {
+                return cover;
+            }
+            if (coverImageElement) {
+                return this.getAlbumCover(coverImageElement);
+            }
+            return undefined;
+        })();
         const musicTables = [...document.querySelectorAll('.musicTable')];
         let discNumber = 1;
         const metadatas = [];
