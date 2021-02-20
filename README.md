@@ -51,7 +51,9 @@ thtag
 
 ## 选项
 ### 保存封面为单独的文件
-(文件名为 `cover`, 类型取决于 THBWiki 上的资源)
+文件名为 `cover`, 类型取决于 THBWiki 上的资源
+> 如果已存在名为`cover`的图片, 程序会直接使用这张图, 跳过封面下载
+
 ```powershell
 thtag -c
 ```
@@ -60,7 +62,8 @@ thtag -c
 thtag --cover
 ```
 ### 更换数据源
-(默认为 `thb-wiki`)
+默认为 `thb-wiki`
+
 ```powershell
 thtag -s xxx
 ```
@@ -104,7 +107,8 @@ thtag --no-interactive
 
 ### 批量运行
 假设总的文件夹叫`folder`, 里面有多个文件夹, 每个文件夹包含一张专辑, 文件夹名称为专辑名称
-(当前路径就在`folder`里的时候, 用`thtag -b .`就行了, `.`表示当前文件夹)
+> 当前路径就在`folder`里的时候, 用`thtag -b .`就行了, `.`表示当前文件夹
+
 ```powershell
 thtag -b folder
 ```
