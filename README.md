@@ -17,7 +17,7 @@
 - 发布年份
 - 封面图片
 
-## 安装
+## 安装 / 更新
 需要事先装有 [Node.js](https://nodejs.org/en/)
 然后使用以下命令来安装此工具:
 ```powershell
