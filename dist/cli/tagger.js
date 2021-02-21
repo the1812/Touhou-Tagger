@@ -5,6 +5,22 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const debug_1 = require("../core/debug");
 const readline_1 = require("./readline");
+const leadingNumberSort = (a, b) => {
+    const infinityPrase = (str) => {
+        const number = parseInt(str);
+        if (Number.isNaN(number)) {
+            return Infinity;
+        }
+        return number;
+    };
+    const intA = infinityPrase(a);
+    const intB = infinityPrase(b);
+    const intCompare = intA - intB;
+    if (intCompare === 0) {
+        return a.localeCompare(b);
+    }
+    return intCompare;
+};
 class CliTagger {
     constructor(cliOptions, metadataConfig, spinner) {
         this.cliOptions = cliOptions;
@@ -36,10 +52,11 @@ class CliTagger {
         const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
         const fileTypes = Object.keys(writerMappings);
         const fileTypeFilter = (file) => fileTypes.some(type => file.endsWith(type));
-        const dir = readdirSync(this.workingDir);
+        const dir = readdirSync(this.workingDir).sort(leadingNumberSort);
         const discFiles = dir
             .filter(f => f.match(/^Disc (\d+)/))
             .flatMap(f => readdirSync(f)
+            .sort(leadingNumberSort)
             .map(inner => `${f}/${inner}`))
             .filter(fileTypeFilter);
         const files = dir

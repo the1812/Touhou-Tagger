@@ -7,6 +7,22 @@ import { log } from '../core/debug'
 import { CliOptions } from './options'
 import { readline } from './readline'
 
+const leadingNumberSort = (a: string, b: string) => {
+  const infinityPrase = (str: string) => {
+    const number = parseInt(str)
+    if (Number.isNaN(number)) {
+      return Infinity
+    }
+    return number
+  }
+  const intA = infinityPrase(a)
+  const intB = infinityPrase(b)
+  const intCompare = intA - intB
+  if (intCompare === 0) {
+    return a.localeCompare(b)
+  }
+  return intCompare
+}
 export class CliTagger {
   workingDir = '.'
   metadataSource: MetadataSource
@@ -39,11 +55,13 @@ export class CliTagger {
     const { writerMappings } = await import('../core/writer/writer-mappings')
     const fileTypes = Object.keys(writerMappings)
     const fileTypeFilter = (file: string) => fileTypes.some(type => file.endsWith(type))
-    const dir = readdirSync(this.workingDir)
+    const dir = readdirSync(this.workingDir).sort(leadingNumberSort)
     const discFiles = dir
       .filter(f => f.match(/^Disc (\d+)/))
       .flatMap(f => readdirSync(f)
-      .map(inner => `${f}/${inner}`))
+        .sort(leadingNumberSort)
+        .map(inner => `${f}/${inner}`)
+      )
       .filter(fileTypeFilter)
     const files = dir
       .filter(fileTypeFilter)
