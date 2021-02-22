@@ -5,14 +5,16 @@ const metadata_writer_1 = require("../metadata-writer");
 const flac = require("flac-metadata");
 const imageinfo = require("imageinfo");
 const fs_1 = require("fs");
-const core_config_1 = require("../../core-config");
 const stream_1 = require("stream");
 const util_1 = require("util");
 const debug_1 = require("../../debug");
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101';
+const getMultipleComments = (name, data) => {
+    return data.map(value => `${name}=${value}`);
+};
 const getVorbisComments = (metadata) => {
     const comments = [
-        `ARTIST=${metadata.artists.join(core_config_1.MetadataSeparator)}`,
+        ...getMultipleComments('ARTIST', metadata.artists),
         `TITLE=${metadata.title}`,
         `ALBUM=${metadata.album}`,
         `ALBUMSORT=${metadata.albumOrder}`,
@@ -20,7 +22,7 @@ const getVorbisComments = (metadata) => {
         `DISCNUMBER=${metadata.discNumber}`,
     ];
     if (metadata.composers) {
-        comments.push(`COMPOSER=${metadata.composers.join(core_config_1.MetadataSeparator)}`);
+        comments.push(...getMultipleComments('COMPOSER', metadata.composers));
     }
     if (metadata.comments) {
         comments.push(`COMMENT=${metadata.comments}`);
@@ -29,13 +31,13 @@ const getVorbisComments = (metadata) => {
         comments.push(`LYRICS=${metadata.lyric}`);
     }
     if (metadata.lyricists) {
-        comments.push(`LYRICIST=${metadata.lyricists.join(core_config_1.MetadataSeparator)}`);
+        comments.push(...getMultipleComments('LYRICIST', metadata.lyricists));
     }
     if (metadata.albumArtists) {
-        comments.push(`ALBUMARTIST=${metadata.albumArtists.join(core_config_1.MetadataSeparator)}`);
+        comments.push(...getMultipleComments('ALBUMARTIST', metadata.albumArtists));
     }
     if (metadata.genres) {
-        comments.push(`GENRE=${metadata.genres.join(core_config_1.MetadataSeparator)}`);
+        comments.push(...getMultipleComments('GENRE', metadata.genres));
     }
     if (metadata.year) {
         comments.push(`DATE=${metadata.year}`);

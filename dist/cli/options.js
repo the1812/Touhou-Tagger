@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadataConfig = exports.lyricConfig = exports.cliOptions = void 0;
 const commandLineArgs = require("command-line-args");
+const core_config_1 = require("../core/core-config");
 const debug_1 = require("../core/debug");
 const config_file_1 = require("./config-file");
 const options = commandLineArgs([
@@ -39,10 +40,12 @@ const lyric = {
     translationSeparator: options['translation-separator'] || ' // '
 };
 const metadata = {
-    lyric: options.lyric ? lyric : undefined
+    lyric: options.lyric ? lyric : undefined,
+    separator: configFile ? (configFile.separator || core_config_1.DefaultMetadataSeparator) : core_config_1.DefaultMetadataSeparator,
 };
-debug_1.log(options, metadata);
-config_file_1.saveConfigFile({ lyric });
+debug_1.log(options);
+debug_1.log(metadata);
+config_file_1.saveConfigFile({ ...metadata, lyric });
 exports.cliOptions = options;
 exports.lyricConfig = lyric;
 exports.metadataConfig = metadata;

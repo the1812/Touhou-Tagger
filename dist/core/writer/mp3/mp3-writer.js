@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mp3Writer = exports.Mp3Writer = void 0;
 const metadata_writer_1 = require("../metadata-writer");
 const id3 = require("../../node-id3");
-const core_config_1 = require("../../core-config");
 const languageCodeConvert = (code) => {
     const mapping = {
         ja: 'jpn',
@@ -12,18 +11,18 @@ const languageCodeConvert = (code) => {
     };
     return code ? (mapping[code] || 'jpn') : 'jpn';
 };
-const getNodeId3Tag = (metadata) => {
+const getNodeId3Tag = (metadata, separator) => {
     const tag = {
         title: metadata.title,
-        artist: metadata.artists.join(core_config_1.MetadataSeparator),
+        artist: metadata.artists.join(separator),
         album: metadata.album,
         partOfSet: metadata.discNumber,
         trackNumber: metadata.trackNumber,
-        composer: metadata.composers ? metadata.composers.join(core_config_1.MetadataSeparator) : '',
-        genre: metadata.genres ? metadata.genres.join(core_config_1.MetadataSeparator) : '',
+        composer: metadata.composers ? metadata.composers.join(separator) : '',
+        genre: metadata.genres ? metadata.genres.join(separator) : '',
         year: metadata.year || '',
-        textWriter: metadata.lyricists ? metadata.lyricists.join(core_config_1.MetadataSeparator) : '',
-        performerInfo: metadata.albumArtists ? metadata.albumArtists.join(core_config_1.MetadataSeparator) : '',
+        textWriter: metadata.lyricists ? metadata.lyricists.join(separator) : '',
+        performerInfo: metadata.albumArtists ? metadata.albumArtists.join(separator) : '',
         comment: {
             text: metadata.comments || '',
         },
@@ -47,7 +46,7 @@ const getNodeId3Tag = (metadata) => {
 };
 class Mp3Writer extends metadata_writer_1.MetadataWriter {
     async write(metadata, filePath) {
-        const tag = getNodeId3Tag(metadata);
+        const tag = getNodeId3Tag(metadata, this.config.separator);
         if (this.config.lyric && this.config.lyric.output === 'lrc') {
             tag.unsynchronisedLyrics.text = '';
             tag.unsynchronisedLyrics.language = undefined;

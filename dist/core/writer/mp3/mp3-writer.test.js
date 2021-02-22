@@ -24,8 +24,8 @@ test('MP3 Metadata Write', async () => {
     await mp3_writer_1.mp3Writer.write(metadata, outputFilename);
     const tag = id3.read(outputFilename);
     expect(tag.title).toEqual(metadata.title);
-    expect(tag.artist).toEqual(metadata.artists.join(core_config_1.MetadataSeparator));
-    expect(tag.performerInfo).toEqual(metadata.albumArtists.join(core_config_1.MetadataSeparator));
+    expect(tag.artist).toEqual(metadata.artists.join(core_config_1.DefaultMetadataSeparator));
+    expect(tag.performerInfo).toEqual(metadata.albumArtists.join(core_config_1.DefaultMetadataSeparator));
     expect(tag.album).toEqual(metadata.album);
     expect(tag.comment.text).toEqual(metadata.comments);
     expect(tag.trackNumber).toEqual(metadata.trackNumber);

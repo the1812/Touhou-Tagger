@@ -4,7 +4,6 @@ exports.thbWiki = exports.THBWiki = void 0;
 const metadata_source_1 = require("../metadata-source");
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
-const core_config_1 = require("../../core-config");
 const debug_1 = require("../../debug");
 class THBWiki extends metadata_source_1.MetadataSource {
     constructor() {
@@ -165,14 +164,14 @@ class THBWiki extends metadata_source_1.MetadataSource {
                         result += element.textContent.trim();
                         // 后面还有原曲时加逗号
                         if (index < sources.length - 1 && sources[index + 1].classList.contains('ogmusic')) {
-                            result += core_config_1.MetadataSeparator;
+                            result += this.config.separator;
                         }
                     }
                     else { // .source
                         result += ` (${element.textContent.trim()})`;
                         // 不是最后一个source时加逗号
                         if (index !== sources.length - 1) {
-                            result += core_config_1.MetadataSeparator;
+                            result += this.config.separator;
                         }
                     }
                 });

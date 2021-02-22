@@ -1,5 +1,5 @@
 import * as commandLineArgs from 'command-line-args'
-import { LyricConfig, MetadataConfig } from '../core/core-config'
+import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config'
 import { log, setDebug } from '../core/debug'
 import { loadConfigFile, saveConfigFile } from './config-file'
 
@@ -51,10 +51,12 @@ const lyric = {
   translationSeparator: options['translation-separator'] || ' // '
 } as LyricConfig
 const metadata: MetadataConfig = {
-  lyric: options.lyric ? lyric : undefined
+  lyric: options.lyric ? lyric : undefined,
+  separator: configFile ? (configFile.separator || DefaultMetadataSeparator) : DefaultMetadataSeparator,
 }
-log(options, metadata)
-saveConfigFile({ lyric })
+log(options)
+log(metadata)
+saveConfigFile({ ...metadata, lyric })
 
 export const cliOptions = options
 export const lyricConfig = lyric

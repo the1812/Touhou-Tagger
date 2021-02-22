@@ -2,7 +2,6 @@ import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import Axios from 'axios'
 import { JSDOM } from 'jsdom'
-import { MetadataSeparator, MetadataConfig } from '../../core-config'
 import { log } from '../../debug'
 
 type TrackParseInfo = { name: string, result: string | string[] }
@@ -162,13 +161,13 @@ export class THBWiki extends MetadataSource {
             result += element.textContent!.trim()
             // 后面还有原曲时加逗号
             if (index < sources.length - 1 && sources[index + 1].classList.contains('ogmusic')) {
-              result += MetadataSeparator
+              result += this.config.separator
             }
           } else { // .source
             result += ` (${element.textContent!.trim()})`
             // 不是最后一个source时加逗号
             if (index !== sources.length - 1) {
-              result += MetadataSeparator
+              result += this.config.separator
             }
           }
         })

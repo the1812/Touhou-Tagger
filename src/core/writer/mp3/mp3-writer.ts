@@ -1,7 +1,6 @@
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
 import * as id3 from '../../node-id3'
-import { MetadataSeparator } from '../../core-config'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
@@ -11,18 +10,18 @@ const languageCodeConvert = (code: string | undefined) => {
   }
   return code ? (mapping[code] || 'jpn') : 'jpn'
 }
-const getNodeId3Tag = (metadata: Metadata) => {
+const getNodeId3Tag = (metadata: Metadata, separator: string) => {
   const tag: id3.NodeID3Tag = {
     title: metadata.title,
-    artist: metadata.artists.join(MetadataSeparator),
+    artist: metadata.artists.join(separator),
     album: metadata.album,
     partOfSet: metadata.discNumber,
     trackNumber: metadata.trackNumber,
-    composer: metadata.composers ? metadata.composers.join(MetadataSeparator) : '',
-    genre: metadata.genres ? metadata.genres.join(MetadataSeparator) : '',
+    composer: metadata.composers ? metadata.composers.join(separator) : '',
+    genre: metadata.genres ? metadata.genres.join(separator) : '',
     year: metadata.year || '',
-    textWriter: metadata.lyricists ? metadata.lyricists.join(MetadataSeparator) : '',
-    performerInfo: metadata.albumArtists ? metadata.albumArtists.join(MetadataSeparator) : '',
+    textWriter: metadata.lyricists ? metadata.lyricists.join(separator) : '',
+    performerInfo: metadata.albumArtists ? metadata.albumArtists.join(separator) : '',
     comment: {
       text: metadata.comments || '',
     },
@@ -46,7 +45,7 @@ const getNodeId3Tag = (metadata: Metadata) => {
 }
 export class Mp3Writer extends MetadataWriter {
   async write(metadata: Metadata, filePath: string) {
-    const tag = getNodeId3Tag(metadata)
+    const tag = getNodeId3Tag(metadata, this.config.separator)
     if (this.config.lyric && this.config.lyric.output === 'lrc') {
       tag.unsynchronisedLyrics.text = ''
       tag.unsynchronisedLyrics.language = undefined

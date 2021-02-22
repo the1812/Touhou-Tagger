@@ -3,15 +3,17 @@ import { Metadata } from '../../metadata/metadata'
 import * as flac from 'flac-metadata'
 import imageinfo = require('imageinfo')
 import { createWriteStream, readFileSync } from 'fs'
-import { MetadataSeparator } from '../../core-config'
 import { Readable, finished } from 'stream'
 import { promisify } from 'util'
 import { log } from '../../debug'
 
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101'
+const getMultipleComments = (name: string, data: string[]) => {
+  return data.map(value => `${name}=${value}`)
+}
 const getVorbisComments = (metadata: Metadata): string[] => {
   const comments = [
-    `ARTIST=${metadata.artists.join(MetadataSeparator)}`,
+    ...getMultipleComments('ARTIST', metadata.artists),
     `TITLE=${metadata.title}`,
     `ALBUM=${metadata.album}`,
     `ALBUMSORT=${metadata.albumOrder}`,
@@ -19,7 +21,7 @@ const getVorbisComments = (metadata: Metadata): string[] => {
     `DISCNUMBER=${metadata.discNumber}`,
   ]
   if (metadata.composers) {
-    comments.push(`COMPOSER=${metadata.composers.join(MetadataSeparator)}`)
+    comments.push(...getMultipleComments('COMPOSER', metadata.composers))
   }
   if (metadata.comments) {
     comments.push(`COMMENT=${metadata.comments}`)
@@ -28,13 +30,13 @@ const getVorbisComments = (metadata: Metadata): string[] => {
     comments.push(`LYRICS=${metadata.lyric}`)
   }
   if (metadata.lyricists) {
-    comments.push(`LYRICIST=${metadata.lyricists.join(MetadataSeparator)}`)
+    comments.push(...getMultipleComments('LYRICIST', metadata.lyricists))
   }
   if (metadata.albumArtists) {
-    comments.push(`ALBUMARTIST=${metadata.albumArtists.join(MetadataSeparator)}`)
+    comments.push(...getMultipleComments('ALBUMARTIST', metadata.albumArtists))
   }
   if (metadata.genres) {
-    comments.push(`GENRE=${metadata.genres.join(MetadataSeparator)}`)
+    comments.push(...getMultipleComments('GENRE', metadata.genres))
   }
   if (metadata.year) {
     comments.push(`DATE=${metadata.year}`)

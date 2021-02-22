@@ -1,4 +1,4 @@
-export const MetadataSeparator = ', '
+export const DefaultMetadataSeparator = ' / '
 export interface LyricConfig {
   type: 'original' | 'translated' | 'mixed'
   output: 'metadata' | 'lrc'
@@ -7,4 +7,5 @@ export interface LyricConfig {
 }
 export interface MetadataConfig {
   lyric?: LyricConfig
+  separator: string
 }
