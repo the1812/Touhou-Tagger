@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.runBatchTagger = void 0;
 const fs_1 = require("fs");
 const path_1 = require("path");
+const debug_1 = require("../core/debug");
 const options_1 = require("./options");
 let spinner;
 exports.runBatchTagger = async (folder) => {
@@ -26,11 +27,14 @@ exports.runBatchTagger = async (folder) => {
         try {
             const album = albums[index];
             spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`;
+            debug_1.log(`start processing album #${index + 1}`);
             const tagger = new CliTagger(options_1.cliOptions, options_1.metadataConfig, spinner);
             tagger.workingDir = path_1.resolve(options_1.cliOptions.batch, album);
             await tagger.run(album);
+            debug_1.log(`processed album #${index + 1}`);
         }
         catch (error) {
+            debug_1.log('batch error:', error.message);
             continue;
         }
     }

@@ -26,9 +26,6 @@ const options = commandLineArgs([
   { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
   { name: 'no-interactive', alias: 'I', type: Boolean, defaultValue: false },
 ]) as CliOptions
-if (options.batch) {
-  options['no-interactive'] = true
-}
 setDebug(options.debug)
 
 const configFile = loadConfigFile()

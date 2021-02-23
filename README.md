@@ -116,7 +116,7 @@ thtag -b folder
 ```powershell
 thtag --batch folder
 ```
-程序会将里面的子文件夹逐个进行专辑信息获取, 并且自动[禁止交互](#禁止交互).
+程序会将里面的子文件夹逐个进行专辑信息获取.
 
 ## 魔改示例
 (需要已安装 `Node.js` 及 `Typescript`)

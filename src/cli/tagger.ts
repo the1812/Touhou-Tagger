@@ -58,7 +58,7 @@ export class CliTagger {
     const dir = readdirSync(this.workingDir).sort(leadingNumberSort)
     const discFiles = dir
       .filter(f => f.match(/^Disc (\d+)/))
-      .flatMap(f => readdirSync(f)
+      .flatMap(f => readdirSync(resolve(this.workingDir, f))
         .sort(leadingNumberSort)
         .map(inner => `${f}/${inner}`)
       )
@@ -115,14 +115,15 @@ export class CliTagger {
     }
   }
   async fetchMetadata(album: string) {
-    this.spinner.start(`下载专辑信息中: ${album}`)
+    const batch = this.cliOptions.batch
+    this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
     const localCover = await this.getLocalCover()
     const metadata = await this.downloadMetadata(album, localCover)
     this.spinner.text = '创建文件中'
     const targetFiles = await this.createFiles(metadata)
     this.spinner.text = '写入专辑信息中'
     await this.writeMetadataToFile(metadata, targetFiles)
-    this.spinner.succeed(`成功写入了专辑信息: ${album}`)
+    this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`)
   }
   async run(album: string) {
     this.spinner.text = '搜索中'

@@ -16,9 +16,6 @@ const options = commandLineArgs([
     { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
     { name: 'no-interactive', alias: 'I', type: Boolean, defaultValue: false },
 ]);
-if (options.batch) {
-    options['no-interactive'] = true;
-}
 debug_1.setDebug(options.debug);
 const configFile = config_file_1.loadConfigFile();
 if (configFile !== null) {
