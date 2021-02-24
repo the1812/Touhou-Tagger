@@ -4,6 +4,7 @@ import Axios from 'axios'
 import { JSDOM } from 'jsdom'
 import { log } from '../../debug'
 import { MetadataConfig } from '../../core-config'
+import { altNames } from './alt-names'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 
@@ -161,17 +162,18 @@ export class THBWiki extends MetadataSource {
         let result = `原曲: `
         const sources = [...data.querySelectorAll('.ogmusic,.source')] as Element[]
         sources.forEach((element, index) => {
+          const comma = ', '
           if (element.classList.contains('ogmusic')) {
             result += element.textContent!.trim()
             // 后面还有原曲时加逗号
             if (index < sources.length - 1 && sources[index + 1].classList.contains('ogmusic')) {
-              result += this.config.separator
+              result += comma
             }
           } else { // .source
             result += ` (${element.textContent!.trim()})`
             // 不是最后一个source时加逗号
             if (index !== sources.length - 1) {
-              result += this.config.separator
+              result += comma
             }
           }
         })
@@ -189,7 +191,15 @@ export class THBWiki extends MetadataSource {
   }
   private rowDataNormalize(rowData: any) {
     const normalizeAction = (str: string) => {
-      return str.replace('（人物）', '')
+      if (altNames.has(str)) {
+        return altNames.get(str)!
+      }
+      return str
+        .replace(/（人物）$/, '')
+        .replace(/（现实人物）$/, '')
+        .replace(/（作曲家）$/, '')
+        .replace(/\u200b/g, '') // zero-width space
+        .trim()
     }
     for (const [key, value] of Object.entries(rowData)) {
       if (typeof value === 'string') {
@@ -243,7 +253,7 @@ export class THBWiki extends MetadataSource {
       .map(it => it.result as string[])
       .flat()
     )
-    const artists = performers.concat(arrangers)
+    const artists = [...new Set(performers.concat(arrangers))]
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
@@ -253,7 +263,7 @@ export class THBWiki extends MetadataSource {
     }
     const rowData = {
       title,
-      artists: [...new Set(artists)],
+      artists,
       trackNumber,
       comments,
       lyricists,

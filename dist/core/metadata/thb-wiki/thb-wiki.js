@@ -5,6 +5,7 @@ const metadata_source_1 = require("../metadata-source");
 const axios_1 = require("axios");
 const jsdom_1 = require("jsdom");
 const debug_1 = require("../../debug");
+const alt_names_1 = require("./alt-names");
 class THBWiki extends metadata_source_1.MetadataSource {
     constructor() {
         super(...arguments);
@@ -163,18 +164,19 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 let result = `原曲: `;
                 const sources = [...data.querySelectorAll('.ogmusic,.source')];
                 sources.forEach((element, index) => {
+                    const comma = ', ';
                     if (element.classList.contains('ogmusic')) {
                         result += element.textContent.trim();
                         // 后面还有原曲时加逗号
                         if (index < sources.length - 1 && sources[index + 1].classList.contains('ogmusic')) {
-                            result += this.config.separator;
+                            result += comma;
                         }
                     }
                     else { // .source
                         result += ` (${element.textContent.trim()})`;
                         // 不是最后一个source时加逗号
                         if (index !== sources.length - 1) {
-                            result += this.config.separator;
+                            result += comma;
                         }
                     }
                 });
@@ -192,7 +194,15 @@ class THBWiki extends metadata_source_1.MetadataSource {
     }
     rowDataNormalize(rowData) {
         const normalizeAction = (str) => {
-            return str.replace('（人物）', '');
+            if (alt_names_1.altNames.has(str)) {
+                return alt_names_1.altNames.get(str);
+            }
+            return str
+                .replace(/（人物）$/, '')
+                .replace(/（现实人物）$/, '')
+                .replace(/（作曲家）$/, '')
+                .replace(/\u200b/g, '') // zero-width space
+                .trim();
         };
         for (const [key, value] of Object.entries(rowData)) {
             if (typeof value === 'string') {
@@ -245,7 +255,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
             .filter(it => it.name === name)
             .map(it => it.result)
             .flat());
-        const artists = performers.concat(arrangers);
+        const artists = [...new Set(performers.concat(arrangers))];
         const [composers] = infos
             .filter(it => it.name === 'composers')
             .map(it => it.result);
@@ -255,7 +265,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
         }
         const rowData = {
             title,
-            artists: [...new Set(artists)],
+            artists,
             trackNumber,
             comments,
             lyricists,
