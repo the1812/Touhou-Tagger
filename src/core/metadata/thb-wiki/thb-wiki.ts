@@ -92,6 +92,11 @@ export class THBWiki extends MetadataSource {
   private parseRelatedRowInfo(trackInfoRow: Element): TrackParseInfo {
     const defaultInfoParser = (name: string): (data: Element) => TrackParseInfo => {
       return (data: Element) => {
+        const children = [...data.children]
+        const brIndex = children.findIndex(it => it.tagName.toLowerCase() === 'br')
+        if (brIndex !== -1) {
+          children.slice(brIndex).forEach(e => e.remove())
+        }
         let textContent = data.textContent!
         /*
           要是这个值就是一个_, THBWiki 会转成一个警告...

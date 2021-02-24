@@ -94,6 +94,11 @@ class THBWiki extends metadata_source_1.MetadataSource {
     parseRelatedRowInfo(trackInfoRow) {
         const defaultInfoParser = (name) => {
             return (data) => {
+                const children = [...data.children];
+                const brIndex = children.findIndex(it => it.tagName.toLowerCase() === 'br');
+                if (brIndex !== -1) {
+                    children.slice(brIndex).forEach(e => e.remove());
+                }
                 let textContent = data.textContent;
                 /*
                   要是这个值就是一个_, THBWiki 会转成一个警告...
