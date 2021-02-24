@@ -11,6 +11,7 @@ exports.altNames = new Map([
     ['suslik', 'cnsuslik'],
     ['DJ.suslik', 'cnsuslik'],
     ['DJ suslik', 'cnsuslik'],
+    ['Frozen Starfall', 'FS'],
     ['NANO-Fuckyig', 'NANO-FXXKYIG'],
     ['N-apoleon', 'Napoleon'],
     ['NJune', 'NJune六月'],
