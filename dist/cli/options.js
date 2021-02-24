@@ -12,7 +12,7 @@ const options = commandLineArgs([
     { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
     { name: 'batch', alias: 'b', type: String, defaultValue: '' },
     { name: 'separator', type: String, defaultValue: core_config_1.DefaultMetadataSeparator },
-    { name: 'timeout', type: Number, defaultValue: 120 },
+    { name: 'timeout', type: Number, defaultValue: 30 },
     { name: 'retry', type: Number, defaultValue: 3 },
     { name: 'lyric-type', alias: 't', type: String },
     { name: 'lyric-output', alias: 'o', type: String },

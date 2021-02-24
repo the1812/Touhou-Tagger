@@ -122,7 +122,7 @@ class CliTagger {
             }
             catch (error) {
                 retryCount++;
-                debug_1.log('\nretry get timeout', retryCount);
+                debug_1.log('\nretry get timeout', retryCount, error);
                 if (retryCount < this.cliOptions.retry) {
                     this.spinner.fail(`操作超时(${this.cliOptions.timeout}秒), 进行第${retryCount}次重试...`);
                 }
@@ -147,7 +147,6 @@ class CliTagger {
         });
     }
     async run(album) {
-        this.spinner.text = '搜索中';
         const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
         const metadataSource = sourceMappings[this.cliOptions.source];
         if (!metadataSource) {
@@ -155,8 +154,8 @@ class CliTagger {
             this.spinner.fail(message);
             throw new Error(message);
         }
+        metadataSource.config = this.metadataConfig;
         debug_1.log('searching');
-        const searchResult = await metadataSource.resolveAlbumName(album);
         const handleError = (error) => {
             if (error instanceof Error) {
                 this.spinner.fail(`错误: ${error.message}`);
@@ -165,6 +164,13 @@ class CliTagger {
                 throw error;
             }
         };
+        const searchResult = await this.withRetry(() => {
+            this.spinner.start('搜索中');
+            return metadataSource.resolveAlbumName(album);
+        }).catch(error => {
+            handleError(error);
+            return [];
+        });
         debug_1.log('fetching metadata');
         if (typeof searchResult === 'string') {
             await this.fetchMetadata(album).catch(handleError);

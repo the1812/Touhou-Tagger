@@ -125,7 +125,7 @@ export class CliTagger {
         return result
       } catch (error) {
         retryCount++
-        log('\nretry get timeout', retryCount)
+        log('\nretry get timeout', retryCount, error)
         if (retryCount < this.cliOptions.retry) {
           this.spinner.fail(`操作超时(${this.cliOptions.timeout}秒), 进行第${retryCount}次重试...`)
         } else {
@@ -149,7 +149,6 @@ export class CliTagger {
     })
   }
   async run(album: string) {
-    this.spinner.text = '搜索中'
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
     const metadataSource = sourceMappings[this.cliOptions.source]
     if (!metadataSource) {
@@ -157,8 +156,8 @@ export class CliTagger {
       this.spinner.fail(message)
       throw new Error(message)
     }
+    metadataSource.config = this.metadataConfig
     log('searching')
-    const searchResult = await metadataSource.resolveAlbumName(album)
     const handleError = (error: any) => {
       if (error instanceof Error) {
         this.spinner.fail(`错误: ${error.message}`)
@@ -166,6 +165,13 @@ export class CliTagger {
         throw error
       }
     }
+    const searchResult = await this.withRetry(() => {
+      this.spinner.start('搜索中')
+      return metadataSource.resolveAlbumName(album)
+    }).catch(error => {
+      handleError(error)
+      return [] as string[]
+    })
     log('fetching metadata')
     if (typeof searchResult === 'string') {
       await this.fetchMetadata(album).catch(handleError)

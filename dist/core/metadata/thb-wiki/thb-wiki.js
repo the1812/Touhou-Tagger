@@ -26,7 +26,8 @@ class THBWiki extends metadata_source_1.MetadataSource {
         // }
         const url = `https://thwiki.cc/api.php?action=opensearch&format=json&search=${encodeURIComponent(albumName)}&limit=20&suggest=true`;
         const response = await axios_1.default.get(url, {
-            responseType: 'json'
+            responseType: 'json',
+            timeout: this.config.timeout * 1000,
         });
         if (response.status === 200) {
             const [, names] = response.data;
