@@ -3,6 +3,7 @@ import { Metadata } from '../metadata'
 import Axios from 'axios'
 import { JSDOM } from 'jsdom'
 import { log } from '../../debug'
+import { MetadataConfig } from '../../core-config'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 
@@ -40,7 +41,10 @@ export class THBWiki extends MetadataSource {
   private async getAlbumCover(img: HTMLImageElement) {
     const src = img.src.replace('/thumb/', '/')
     const url = src.substring(0, src.lastIndexOf('/'))
-    const response = await Axios.get(url, { responseType: 'arraybuffer' })
+    const response = await Axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: this.config.timeout * 1000,
+    })
     return response.data as Buffer
   }
   private getAlbumData(infoTable: Element) {
@@ -204,7 +208,7 @@ export class THBWiki extends MetadataSource {
       const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)') as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
         const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics')
-        return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric)
+        return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config as Required<MetadataConfig>)
       } else {
         return {
           lyric: undefined,
@@ -263,7 +267,7 @@ export class THBWiki extends MetadataSource {
   }
   async getMetadata(albumName: string, cover?: Buffer) {
     const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-    const response = await Axios.get(url)
+    const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
     const dom = new JSDOM(response.data)
     const document = dom.window.document
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement

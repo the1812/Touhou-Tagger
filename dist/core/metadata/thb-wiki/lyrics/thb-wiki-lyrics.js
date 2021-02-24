@@ -16,14 +16,14 @@ const downloadMetadataLyrics = async () => {
         lyricLanguage,
     };
 };
-const downloadLrcLyrics = async (title, index) => {
+const downloadLrcLyrics = async (title, index, config) => {
     const language = lyricParser.findLanguage();
     const indexString = index === 0 ? '' : `.${index + 1}`;
     const url = `https://touhou.cd/lyrics/${encodeURIComponent(title)}${indexString}${language}.lrc`;
     debug_1.log(url);
     let response;
     try {
-        response = await axios_1.default.get(url, { responseType: 'text' });
+        response = await axios_1.default.get(url, { responseType: 'text', timeout: config.timeout * 1000 });
         return {
             lyric: response.data,
             lyricLanguage: undefined
@@ -42,7 +42,7 @@ exports.downloadLyrics = async (url, title, config) => {
     debug_1.log(`\n下载歌词中: ${title}`);
     let document = lyricDocumentCache.get(url);
     if (!document) {
-        const response = await axios_1.default.get(url);
+        const response = await axios_1.default.get(url, { timeout: config.timeout * 1000 });
         const dom = new jsdom_1.JSDOM(response.data);
         document = dom.window.document;
         lyricDocumentCache.set(url, document);
@@ -71,13 +71,13 @@ exports.downloadLyrics = async (url, title, config) => {
     else {
         [table] = tables;
     }
-    lyricParser = lyric_parser_1.getLyricParser(table, config);
-    switch (config.output) {
+    lyricParser = lyric_parser_1.getLyricParser(table, config.lyric);
+    switch (config.lyric.output) {
         case 'metadata':
         default:
             return await downloadMetadataLyrics();
         case 'lrc':
             const originalTitle = document.querySelector('.firstHeading').textContent.replace('歌词:', '');
-            return await downloadLrcLyrics(originalTitle, tables.indexOf(table));
+            return await downloadLrcLyrics(originalTitle, tables.indexOf(table), config);
     }
 };

@@ -114,16 +114,39 @@ export class CliTagger {
       }
     }
   }
+  async withRetry<T>(action: () => Promise<T>) {
+    let retryCount = 0
+    while (retryCount < this.cliOptions.retry) {
+      try {
+        const result = await Promise.race([
+          action(),
+          new Promise<T>((_, reject) => setTimeout(reject, this.cliOptions.timeout * 1000)),
+        ])
+        return result
+      } catch (error) {
+        retryCount++
+        log('\nretry get timeout', retryCount)
+        if (retryCount < this.cliOptions.retry) {
+          this.spinner.fail(`操作超时(${this.cliOptions.timeout}秒), 进行第${retryCount}次重试...`)
+        } else {
+          break
+        }
+      }
+    }
+    throw new Error(`操作超时(${this.cliOptions.timeout}秒)`)
+  }
   async fetchMetadata(album: string) {
-    const batch = this.cliOptions.batch
-    this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
-    const localCover = await this.getLocalCover()
-    const metadata = await this.downloadMetadata(album, localCover)
-    this.spinner.text = '创建文件中'
-    const targetFiles = await this.createFiles(metadata)
-    this.spinner.text = '写入专辑信息中'
-    await this.writeMetadataToFile(metadata, targetFiles)
-    this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`)
+    return this.withRetry(async () => {
+      const batch = this.cliOptions.batch
+      this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
+      const localCover = await this.getLocalCover()
+      const metadata = await this.downloadMetadata(album, localCover)
+      this.spinner.text = '创建文件中'
+      const targetFiles = await this.createFiles(metadata)
+      this.spinner.text = '写入专辑信息中'
+      await this.writeMetadataToFile(metadata, targetFiles)
+      this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`)
+    })
   }
   async run(album: string) {
     this.spinner.text = '搜索中'
@@ -134,6 +157,7 @@ export class CliTagger {
       this.spinner.fail(message)
       throw new Error(message)
     }
+    log('searching')
     const searchResult = await metadataSource.resolveAlbumName(album)
     const handleError = (error: any) => {
       if (error instanceof Error) {
@@ -142,6 +166,7 @@ export class CliTagger {
         throw error
       }
     }
+    log('fetching metadata')
     if (typeof searchResult === 'string') {
       await this.fetchMetadata(album).catch(handleError)
     } else if (this.cliOptions['no-interactive']) {
@@ -149,7 +174,7 @@ export class CliTagger {
     } else if (searchResult.length > 0) {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
       console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'))
-      const answer = await readline('输入序号可选择相应条目, 或输入其他任意字符退出程序: ')
+      const answer = await readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ')
       const index = parseInt(answer)
       if (isNaN(index) || index < 1 || index > searchResult.length) {
         return

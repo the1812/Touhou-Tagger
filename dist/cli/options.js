@@ -11,6 +11,9 @@ const options = commandLineArgs([
     { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
     { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
     { name: 'batch', alias: 'b', type: String, defaultValue: '' },
+    { name: 'separator', type: String, defaultValue: core_config_1.DefaultMetadataSeparator },
+    { name: 'timeout', type: Number, defaultValue: 120 },
+    { name: 'retry', type: Number, defaultValue: 3 },
     { name: 'lyric-type', alias: 't', type: String },
     { name: 'lyric-output', alias: 'o', type: String },
     { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
@@ -20,15 +23,17 @@ debug_1.setDebug(options.debug);
 const configFile = config_file_1.loadConfigFile();
 if (configFile !== null) {
     debug_1.log('config file: ', configFile);
-    if (configFile.lyric !== undefined) {
+    const { lyric, ...restConfig } = configFile;
+    if (lyric !== undefined) {
         if (options['lyric-output'] === undefined) {
-            options['lyric-output'] = configFile.lyric.output;
+            options['lyric-output'] = lyric.output;
         }
         if (options['lyric-type'] === undefined) {
-            options['lyric-type'] = configFile.lyric.type;
+            options['lyric-type'] = lyric.type;
         }
-        options['translation-separator'] = configFile.lyric.translationSeparator;
+        options['translation-separator'] = lyric.translationSeparator;
     }
+    Object.assign(options, restConfig);
 }
 const lyric = {
     type: options['lyric-type'] || 'original',
@@ -38,7 +43,9 @@ const lyric = {
 };
 const metadata = {
     lyric: options.lyric ? lyric : undefined,
-    separator: configFile ? (configFile.separator || core_config_1.DefaultMetadataSeparator) : core_config_1.DefaultMetadataSeparator,
+    separator: options.separator,
+    timeout: options.timeout,
+    retry: options.retry,
 };
 debug_1.log(options);
 debug_1.log(metadata);

@@ -44,7 +44,10 @@ class THBWiki extends metadata_source_1.MetadataSource {
     async getAlbumCover(img) {
         const src = img.src.replace('/thumb/', '/');
         const url = src.substring(0, src.lastIndexOf('/'));
-        const response = await axios_1.default.get(url, { responseType: 'arraybuffer' });
+        const response = await axios_1.default.get(url, {
+            responseType: 'arraybuffer',
+            timeout: this.config.timeout * 1000,
+        });
         return response.data;
     }
     getAlbumData(infoTable) {
@@ -208,7 +211,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
             const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)');
             if (this.config.lyric && lyricLink) {
                 const { downloadLyrics } = await Promise.resolve().then(() => require('./lyrics/thb-wiki-lyrics'));
-                return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config.lyric);
+                return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config);
             }
             else {
                 return {
@@ -266,7 +269,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
     }
     async getMetadata(albumName, cover) {
         const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
-        const response = await axios_1.default.get(url);
+        const response = await axios_1.default.get(url, { timeout: this.config.timeout * 1000 });
         const dom = new jsdom_1.JSDOM(response.data);
         const document = dom.window.document;
         const infoTable = document.querySelector('.doujininfo');

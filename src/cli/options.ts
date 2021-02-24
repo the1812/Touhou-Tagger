@@ -9,6 +9,9 @@ export interface CliOptions {
   source: string
   lyric: boolean
   batch: string
+  timeout: number
+  retry: number
+  separator: string
   'lyric-type': string
   'lyric-output': string
   'no-lyric-time': boolean
@@ -21,6 +24,9 @@ const options = commandLineArgs([
   { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
   { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
   { name: 'batch', alias: 'b', type: String, defaultValue: '' },
+  { name: 'separator', type: String, defaultValue: DefaultMetadataSeparator },
+  { name: 'timeout', type: Number, defaultValue: 120 },
+  { name: 'retry', type: Number, defaultValue: 3 },
   { name: 'lyric-type', alias: 't', type: String },
   { name: 'lyric-output', alias: 'o', type: String },
   { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
@@ -31,15 +37,17 @@ setDebug(options.debug)
 const configFile = loadConfigFile()
 if (configFile !== null) {
   log('config file: ', configFile)
-  if (configFile.lyric !== undefined) {
+  const { lyric, ...restConfig } = configFile
+  if (lyric !== undefined) {
     if (options['lyric-output'] === undefined) {
-      options['lyric-output'] = configFile.lyric.output
+      options['lyric-output'] = lyric.output
     }
     if (options['lyric-type'] === undefined) {
-      options['lyric-type'] = configFile.lyric.type
+      options['lyric-type'] = lyric.type
     }
-    options['translation-separator'] = configFile.lyric.translationSeparator
+    options['translation-separator'] = lyric.translationSeparator
   }
+  Object.assign(options, restConfig)
 }
 const lyric = {
   type: options['lyric-type'] || 'original',
@@ -49,7 +57,9 @@ const lyric = {
 } as LyricConfig
 const metadata: MetadataConfig = {
   lyric: options.lyric ? lyric : undefined,
-  separator: configFile ? (configFile.separator || DefaultMetadataSeparator) : DefaultMetadataSeparator,
+  separator: options.separator,
+  timeout: options.timeout,
+  retry: options.retry,
 }
 log(options)
 log(metadata)

@@ -110,16 +110,41 @@ class CliTagger {
             }
         }
     }
+    async withRetry(action) {
+        let retryCount = 0;
+        while (retryCount < this.cliOptions.retry) {
+            try {
+                const result = await Promise.race([
+                    action(),
+                    new Promise((_, reject) => setTimeout(reject, this.cliOptions.timeout * 1000)),
+                ]);
+                return result;
+            }
+            catch (error) {
+                retryCount++;
+                debug_1.log('\nretry get timeout', retryCount);
+                if (retryCount < this.cliOptions.retry) {
+                    this.spinner.fail(`操作超时(${this.cliOptions.timeout}秒), 进行第${retryCount}次重试...`);
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        throw new Error(`操作超时(${this.cliOptions.timeout}秒)`);
+    }
     async fetchMetadata(album) {
-        const batch = this.cliOptions.batch;
-        this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`);
-        const localCover = await this.getLocalCover();
-        const metadata = await this.downloadMetadata(album, localCover);
-        this.spinner.text = '创建文件中';
-        const targetFiles = await this.createFiles(metadata);
-        this.spinner.text = '写入专辑信息中';
-        await this.writeMetadataToFile(metadata, targetFiles);
-        this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`);
+        return this.withRetry(async () => {
+            const batch = this.cliOptions.batch;
+            this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`);
+            const localCover = await this.getLocalCover();
+            const metadata = await this.downloadMetadata(album, localCover);
+            this.spinner.text = '创建文件中';
+            const targetFiles = await this.createFiles(metadata);
+            this.spinner.text = '写入专辑信息中';
+            await this.writeMetadataToFile(metadata, targetFiles);
+            this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`);
+        });
     }
     async run(album) {
         this.spinner.text = '搜索中';
@@ -130,6 +155,7 @@ class CliTagger {
             this.spinner.fail(message);
             throw new Error(message);
         }
+        debug_1.log('searching');
         const searchResult = await metadataSource.resolveAlbumName(album);
         const handleError = (error) => {
             if (error instanceof Error) {
@@ -139,6 +165,7 @@ class CliTagger {
                 throw error;
             }
         };
+        debug_1.log('fetching metadata');
         if (typeof searchResult === 'string') {
             await this.fetchMetadata(album).catch(handleError);
         }
@@ -148,7 +175,7 @@ class CliTagger {
         else if (searchResult.length > 0) {
             this.spinner.fail('未找到匹配专辑, 以下是搜索结果:');
             console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'));
-            const answer = await readline_1.readline('输入序号可选择相应条目, 或输入其他任意字符退出程序: ');
+            const answer = await readline_1.readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ');
             const index = parseInt(answer);
             if (isNaN(index) || index < 1 || index > searchResult.length) {
                 return;

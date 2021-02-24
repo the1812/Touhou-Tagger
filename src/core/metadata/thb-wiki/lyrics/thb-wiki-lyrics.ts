@@ -1,6 +1,6 @@
 import Axios, { AxiosResponse } from 'axios'
 import { JSDOM } from 'jsdom'
-import { LyricConfig } from '../../../core-config'
+import { LyricConfig, MetadataConfig } from '../../../core-config'
 import { log } from '../../../debug'
 import { getLyricParser, LyricParser } from './lyric-parser'
 
@@ -15,14 +15,14 @@ const downloadMetadataLyrics = async () => {
     lyricLanguage,
   }
 }
-const downloadLrcLyrics = async (title: string, index: number) => {
+const downloadLrcLyrics = async (title: string, index: number, config: MetadataConfig) => {
   const language = lyricParser.findLanguage()
   const indexString = index === 0 ? '' : `.${index + 1}`
   const url = `https://touhou.cd/lyrics/${encodeURIComponent(title)}${indexString}${language}.lrc`
   log(url)
   let response: AxiosResponse<string>
   try {
-    response = await Axios.get(url, { responseType: 'text' })
+    response = await Axios.get(url, { responseType: 'text', timeout: config.timeout * 1000 })
     return {
       lyric: response.data,
       lyricLanguage: undefined
@@ -36,11 +36,11 @@ const downloadLrcLyrics = async (title: string, index: number) => {
   }
 }
 const lyricDocumentCache = new Map<string, Document>()
-export const downloadLyrics = async (url: string, title: string, config: LyricConfig) => {
+export const downloadLyrics = async (url: string, title: string, config: Required<MetadataConfig>) => {
   log(`\n下载歌词中: ${title}`)
   let document = lyricDocumentCache.get(url)
   if (!document) {
-    const response = await Axios.get(url)
+    const response = await Axios.get(url, { timeout: config.timeout * 1000 })
     const dom = new JSDOM(response.data)
     document = dom.window.document
     lyricDocumentCache.set(url, document)
@@ -67,13 +67,13 @@ export const downloadLyrics = async (url: string, title: string, config: LyricCo
   } else {
     [table] = tables
   }
-  lyricParser = getLyricParser(table, config)
-  switch (config.output) {
+  lyricParser = getLyricParser(table, config.lyric)
+  switch (config.lyric.output) {
     case 'metadata':
     default:
       return await downloadMetadataLyrics()
     case 'lrc':
       const originalTitle = document.querySelector('.firstHeading')!.textContent!.replace('歌词:', '')
-      return await downloadLrcLyrics(originalTitle, tables.indexOf(table))
+      return await downloadLrcLyrics(originalTitle, tables.indexOf(table), config)
   }
 }
