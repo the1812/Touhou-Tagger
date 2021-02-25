@@ -261,14 +261,14 @@ class THBWiki extends metadata_source_1.MetadataSource {
             .filter(it => it.name === name)
             .map(it => it.result)
             .flat());
-        const artists = [...new Set(performers.concat(arrangers))];
         const [composers] = infos
             .filter(it => it.name === 'composers')
             .map(it => it.result);
         // log('artists:', artists)
         if (arrangers.length === 0 && composers) {
-            artists.push(...composers);
+            arrangers.push(...composers);
         }
+        const artists = [...new Set(performers.concat(arrangers))];
         const rowData = {
             title,
             artists,

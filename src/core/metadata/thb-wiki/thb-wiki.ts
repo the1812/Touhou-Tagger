@@ -259,14 +259,14 @@ export class THBWiki extends MetadataSource {
       .map(it => it.result as string[])
       .flat()
     )
-    const artists = [...new Set(performers.concat(arrangers))]
     const [composers] = infos
       .filter(it => it.name === 'composers')
       .map(it => it.result as string[])
     // log('artists:', artists)
     if (arrangers.length === 0 && composers) {
-      artists.push(...composers)
+      arrangers.push(...composers)
     }
+    const artists = [...new Set(performers.concat(arrangers))]
     const rowData = {
       title,
       artists,
