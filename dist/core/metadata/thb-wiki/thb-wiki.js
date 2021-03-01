@@ -204,10 +204,14 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 return alt_names_1.altNames.get(str);
             }
             return str
+                .replace(/\u200b/g, '') // zero-width space
+                .replace(/　/g, ' ')
                 .replace(/（人物）$/, '')
                 .replace(/（现实人物）$/, '')
                 .replace(/（作曲家）$/, '')
-                .replace(/\u200b/g, '') // zero-width space
+                .replace(/([^\s])([\(])/g, '$1 $2')
+                .replace(/([^\s]) ([（])/g, '$1$2')
+                .replace(/’/g, "'")
                 .trim();
         };
         for (const [key, value] of Object.entries(rowData)) {

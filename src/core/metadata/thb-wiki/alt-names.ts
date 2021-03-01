@@ -1,9 +1,11 @@
+/* spell-checker: disable */
 export const altNames = new Map<string, string>([
   ['底线', '＿'],
   ['_', '＿'],
   ['4_16', '4_16☆'],
   ['11ama_sama', '11ama'],
   ['Clean Tears', 'CleanTears'],
+  ['Camellia', 'かめりあ'],
   ['Darkness Ten', 'Darkness_Ten'],
   ['darkxixin', 'Darkxixin'],
   ['suslik', 'cnsuslik'],

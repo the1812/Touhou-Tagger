@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.altNames = void 0;
+/* spell-checker: disable */
 exports.altNames = new Map([
     ['底线', '＿'],
     ['_', '＿'],
     ['4_16', '4_16☆'],
     ['11ama_sama', '11ama'],
     ['Clean Tears', 'CleanTears'],
+    ['Camellia', 'かめりあ'],
     ['Darkness Ten', 'Darkness_Ten'],
     ['darkxixin', 'Darkxixin'],
     ['suslik', 'cnsuslik'],
