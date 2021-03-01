@@ -72,6 +72,8 @@ thtag -s xxx
 thtag --source xxx
 ```
 ### 下载歌词
+歌词相关的处理, 除了`--lyric`外的选项都会自动保存.
+
 #### 选项说明
 - `-l` / `--lyric`: 启用歌词下载
 - `-t` / `--lyric-type`: 歌词类型
@@ -120,89 +122,17 @@ thtag --batch folder
 
 ### 超时 / 重试
 默认 30 秒后无法完成专辑信息下载判定为超时, 并自动进行重试, 总尝试次数到达默认的 3 次后, 程序会判为失败并停止.
+
 可以通过相应的开关调整以上的数值, 下面的例子为 60 秒超时, 最多试 5 次:
 ```powershell
 thtag --timeout 60 --retry 5
 ```
 
-## 魔改示例
-(需要已安装 `Node.js` 及 `Typescript`)
-### 安装依赖项
-```powershell
-yarn
-```
-或者
-```powershell
-npm install
-```
-### 添加其他数据源
-在`src/core/metadata/`中添加文件`xxx.ts`, 继承`MetadataSource`类:
-```TypeScript
-import { MetadataSource } from './metadata-source'
-import { Metadata } from './metadata'
+> 这些数值更改后也会自动保存
 
-export class XXX extends MetadataSource {
-  // 搜索专辑, 返回 string 表示精确匹配, 返回 string[] 表示未找到精确匹配, 内容是根据 albumName 搜索得到的结果
-  async resolveAlbumName(albumName: string): Promise<string[] | string> { /* ... */ }
-  // 下载专辑信息, 返回 Metadata[], cover 如果传入现成的封面图片 Buffer, 将跳过封面下载节省时间
-  async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> { /* ... */ }
-}
-export const xxx = new XXX()
-```
-然后在`src/core/metadata/source-mappings.ts`中添加对应项:
-```TypeScript
-import { thbWiki } from './thb-wiki';
-import { xxx } from './xxx';
-import { MetadataSource } from './metadata-source';
-
-export const sourceMappings = {
-  'thb-wiki': thbWiki,
-  'xxx': xxx,
-} as { [type: string]: MetadataSource }
-```
-
-### 添加其他文件类型支持
-在`src/core/writer/`中添加文件`xxx-writer.ts`, 继承`MetadataWriter`类:
-```TypeScript
-import { MetadataWriter } from './metadata-writer'
-import { Metadata } from './metadata'
-
-export class XxxWriter extends MetadataWriter {
-  // 将专辑信息写入文件
-  async write(metadata: Metadata, filePath: string): Promise<void> { /* ... */ }
-}
-export const xxxWriter = new XxxWriter()
-```
-然后在`src/core/writer/writer-mappings.ts`中添加对应项:
-```TypeScript
-import { MetadataWriter } from './metadata-writer'
-import { mp3Writer } from './mp3-writer'
-import { xxxWriter } from './xxx-writer'
-
-export const writerMappings = {
-  '.mp3': mp3Writer,
-  '.xxx': xxxWriter,
-} as { [type: string]: MetadataWriter }
-```
-
-<!--
-### 导出API
-若需要导出API, 可在`src/core/index.ts`中添加相应导出:
-```TypeScript
-export * from './writer/metadata-writer'
-export * from './writer/mp3-writer'
-export * from './writer/writer-mappings'
-export * from './metadata/metadata'
-export * from './metadata/metadata-source'
-export * from './metadata/source-mappings'
-export * from './metadata/thb-wiki'
-
-export * from './writer/xxx-writer'
-export * from './metadata/xxx'
-```
--->
-
-### 编译
-```powershell
-tsc
-```
+## 特别感谢
+- [THBWiki](http://thwiki.cc/首页)
+- [dizzylab](https://www.dizzylab.net/)
+- [foobar2000](https://www.foobar2000.org/)
+- [iTunes](https://www.apple.com/itunes/)
+- [Mp3Tag](https://www.mp3tag.de/en/)
