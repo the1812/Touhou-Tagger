@@ -23,6 +23,7 @@ const leadingNumberSort = (a: string, b: string) => {
   }
   return intCompare
 }
+const TimeoutError = Symbol('timeout')
 export class CliTagger {
   workingDir = '.'
   metadataSource: MetadataSource
@@ -120,20 +121,32 @@ export class CliTagger {
       try {
         const result = await Promise.race([
           action(),
-          new Promise<T>((_, reject) => setTimeout(reject, this.cliOptions.timeout * 1000)),
+          new Promise<T>((_, reject) => setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000)),
         ])
         return result
       } catch (error) {
         retryCount++
-        log('\nretry get timeout', retryCount, error)
+        const reason = (() => {
+          if (error === TimeoutError) {
+            return `操作超时(${this.cliOptions.timeout}秒)`
+          }
+          if (!error) {
+            return '发生未知错误'
+          }
+          if (error.message) {
+            return error.message
+          }
+          return error.toString()
+        })()
+        log('\nretry get timeout', retryCount, reason)
         if (retryCount < this.cliOptions.retry) {
-          this.spinner.fail(`操作超时(${this.cliOptions.timeout}秒), 进行第${retryCount}次重试...`)
+          this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
         } else {
-          break
+          throw new Error(reason)
         }
       }
     }
-    throw new Error(`操作超时(${this.cliOptions.timeout}秒)`)
+    throw new Error('发生未知错误')
   }
   async fetchMetadata(album: string) {
     return this.withRetry(async () => {
