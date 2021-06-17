@@ -5,7 +5,7 @@ import { Metadata, MetadataSource } from '../core'
 import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
 import { CliOptions } from './options'
-import { readline } from './readline'
+import { readline } from '../core/readline'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -138,7 +138,10 @@ export class CliTagger {
           }
           return error.toString()
         })()
-        log('\nretry get timeout', retryCount, reason)
+        log('\nretry get error', retryCount, reason)
+        if ('stack' in reason) {
+          log(`\n${reason.stack}`)
+        }
         if (retryCount < this.cliOptions.retry) {
           this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
         } else {
@@ -187,7 +190,7 @@ export class CliTagger {
     })
     log('fetching metadata')
     if (typeof searchResult === 'string') {
-      await this.fetchMetadata(album).catch(handleError)
+      await this.fetchMetadata(searchResult).catch(handleError)
     } else if (this.cliOptions['no-interactive']) {
       this.spinner.fail('未找到匹配专辑或有多个搜索结果')
     } else if (searchResult.length > 0) {

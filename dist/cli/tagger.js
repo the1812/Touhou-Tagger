@@ -4,7 +4,7 @@ exports.CliTagger = void 0;
 const fs_1 = require("fs");
 const path_1 = require("path");
 const debug_1 = require("../core/debug");
-const readline_1 = require("./readline");
+const readline_1 = require("../core/readline");
 const leadingNumberSort = (a, b) => {
     const infinityPrase = (str) => {
         const number = parseInt(str);
@@ -135,7 +135,10 @@ class CliTagger {
                     }
                     return error.toString();
                 })();
-                debug_1.log('\nretry get timeout', retryCount, reason);
+                debug_1.log('\nretry get error', retryCount, reason);
+                if ('stack' in reason) {
+                    debug_1.log(`\n${reason.stack}`);
+                }
                 if (retryCount < this.cliOptions.retry) {
                     this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`);
                 }
@@ -186,7 +189,7 @@ class CliTagger {
         });
         debug_1.log('fetching metadata');
         if (typeof searchResult === 'string') {
-            await this.fetchMetadata(album).catch(handleError);
+            await this.fetchMetadata(searchResult).catch(handleError);
         }
         else if (this.cliOptions['no-interactive']) {
             this.spinner.fail('未找到匹配专辑或有多个搜索结果');

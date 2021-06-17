@@ -25,6 +25,7 @@ export interface NodeID3Tag {
     imageBuffer: Buffer
   }
   TSOA?: string
+  albumOrder?: string
   raw?: { [name: string]: any }
 }
 export function write(tag: NodeID3Tag, file: string): boolean

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const options_1 = require("./options");
-const readline_1 = require("./readline");
+const readline_1 = require("../core/readline");
 let spinner;
 const runTagger = async (album) => {
     const ora = await Promise.resolve().then(() => require('ora'));

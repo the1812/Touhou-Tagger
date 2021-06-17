@@ -2,7 +2,7 @@
 import { basename } from 'path'
 import { cliOptions, metadataConfig } from './options'
 import { Ora } from 'ora'
-import { readline } from './readline'
+import { readline } from '../core/readline'
 
 let spinner: Ora
 const runTagger = async (album: string) => {
