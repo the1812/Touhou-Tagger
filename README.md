@@ -52,7 +52,7 @@ thtag
 ## 选项
 ### 保存封面为单独的文件
 文件名为 `cover`, 类型取决于 THBWiki 上的资源
-> 如果已存在名为`cover`的图片, 程序会直接使用这张图, 跳过封面下载
+> 如果已存在名为 `cover` 的图片, 程序会直接使用这张图, 跳过封面下载
 
 ```powershell
 thtag -c
@@ -71,8 +71,26 @@ thtag -s xxx
 ```powershell
 thtag --source xxx
 ```
+
+此工具还内置了另外两种数据源:
+#### local-mp3
+从 MP3 文件提取曲目信息, 通常用于 FLAC 文件未填信息, 而已有填好信息的 MP3 文件. 可以使用此数据源按专辑进行信息复制.
+```powershell
+thtag -s local-mp3
+```
+在启动后, 询问专辑名称时填入 MP3 文件所在的文件夹即可.
+
+#### local-json
+从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于`src/core/metadata.ts`) 或 `[Metadata, ...Omit<Metadata, AlbumMetadata>[]]` (也就是除了第一个以外后续可以省略专辑字段). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
+
+> 如果已存在名为 `metadata.json` 的文件, 程序会直接使用其中的曲目信息, 跳过曲目信息下载
+
+```powershell
+thtag -s local-json
+```
+
 ### 下载歌词
-歌词相关的处理, 除了`--lyric`外的选项都会自动保存.
+歌词相关的处理, 除了 `--lyric` 外的选项都会自动保存.
 
 #### 选项说明
 - `-l` / `--lyric`: 启用歌词下载
@@ -109,7 +127,7 @@ thtag --no-interactive
 
 ### 批量运行
 假设总的文件夹叫`folder`, 里面有多个文件夹, 每个文件夹包含一张专辑, 文件夹名称为专辑名称
-> 当前路径就在`folder`里的时候, 用`thtag -b .`就行了, `.`表示当前文件夹
+> 当前路径就在 `folder` 里的时候, 用 `thtag -b .` 就行了, `.` 表示当前文件夹
 
 ```powershell
 thtag -b folder
