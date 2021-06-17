@@ -40,6 +40,22 @@ class CliTagger {
         const buffer = fs_1.readFileSync(path_1.resolve(this.workingDir, coverFile));
         return buffer;
     }
+    async getLocalJson() {
+        const localMetadataFiles = fs_1.readdirSync(this.workingDir, { withFileTypes: true })
+            .filter(f => f.isFile() && f.name.match(/^metadata\.jsonc?$/))
+            .map(f => f.name);
+        if (localMetadataFiles.length === 0) {
+            return undefined;
+        }
+        const [localMetadata] = localMetadataFiles;
+        const json = fs_1.readFileSync(path_1.resolve(this.workingDir, localMetadata), { encoding: 'utf8' });
+        debug_1.log('localJson get');
+        debug_1.log(json);
+        const { localJson } = await Promise.resolve().then(() => require('../core/metadata/local-json/local-json'));
+        return Promise.all(JSON.parse(json).map(async (m) => {
+            return localJson.readCover(m, await this.getLocalCover());
+        }));
+    }
     async downloadMetadata(album, cover) {
         const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
         const metadataSource = sourceMappings[this.cliOptions.source];
@@ -154,7 +170,9 @@ class CliTagger {
             const batch = this.cliOptions.batch;
             this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`);
             const localCover = await this.getLocalCover();
-            const metadata = await this.downloadMetadata(album, localCover);
+            const localJson = await this.getLocalJson();
+            const metadata = localJson || await this.downloadMetadata(album, localCover);
+            debug_1.log('final metadata', metadata);
             this.spinner.text = '创建文件中';
             const targetFiles = await this.createFiles(metadata);
             this.spinner.text = '写入专辑信息中';
@@ -180,8 +198,12 @@ class CliTagger {
                 throw error;
             }
         };
-        const searchResult = await this.withRetry(() => {
+        const localJson = await this.getLocalJson();
+        const searchResult = await this.withRetry(async () => {
             this.spinner.start('搜索中');
+            if (localJson !== undefined && localJson.length > 0) {
+                return localJson[0].album;
+            }
             return metadataSource.resolveAlbumName(album);
         }).catch(error => {
             handleError(error);

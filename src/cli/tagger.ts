@@ -43,6 +43,22 @@ export class CliTagger {
     const buffer = readFileSync(resolve(this.workingDir, coverFile))
     return buffer
   }
+  async getLocalJson() {
+    const localMetadataFiles = readdirSync(this.workingDir, { withFileTypes: true })
+      .filter(f => f.isFile() && f.name.match(/^metadata\.jsonc?$/))
+      .map(f => f.name)
+    if (localMetadataFiles.length === 0) {
+      return undefined
+    }
+    const [localMetadata] = localMetadataFiles
+    const json = readFileSync(resolve(this.workingDir, localMetadata), { encoding: 'utf8' })
+    log('localJson get')
+    log(json)
+    const { localJson } = await import('../core/metadata/local-json/local-json')
+    return Promise.all((JSON.parse(json) as Metadata[]).map(async m => {
+      return localJson.readCover(m, await this.getLocalCover())
+    }))
+  }
   async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
     const metadataSource = sourceMappings[this.cliOptions.source]
@@ -156,7 +172,9 @@ export class CliTagger {
       const batch = this.cliOptions.batch
       this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
       const localCover = await this.getLocalCover()
-      const metadata = await this.downloadMetadata(album, localCover)
+      const localJson = await this.getLocalJson()
+      const metadata = localJson || await this.downloadMetadata(album, localCover)
+      log('final metadata', metadata)
       this.spinner.text = '创建文件中'
       const targetFiles = await this.createFiles(metadata)
       this.spinner.text = '写入专辑信息中'
@@ -181,8 +199,12 @@ export class CliTagger {
         throw error
       }
     }
-    const searchResult = await this.withRetry(() => {
+    const localJson = await this.getLocalJson()
+    const searchResult = await this.withRetry(async () => {
       this.spinner.start('搜索中')
+      if (localJson !== undefined && localJson.length > 0) {
+        return localJson[0].album
+      }
       return metadataSource.resolveAlbumName(album)
     }).catch(error => {
       handleError(error)

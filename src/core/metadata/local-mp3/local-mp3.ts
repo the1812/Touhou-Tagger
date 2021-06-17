@@ -1,6 +1,8 @@
 import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import { Dirent, readdirSync } from 'fs'
+import { resolvePath } from '../../exists'
+import { defaultsToEmptyString } from '../../proxy'
 import * as id3 from '../../node-id3'
 
 const dirFilter = (path: string, predicate: (d: Dirent) => boolean) => {
@@ -10,13 +12,7 @@ const dirFilter = (path: string, predicate: (d: Dirent) => boolean) => {
 }
 export class LocalMp3 extends MetadataSource {
   async resolveAlbumName(localSource: string) {
-    const { resolve } = await import('path')
-    const { existsSync } = await import('fs')
-    const localSourcePath = resolve(localSource).replace(/\\/g, '/')
-    if (!existsSync(localSourcePath)) {
-      throw new Error('路径不存在')
-    }
-    return localSourcePath
+    return resolvePath(localSource)
   }
   private async getMultipleDiscFiles(path: string) {
     const { join } = await import('path')
@@ -37,14 +33,7 @@ export class LocalMp3 extends MetadataSource {
     const metadatas = discs.map((discFiles, index) => {
       const discNumber = (index + 1).toString()
       return discFiles.map(file => {
-        const tags = new Proxy(id3.read(file), {
-          get(target, prop, ...args) {
-            if (prop in target) {
-              return Reflect.get(target, prop, ...args)
-            }
-            return ''
-          }
-        })
+        const tags = defaultsToEmptyString(id3.read(file))
         const separator = this.config.separator
         const metadata: Metadata = {
           title: tags.title,

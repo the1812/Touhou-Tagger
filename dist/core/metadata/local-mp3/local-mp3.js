@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.localMp3 = exports.LocalMp3 = void 0;
 const metadata_source_1 = require("../metadata-source");
 const fs_1 = require("fs");
+const exists_1 = require("../../exists");
+const proxy_1 = require("../../proxy");
 const id3 = require("../../node-id3");
 const dirFilter = (path, predicate) => {
     return fs_1.readdirSync(path, { withFileTypes: true })
@@ -11,13 +13,7 @@ const dirFilter = (path, predicate) => {
 };
 class LocalMp3 extends metadata_source_1.MetadataSource {
     async resolveAlbumName(localSource) {
-        const { resolve } = await Promise.resolve().then(() => require('path'));
-        const { existsSync } = await Promise.resolve().then(() => require('fs'));
-        const localSourcePath = resolve(localSource).replace(/\\/g, '/');
-        if (!existsSync(localSourcePath)) {
-            throw new Error('路径不存在');
-        }
-        return localSourcePath;
+        return exists_1.resolvePath(localSource);
     }
     async getMultipleDiscFiles(path) {
         const { join } = await Promise.resolve().then(() => require('path'));
@@ -35,14 +31,7 @@ class LocalMp3 extends metadata_source_1.MetadataSource {
         const metadatas = discs.map((discFiles, index) => {
             const discNumber = (index + 1).toString();
             return discFiles.map(file => {
-                const tags = new Proxy(id3.read(file), {
-                    get(target, prop, ...args) {
-                        if (prop in target) {
-                            return Reflect.get(target, prop, ...args);
-                        }
-                        return '';
-                    }
-                });
+                const tags = proxy_1.defaultsToEmptyString(id3.read(file));
                 const separator = this.config.separator;
                 const metadata = {
                     title: tags.title,

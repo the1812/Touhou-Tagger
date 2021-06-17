@@ -10,6 +10,9 @@ const util_1 = require("util");
 const debug_1 = require("../../debug");
 const DefaultVendor = 'reference libFLAC 1.3.2 20170101';
 const getMultipleComments = (name, data) => {
+    if (typeof data === 'string') {
+        return [`${name}=${data}`];
+    }
     return data.map(value => `${name}=${value}`);
 };
 const getVorbisComments = (metadata) => {
