@@ -55,9 +55,7 @@ export class CliTagger {
     log('localJson get')
     log(json)
     const { localJson } = await import('../core/metadata/local-json/local-json')
-    return Promise.all((JSON.parse(json) as Metadata[]).map(async m => {
-      return localJson.readCover(m, await this.getLocalCover())
-    }))
+    return localJson.normalize((JSON.parse(json) as Metadata[]), await this.getLocalCover())
   }
   async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)

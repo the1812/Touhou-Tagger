@@ -1,5 +1,12 @@
-export interface Metadata {
-  // Track data
+export interface AlbumMetadata {
+  album: string
+  albumOrder: string
+  albumArtists?: string[]
+  genres?: string[]
+  year?: string
+  coverImage?: Buffer
+}
+export interface Metadata extends AlbumMetadata {
   title: string
   artists: string[]
   discNumber: string
@@ -9,11 +16,4 @@ export interface Metadata {
   lyricLanguage?: string
   lyric?: string
   lyricists?: string[]
-  // Album data
-  album: string
-  albumOrder: string
-  albumArtists?: string[]
-  genres?: string[]
-  year?: string
-  coverImage?: Buffer
 }

@@ -52,9 +52,7 @@ class CliTagger {
         debug_1.log('localJson get');
         debug_1.log(json);
         const { localJson } = await Promise.resolve().then(() => require('../core/metadata/local-json/local-json'));
-        return Promise.all(JSON.parse(json).map(async (m) => {
-            return localJson.readCover(m, await this.getLocalCover());
-        }));
+        return localJson.normalize(JSON.parse(json), await this.getLocalCover());
     }
     async downloadMetadata(album, cover) {
         const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));

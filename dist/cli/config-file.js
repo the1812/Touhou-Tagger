@@ -9,7 +9,7 @@ exports.loadConfigFile = () => {
     if (!fs_1.existsSync(exports.filePath)) {
         return null;
     }
-    return JSON.parse(fs_1.readFileSync(exports.filePath, { encoding: 'utf-8' }));
+    return JSON.parse(fs_1.readFileSync(exports.filePath, { encoding: 'utf8' }));
 };
 exports.saveConfigFile = (config) => {
     fs_1.writeFileSync(exports.filePath, JSON.stringify(config, undefined, 2));
