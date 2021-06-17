@@ -80,10 +80,12 @@ thtag -s local-mp3
 ```
 在启动后, 询问专辑名称时填入 MP3 文件所在的文件夹即可.
 
+> 注意此数据源需要填入 MP3 的文件夹路径, 因此不能用于批量模式中
+
 #### local-json
 从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于`src/core/metadata.ts`) 或 `[Metadata, ...Omit<Metadata, AlbumMetadata>[]]` (也就是除了第一个以外后续可以省略专辑字段). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
 
-> 如果已存在名为 `metadata.json` 的文件, 程序会直接使用其中的曲目信息, 跳过曲目信息下载
+> 如果已存在名为 `metadata.json` 的文件, 程序会直接使用其中的曲目信息, 跳过曲目信息下载. 事先在各个文件夹中准备好 `metadata.json` 的话也是可以使用批量模式的.
 
 ```powershell
 thtag -s local-json
