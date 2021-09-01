@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { basename } from 'path'
 import { cliOptions, metadataConfig } from './options'
 import { Ora } from 'ora'
 import { readline } from '../core/readline'
+import { getDefaultAlbumName } from './default-album-name'
 
 let spinner: Ora
 const runTagger = async (album: string) => {
@@ -22,7 +22,7 @@ const runTagger = async (album: string) => {
   process.exit()
 }
 
-const defaultAlbumName = basename(process.cwd())
+const defaultAlbumName = getDefaultAlbumName()
 if (cliOptions.batch) {
   import('./batch').then(({ runBatchTagger }) => {
     runBatchTagger(cliOptions.batch)

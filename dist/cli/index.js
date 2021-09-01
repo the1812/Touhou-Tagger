@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const path_1 = require("path");
 const options_1 = require("./options");
 const readline_1 = require("../core/readline");
+const default_album_name_1 = require("./default-album-name");
 let spinner;
 const runTagger = async (album) => {
     const ora = await Promise.resolve().then(() => require('ora'));
@@ -21,7 +21,7 @@ const runTagger = async (album) => {
     await tagger.run(album);
     process.exit();
 };
-const defaultAlbumName = path_1.basename(process.cwd());
+const defaultAlbumName = default_album_name_1.getDefaultAlbumName();
 if (options_1.cliOptions.batch) {
     Promise.resolve().then(() => require('./batch')).then(({ runBatchTagger }) => {
         runBatchTagger(options_1.cliOptions.batch);
