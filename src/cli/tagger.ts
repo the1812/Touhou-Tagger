@@ -183,6 +183,7 @@ export class CliTagger {
   async run(album: string) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
     const metadataSource = sourceMappings[this.cliOptions.source]
+    const noInteractive = this.cliOptions['no-interactive']
     if (!metadataSource) {
       const message = `未找到与'${this.cliOptions.source}'相关联的数据源.`
       this.spinner.fail(message)
@@ -203,7 +204,12 @@ export class CliTagger {
       if (localJson !== undefined && localJson.length > 0) {
         return localJson[0].album
       }
-      return metadataSource.resolveAlbumName(album)
+      const remoteResults = await metadataSource.resolveAlbumName(album)
+      const hasOnlyOneResult = Array.isArray(remoteResults) && remoteResults.length === 1
+      if (hasOnlyOneResult && noInteractive) {
+        return remoteResults[0]
+      }
+      return remoteResults
     }).catch(error => {
       handleError(error)
       return [] as string[]
@@ -211,7 +217,7 @@ export class CliTagger {
     log('fetching metadata')
     if (typeof searchResult === 'string') {
       await this.fetchMetadata(searchResult).catch(handleError)
-    } else if (this.cliOptions['no-interactive']) {
+    } else if (noInteractive) {
       this.spinner.fail('未找到匹配专辑或有多个搜索结果')
     } else if (searchResult.length > 0) {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
