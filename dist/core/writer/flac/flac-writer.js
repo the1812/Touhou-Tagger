@@ -76,7 +76,7 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
             else if (metadata.coverImage) {
                 let info = imageinfo(metadata.coverImage);
                 if (info === undefined) {
-                    debug_1.log('image info failed!');
+                    (0, debug_1.log)('image info failed!');
                     info = {
                         mimeType: '',
                         width: 0,
@@ -89,16 +89,16 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 this.push(mdbPicture.publish());
             }
         });
-        const fileBuffer = fs_1.readFileSync(filePath);
+        const fileBuffer = (0, fs_1.readFileSync)(filePath);
         const reader = new stream_1.Readable({
             read() {
                 this.push(fileBuffer);
                 this.push(null);
             }
         });
-        const writer = fs_1.createWriteStream(filePath);
+        const writer = (0, fs_1.createWriteStream)(filePath);
         reader.pipe(commentsProcessor).pipe(pictureProcessor).pipe(writer);
-        await util_1.promisify(stream_1.finished)(writer);
+        await (0, util_1.promisify)(stream_1.finished)(writer);
     }
 }
 exports.FlacWriter = FlacWriter;

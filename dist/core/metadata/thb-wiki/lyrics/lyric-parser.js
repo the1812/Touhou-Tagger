@@ -3,11 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getLyricParser = exports.LyricParser = void 0;
 const debug_1 = require("../../../debug");
 class LyricParser {
+    table;
+    config;
+    rows;
+    rowData;
+    get firstRow() { return this.rows[0]; }
+    get firstRowData() { return this.rowData[0]; }
     constructor(table, config) {
         this.table = table;
         this.config = config;
         this.rows = [...table.querySelectorAll('tbody > tr:not(.tt-lyrics-header)')];
-        debug_1.log('rows length: ', this.rows.length);
+        (0, debug_1.log)('rows length: ', this.rows.length);
         this.rowData = this.rows.map(row => {
             const time = row.querySelector('td.tt-time,td.tt-sep');
             let [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')];
@@ -24,8 +30,6 @@ class LyricParser {
             };
         });
     }
-    get firstRow() { return this.rows[0]; }
-    get firstRowData() { return this.rowData[0]; }
     readLyric() {
         return this.rows.map(row => {
             if (row.classList.contains('tt-lyrics-sep')) {
@@ -104,7 +108,7 @@ class MixedLyricParser extends LyricParser {
         return '.all';
     }
 }
-exports.getLyricParser = (table, config) => {
+const getLyricParser = (table, config) => {
     switch (config.type) {
         default: // fallthrough
         case 'original': return new OriginalLyricParser(table, config);
@@ -112,3 +116,4 @@ exports.getLyricParser = (table, config) => {
         case 'mixed': return new MixedLyricParser(table, config);
     }
 };
+exports.getLyricParser = getLyricParser;

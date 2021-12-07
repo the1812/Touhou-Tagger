@@ -37,14 +37,14 @@
     "flac-metadata": "^0.1.1",
     "image-type": "^4.1.0",
     "imageinfo": "^1.0.4",
-    "jsdom": "^15.1.1",
+    "jsdom": "^19.0.0",
+    "linkedom": "^0.13.0",
+    "musicgenres-json": "^1.0.2",
     "ora": "^4.0.3"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
-    "@types/jest": "^24.0.18",
-    "@types/jsdom": "^12.2.4",
-    "@types/node": "^12.7.5",
-    "jest": "^24.9.0"
+    "@types/jsdom": "^16.2.13",
+    "@types/node": "^12.7.5"
   }
 }

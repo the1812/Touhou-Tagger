@@ -49,10 +49,10 @@ class LocalJson extends metadata_source_1.MetadataSource {
         return results;
     }
     async resolveAlbumName(localSource) {
-        return exists_1.resolvePath(localSource);
+        return (0, exists_1.resolvePath)(localSource);
     }
     async getMetadata(fullPath, cover) {
-        const jsonMetadata = JSON.parse(fs_1.readFileSync(fullPath, { encoding: 'utf8' }));
+        const jsonMetadata = JSON.parse((0, fs_1.readFileSync)(fullPath, { encoding: 'utf8' }));
         const metadata = await this.normalize(jsonMetadata, cover);
         return metadata;
     }

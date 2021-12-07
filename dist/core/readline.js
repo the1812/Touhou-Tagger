@@ -6,8 +6,9 @@ const reader = rl.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
-exports.readline = (question) => {
+const readline = (question) => {
     return new Promise(resolve => {
         reader.question(question, (answer) => resolve(answer));
     });
 };
+exports.readline = readline;

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultsToEmptyString = void 0;
-exports.defaultsToEmptyString = (obj) => {
+const defaultsToEmptyString = (obj) => {
     return new Proxy(obj, {
         get(target, prop, ...args) {
             if (prop in target) {
@@ -11,3 +11,4 @@ exports.defaultsToEmptyString = (obj) => {
         }
     });
 };
+exports.defaultsToEmptyString = defaultsToEmptyString;

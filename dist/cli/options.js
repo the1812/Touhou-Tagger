@@ -19,10 +19,10 @@ const options = commandLineArgs([
     { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
     { name: 'no-interactive', alias: 'I', type: Boolean, defaultValue: false },
 ]);
-debug_1.setDebug(options.debug);
-const configFile = config_file_1.loadConfigFile();
+(0, debug_1.setDebug)(options.debug);
+const configFile = (0, config_file_1.loadConfigFile)();
 if (configFile !== null) {
-    debug_1.log('config file: ', configFile);
+    (0, debug_1.log)('config file: ', configFile);
     const { lyric, ...restConfig } = configFile;
     if (lyric !== undefined) {
         if (options['lyric-output'] === undefined) {
@@ -47,9 +47,9 @@ const metadata = {
     timeout: options.timeout,
     retry: options.retry,
 };
-debug_1.log(options);
-debug_1.log(metadata);
-config_file_1.saveConfigFile({ ...metadata, lyric });
+(0, debug_1.log)(options);
+(0, debug_1.log)(metadata);
+(0, config_file_1.saveConfigFile)({ ...metadata, lyric });
 exports.cliOptions = options;
 exports.lyricConfig = lyric;
 exports.metadataConfig = metadata;

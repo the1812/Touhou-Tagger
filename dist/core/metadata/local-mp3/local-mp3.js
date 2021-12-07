@@ -7,13 +7,13 @@ const exists_1 = require("../../exists");
 const proxy_1 = require("../../proxy");
 const id3 = require("../../node-id3");
 const dirFilter = (path, predicate) => {
-    return fs_1.readdirSync(path, { withFileTypes: true })
+    return (0, fs_1.readdirSync)(path, { withFileTypes: true })
         .filter(predicate)
         .map(it => it.name);
 };
 class LocalMp3 extends metadata_source_1.MetadataSource {
     async resolveAlbumName(localSource) {
-        return exists_1.resolvePath(localSource);
+        return (0, exists_1.resolvePath)(localSource);
     }
     async getMultipleDiscFiles(path) {
         const { join } = await Promise.resolve().then(() => require('path'));
@@ -31,7 +31,7 @@ class LocalMp3 extends metadata_source_1.MetadataSource {
         const metadatas = discs.map((discFiles, index) => {
             const discNumber = (index + 1).toString();
             return discFiles.map(file => {
-                const tags = proxy_1.defaultsToEmptyString(id3.read(file));
+                const tags = (0, proxy_1.defaultsToEmptyString)(id3.read(file));
                 const separator = this.config.separator;
                 const metadata = {
                     title: tags.title,

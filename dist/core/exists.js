@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvePath = void 0;
-exports.resolvePath = async (path) => {
+const resolvePath = async (path) => {
     const { resolve } = await Promise.resolve().then(() => require('path'));
     const { existsSync } = await Promise.resolve().then(() => require('fs'));
     const localSourcePath = resolve(path).replace(/\\/g, '/');
@@ -10,3 +10,4 @@ exports.resolvePath = async (path) => {
     }
     return localSourcePath;
 };
+exports.resolvePath = resolvePath;

@@ -3,27 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.thbWiki = exports.THBWiki = void 0;
 const metadata_source_1 = require("../metadata-source");
 const axios_1 = require("axios");
-const jsdom_1 = require("jsdom");
 const debug_1 = require("../../debug");
 const alt_names_1 = require("./alt-names");
+const linkedom_1 = require("linkedom");
 class THBWiki extends metadata_source_1.MetadataSource {
-    constructor() {
-        super(...arguments);
-        this.cache = new Map();
-    }
+    cache = new Map();
     // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
     async resolveAlbumName(albumName) {
         // const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-        // const document = new JSDOM((await Axios.get(url)).data).window.document
-        // const header = document.querySelector('#firstHeading')
-        // // 未找到精确匹配, 返回搜索结果
-        // if (header && header.textContent === '搜索结果') {
-        //   return [...document.querySelectorAll('.mw-search-result-heading a')]
-        //     .map(it => it.textContent!)
-        //     .filter(it => !it.startsWith('歌词:'))
-        // } else {
-        //   return albumName
-        // }
         const url = `https://thwiki.cc/api.php?action=opensearch&format=json&search=${encodeURIComponent(albumName)}&limit=20&suggest=true`;
         const response = await axios_1.default.get(url, {
             responseType: 'json',
@@ -132,7 +119,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
             配音: (data) => {
                 const name = 'voices';
                 const rows = data.innerHTML.split('<br>').map(it => {
-                    const document = new jsdom_1.JSDOM(it).window.document;
+                    const { document } = (0, linkedom_1.parseHTML)(it);
                     const anchors = [...document.querySelectorAll('a:not(.external)')];
                     const artists = anchors.map(a => {
                         const isRealArtist = a.previousSibling && a.previousSibling.textContent === '（'
@@ -157,7 +144,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 const name = 'instruments';
                 const rows = data.innerHTML.split('<br>').map(it => {
                     const [instrument, performer] = it.trim().split('：').map(row => {
-                        return new jsdom_1.JSDOM(row).window.document.body.textContent;
+                        return (0, linkedom_1.parseHTML)(row).document.body.textContent;
                     });
                     return performer ? performer : instrument;
                 });
@@ -286,14 +273,13 @@ class THBWiki extends metadata_source_1.MetadataSource {
             lyricLanguage,
         };
         this.rowDataNormalize(rowData);
-        debug_1.log(rowData);
+        (0, debug_1.log)(rowData);
         return rowData;
     }
     async getMetadata(albumName, cover) {
         const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`;
         const response = await axios_1.default.get(url, { timeout: this.config.timeout * 1000 });
-        const dom = new jsdom_1.JSDOM(response.data);
-        const document = dom.window.document;
+        const { document } = (0, linkedom_1.parseHTML)(response.data);
         const infoTable = document.querySelector('.doujininfo');
         if (!infoTable) {
             throw new Error('页面不是同人专辑词条');

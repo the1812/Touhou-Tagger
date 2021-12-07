@@ -5,8 +5,8 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const debug_1 = require("../core/debug");
 const options_1 = require("./options");
-exports.runBatchTagger = async (folder) => {
-    const albums = fs_1.readdirSync(folder, { withFileTypes: true })
+const runBatchTagger = async (folder) => {
+    const albums = (0, fs_1.readdirSync)(folder, { withFileTypes: true })
         .filter(dir => dir.isDirectory())
         .map(dir => dir.name);
     const albumCount = albums.length;
@@ -23,16 +23,17 @@ exports.runBatchTagger = async (folder) => {
                 }
             }).start();
             spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`;
-            debug_1.log(`start processing album #${index + 1}`);
+            (0, debug_1.log)(`start processing album #${index + 1}`);
             const tagger = new CliTagger(options_1.cliOptions, options_1.metadataConfig, spinner);
-            tagger.workingDir = path_1.resolve(options_1.cliOptions.batch, album);
+            tagger.workingDir = (0, path_1.resolve)(options_1.cliOptions.batch, album);
             await tagger.run(album);
-            debug_1.log(`processed album #${index + 1}`);
+            (0, debug_1.log)(`processed album #${index + 1}`);
         }
         catch (error) {
-            debug_1.log('batch error:', error.message);
+            (0, debug_1.log)('batch error:', error.message);
             continue;
         }
     }
     process.exit();
 };
+exports.runBatchTagger = runBatchTagger;

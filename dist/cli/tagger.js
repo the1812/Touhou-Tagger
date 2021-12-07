@@ -23,34 +23,38 @@ const leadingNumberSort = (a, b) => {
 };
 const TimeoutError = Symbol('timeout');
 class CliTagger {
+    cliOptions;
+    metadataConfig;
+    spinner;
+    workingDir = '.';
+    metadataSource;
     constructor(cliOptions, metadataConfig, spinner) {
         this.cliOptions = cliOptions;
         this.metadataConfig = metadataConfig;
         this.spinner = spinner;
-        this.workingDir = '.';
     }
     async getLocalCover() {
-        const localCoverFiles = fs_1.readdirSync(this.workingDir, { withFileTypes: true })
+        const localCoverFiles = (0, fs_1.readdirSync)(this.workingDir, { withFileTypes: true })
             .filter(f => f.isFile() && f.name.match(/^cover\.(jpg|jpeg|jpe|tif|tiff|bmp|png)$/))
             .map(f => f.name);
         if (localCoverFiles.length === 0) {
             return undefined;
         }
         const [coverFile] = localCoverFiles;
-        const buffer = fs_1.readFileSync(path_1.resolve(this.workingDir, coverFile));
+        const buffer = (0, fs_1.readFileSync)((0, path_1.resolve)(this.workingDir, coverFile));
         return buffer;
     }
     async getLocalJson() {
-        const localMetadataFiles = fs_1.readdirSync(this.workingDir, { withFileTypes: true })
+        const localMetadataFiles = (0, fs_1.readdirSync)(this.workingDir, { withFileTypes: true })
             .filter(f => f.isFile() && f.name.match(/^metadata\.jsonc?$/))
             .map(f => f.name);
         if (localMetadataFiles.length === 0) {
             return undefined;
         }
         const [localMetadata] = localMetadataFiles;
-        const json = fs_1.readFileSync(path_1.resolve(this.workingDir, localMetadata), { encoding: 'utf8' });
-        debug_1.log('localJson get');
-        debug_1.log(json);
+        const json = (0, fs_1.readFileSync)((0, path_1.resolve)(this.workingDir, localMetadata), { encoding: 'utf8' });
+        (0, debug_1.log)('localJson get');
+        (0, debug_1.log)(json);
         const { localJson } = await Promise.resolve().then(() => require('../core/metadata/local-json/local-json'));
         return localJson.normalize(JSON.parse(json), await this.getLocalCover());
     }
@@ -70,7 +74,7 @@ class CliTagger {
         const dir = readdirSync(this.workingDir).sort(leadingNumberSort);
         const discFiles = dir
             .filter(f => f.match(/^Disc (\d+)/))
-            .flatMap(f => readdirSync(path_1.resolve(this.workingDir, f))
+            .flatMap(f => readdirSync((0, path_1.resolve)(this.workingDir, f))
             .sort(leadingNumberSort)
             .map(inner => `${f}/${inner}`))
             .filter(fileTypeFilter);
@@ -78,7 +82,7 @@ class CliTagger {
             .filter(fileTypeFilter)
             .concat(discFiles)
             .slice(0, metadata.length)
-            .map(f => path_1.resolve(this.workingDir, f));
+            .map(f => (0, path_1.resolve)(this.workingDir, f));
         if (files.length === 0) {
             const message = '未找到任何支持的音乐文件.';
             this.spinner.fail(message);
@@ -86,10 +90,10 @@ class CliTagger {
         }
         const targetFiles = files.map((file, index) => {
             const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2);
-            const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${path_1.extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
-            return path_1.resolve(dirname(file), filename);
+            const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${(0, path_1.extname)(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '');
+            return (0, path_1.resolve)(dirname(file), filename);
         });
-        debug_1.log(files, targetFiles);
+        (0, debug_1.log)(files, targetFiles);
         files.forEach((file, index) => {
             renameSync(file, targetFiles[index]);
         });
@@ -99,13 +103,13 @@ class CliTagger {
         const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
         for (let i = 0; i < targetFiles.length; i++) {
             const file = targetFiles[i];
-            debug_1.log(file);
-            const type = path_1.extname(file);
+            (0, debug_1.log)(file);
+            const type = (0, path_1.extname)(file);
             const writer = writerMappings[type];
             writer.config = this.metadataConfig;
             await writer.write(metadata[i], file);
             if (this.cliOptions.lyric && this.cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
-                fs_1.writeFileSync(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric);
+                (0, fs_1.writeFileSync)(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric);
             }
         }
         // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
@@ -119,9 +123,9 @@ class CliTagger {
             const imageType = await Promise.resolve().then(() => require('image-type'));
             const type = imageType(coverBuffer);
             if (type !== null) {
-                const coverFilename = path_1.resolve(this.workingDir, `cover.${type.ext}`);
-                debug_1.log('cover file', coverFilename);
-                fs_1.writeFileSync(coverFilename, coverBuffer);
+                const coverFilename = (0, path_1.resolve)(this.workingDir, `cover.${type.ext}`);
+                (0, debug_1.log)('cover file', coverFilename);
+                (0, fs_1.writeFileSync)(coverFilename, coverBuffer);
             }
         }
     }
@@ -149,9 +153,9 @@ class CliTagger {
                     }
                     return error.toString();
                 })();
-                debug_1.log('\nretry get error', retryCount, reason);
+                (0, debug_1.log)('\nretry get error', retryCount, reason);
                 if ('stack' in reason) {
-                    debug_1.log(`\n${reason.stack}`);
+                    (0, debug_1.log)(`\n${reason.stack}`);
                 }
                 if (retryCount < this.cliOptions.retry) {
                     this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`);
@@ -170,7 +174,7 @@ class CliTagger {
             const localCover = await this.getLocalCover();
             const localJson = await this.getLocalJson();
             const metadata = localJson || await this.downloadMetadata(album, localCover);
-            debug_1.log('final metadata', metadata);
+            (0, debug_1.log)('final metadata', metadata);
             this.spinner.text = '创建文件中';
             const targetFiles = await this.createFiles(metadata);
             this.spinner.text = '写入专辑信息中';
@@ -188,7 +192,7 @@ class CliTagger {
             throw new Error(message);
         }
         metadataSource.config = this.metadataConfig;
-        debug_1.log('searching');
+        (0, debug_1.log)('searching');
         const handleError = (error) => {
             if (error instanceof Error) {
                 this.spinner.fail(`错误: ${error.message}`);
@@ -213,7 +217,7 @@ class CliTagger {
             handleError(error);
             return [];
         });
-        debug_1.log('fetching metadata');
+        (0, debug_1.log)('fetching metadata');
         if (typeof searchResult === 'string') {
             await this.fetchMetadata(searchResult).catch(handleError);
         }
@@ -223,7 +227,7 @@ class CliTagger {
         else if (searchResult.length > 0) {
             this.spinner.fail('未找到匹配专辑, 以下是搜索结果:');
             console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'));
-            const answer = await readline_1.readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ');
+            const answer = await (0, readline_1.readline)('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ');
             const index = parseInt(answer);
             if (isNaN(index) || index < 1 || index > searchResult.length) {
                 return;

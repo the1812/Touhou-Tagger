@@ -14,8 +14,8 @@ const specialFormats = [
         resolve: match => match[0]
     },
 ];
-exports.getDefaultAlbumName = () => {
-    const currentFolder = path_1.basename(process.cwd());
+const getDefaultAlbumName = () => {
+    const currentFolder = (0, path_1.basename)(process.cwd());
     const [formatMatch] = specialFormats.map(f => {
         const match = currentFolder.match(f.regex);
         if (match) {
@@ -25,3 +25,4 @@ exports.getDefaultAlbumName = () => {
     }).filter((it) => it !== null);
     return formatMatch || currentFolder;
 };
+exports.getDefaultAlbumName = getDefaultAlbumName;
