@@ -4,6 +4,7 @@ exports.altNames = void 0;
 /* spell-checker: disable */
 exports.altNames = new Map([
     ['底线', '_'],
+    ['＿', '_'],
     ['4_16', '4_16☆'],
     ['11ama_sama', '11ama'],
     ['Black Lotus', 'BlackLotus'],

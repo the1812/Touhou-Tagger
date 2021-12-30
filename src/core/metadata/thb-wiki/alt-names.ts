@@ -1,6 +1,7 @@
 /* spell-checker: disable */
 export const altNames = new Map<string, string>([
   ['底线', '_'],
+  ['＿', '_'],
   ['4_16', '4_16☆'],
   ['11ama_sama', '11ama'],
   ['Black Lotus', 'BlackLotus'],

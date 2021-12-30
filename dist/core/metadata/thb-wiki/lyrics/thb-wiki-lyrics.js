@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadLyrics = void 0;
 const axios_1 = require("axios");
-const linkedom_1 = require("linkedom");
+const jsdom_1 = require("jsdom");
 const debug_1 = require("../../../debug");
 const lyric_parser_1 = require("./lyric-parser");
 let lyricParser;
@@ -43,7 +43,8 @@ const downloadLyrics = async (url, title, config) => {
     let document = lyricDocumentCache.get(url);
     if (!document) {
         const response = await axios_1.default.get(url, { timeout: config.timeout * 1000 });
-        document = (0, linkedom_1.parseHTML)(response.data).document;
+        const dom = new jsdom_1.JSDOM(response.data);
+        document = dom.window.document;
         lyricDocumentCache.set(url, document);
     }
     let table;
