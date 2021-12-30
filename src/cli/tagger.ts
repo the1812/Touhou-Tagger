@@ -153,7 +153,7 @@ export class CliTagger {
           return error.toString()
         })()
         log('\nretry get error', retryCount, reason)
-        if ('stack' in reason) {
+        if (reason.stack) {
           log(`\n${reason.stack}`)
         }
         if (retryCount < this.cliOptions.retry) {
