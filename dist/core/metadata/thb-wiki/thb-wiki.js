@@ -195,17 +195,14 @@ class THBWiki extends metadata_source_1.MetadataSource {
         }
         return action(data);
     }
-    rowDataNormalize(rowData) {
+    rowDataNormalize(rowData, removePatterns = []) {
         const normalizeAction = (str) => {
             if (alt_names_1.altNames.has(str)) {
                 return alt_names_1.altNames.get(str);
             }
-            return str
+            return removePatterns.reduce((previous, current) => previous.replace(current, ''), str)
                 .replace(/\u200b/g, '') // zero-width space
                 .replace(/　/g, ' ')
-                .replace(/（人物）$/, '')
-                .replace(/（现实人物）$/, '')
-                .replace(/（作曲家）$/, '')
                 .replace(/([^\s])([\(])/g, '$1 $2')
                 .replace(/([\)])([^\s])/g, '$1 $2')
                 .replace(/([^\s]) ([（])/g, '$1$2')
@@ -221,6 +218,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                 rowData[key] = value.map(v => normalizeAction(v));
             }
         }
+        return rowData;
     }
     async parseRow(trackNumberElement) {
         const trackNumber = parseInt(trackNumberElement.textContent, 10).toString();
@@ -272,17 +270,24 @@ class THBWiki extends metadata_source_1.MetadataSource {
             arrangers.push(...composers);
         }
         const artists = [...new Set(performers.concat(arrangers))];
-        const rowData = {
-            title,
+        const artistsRowData = {
             artists,
-            trackNumber,
-            comments,
             lyricists,
             composers,
+        };
+        const otherRowData = {
+            title,
+            trackNumber,
+            comments,
             lyric,
             lyricLanguage,
         };
-        this.rowDataNormalize(rowData);
+        const rowData = {
+            ...this.rowDataNormalize(artistsRowData, [
+                /（.+）$/,
+            ]),
+            ...this.rowDataNormalize(otherRowData),
+        };
         (0, debug_1.log)(rowData);
         return rowData;
     }

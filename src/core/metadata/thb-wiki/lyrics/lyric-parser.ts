@@ -16,9 +16,9 @@ export abstract class LyricParser {
       if (!hasTranslatedData) {
         translatedData = originalData
       }
-      const hasTime = Boolean(time && time.textContent!.trim() !== '')
+      const hasTime = Boolean(time && time.textContent.trim() !== '')
       return {
-        time: hasTime ? `[${time.textContent!.trim()}] ` : '',
+        time: hasTime ? `[${time.textContent.trim()}] ` : '',
         originalData,
         translatedData,
         hasTranslatedData,

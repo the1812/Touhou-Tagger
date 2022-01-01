@@ -64,7 +64,7 @@ export class THBWiki extends MetadataSource {
           return [...nextElement.querySelectorAll('a')]
             .map(element => element.textContent)
         } else {
-          return nextElement.textContent!.trim()
+          return nextElement.textContent.trim()
         }
       })
       return item
@@ -113,7 +113,7 @@ export class THBWiki extends MetadataSource {
         }
       }
     }
-    const label = trackInfoRow.querySelector('.label')!.textContent!.trim()
+    const label = trackInfoRow.querySelector('.label').textContent.trim()
     const data = trackInfoRow.querySelector('.text') as HTMLElement
     const actions: { [infoName: string]: (data: HTMLElement) => TrackParseInfo } = {
       编曲: defaultInfoParser('arrangers'),
@@ -170,13 +170,13 @@ export class THBWiki extends MetadataSource {
         sources.forEach((element, index) => {
           const comma = ', '
           if (element.classList.contains('ogmusic')) {
-            result += element.textContent!.trim()
+            result += element.textContent.trim()
             // 后面还有原曲时加逗号
             if (index < sources.length - 1 && sources[index + 1].classList.contains('ogmusic')) {
               result += comma
             }
           } else { // .source
-            result += ` (${element.textContent!.trim()})`
+            result += ` (${element.textContent.trim()})`
             // 不是最后一个source时加逗号
             if (index !== sources.length - 1) {
               result += comma
@@ -195,17 +195,14 @@ export class THBWiki extends MetadataSource {
     }
     return action(data)
   }
-  private rowDataNormalize(rowData: Record<string, string | string[] | undefined>) {
+  private rowDataNormalize(rowData: Partial<Metadata>, removePatterns: RegExp[] = []) {
     const normalizeAction = (str: string) => {
       if (altNames.has(str)) {
         return altNames.get(str)!
       }
-      return str
+      return removePatterns.reduce((previous, current) => previous.replace(current, ''), str)
         .replace(/\u200b/g, '') // zero-width space
         .replace(/　/g, ' ')
-        .replace(/（人物）$/, '')
-        .replace(/（现实人物）$/, '')
-        .replace(/（作曲家）$/, '')
         .replace(/([^\s])([\(])/g, '$1 $2')
         .replace(/([\)])([^\s])/g, '$1 $2')
         .replace(/([^\s]) ([（])/g, '$1$2')
@@ -221,11 +218,12 @@ export class THBWiki extends MetadataSource {
         rowData[key] = value.map(v => normalizeAction(v))
       }
     }
+    return rowData
   }
   private async parseRow(trackNumberElement: Element) {
     const trackNumber = parseInt(trackNumberElement.textContent!, 10).toString()
     const trackNumberRow = trackNumberElement.parentElement as HTMLTableRowElement
-    const title = trackNumberRow.querySelector('.title')!.textContent!.trim()
+    const title = trackNumberRow.querySelector('.title').textContent.trim()
     const { lyricLanguage, lyric } = await (async () => {
       const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)') as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
@@ -273,17 +271,24 @@ export class THBWiki extends MetadataSource {
       arrangers.push(...composers)
     }
     const artists = [...new Set(performers.concat(arrangers))]
-    const rowData = {
-      title,
+    const artistsRowData = {
       artists,
-      trackNumber,
-      comments,
       lyricists,
       composers,
+    }
+    const otherRowData = {
+      title,
+      trackNumber,
+      comments,
       lyric,
       lyricLanguage,
     }
-    this.rowDataNormalize(rowData)
+    const rowData = {
+      ...this.rowDataNormalize(artistsRowData, [
+        /（.+）$/,
+      ]),
+      ...this.rowDataNormalize(otherRowData),
+    } as Metadata
     log(rowData)
     return rowData
   }
@@ -318,9 +323,9 @@ export class THBWiki extends MetadataSource {
     let discNumber = 1
     const metadatas = [] as Metadata[]
     for (const table of musicTables) {
-      const trackNumbers = [...table.querySelectorAll('tr > td[class^="info"]')] as HTMLTableDataCellElement[]
+      const trackNumbers = [...table.querySelectorAll('tr > td[class^="info"]')] as HTMLTableCellElement[]
       for (const trackNumberElement of trackNumbers) {
-        const metadata: Metadata = {
+        const metadata = {
           discNumber: discNumber.toString(),
           album,
           albumOrder,
