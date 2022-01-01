@@ -322,6 +322,13 @@ export class THBWiki extends MetadataSource {
     const musicTables = [...document.querySelectorAll('.musicTable')] as HTMLTableElement[]
     let discNumber = 1
     const metadatas = [] as Metadata[]
+    // const getAlbumOrder = (disc: number) => {
+    //   const splitAlbumOrders = albumOrder.split(/\s\+\s/)
+    //   if (disc > splitAlbumOrders.length) {
+    //     return splitAlbumOrders[splitAlbumOrders.length - 1]
+    //   }
+    //   return splitAlbumOrders[disc - 1]
+    // }
     for (const table of musicTables) {
       const trackNumbers = [...table.querySelectorAll('tr > td[class^="info"]')] as HTMLTableCellElement[]
       for (const trackNumberElement of trackNumbers) {
@@ -329,6 +336,7 @@ export class THBWiki extends MetadataSource {
           discNumber: discNumber.toString(),
           album,
           albumOrder,
+          // albumOrder: getAlbumOrder(discNumber),
           albumArtists,
           genres,
           year,

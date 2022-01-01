@@ -314,6 +314,13 @@ class THBWiki extends metadata_source_1.MetadataSource {
         const musicTables = [...document.querySelectorAll('.musicTable')];
         let discNumber = 1;
         const metadatas = [];
+        // const getAlbumOrder = (disc: number) => {
+        //   const splitAlbumOrders = albumOrder.split(/\s\+\s/)
+        //   if (disc > splitAlbumOrders.length) {
+        //     return splitAlbumOrders[splitAlbumOrders.length - 1]
+        //   }
+        //   return splitAlbumOrders[disc - 1]
+        // }
         for (const table of musicTables) {
             const trackNumbers = [...table.querySelectorAll('tr > td[class^="info"]')];
             for (const trackNumberElement of trackNumbers) {
@@ -321,6 +328,7 @@ class THBWiki extends metadata_source_1.MetadataSource {
                     discNumber: discNumber.toString(),
                     album,
                     albumOrder,
+                    // albumOrder: getAlbumOrder(discNumber),
                     albumArtists,
                     genres,
                     year,
