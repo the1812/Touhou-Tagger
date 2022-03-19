@@ -12,6 +12,7 @@ export const altNames = new Map<string, string>([
   ['suslik', 'cnsuslik'],
   ['DJ.suslik', 'cnsuslik'],
   ['DJ suslik', 'cnsuslik'],
+  ['Edelritter(Nhato×Taishi)', 'Edelritter'],
   ['Frozen Starfall', 'FS'],
   ['Kirin', 'きりん'],
   ['Miokio米歌', 'Miokio米欧'],
