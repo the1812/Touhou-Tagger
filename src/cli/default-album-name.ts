@@ -17,8 +17,7 @@ const specialFormats: SpecialFormat[] = [
     resolve: match => match[0]
   },
 ]
-export const getDefaultAlbumName = () => {
-  const currentFolder = basename(process.cwd())
+export const getDefaultAlbumName = (currentFolder: string = basename(process.cwd())) => {
   const [formatMatch] = specialFormats.map(f => {
     const match = currentFolder.match(f.regex)
     if (match) {
