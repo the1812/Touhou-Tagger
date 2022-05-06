@@ -25,7 +25,7 @@ const runTagger = async (album: string) => {
 const defaultAlbumName = getDefaultAlbumName()
 if (cliOptions.batch) {
   import('./batch').then(({ runBatchTagger }) => {
-    runBatchTagger(cliOptions.batch)
+    runBatchTagger(cliOptions.batch, cliOptions.batchDepth)
   })
 } else if (cliOptions['no-interactive']) {
   runTagger(defaultAlbumName)

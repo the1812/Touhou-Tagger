@@ -1,4 +1,4 @@
-import * as rl from 'readline'
+import rl from 'readline'
 
 const reader = rl.createInterface({
   input: process.stdin,

@@ -43,7 +43,7 @@ const runTagger = async (album) => {
 const defaultAlbumName = (0, default_album_name_1.getDefaultAlbumName)();
 if (options_1.cliOptions.batch) {
     Promise.resolve().then(() => __importStar(require('./batch'))).then(({ runBatchTagger }) => {
-        runBatchTagger(options_1.cliOptions.batch);
+        runBatchTagger(options_1.cliOptions.batch, options_1.cliOptions.batchDepth);
     });
 }
 else if (options_1.cliOptions['no-interactive']) {

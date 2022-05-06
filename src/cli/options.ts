@@ -5,6 +5,9 @@ import { log, setDebug } from '../core/debug'
 import { loadConfigFile, saveConfigFile } from './config-file'
 
 const options = yargs(hideBin(process.argv))
+  .parserConfiguration({
+    "short-option-groups": false,
+  })
   .option('cover', {
     alias: 'c',
     type: 'boolean',
@@ -60,6 +63,12 @@ const options = yargs(hideBin(process.argv))
     alias: 'b',
     type: 'string',
     description: '是否使用批量模式, 参数为开始批量运行的路径',
+  })
+  .option('batch-depth', {
+    alias: 'bd',
+    type: 'number',
+    default: 1,
+    description: '指定批量模式的文件夹层级',
   })
   .option('separator', {
     type: 'string',

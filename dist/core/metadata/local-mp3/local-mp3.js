@@ -18,13 +18,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.localMp3 = exports.LocalMp3 = void 0;
 const metadata_source_1 = require("../metadata-source");
 const fs_1 = require("fs");
 const exists_1 = require("../../exists");
 const proxy_1 = require("../../proxy");
-const id3 = __importStar(require("../../node-id3"));
+const node_id3_1 = __importDefault(require("../../node-id3"));
 const dirFilter = (path, predicate) => {
     return (0, fs_1.readdirSync)(path, { withFileTypes: true })
         .filter(predicate)
@@ -50,7 +53,7 @@ class LocalMp3 extends metadata_source_1.MetadataSource {
         const metadatas = discs.map((discFiles, index) => {
             const discNumber = (index + 1).toString();
             return discFiles.map(file => {
-                const tags = (0, proxy_1.defaultsToEmptyString)(id3.read(file));
+                const tags = (0, proxy_1.defaultsToEmptyString)(node_id3_1.default.read(file));
                 const separator = this.config.separator;
                 const metadata = {
                     title: tags.title,

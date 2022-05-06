@@ -1,6 +1,6 @@
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
-import * as id3 from '../../node-id3'
+import id3 from '../../node-id3'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {

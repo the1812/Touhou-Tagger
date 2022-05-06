@@ -10,6 +10,9 @@ const core_config_1 = require("../core/core-config");
 const debug_1 = require("../core/debug");
 const config_file_1 = require("./config-file");
 const options = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
+    .parserConfiguration({
+    "short-option-groups": false,
+})
     .option('cover', {
     alias: 'c',
     type: 'boolean',
@@ -65,6 +68,12 @@ const options = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     alias: 'b',
     type: 'string',
     description: '是否使用批量模式, 参数为开始批量运行的路径',
+})
+    .option('batch-depth', {
+    alias: 'bd',
+    type: 'number',
+    default: 1,
+    description: '指定批量模式的文件夹层级',
 })
     .option('separator', {
     type: 'string',

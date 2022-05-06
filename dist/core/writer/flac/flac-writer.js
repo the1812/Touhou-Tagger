@@ -1,27 +1,11 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.flacWriter = exports.FlacWriter = void 0;
 const metadata_writer_1 = require("../metadata-writer");
-const flac = __importStar(require("flac-metadata"));
+const flac_metadata_1 = __importDefault(require("flac-metadata"));
 const imageinfo = require("imageinfo");
 const fs_1 = require("fs");
 const stream_1 = require("stream");
@@ -68,12 +52,12 @@ const getVorbisComments = (metadata) => {
 };
 class FlacWriter extends metadata_writer_1.MetadataWriter {
     async write(metadata, filePath) {
-        const commentsProcessor = new flac.Processor({ parseMetaDataBlocks: true });
-        const pictureProcessor = new flac.Processor({ parseMetaDataBlocks: true });
+        const commentsProcessor = new flac_metadata_1.default.Processor({ parseMetaDataBlocks: true });
+        const pictureProcessor = new flac_metadata_1.default.Processor({ parseMetaDataBlocks: true });
         const lyricConfig = this.config.lyric;
         commentsProcessor.on('preprocess', function (mdb) {
             if (!mdb.isLast) {
-                if (mdb.type === flac.Processor.MDB_TYPE_VORBIS_COMMENT) {
+                if (mdb.type === flac_metadata_1.default.Processor.MDB_TYPE_VORBIS_COMMENT) {
                     mdb.remove();
                 }
             }
@@ -82,13 +66,13 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 if (lyricConfig && lyricConfig.output === 'lrc') {
                     vorbisComments = vorbisComments.filter(c => !c.startsWith('LYRICS='));
                 }
-                const mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(!metadata.coverImage, DefaultVendor, vorbisComments);
+                const mdbVorbis = flac_metadata_1.default.data.MetaDataBlockVorbisComment.create(!metadata.coverImage, DefaultVendor, vorbisComments);
                 this.push(mdbVorbis.publish());
             }
         });
         pictureProcessor.on('preprocess', function (mdb) {
             if (!mdb.isLast) {
-                if (mdb.type === flac.Processor.MDB_TYPE_PICTURE) {
+                if (mdb.type === flac_metadata_1.default.Processor.MDB_TYPE_PICTURE) {
                     mdb.remove();
                 }
             }
@@ -104,7 +88,7 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                         format: '',
                     };
                 }
-                const mdbPicture = flac.data.MetaDataBlockPicture.create(!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
+                const mdbPicture = flac_metadata_1.default.data.MetaDataBlockPicture.create(!metadata.coverImage, 3 /* front cover */, info.mimeType, metadata.album, info.width, info.height, 24, /* bits per pixel: unknown */ 0, /* colors: unknown */ metadata.coverImage);
                 this.push(mdbPicture.publish());
             }
         });

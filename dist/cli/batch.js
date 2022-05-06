@@ -25,16 +25,26 @@ const path_1 = require("path");
 const debug_1 = require("../core/debug");
 const default_album_name_1 = require("./default-album-name");
 const options_1 = require("./options");
-const runBatchTagger = async (folder) => {
-    const albums = (0, fs_1.readdirSync)(folder, { withFileTypes: true })
+const readFolder = (folder, depth) => {
+    const currentSubFolders = (0, fs_1.readdirSync)(folder, { withFileTypes: true })
         .filter(dir => dir.isDirectory())
-        .map(dir => dir.name);
+        .map(dir => ({
+        name: dir.name,
+        path: (0, path_1.join)(folder, dir.name),
+    }));
+    if (depth <= 1) {
+        return currentSubFolders;
+    }
+    return currentSubFolders.flatMap(subFolder => readFolder((0, path_1.join)(folder, subFolder.name), depth - 1));
+};
+const runBatchTagger = async (folder, depth) => {
+    const albums = readFolder(folder, depth);
     const albumCount = albums.length;
     const { CliTagger } = await Promise.resolve().then(() => __importStar(require('./tagger')));
     const { default: ora } = await Promise.resolve().then(() => __importStar(require('ora')));
     for (let index = 0; index < albumCount; index++) {
         try {
-            const album = (0, default_album_name_1.getDefaultAlbumName)(albums[index]);
+            const album = (0, default_album_name_1.getDefaultAlbumName)(albums[index].name);
             const spinner = ora({
                 text: '搜索中',
                 spinner: {
@@ -45,7 +55,7 @@ const runBatchTagger = async (folder) => {
             spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`;
             (0, debug_1.log)(`start processing album #${index + 1}`);
             const tagger = new CliTagger(options_1.cliOptions, options_1.metadataConfig, spinner);
-            tagger.workingDir = (0, path_1.resolve)(options_1.cliOptions.batch, albums[index]);
+            tagger.workingDir = albums[index].path;
             await tagger.run(album);
             (0, debug_1.log)(`processed album #${index + 1}`);
         }
