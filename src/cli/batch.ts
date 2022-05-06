@@ -10,7 +10,7 @@ export const runBatchTagger = async (folder: string) => {
     .map(dir => dir.name)
   const albumCount = albums.length
   const { CliTagger } = await import('./tagger')
-  const ora = await import('ora')
+  const { default: ora } = await import('ora')
   for (let index = 0; index < albumCount; index++) {
     try {
       const album = getDefaultAlbumName(albums[index])

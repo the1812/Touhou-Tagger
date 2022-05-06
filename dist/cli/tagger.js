@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CliTagger = void 0;
 const fs_1 = require("fs");
@@ -55,20 +74,20 @@ class CliTagger {
         const json = (0, fs_1.readFileSync)((0, path_1.resolve)(this.workingDir, localMetadata), { encoding: 'utf8' });
         (0, debug_1.log)('localJson get');
         (0, debug_1.log)(json);
-        const { localJson } = await Promise.resolve().then(() => require('../core/metadata/local-json/local-json'));
+        const { localJson } = await Promise.resolve().then(() => __importStar(require('../core/metadata/local-json/local-json')));
         return localJson.normalize(JSON.parse(json), await this.getLocalCover());
     }
     async downloadMetadata(album, cover) {
-        const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
+        const { sourceMappings } = await Promise.resolve().then(() => __importStar(require(`../core/metadata/source-mappings`)));
         const metadataSource = sourceMappings[this.cliOptions.source];
         metadataSource.config = this.metadataConfig;
         this.metadataSource = metadataSource;
         return await this.metadataSource.getMetadata(album, cover);
     }
     async createFiles(metadata) {
-        const { readdirSync, renameSync } = await Promise.resolve().then(() => require('fs'));
-        const { dirname } = await Promise.resolve().then(() => require('path'));
-        const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
+        const { readdirSync, renameSync } = await Promise.resolve().then(() => __importStar(require('fs')));
+        const { dirname } = await Promise.resolve().then(() => __importStar(require('path')));
+        const { writerMappings } = await Promise.resolve().then(() => __importStar(require('../core/writer/writer-mappings')));
         const fileTypes = Object.keys(writerMappings);
         const fileTypeFilter = (file) => fileTypes.some(type => file.endsWith(type));
         const dir = readdirSync(this.workingDir).sort(leadingNumberSort);
@@ -100,7 +119,7 @@ class CliTagger {
         return targetFiles;
     }
     async writeMetadataToFile(metadata, targetFiles) {
-        const { writerMappings } = await Promise.resolve().then(() => require('../core/writer/writer-mappings'));
+        const { writerMappings } = await Promise.resolve().then(() => __importStar(require('../core/writer/writer-mappings')));
         for (let i = 0; i < targetFiles.length; i++) {
             const file = targetFiles[i];
             (0, debug_1.log)(file);
@@ -120,7 +139,7 @@ class CliTagger {
         // }))
         const coverBuffer = metadata[0].coverImage;
         if (this.cliOptions.cover && coverBuffer) {
-            const imageType = await Promise.resolve().then(() => require('image-type'));
+            const { default: imageType } = await Promise.resolve().then(() => __importStar(require('image-type')));
             const type = imageType(coverBuffer);
             if (type !== null) {
                 const coverFilename = (0, path_1.resolve)(this.workingDir, `cover.${type.ext}`);
@@ -183,7 +202,7 @@ class CliTagger {
         });
     }
     async run(album) {
-        const { sourceMappings } = await Promise.resolve().then(() => require(`../core/metadata/source-mappings`));
+        const { sourceMappings } = await Promise.resolve().then(() => __importStar(require(`../core/metadata/source-mappings`)));
         const metadataSource = sourceMappings[this.cliOptions.source];
         const noInteractive = this.cliOptions['no-interactive'];
         if (!metadataSource) {

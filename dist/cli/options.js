@@ -1,45 +1,114 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadataConfig = exports.lyricConfig = exports.cliOptions = void 0;
-const commandLineArgs = require("command-line-args");
+const yargs_1 = __importDefault(require("yargs"));
+const helpers_1 = require("yargs/helpers");
 const core_config_1 = require("../core/core-config");
 const debug_1 = require("../core/debug");
 const config_file_1 = require("./config-file");
-const options = commandLineArgs([
-    { name: 'cover', alias: 'c', type: Boolean, defaultValue: false },
-    { name: 'debug', alias: 'd', type: Boolean, defaultValue: false },
-    { name: 'source', alias: 's', type: String, defaultValue: 'thb-wiki' },
-    { name: 'lyric', alias: 'l', type: Boolean, defaultValue: false },
-    { name: 'batch', alias: 'b', type: String, defaultValue: '' },
-    { name: 'separator', type: String, defaultValue: core_config_1.DefaultMetadataSeparator },
-    { name: 'timeout', type: Number, defaultValue: 30 },
-    { name: 'retry', type: Number, defaultValue: 3 },
-    { name: 'lyric-type', alias: 't', type: String },
-    { name: 'lyric-output', alias: 'o', type: String },
-    { name: 'no-lyric-time', alias: 'T', type: Boolean, defaultValue: false },
-    { name: 'no-interactive', alias: 'I', type: Boolean, defaultValue: false },
-]);
+const options = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
+    .option('cover', {
+    alias: 'c',
+    type: 'boolean',
+    default: false,
+    description: '是否将封面保存为独立文件',
+})
+    .option('debug', {
+    alias: 'd',
+    type: 'boolean',
+    default: false,
+    description: '是否启用调试模式, 输出更杂碎的日志',
+})
+    .option('source', {
+    alias: 's',
+    type: 'string',
+    default: 'thb-wiki',
+    choices: ['thb-wiki', 'local-mp3', 'local-json'],
+    description: '设置数据源',
+})
+    .option('lyric', {
+    alias: 'l',
+    type: 'boolean',
+    default: false,
+    description: '是否启用歌词写入 (会增加运行时间)',
+})
+    .option('lyric-type', {
+    alias: 'lt',
+    type: 'string',
+    default: 'original',
+    choices: ['original', 'translated', 'mixed'],
+    description: '歌词类型, 可以选择原文/译文/混合模式',
+})
+    .option('lyric-output', {
+    alias: 'lo',
+    type: 'string',
+    default: 'metadata',
+    choices: ['metadata', 'lrc'],
+    description: '歌词输出方式, 可以选择写入歌曲元数据或者保存为 lrc 文件',
+})
+    .option('translation-separator', {
+    alias: 'ts',
+    type: 'string',
+    default: ' // ',
+    description: '指定混合歌词模式下, 使用的分隔符',
+})
+    .option('lyric-time', {
+    alias: 'lt',
+    type: 'boolean',
+    default: true,
+    description: '是否启用歌词时轴',
+})
+    .option('batch', {
+    alias: 'b',
+    type: 'string',
+    description: '是否使用批量模式, 参数为开始批量运行的路径',
+})
+    .option('separator', {
+    type: 'string',
+    default: core_config_1.DefaultMetadataSeparator,
+    description: '指定 mp3 元数据的分隔符',
+})
+    .option('timeout', {
+    type: 'number',
+    default: 30,
+    description: '指定一次运行的超时时间',
+})
+    .option('retry', {
+    type: 'number',
+    default: 3,
+    description: '指定超时后自动重试的最大次数',
+})
+    .option('interactive', {
+    alias: 'i',
+    type: 'boolean',
+    default: true,
+    description: '是否允许交互',
+})
+    .parseSync();
 (0, debug_1.setDebug)(options.debug);
 const configFile = (0, config_file_1.loadConfigFile)();
 if (configFile !== null) {
     (0, debug_1.log)('config file: ', configFile);
     const { lyric, ...restConfig } = configFile;
     if (lyric !== undefined) {
-        if (options['lyric-output'] === undefined) {
-            options['lyric-output'] = lyric.output;
+        if (options.lyricOutput === undefined) {
+            options.lyricOutput = lyric.output;
         }
-        if (options['lyric-type'] === undefined) {
-            options['lyric-type'] = lyric.type;
+        if (options.lyricType === undefined) {
+            options.lyricType = lyric.type;
         }
-        options['translation-separator'] = lyric.translationSeparator;
+        options.translationSeparator = lyric.translationSeparator;
     }
     Object.assign(options, restConfig);
 }
 const lyric = {
-    type: options['lyric-type'] || 'original',
-    output: options['lyric-output'] || 'metadata',
-    time: !options['no-lyric-time'],
-    translationSeparator: options['translation-separator'] || ' // '
+    type: options.lyricType,
+    output: options.lyricOutput,
+    time: options.lyricTime,
+    translationSeparator: options.translationSeparator,
 };
 const metadata = {
     lyric: options.lyric ? lyric : undefined,

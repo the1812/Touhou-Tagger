@@ -1,10 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.localJson = exports.LocalJson = void 0;
 const metadata_source_1 = require("../metadata-source");
 const fs_1 = require("fs");
 const exists_1 = require("../../exists");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
 class LocalJson extends metadata_source_1.MetadataSource {
     /**
      * Normalize JSON data from file:

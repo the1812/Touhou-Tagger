@@ -3,8 +3,11 @@
     "target": "ESNext",
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
+    "skipLibCheck": true,
     "sourceMap": false,
     "allowJs": true,
     "outDir": "dist/"

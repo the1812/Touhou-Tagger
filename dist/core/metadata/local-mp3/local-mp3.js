@@ -1,11 +1,30 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.localMp3 = exports.LocalMp3 = void 0;
 const metadata_source_1 = require("../metadata-source");
 const fs_1 = require("fs");
 const exists_1 = require("../../exists");
 const proxy_1 = require("../../proxy");
-const id3 = require("../../node-id3");
+const id3 = __importStar(require("../../node-id3"));
 const dirFilter = (path, predicate) => {
     return (0, fs_1.readdirSync)(path, { withFileTypes: true })
         .filter(predicate)
@@ -16,7 +35,7 @@ class LocalMp3 extends metadata_source_1.MetadataSource {
         return (0, exists_1.resolvePath)(localSource);
     }
     async getMultipleDiscFiles(path) {
-        const { join } = await Promise.resolve().then(() => require('path'));
+        const { join } = await Promise.resolve().then(() => __importStar(require('path')));
         const subFolders = dirFilter(path, it => it.isDirectory() && /^Disc (\d+)/.test(it.name));
         const mp3Filter = (it) => it.isFile() && it.name.endsWith('.mp3');
         if (subFolders.length > 0) {

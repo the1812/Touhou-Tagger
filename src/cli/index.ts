@@ -6,7 +6,7 @@ import { getDefaultAlbumName } from './default-album-name'
 
 let spinner: Ora
 const runTagger = async (album: string) => {
-  const ora = await import('ora')
+  const { default: ora } = await import('ora')
   if (!spinner) {
     spinner = ora({
       text: '搜索中',
