@@ -15,6 +15,8 @@ export class LocalJson extends MetadataSource {
       return metadatas
     }
     const [firstMetadata] = metadatas
+    let cachedTrackNumber = 1
+    let cachedDiscNumber = 1
     const results = await Promise.all(metadatas.map(async (metadata, index) => {
       let coverBuffer: Buffer | undefined = undefined
       if (cover !== undefined) {
@@ -27,6 +29,18 @@ export class LocalJson extends MetadataSource {
         coverBuffer = response.data
       }
       metadata.coverImage = coverBuffer
+
+      if (metadata.discNumber && parseInt(metadata.discNumber) !== cachedDiscNumber) {
+        cachedDiscNumber = parseInt(metadata.discNumber)
+        cachedTrackNumber = 1
+      }
+      if (!metadata.discNumber) {
+        metadata.discNumber = cachedDiscNumber.toString()
+      }
+      if (!metadata.trackNumber) {
+        metadata.trackNumber = cachedTrackNumber.toString()
+      }
+      cachedTrackNumber++
 
       if (index > 0) {
         const albumDataFields = [
