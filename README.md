@@ -85,13 +85,163 @@ thtag -s local-mp3
 > 注意此数据源需要填入 MP3 的文件夹路径, 因此不能用于批量模式中
 
 #### local-json
-从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于`src/core/metadata.ts`) 或 `[Metadata, ...Omit<Metadata, AlbumMetadata>[]]` (也就是除了第一个以外后续可以省略专辑字段). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
+从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于`src/core/metadata.ts`). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
 
 > 如果已存在名为 `metadata.json` 的文件, 程序会直接使用其中的曲目信息, 跳过曲目信息下载. 事先在各个文件夹中准备好 `metadata.json` 的话也是可以使用批量模式的.
 
 ```powershell
 thtag -s local-json
 ```
+
+为了方便使用, JSON 的内容可以进行一些省略:
+- 整张专辑中相同的数据, 例如专辑名称 / 社团名称等, 只需要在第一首曲目中写上即可, 后续曲目均会使用相同的数据.
+- 编曲者 (artists) 和作曲者 (composers) 相同时, 可以只写作曲者. (但不能只写编曲者, 因为东方同人曲的编曲者和作曲者一般是不同的, 作曲者从原曲信息就可以推断, 所以作曲者通常是省略的. 如果只写编曲者, 程序会让作曲者留空)
+- 曲目编号可以省略, 程序将自动根据书写顺序进行标注.
+- CD 编号 (多 CD 专辑) 只需要在每张 CD 的第一首标注出即可, 第一张 CD 可以省略不标.
+
+以专辑 [Heart Essence](https://www.dizzylab.net/d/AOHCD-001/#/) 为例, 实体专辑是有 2 枚 CD 的 (dizzylab 上没有注明), 从第 11 首 `Initiate the Massacre` 起实际上是来自第 2 张 CD. 可以充分发挥上面的 4 个省略方法, 编写的 `metadata.json` 内容如下:
+
+<details><summary><strong>metadata.json 示例</strong></summary>
+
+```json
+[
+  {
+    "title": "Broken Display",
+    "composers": [
+      "ASXX"
+    ],
+    "album": "Heart Essence",
+    "albumOrder": "AOHCD-001",
+    "albumArtists": [
+      "Art of Heart"
+    ],
+    "genres": [
+      "Hard Dance"
+    ],
+    "year": "2021"
+  },
+  {
+    "title": "Alarm",
+    "composers": [
+      "Bincente Hole"
+    ]
+  },
+  {
+    "title": "Coming Down",
+    "composers": [
+      "NceS"
+    ]
+  },
+  {
+    "title": "All Night",
+    "composers": [
+      "Agoraphobia"
+    ]
+  },
+  {
+    "title": "Faster Than Light",
+    "composers": [
+      "X-Eliminator"
+    ]
+  },
+  {
+    "title": "Favorite Season",
+    "composers": [
+      "F.BING.KAI"
+    ]
+  },
+  {
+    "title": "Dominator II",
+    "composers": [
+      "Danger Target"
+    ]
+  },
+  {
+    "title": "Broke My Heart",
+    "composers": [
+      "NoisiestLunatic"
+    ]
+  },
+  {
+    "title": "2 Hell",
+    "composers": [
+      "Ravenface86",
+      "Baneballcore"
+    ]
+  },
+  {
+    "title": "Mud",
+    "composers": [
+      "_"
+    ]
+  },
+  {
+    "title": "Initiate the Massacre",
+    "composers": [
+      "Joulez"
+    ],
+    "discNumber": "2"
+  },
+  {
+    "title": "See The Light In You",
+    "composers": [
+      "Koregroo"
+    ]
+  },
+  {
+    "title": "Quadrant",
+    "composers": [
+      "BlueWind"
+    ]
+  },
+  {
+    "title": "H.T.G",
+    "composers": [
+      "Mrskey"
+    ]
+  },
+  {
+    "title": "Make Your Body Shake",
+    "composers": [
+      "Greg Wu"
+    ]
+  },
+  {
+    "title": "Madfcuk",
+    "composers": [
+      "Forkyrie"
+    ]
+  },
+  {
+    "title": "Beats Indicating Tremendous Chordz & Harmonicz",
+    "composers": [
+      "Normal1zer"
+    ]
+  },
+  {
+    "title": "Air Lock",
+    "composers": [
+      "潮音きつね_H",
+      "Rayven"
+    ]
+  },
+  {
+    "title": "Deranged Deities of Forsaken",
+    "composers": [
+      "Nirotiy"
+    ]
+  },
+  {
+    "title": "EuphoriA of My Heart",
+    "composers": [
+      "EuphoriA"
+    ]
+  }
+]
+```
+
+</details>
+
 
 ### 下载歌词
 歌词相关的处理, 除了 `--lyric` 外的选项都会自动保存.

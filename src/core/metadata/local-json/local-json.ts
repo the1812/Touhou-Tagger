@@ -2,59 +2,32 @@ import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import { readFileSync } from 'fs'
 import { resolvePath } from '../../exists'
-import Axios from 'axios'
+import { inferNumberPlugin } from './infer-number'
+import { commonFieldsPlugin } from './common-fields'
+import { MetadataConfig } from '../../core-config'
+import { fetchCoverPlugin } from './cover'
+import { omitArtistsPlugin } from './omit-artists'
 
+export type LocalJsonPlugin = (init: {
+  cover?: Buffer
+  config: MetadataConfig
+}) => (context: {
+  metadata: Metadata
+  index: number
+}) => void | Promise<void>
+
+const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin]
 export class LocalJson extends MetadataSource {
-  /**
-   * Normalize JSON data from file:
-   * - Cover image buffer
-   * - Album metadata
-   */
   async normalize(metadatas: Metadata[], cover?: Buffer) {
     if (!metadatas || metadatas.length === 0) {
       return metadatas
     }
-    const [firstMetadata] = metadatas
-    let cachedTrackNumber = 1
-    let cachedDiscNumber = 1
+    const pluginInstances = plugins.map(p => p({ cover, config: this.config }))
     const results = await Promise.all(metadatas.map(async (metadata, index) => {
-      let coverBuffer: Buffer | undefined = undefined
-      if (cover !== undefined) {
-        coverBuffer = cover
-      } else if (typeof metadata.coverImage === 'string') {
-        const response = await Axios.get<Buffer>(metadata.coverImage, {
-          responseType: 'arraybuffer',
-          timeout: this.config.timeout * 1000,
-        })
-        coverBuffer = response.data
-      }
-      metadata.coverImage = coverBuffer
-
-      if (metadata.discNumber && parseInt(metadata.discNumber) !== cachedDiscNumber) {
-        cachedDiscNumber = parseInt(metadata.discNumber)
-        cachedTrackNumber = 1
-      }
-      if (!metadata.discNumber) {
-        metadata.discNumber = cachedDiscNumber.toString()
-      }
-      if (!metadata.trackNumber) {
-        metadata.trackNumber = cachedTrackNumber.toString()
-      }
-      cachedTrackNumber++
-
-      if (index > 0) {
-        const albumDataFields = [
-          'album',
-          'albumOrder',
-          'albumArtists',
-          'genres',
-          'year',
-          'coverImage',
-        ]
-        albumDataFields.forEach(field => {
-          if (!metadata[field]) {
-            metadata[field] = firstMetadata[field]
-          }
+      for (const instance of pluginInstances) {
+        await instance({
+          metadata,
+          index,
         })
       }
       return metadata
