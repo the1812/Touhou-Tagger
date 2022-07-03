@@ -40,15 +40,18 @@ const downloadLrcLyrics = async (title, index, config) => {
         };
     }
 };
-const lyricDocumentCache = new Map();
+const lyricDocumentCache = [];
 const downloadLyrics = async (url, title, config) => {
     (0, debug_1.log)(`\n下载歌词中: ${title}`);
-    let document = lyricDocumentCache.get(url);
+    let document = lyricDocumentCache.find(it => it.url === url)?.document;
     if (!document) {
         const response = await axios_1.default.get(url, { timeout: config.timeout * 1000 });
         const dom = new jsdom_1.JSDOM(response.data);
         document = dom.window.document;
-        lyricDocumentCache.set(url, document);
+        lyricDocumentCache.push({ url, document });
+        if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
+            lyricDocumentCache.pop();
+        }
     }
     let table;
     const tables = [...document.querySelectorAll('.wikitable[class*="tt-type-lyric"]')];
