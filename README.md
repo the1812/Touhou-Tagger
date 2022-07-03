@@ -255,7 +255,7 @@ thtag -s local-json
 - `-o` / `--lyric-output`: 歌词输出
   - **`metadata`(默认)**: 写入到元数据中
   - `lrc`: 创建额外的`.lrc`歌词文件 (**⚠此功能尚未完善**)
-- `-L` / `--no-lyric-time`: 禁用元数据歌词时轴
+- `--no-lyric-time`: 禁用元数据歌词时轴
 
 #### 示例
 启用歌词下载, 写入原版歌词到元数据中
@@ -273,10 +273,6 @@ thtag -l -t mixed
 - 根据文件夹名称搜索:
   - 搜索不到专辑时: 判为失败并退出
   - 搜索到多个专辑时: 只有一个结果就取这个结果, 否则判为失败并退出
-```powershell
-thtag -I
-```
-或
 ```powershell
 thtag --no-interactive
 ```
