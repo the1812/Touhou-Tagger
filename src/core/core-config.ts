@@ -4,6 +4,7 @@ export interface LyricConfig {
   output: 'metadata' | 'lrc'
   time: boolean
   translationSeparator: string
+  maxCacheSize: number
 }
 export interface MetadataConfig {
   lyric?: LyricConfig

@@ -47,6 +47,12 @@ const options = yargs(hideBin(process.argv))
     choices: ['metadata', 'lrc'],
     description: '歌词输出方式, 可以选择写入歌曲元数据或者保存为 lrc 文件',
   })
+  .option('lyric-cache-size', {
+    alias: 'lcs',
+    type: 'number',
+    default: 16,
+    description: '下载歌词时的最大缓存数量',
+  })
   .option('translation-separator', {
     alias: 'ts',
     type: 'string',
@@ -115,6 +121,7 @@ const lyric = {
   output: options.lyricOutput,
   time: options.lyricTime,
   translationSeparator: options.translationSeparator,
+  maxCacheSize: options.lyricCacheSize,
 } as LyricConfig
 const metadata: MetadataConfig = {
   lyric: options.lyric ? lyric : undefined,

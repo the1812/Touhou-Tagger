@@ -1,6 +1,6 @@
 import Axios, { AxiosResponse } from 'axios'
 import { JSDOM } from 'jsdom'
-import { LyricConfig, MetadataConfig } from '../../../core-config'
+import { MetadataConfig } from '../../../core-config'
 import { log } from '../../../debug'
 import { getLyricParser, LyricParser } from './lyric-parser'
 
@@ -35,15 +35,18 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
     }
   }
 }
-const lyricDocumentCache = new Map<string, Document>()
+const lyricDocumentCache: { url: string; document: Document }[] = []
 export const downloadLyrics = async (url: string, title: string, config: Required<MetadataConfig>) => {
   log(`\n下载歌词中: ${title}`)
-  let document = lyricDocumentCache.get(url)
+  let document = lyricDocumentCache.find(it => it.url === url)?.document
   if (!document) {
     const response = await Axios.get(url, { timeout: config.timeout * 1000 })
     const dom = new JSDOM(response.data)
     document = dom.window.document
-    lyricDocumentCache.set(url, document)
+    lyricDocumentCache.push({ url, document })
+    if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
+      lyricDocumentCache.pop()
+    }
   }
   let table: HTMLTableElement
   const tables = [...document.querySelectorAll('.wikitable[class*="tt-type-lyric"]')] as HTMLTableElement[]
