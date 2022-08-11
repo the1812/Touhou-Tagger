@@ -47,4 +47,10 @@ export const altNames = new Map<string, string>([
   ['萤一', 'Mrskey'],
   ['战场原妖精', '戦場ヶ原妖精'],
   ['戰場ヶ原妖精', '戦場ヶ原妖精'],
+  ['邮狸', '郵狸'],
+  ['马鹿稍⑨', '馬鹿稍⑨'],
+  ['张尼玛', '張尼瑪'],
+  ['Mask Zombie Man', '張尼瑪'],
+  ['Mask_Zombie_Man', '張尼瑪'],
+  ['莲汰-AiTeN', '蓮汰-AiTeN'],
 ])
