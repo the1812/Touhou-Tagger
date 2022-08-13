@@ -1,16 +1,12 @@
 {
   "name": "touhou-tagger",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
   "main": "dist/core/index.js",
   "bin": {
     "thtag": "dist/cli/index.js"
   },
   "scripts": {
-    "test:flac-writer": "jest dist/core/writer/flac-writer.test.js",
-    "test:mp3-writer": "jest dist/core/writer/mp3-writer.test.js",
-    "test:thb-wiki": "jest dist/core/metadata/thb-wiki.test.js",
-    "test:thb-wiki-lyrics": "jest dist/core/metadata/thb-wiki-lyrics.test.js",
     "start": "node dist/cli/index.js",
     "prepublishOnly": "node scripts/prepublish-only.js"
   },
