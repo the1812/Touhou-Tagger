@@ -18,14 +18,10 @@
 - 封面图片
 
 ## 安装 / 更新
-需要事先装有 [Node.js](https://nodejs.org/en/)
+需要事先装有 [Node.js](https://nodejs.org/en/) 和 [pnpm](https://pnpm.io/installation)
 然后使用以下命令来安装此工具:
 ```powershell
-yarn global add touhou-tagger
-```
-没有 [yarn](https://yarnpkg.com/getting-started/install) 的话也可以用
-```powershell
-npm install -g touhou-tagger
+pnpm install --global touhou-tagger
 ```
 ## 使用
 假设您为一个专辑的音乐建立了单独的文件夹, 在专辑文件夹中运行:
@@ -74,7 +70,14 @@ thtag -s xxx
 thtag --source xxx
 ```
 
-此工具还内置了另外两种数据源:
+此工具还内置了另外三种数据源:
+
+#### doujin-meta
+从 [Doujin-Meta](https://github.com/the1812/Doujin-Meta) 获取曲目信息, 通常用于获取原创同人曲目信息.
+```powershell
+thtag -s doujin-meta
+```
+
 #### local-mp3
 从 MP3 文件提取曲目信息, 通常用于 FLAC 文件未填信息, 而已有填好信息的 MP3 文件. 可以使用此数据源按专辑进行信息复制.
 ```powershell
@@ -85,7 +88,7 @@ thtag -s local-mp3
 > 注意此数据源需要填入 MP3 的文件夹路径, 因此不能用于批量模式中
 
 #### local-json
-从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于`src/core/metadata.ts`). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
+从 JSON 文件读取曲目信息, JSON 内数据的类型为 `Metadata[]` (定义位于 `src/core/metadata.ts`). 可以使用此数据源处理一些原创专辑, 用法与 `local-mp3` 基本相同.
 
 > 如果已存在名为 `metadata.json` 的文件, 程序会直接使用其中的曲目信息, 跳过曲目信息下载. 事先在各个文件夹中准备好 `metadata.json` 的话也是可以使用批量模式的.
 
