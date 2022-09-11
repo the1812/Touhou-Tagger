@@ -1,7 +1,7 @@
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
 import flac from 'flac-metadata'
-import imageinfo = require('imageinfo')
+import imageinfo from 'imageinfo'
 import { createWriteStream, readFileSync } from 'fs'
 import { Readable, finished } from 'stream'
 import { promisify } from 'util'

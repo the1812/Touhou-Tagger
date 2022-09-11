@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.flacWriter = exports.FlacWriter = void 0;
 const metadata_writer_1 = require("../metadata-writer");
 const flac_metadata_1 = __importDefault(require("flac-metadata"));
-const imageinfo = require("imageinfo");
+const imageinfo_1 = __importDefault(require("imageinfo"));
 const fs_1 = require("fs");
 const stream_1 = require("stream");
 const util_1 = require("util");
@@ -77,7 +77,7 @@ class FlacWriter extends metadata_writer_1.MetadataWriter {
                 }
             }
             else if (metadata.coverImage) {
-                let info = imageinfo(metadata.coverImage);
+                let info = (0, imageinfo_1.default)(metadata.coverImage);
                 if (info === undefined) {
                     (0, debug_1.log)('image info failed!');
                     info = {

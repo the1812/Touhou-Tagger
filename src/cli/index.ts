@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { cliOptions, metadataConfig } from './options'
-import { Ora } from 'ora'
+import type { Ora } from 'ora'
 import { readline } from '../core/readline'
 import { getDefaultAlbumName } from './default-album-name'
 
