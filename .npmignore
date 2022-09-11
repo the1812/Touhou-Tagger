@@ -1,4 +1,8 @@
 .vscode/
+.github/
 test-files/
 test.json
 test.html
+src/
+*.jpg
+*.png
