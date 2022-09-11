@@ -140,7 +140,7 @@ class CliTagger {
         const coverBuffer = metadata[0].coverImage;
         if (this.cliOptions.cover && coverBuffer) {
             const { default: imageType } = await Promise.resolve().then(() => __importStar(require('image-type')));
-            const type = imageType(coverBuffer);
+            const type = await imageType(coverBuffer);
             if (type !== null) {
                 const coverFilename = (0, path_1.resolve)(this.workingDir, `cover.${type.ext}`);
                 (0, debug_1.log)('cover file', coverFilename);
