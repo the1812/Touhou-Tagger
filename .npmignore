@@ -6,3 +6,5 @@ test.html
 src/
 *.jpg
 *.png
+.gitattributes
+tsconfig.json
