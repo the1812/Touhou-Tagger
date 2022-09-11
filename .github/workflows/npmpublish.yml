@@ -11,9 +11,11 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 16
           registry-url: https://registry.npmjs.org/
-      - uses: bahmutov/npm-install@v1
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          run_install: true
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
