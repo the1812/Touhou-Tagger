@@ -1,7 +1,8 @@
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
-import id3 from '../../node-id3'
+import id3 from 'node-id3'
 
+const CommentLanguage = 'zho'
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
     ja: 'jpn',
@@ -11,10 +12,11 @@ const languageCodeConvert = (code: string | undefined) => {
   return code ? (mapping[code] || 'jpn') : 'jpn'
 }
 const getNodeId3Tag = (metadata: Metadata, separator: string) => {
-  const tag: id3.NodeID3Tag = {
+  const tag: id3.Tags = {
     title: metadata.title,
     artist: metadata.artists.join(separator),
     album: metadata.album,
+    albumOrder: metadata.albumOrder,
     partOfSet: metadata.discNumber,
     trackNumber: metadata.trackNumber,
     composer: metadata.composers ? metadata.composers.join(separator) : '',
@@ -23,13 +25,13 @@ const getNodeId3Tag = (metadata: Metadata, separator: string) => {
     textWriter: metadata.lyricists ? metadata.lyricists.join(separator) : '',
     performerInfo: metadata.albumArtists ? metadata.albumArtists.join(separator) : '',
     comment: {
+      language: CommentLanguage,
       text: metadata.comments || '',
     },
     unsynchronisedLyrics: {
       language: languageCodeConvert(metadata.lyricLanguage),
       text: metadata.lyric || '',
     },
-    TSOA: metadata.albumOrder,
   }
   if (metadata.coverImage) {
     tag.image = {
@@ -51,7 +53,7 @@ export class Mp3Writer extends MetadataWriter {
       tag.unsynchronisedLyrics.language = undefined
     }
     const result = id3.write(tag, filePath)
-    if (result === false) {
+    if (result !== true) {
       throw new Error(`Write operation failed. filePath = ${filePath}`)
     }
   }

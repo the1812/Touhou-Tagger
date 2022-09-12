@@ -1,6 +1,6 @@
 {
   "name": "touhou-tagger",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
   "main": "dist/core/index.js",
   "bin": {
@@ -8,7 +8,6 @@
   },
   "scripts": {
     "start": "node dist/cli/index.js",
-    "prepublishOnly": "node scripts/prepublish-only.js",
     "watch": "tsc --watch",
     "build": "tsc"
   },
@@ -37,6 +36,7 @@
     "image-type": "^5.0.0",
     "imageinfo": "^1.0.4",
     "jsdom": "^20.0.0",
+    "node-id3": "^0.2.3",
     "ora": "^5.4.1",
     "yargs": "^17.5.1"
   },
@@ -45,5 +45,10 @@
     "@types/node": "^16",
     "@types/yargs": "^17.0.12",
     "typescript": "^4.8.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "node-id3@0.2.3": "patches/node-id3@0.2.3.patch"
+    }
   }
 }

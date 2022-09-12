@@ -1,5 +1,10 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  node-id3@0.2.3:
+    hash: mcni5kdzz7krydonyfbgn5ngdy
+    path: patches/node-id3@0.2.3.patch
+
 specifiers:
   '@types/jsdom': ^20.0.0
   '@types/node': ^16
@@ -11,6 +16,7 @@ specifiers:
   image-type: ^5.0.0
   imageinfo: ^1.0.4
   jsdom: ^20.0.0
+  node-id3: ^0.2.3
   ora: ^5.4.1
   typescript: ^4.8.3
   yargs: ^17.5.1
@@ -23,6 +29,7 @@ dependencies:
   image-type: registry.npmmirror.com/image-type/5.0.0
   imageinfo: registry.npmmirror.com/imageinfo/1.0.4
   jsdom: registry.npmmirror.com/jsdom/20.0.0
+  node-id3: registry.npmmirror.com/node-id3/0.2.3_mcni5kdzz7krydonyfbgn5ngdy
   ora: registry.npmmirror.com/ora/5.4.1
   yargs: registry.npmmirror.com/yargs/17.5.1
 
@@ -509,6 +516,15 @@ packages:
       - supports-color
     dev: false
 
+  registry.npmmirror.com/iconv-lite/0.6.2:
+    resolution: {integrity: sha512-2y91h5OpQlolefMPmUlivelittSWy0rP+oYVpn6A7GwVHNE8AWzoYOBNmlwks3LobaJxgHCYZAnyNo2GgpNRNQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/iconv-lite/-/iconv-lite-0.6.2.tgz}
+    name: iconv-lite
+    version: 0.6.2
+    engines: {node: '>=0.10.0'}
+    dependencies:
+      safer-buffer: registry.npmmirror.com/safer-buffer/2.1.2
+    dev: false
+
   registry.npmmirror.com/iconv-lite/0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/iconv-lite/-/iconv-lite-0.6.3.tgz}
     name: iconv-lite
@@ -665,6 +681,16 @@ packages:
     name: ms
     version: 2.1.2
     dev: false
+
+  registry.npmmirror.com/node-id3/0.2.3_mcni5kdzz7krydonyfbgn5ngdy:
+    resolution: {integrity: sha512-HhaCaW6/nSwTxsTKtZiL7tqV9y1qCRjig37Ep3o0EEunpg1egda1vD6TRBpJb29oXPeLuzaWTaCLIQ9QRk52Ag==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/node-id3/-/node-id3-0.2.3.tgz}
+    id: registry.npmmirror.com/node-id3/0.2.3
+    name: node-id3
+    version: 0.2.3
+    dependencies:
+      iconv-lite: registry.npmmirror.com/iconv-lite/0.6.2
+    dev: false
+    patched: true
 
   registry.npmmirror.com/nwsapi/2.2.2:
     resolution: {integrity: sha512-90yv+6538zuvUMnN+zCr8LuV6bPFdq50304114vJYJ8RDyK8D5O9Phpbd6SZWgI7PwzmmfN1upeOJlvybDSgCw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/nwsapi/-/nwsapi-2.2.2.tgz}

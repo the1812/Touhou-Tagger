@@ -3,7 +3,7 @@ import { Metadata } from '../metadata'
 import { Dirent, readdirSync } from 'fs'
 import { resolvePath } from '../../exists'
 import { defaultsToEmptyString } from '../../proxy'
-import id3 from '../../node-id3'
+import id3 from 'node-id3'
 
 const dirFilter = (path: string, predicate: (d: Dirent) => boolean) => {
   return readdirSync(path, { withFileTypes: true })

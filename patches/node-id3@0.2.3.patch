@@ -1,0 +1,35 @@
+diff --git a/index.d.ts b/index.d.ts
+index 13faac300fa35544ba88332f8c40710553a2af6d..47f0809288eef67cb3b6219aa9590ca84d2b0b39 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -5,6 +5,7 @@ declare module "node-id3" {
+           * The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
+           */
+          album?: string,
++         albumOrder?: string,
+          /**
+           * The 'BPM' frame contains the number of beats per minute in the mainpart of the audio. The BPM is an integer and represented as a numerical string.
+           */
+@@ -260,8 +261,8 @@ declare module "node-id3" {
+             description: string,
+             value: string
+          }]
+-         image?: string | {
+-            mime: string
++         image?: {
++            mime?: string
+             /**
+              * See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
+              */
+diff --git a/src/ID3Definitions.js b/src/ID3Definitions.js
+index c3ce3036f18b8e52a4968fb61d81af4e845a2513..34a8adc2556960799c9ccee11d48d0fd023064d7 100644
+--- a/src/ID3Definitions.js
++++ b/src/ID3Definitions.js
+@@ -46,6 +46,7 @@ const FRAME_IDENTIFIERS = {
+     },
+     v3: {
+         album:                  "TALB",
++        albumOrder:             "TSOA",
+         bpm:                    "TBPM",
+         composer:               "TCOM",
+         genre:                  "TCON",
