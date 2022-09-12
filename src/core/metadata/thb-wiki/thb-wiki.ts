@@ -4,7 +4,7 @@ import Axios from 'axios'
 import { JSDOM } from 'jsdom'
 import { log } from '../../debug'
 import { MetadataConfig } from '../../core-config'
-import { altNames } from './alt-names'
+import { altNames } from '../alt-names'
 
 type TrackParseInfo = { name: string, result: string | string[] }
 

@@ -7,6 +7,7 @@ import { commonFieldsPlugin } from './common-fields'
 import { MetadataConfig } from '../../core-config'
 import { fetchCoverPlugin } from './cover'
 import { omitArtistsPlugin } from './omit-artists'
+import { altNamesPlugin } from './alt-names'
 
 export type LocalJsonPlugin = (init: {
   cover?: Buffer
@@ -16,7 +17,7 @@ export type LocalJsonPlugin = (init: {
   index: number
 }) => void | Promise<void>
 
-const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin]
+const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
 export class LocalJson extends MetadataSource {
   async normalize(metadatas: Metadata[], cover?: Buffer) {
     if (!metadatas || metadatas.length === 0) {

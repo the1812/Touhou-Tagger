@@ -12,7 +12,6 @@ specifiers:
   axios: ^0.27.2
   flac-metadata: ^0.1.1
   fuse.js: ^6.6.2
-  iconv-lite: 0.6.3
   image-type: ^5.0.0
   imageinfo: ^1.0.4
   jsdom: ^20.0.0
@@ -25,7 +24,6 @@ dependencies:
   axios: registry.npmmirror.com/axios/0.27.2
   flac-metadata: registry.npmmirror.com/flac-metadata/0.1.1
   fuse.js: registry.npmmirror.com/fuse.js/6.6.2
-  iconv-lite: registry.npmmirror.com/iconv-lite/0.6.3
   image-type: registry.npmmirror.com/image-type/5.0.0
   imageinfo: registry.npmmirror.com/imageinfo/1.0.4
   jsdom: registry.npmmirror.com/jsdom/20.0.0
