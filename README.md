@@ -18,17 +18,12 @@
 - 封面图片
 
 ## 安装 / 更新
-需要事先装有 [Node.js](https://nodejs.org/en/), 然后使用以下命令来安装此工具:
-```powershell
-npm install -g touhou-tagger
-```
-
-如果使用其他包管理器:
+需要事先装有 [Node.js](https://nodejs.org/en/) 和 [pnpm](https://pnpm.io/installation), 然后使用以下命令来安装此工具:
 ```powershell
 pnpm install --global touhou-tagger
-# or
-yarn global add touhou-tagger
 ```
+
+> 如果曾经使用其他包管理器安装过 v1.5.0 之前的版本, 需要先卸载再使用 pnpm 安装.
 
 ## 使用
 假设您为一个专辑的音乐建立了单独的文件夹, 在专辑文件夹中运行:
