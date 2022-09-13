@@ -45,7 +45,7 @@ export const downloadLyrics = async (url: string, title: string, config: Require
     document = dom.window.document
     lyricDocumentCache.push({ url, document })
     if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
-      lyricDocumentCache.pop()
+      lyricDocumentCache.shift()
     }
   }
   let table: HTMLTableElement
