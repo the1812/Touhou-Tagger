@@ -60,7 +60,6 @@ const options = yargs(hideBin(process.argv))
     description: '指定混合歌词模式下, 使用的分隔符',
   })
   .option('lyric-time', {
-    alias: 'lt',
     type: 'boolean',
     default: true,
     description: '是否启用歌词时轴',
