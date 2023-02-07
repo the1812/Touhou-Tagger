@@ -92,6 +92,9 @@ export class DoujinMeta extends MetadataSource {
     if (result.length === 1) {
       return result[0].item.path
     }
+    if (result.length > 0 && result[0].item.path === albumName) {
+      return albumName
+    }
     return result.map(it => it.item.path).slice(0, 20)
   }
 
