@@ -7,9 +7,14 @@ interface SpecialFormat {
 }
 const specialFormats: SpecialFormat[] = [
   {
-    name: 'TLMC',
-    regex: /^([\d\.]+)\s*(\[.+\])?\s*(.+?)\s*(\[.+\])?$/,
-    resolve: match => match[3],
+    name: 'TlmcWithDiscId',
+    regex: /\[.+?\]$/,
+    resolve: match => match[1],
+  },
+  {
+    name: 'Tlmc',
+    regex: /^[\d]{4}\.[\d]{2}\.[\d]{2} (.+?) \[.+?\]$/,
+    resolve: match => match[1],
   },
   {
     name: 'Default',
