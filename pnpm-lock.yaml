@@ -17,7 +17,7 @@ specifiers:
   jsdom: ^20.0.0
   node-id3: ^0.2.3
   ora: ^5.4.1
-  typescript: ^4.8.3
+  typescript: ^4.9.5
   yargs: ^17.5.1
 
 dependencies:
@@ -35,7 +35,7 @@ devDependencies:
   '@types/jsdom': registry.npmmirror.com/@types/jsdom/20.0.0
   '@types/node': registry.npmmirror.com/@types/node/16.11.58
   '@types/yargs': registry.npmmirror.com/@types/yargs/17.0.12
-  typescript: registry.npmmirror.com/typescript/4.8.3
+  typescript: registry.npmmirror.com/typescript/4.9.5
 
 packages:
 
@@ -948,10 +948,10 @@ packages:
       prelude-ls: registry.npmmirror.com/prelude-ls/1.1.2
     dev: false
 
-  registry.npmmirror.com/typescript/4.8.3:
-    resolution: {integrity: sha512-goMHfm00nWPa8UvR/CPSvykqf6dVV8x/dp0c5mFTMTIu0u0FlGWRioyy7Nn0PGAdHxpJZnuO/ut+PpQ8UiHAig==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/typescript/-/typescript-4.8.3.tgz}
+  registry.npmmirror.com/typescript/4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/typescript/-/typescript-4.9.5.tgz}
     name: typescript
-    version: 4.8.3
+    version: 4.9.5
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
