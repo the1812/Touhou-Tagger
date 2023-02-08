@@ -9,26 +9,19 @@ import { altNames } from '../alt-names'
 type TrackParseInfo = { name: string, result: string | string[] }
 
 export class THBWiki extends MetadataSource {
+  constructor(public readonly host = 'thwiki.cc') {
+    super()
+  }
+
   cache = new Map<string, { document: Document, cover: Buffer | undefined }>()
-  // https://thwiki.cc/api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
+  // /api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
   async resolveAlbumName(albumName: string) {
-    // const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
-    // const document = new JSDOM((await Axios.get(url)).data).window.document
-    // const header = document.querySelector('#firstHeading')
-    // // 未找到精确匹配, 返回搜索结果
-    // if (header && header.textContent === '搜索结果') {
-    //   return [...document.querySelectorAll('.mw-search-result-heading a')]
-    //     .map(it => it.textContent!)
-    //     .filter(it => !it.startsWith('歌词:'))
-    // } else {
-    //   return albumName
-    // }
-    const url = `https://thwiki.cc/api.php?action=opensearch&format=json&search=${encodeURIComponent(albumName)}&limit=20&suggest=true`
+    const url = `https://${this.host}/api.php?action=opensearch&format=json&formatversion=2&search=${encodeURIComponent(albumName)}&limit=20&suggest=true`
     const response = await Axios.get(url, {
       responseType: 'json',
       timeout: this.config.timeout * 1000,
     })
-    if (response.status === 200) {
+    if (response.status === 200 && Array.isArray(response.data) && response.data.length > 1) {
       const [, names] = response.data
       const [name] = (names as string[]).filter(it => !it.startsWith('歌词:'))
       if (name === albumName) {
@@ -228,7 +221,7 @@ export class THBWiki extends MetadataSource {
       const lyricLink = trackNumberRow.querySelector(':not(.new) > a:not(.external)') as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
         const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics')
-        return await downloadLyrics('https://thwiki.cc' + lyricLink.href, title, this.config as Required<MetadataConfig>)
+        return await downloadLyrics('https://' + this.host + lyricLink.href, title, this.config as Required<MetadataConfig>)
       } else {
         return {
           lyric: undefined,
@@ -293,7 +286,7 @@ export class THBWiki extends MetadataSource {
     return rowData
   }
   async getMetadata(albumName: string, cover?: Buffer) {
-    const url = `https://thwiki.cc/index.php?search=${encodeURIComponent(albumName)}`
+    const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
     const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
     const dom = new JSDOM(response.data)
     const document = dom.window.document
@@ -351,3 +344,4 @@ export class THBWiki extends MetadataSource {
   }
 }
 export const thbWiki = new THBWiki()
+export const thbWikiCache = new THBWiki('cache.thwiki.cc')

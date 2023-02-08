@@ -1,5 +1,5 @@
 # 代码贡献指南
-需要已安装 `Node.js`, `pnpm` 及 `Typescript`
+需要已安装 `Node.js`, `pnpm` 及 `TypeScript`
 
 ## 安装依赖项
 ```powershell
@@ -30,6 +30,16 @@ export const sourceMappings = {
   'thb-wiki': thbWiki,
   'xxx': xxx,
 } as { [type: string]: MetadataSource }
+```
+最后在 `src/cli/options.ts` 中添加选项:
+```TypeScript
+.option('source', {
+  alias: 's',
+  type: 'string',
+  default: 'thb-wiki',
+  choices: ['thb-wiki', 'doujin-meta', 'local-mp3', 'local-json', 'xxx'],
+  description: '设置数据源',
+})
 ```
 
 ## 添加其他文件类型支持

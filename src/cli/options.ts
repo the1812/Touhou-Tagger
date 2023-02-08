@@ -24,7 +24,7 @@ const options = yargs(hideBin(process.argv))
     alias: 's',
     type: 'string',
     default: 'thb-wiki',
-    choices: ['thb-wiki', 'doujin-meta', 'local-mp3', 'local-json'],
+    choices: ['thb-wiki', 'thb-wiki-cache', 'doujin-meta', 'local-mp3', 'local-json'],
     description: '设置数据源',
   })
   .option('lyric', {
