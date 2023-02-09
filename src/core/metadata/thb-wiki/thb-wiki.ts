@@ -286,7 +286,8 @@ export class THBWiki extends MetadataSource {
     return rowData
   }
   async getMetadata(albumName: string, cover?: Buffer) {
-    const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
+    // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
+    const url = `https://${this.host}/${encodeURIComponent(albumName)}`
     const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
     const dom = new JSDOM(response.data)
     const document = dom.window.document
