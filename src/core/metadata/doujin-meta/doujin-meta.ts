@@ -25,6 +25,18 @@ interface TreeResponse {
   url: string
   tree: GitTreeNode[]
 }
+interface ContentsNode {
+  name: string
+  path: string
+  sha: string
+  size: number
+  url: string
+  html_url: string
+  git_url: string
+  download_url: string
+  type: string
+}
+type ContentsResponse = ContentsNode[]
 interface BlobResponse {
   sha: string
   url: string
@@ -33,32 +45,19 @@ interface BlobResponse {
   encoding: string
 }
 
-const goToFolder = async (path: string) => {
-  const mainTreeApi = `https://api.github.com/repos/${owner}/${repo}/git/trees/main`
-  const { data: mainTree } = await githubApi.get<TreeResponse>(mainTreeApi)
-  const segments = path.split('/')
-  let currentTree = mainTree
-  for (let index = 0; index < segments.length; index++) {
-    const segment = segments[index]
-    if (!segment) {
-      continue
-    }
-    const nextFolder = currentTree.tree.find(it => it.path === segment)
-    if (!nextFolder) {
-      throw new Error(`获取 ${segment} 文件夹失败`)
-    }
-    const { data: nextTree } = await githubApi.get<TreeResponse>(nextFolder.url)
-    currentTree = nextTree
-  }
-  return currentTree
-}
-
 export class DoujinMeta extends MetadataSource {
   private dataTree: Promise<TreeResponse>
   private fuse: Promise<Fuse<GitTreeNode>>
 
-  private getDataTree() {
-    return goToFolder('public/data')
+  private async getDataTree() {
+    const publicTreeApi = `https://api.github.com/repos/${owner}/${repo}/contents/public`
+    const { data: publicContents } = await githubApi.get<ContentsResponse>(publicTreeApi)
+    const dataUrl = publicContents.find(it => it.name === 'data')?.git_url
+    if (!dataUrl) {
+      throw new Error('获取 public/data 文件夹失败')
+    }
+    const { data: dataTree } = await githubApi.get<TreeResponse>(dataUrl)
+    return dataTree
   }
 
   private init() {
