@@ -17,9 +17,8 @@ export type LocalJsonPlugin = (init: {
   index: number
 }) => void | Promise<void>
 
-const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
 export class LocalJson extends MetadataSource {
-  async normalize(metadatas: Metadata[], cover?: Buffer) {
+  private async internalNormalize(plugins: LocalJsonPlugin[], metadatas: Metadata[], cover?: Buffer) {
     if (!metadatas || metadatas.length === 0) {
       return metadatas
     }
@@ -34,6 +33,14 @@ export class LocalJson extends MetadataSource {
       return metadata
     }))
     return results
+  }
+  async normalize(metadatas: Metadata[], cover?: Buffer) {
+    const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
+    return this.internalNormalize(plugins, metadatas, cover)
+  }
+  async normalizeWithoutCover(metadatas: Metadata[]) {
+    const plugins = [omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
+    return this.internalNormalize(plugins, metadatas)
   }
   async resolveAlbumName(localSource: string) {
     return resolvePath(localSource)
