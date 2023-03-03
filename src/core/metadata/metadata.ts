@@ -5,6 +5,7 @@ export interface AlbumMetadata {
   genres?: string[]
   year?: string
   coverImage?: Buffer
+  extraData?: Record<string, unknown>
 }
 export interface Metadata extends AlbumMetadata {
   title: string
