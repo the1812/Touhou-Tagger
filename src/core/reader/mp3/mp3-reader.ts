@@ -1,0 +1,38 @@
+import { Metadata } from '../../metadata/metadata'
+import { MetadataReader } from '../metadata-reader'
+
+const languageCodeConvert = (code: string | undefined) => {
+  const mapping = {
+    jpn: 'ja',
+    deu: 'de',
+    zho: 'zh',
+  }
+  return code ? (mapping[code] || mapping.jpn) : mapping.jpn
+}
+export class Mp3Reader extends MetadataReader {
+  async read(filePath: string) {
+    const { readFileSync } = await import('fs')
+    const id3 = await import('node-id3')
+    const tag = id3.read(readFileSync(filePath))
+    const { separator } = this.config
+    const metadata: Metadata = {
+      title: tag.title ?? '',
+      artists: tag.artist?.split(separator) ?? [],
+      album: tag.album ?? '',
+      albumOrder: tag.albumOrder ?? '',
+      discNumber: tag.partOfSet ?? '',
+      trackNumber: tag.trackNumber ?? '',
+      composers: tag.composer?.split(separator),
+      genres: tag.genre?.split(separator),
+      year: tag.year,
+      lyricists: tag.textWriter?.split(separator),
+      albumArtists: tag.performerInfo?.split(separator),
+      comments: tag.comment?.text,
+      lyric: tag.unsynchronisedLyrics?.text,
+      lyricLanguage: tag.unsynchronisedLyrics ? languageCodeConvert(tag.unsynchronisedLyrics?.language) : undefined,
+      coverImage: tag.image?.imageBuffer,
+    }
+    return metadata
+  }
+}
+export const mpeReader = new Mp3Reader()

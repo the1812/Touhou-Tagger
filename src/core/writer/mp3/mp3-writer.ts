@@ -9,7 +9,7 @@ const languageCodeConvert = (code: string | undefined) => {
     de: 'deu',
     zh: 'zho'
   }
-  return code ? (mapping[code] || 'jpn') : 'jpn'
+  return code ? (mapping[code] || mapping.ja) : mapping.ja
 }
 const getNodeId3Tag = (metadata: Metadata, separator: string) => {
   const tag: id3.Tags = {
