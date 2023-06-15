@@ -8,6 +8,16 @@ const options = yargs(hideBin(process.argv))
   .parserConfiguration({
     "short-option-groups": false,
   })
+  .command(['tag', '*'], '为音乐文件写入元数据', {}, () => {
+    import('./run-tagger').then(({ runTagger }) => {
+      runTagger()
+    })
+  })
+  .command('dump', '从音乐文件提取元数据', {}, () => {
+    import('./dump').then(({ dump }) => {
+      dump()
+    })
+  })
   .option('cover', {
     alias: 'c',
     type: 'boolean',
