@@ -1,4 +1,26 @@
-import { metadataConfig } from './options'
+import { Metadata } from '../core'
+import { log } from '../core/debug'
+import { cliOptions, metadataConfig } from './options'
+
+const dumpCover = async (metadatas: Metadata[]) => {
+  const { writeFileSync } = await import('fs')
+  const { resolve } = await import('path')
+  if (!cliOptions.cover) {
+    return
+  }
+  const metadata = metadatas.find(m => m.coverImage)
+  if (!metadata) {
+    return
+  }
+  const { default: imageType } = await import('image-type')
+  const type = imageType(metadata.coverImage)
+  if (!type) {
+    return
+  }
+  const coverFilename = resolve(process.cwd(), `cover.${type.ext}`)
+  log('cover file', coverFilename)
+  writeFileSync(coverFilename, metadata.coverImage)
+}
 
 export const dump = async () => {
   const { glob } = await import('glob')
@@ -25,4 +47,5 @@ export const dump = async () => {
     const { coverImage, ...restParts } = m
     return restParts
   }), undefined, 2))
+  await dumpCover(metadatas)
 }
