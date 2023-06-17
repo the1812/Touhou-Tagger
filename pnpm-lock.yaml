@@ -23,8 +23,8 @@ dependencies:
     specifier: ^10.2.7
     version: registry.npmmirror.com/glob@10.2.7
   image-type:
-    specifier: ^5.0.0
-    version: registry.npmmirror.com/image-type@5.0.0
+    specifier: ^4.1.0
+    version: registry.npmmirror.com/image-type@4.1.0
   imageinfo:
     specifier: ^1.0.4
     version: registry.npmmirror.com/imageinfo@1.0.4
@@ -79,12 +79,6 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
-
-  registry.npmmirror.com/@tokenizer/token@0.3.0:
-    resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@tokenizer/token/-/token-0.3.0.tgz}
-    name: '@tokenizer/token'
-    version: 0.3.0
-    dev: false
 
   registry.npmmirror.com/@tootallnate/once@2.0.0:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@tootallnate/once/-/once-2.0.0.tgz}
@@ -510,15 +504,11 @@ packages:
     version: 2.0.6
     dev: false
 
-  registry.npmmirror.com/file-type@17.1.6:
-    resolution: {integrity: sha512-hlDw5Ev+9e883s0pwUsuuYNu4tD7GgpUnOvykjv1Gya0ZIjuKumthDRua90VUn6/nlRKAjcxLUnHNTIUWwWIiw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/file-type/-/file-type-17.1.6.tgz}
+  registry.npmmirror.com/file-type@10.11.0:
+    resolution: {integrity: sha512-uzk64HRpUZyTGZtVuvrjP0FYxzQrBf4rojot6J65YMEbwBLB0CWm0CLojVpwpmFmxcE/lkvYICgfcGozbBq6rw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/file-type/-/file-type-10.11.0.tgz}
     name: file-type
-    version: 17.1.6
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-    dependencies:
-      readable-web-to-node-stream: registry.npmmirror.com/readable-web-to-node-stream@3.0.2
-      strtok3: registry.npmmirror.com/strtok3@7.0.0
-      token-types: registry.npmmirror.com/token-types@5.0.1
+    version: 10.11.0
+    engines: {node: '>=6'}
     dev: false
 
   registry.npmmirror.com/flac-metadata@0.1.1:
@@ -654,13 +644,13 @@ packages:
     version: 1.2.1
     dev: false
 
-  registry.npmmirror.com/image-type@5.0.0:
-    resolution: {integrity: sha512-P3OYXZh+1Gj4d4FlOT1mgF6qGxuA+DJlgX9qz2jScki3U9BuFhvsjXdBCSrJOGPT/tinuLZHve67X6ZGloUL/w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/image-type/-/image-type-5.0.0.tgz}
+  registry.npmmirror.com/image-type@4.1.0:
+    resolution: {integrity: sha512-CFJMJ8QK8lJvRlTCEgarL4ro6hfDQKif2HjSvYCdQZESaIPV4v9imrf7BQHK+sQeTeNeMpWciR9hyC/g8ybXEg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/image-type/-/image-type-4.1.0.tgz}
     name: image-type
-    version: 5.0.0
-    engines: {node: '>=14.16'}
+    version: 4.1.0
+    engines: {node: '>=6'}
     dependencies:
-      file-type: registry.npmmirror.com/file-type@17.1.6
+      file-type: registry.npmmirror.com/file-type@10.11.0
     dev: false
 
   registry.npmmirror.com/imageinfo@1.0.4:
@@ -916,13 +906,6 @@ packages:
       minipass: registry.npmmirror.com/minipass@6.0.2
     dev: false
 
-  registry.npmmirror.com/peek-readable@5.0.0:
-    resolution: {integrity: sha512-YtCKvLUOvwtMGmrniQPdO7MwPjgkFBtFIrmfSbYmYuq3tKDV/mcfAhBth1+C3ru7uXIZasc/pHnb+YDYNkkj4A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/peek-readable/-/peek-readable-5.0.0.tgz}
-    name: peek-readable
-    version: 5.0.0
-    engines: {node: '>=14.16'}
-    dev: false
-
   registry.npmmirror.com/prelude-ls@1.1.2:
     resolution: {integrity: sha512-ESF23V4SKG6lVSGZgYNpbsiaAkdab6ZgOxe52p7+Kid3W3u3bxR4Vfd/o21dmN7jSt0IwgZ4v5MUd26FEtXE9w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/prelude-ls/-/prelude-ls-1.1.2.tgz}
     name: prelude-ls
@@ -958,15 +941,6 @@ packages:
       inherits: registry.npmmirror.com/inherits@2.0.4
       string_decoder: registry.npmmirror.com/string_decoder@1.3.0
       util-deprecate: registry.npmmirror.com/util-deprecate@1.0.2
-    dev: false
-
-  registry.npmmirror.com/readable-web-to-node-stream@3.0.2:
-    resolution: {integrity: sha512-ePeK6cc1EcKLEhJFt/AebMCLL+GgSKhuygrZ/GLaKZYEecIgIECf4UaUuaByiGtzckwR4ain9VzUh95T1exYGw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/readable-web-to-node-stream/-/readable-web-to-node-stream-3.0.2.tgz}
-    name: readable-web-to-node-stream
-    version: 3.0.2
-    engines: {node: '>=8'}
-    dependencies:
-      readable-stream: registry.npmmirror.com/readable-stream@3.6.0
     dev: false
 
   registry.npmmirror.com/require-directory@2.1.1:
@@ -1099,16 +1073,6 @@ packages:
       ansi-regex: registry.npmmirror.com/ansi-regex@6.0.1
     dev: false
 
-  registry.npmmirror.com/strtok3@7.0.0:
-    resolution: {integrity: sha512-pQ+V+nYQdC5H3Q7qBZAz/MO6lwGhoC2gOAjuouGf/VO0m7vQRh8QNMl2Uf6SwAtzZ9bOw3UIeBukEGNJl5dtXQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/strtok3/-/strtok3-7.0.0.tgz}
-    name: strtok3
-    version: 7.0.0
-    engines: {node: '>=14.16'}
-    dependencies:
-      '@tokenizer/token': registry.npmmirror.com/@tokenizer/token@0.3.0
-      peek-readable: registry.npmmirror.com/peek-readable@5.0.0
-    dev: false
-
   registry.npmmirror.com/supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/supports-color/-/supports-color-7.2.0.tgz}
     name: supports-color
@@ -1122,16 +1086,6 @@ packages:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/symbol-tree/-/symbol-tree-3.2.4.tgz}
     name: symbol-tree
     version: 3.2.4
-    dev: false
-
-  registry.npmmirror.com/token-types@5.0.1:
-    resolution: {integrity: sha512-Y2fmSnZjQdDb9W4w4r1tswlMHylzWIeOKpx0aZH9BgGtACHhrk3OkT52AzwcuqTRBZtvvnTjDBh8eynMulu8Vg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/token-types/-/token-types-5.0.1.tgz}
-    name: token-types
-    version: 5.0.1
-    engines: {node: '>=14.16'}
-    dependencies:
-      '@tokenizer/token': registry.npmmirror.com/@tokenizer/token@0.3.0
-      ieee754: registry.npmmirror.com/ieee754@1.2.1
     dev: false
 
   registry.npmmirror.com/tough-cookie@4.1.2:

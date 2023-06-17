@@ -33,7 +33,7 @@
     "flac-metadata": "^0.1.1",
     "fuse.js": "^6.6.2",
     "glob": "^10.2.7",
-    "image-type": "^5.0.0",
+    "image-type": "^4.1.0",
     "imageinfo": "^1.0.4",
     "jsdom": "^20.0.0",
     "node-id3": "^0.2.3",
