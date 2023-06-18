@@ -25,27 +25,64 @@ const dumpCover = async (metadatas: Metadata[]) => {
 export const dump = async () => {
   const { glob } = await import('glob')
   const { extname } = await import('path')
-  const { writeFileSync } = await import('fs')
+  const { writeFileSync, readFileSync } = await import('fs')
   const { log } = await import('../core/debug')
   const { readerMappings } = await import('../core/reader/reader-mappings')
-  const globTypes = Object.keys(readerMappings).map(readerType => readerType.replace(/^\./, '')).join('|')
+  const globTypes = Object.keys(readerMappings)
+    .map(readerType => readerType.replace(/^\./, ''))
+    .join('|')
   const files = (await glob(`./**/*.@(${globTypes})`, { posix: true })).sort()
   log({ globTypes })
   log(files)
-  const metadatas = await Promise.all(files.map(async file => {
-    const type = extname(file)
-    const reader = readerMappings[type]
-    reader.config = metadataConfig
-    const metadata = await reader.read(file)
-    return metadata
-  }))
-  if (metadatas.length === 0) {
+  const results = await Promise.all(
+    files.map(async file => {
+      const type = extname(file)
+      const reader = readerMappings[type]
+      reader.config = metadataConfig
+      const buffer = readFileSync(file)
+      const rawTag = await reader.readRaw(buffer)
+      const metadata = await reader.read(rawTag)
+      return {
+        rawTag,
+        metadata,
+      }
+    }),
+  )
+  if (results.length === 0) {
     console.log('没有找到能够提取的音乐文件')
     return
   }
-  writeFileSync('metadata.json', JSON.stringify(metadatas.map(m => {
-    const { coverImage, ...restParts } = m
-    return restParts
-  }), undefined, 2))
+  const metadatas = results.map(it => it.metadata)
+  const rawTags = results.map(it => it.rawTag)
+  writeFileSync(
+    'metadata.json',
+    JSON.stringify(
+      metadatas.map(metadata => {
+        const { coverImage, ...restParts } = metadata
+        return restParts
+      }),
+      undefined,
+      2,
+    ),
+  )
+  if (cliOptions.debug) {
+    writeFileSync(
+      'metadata.debug.json',
+      JSON.stringify(
+        rawTags,
+        (_, value) => {
+          const shouldNotSerialized =
+            typeof value === 'object' &&
+            value !== null &&
+            value.type === 'Buffer'
+          if (shouldNotSerialized) {
+            return `<Buffer length=${value.data?.length ?? 0}>`
+          }
+          return value
+        },
+        2,
+      ),
+    )
+  }
   await dumpCover(metadatas)
 }

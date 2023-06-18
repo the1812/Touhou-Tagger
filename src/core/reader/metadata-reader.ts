@@ -1,12 +1,13 @@
 import { MetadataConfig } from '../core-config'
 import { Metadata } from '../metadata/metadata';
 
-export abstract class MetadataReader {
+export abstract class MetadataReader<RawType = any> {
   config: MetadataConfig
-  abstract read(filePath: string): Promise<Metadata>
-  async readAll(filePaths: string[]) {
-    return Promise.all(filePaths.map((filePath) => {
-      return this.read(filePath)
+  abstract read(input: string | Buffer | RawType): Promise<Metadata>
+  abstract readRaw(input: string | Buffer): Promise<RawType>
+  async readAll(inputs: (string | Buffer | RawType)[]) {
+    return Promise.all(inputs.map((it) => {
+      return this.read(it)
     }))
   }
 }
