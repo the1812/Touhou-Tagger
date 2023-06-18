@@ -63,6 +63,8 @@ thtag --cover
 ```
 
 ### 自定义注释语言
+`可自动保存的选项`
+
 自定义 [ID3 Tag 注释](https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.2.html#comments)的语言 ([ISO-639-2](https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes))
 
 默认为 `zho`, 因为生成的原曲注释以中文写入. 但在 Apple 系产品中 (包括 iTunes, Apple Music 等) 只能识别 `eng` 语言的注释, 因此可以使用此选项来控制写入的语言标记.
@@ -259,6 +261,8 @@ thtag -s local-json
 
 
 ### 下载歌词
+`可自动保存的选项`
+
 歌词相关的处理, 除了 `--lyric` 外的选项都会自动保存.
 
 #### 选项说明
@@ -328,6 +332,8 @@ thtag --batch-depth 2
 ```
 
 ### 超时 / 重试
+`可自动保存的选项`
+
 默认 30 秒后无法完成专辑信息下载判定为超时, 并自动进行重试, 总尝试次数到达默认的 3 次后, 程序会判为失败并停止.
 
 可以通过相应的开关调整以上的数值, 下面的例子为 60 秒超时, 最多试 5 次:
@@ -335,7 +341,6 @@ thtag --batch-depth 2
 thtag --timeout 60 --retry 5
 ```
 
-> 这些数值更改后也会自动保存
 
 ## 特别感谢
 - [THBWiki](http://thwiki.cc/首页)
