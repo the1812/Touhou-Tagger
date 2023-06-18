@@ -18,6 +18,11 @@ const options = yargs(hideBin(process.argv))
       dump()
     })
   })
+  .option('comment-language', {
+    type: 'string',
+    default: 'zho',
+    description: '自定义 ID3 Tag 注释的语言 (ISO-639-2)',
+  })
   .option('cover', {
     alias: 'c',
     type: 'boolean',
@@ -134,6 +139,7 @@ const lyric = {
 } as LyricConfig
 const metadata: MetadataConfig = {
   lyric: options.lyric ? lyric : undefined,
+  commentLanguage: options.commentLanguage,
   separator: options.separator,
   timeout: options.timeout,
   retry: options.retry,

@@ -61,6 +61,16 @@ thtag -c
 ```powershell
 thtag --cover
 ```
+
+### 自定义注释语言
+自定义 [ID3 Tag 注释](https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.2.html#comments)的语言 ([ISO-639-2](https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes))
+
+默认为 `zho`, 因为生成的原曲注释以中文写入. 但在 Apple 系产品中 (包括 iTunes, Apple Music 等) 只能识别 `eng` 语言的注释, 因此可以使用此选项来控制写入的语言标记.
+
+```powershell
+thtag --comment-language eng
+```
+
 ### 更换数据源
 默认为 `thb-wiki`
 

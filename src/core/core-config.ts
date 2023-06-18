@@ -8,6 +8,7 @@ export interface LyricConfig {
 }
 export interface MetadataConfig {
   lyric?: LyricConfig
+  commentLanguage: string
   separator: string
   timeout: number
   retry: number
