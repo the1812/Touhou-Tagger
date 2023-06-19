@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
   "dependencies": {
+    "@squoosh/lib": "0.5.3",
     "axios": "^0.27.2",
     "flac-metadata": "^0.1.1",
     "fuse.js": "^6.6.2",
@@ -48,7 +49,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "node-id3@0.2.3": "patches/node-id3@0.2.3.patch"
+      "node-id3@0.2.3": "patches/node-id3@0.2.3.patch",
+      "@squoosh/lib@0.5.3": "patches/@squoosh__lib@0.5.3.patch"
     }
   }
 }

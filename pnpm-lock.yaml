@@ -5,11 +5,17 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@squoosh/lib@0.5.3':
+    hash: ewgyxejjoc2xasfz3upgjgryrq
+    path: patches/@squoosh__lib@0.5.3.patch
   node-id3@0.2.3:
     hash: mcni5kdzz7krydonyfbgn5ngdy
     path: patches/node-id3@0.2.3.patch
 
 dependencies:
+  '@squoosh/lib':
+    specifier: 0.5.3
+    version: registry.npmmirror.com/@squoosh/lib@0.5.3(patch_hash=ewgyxejjoc2xasfz3upgjgryrq)
   axios:
     specifier: ^0.27.2
     version: registry.npmmirror.com/axios@0.27.2
@@ -79,6 +85,18 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  registry.npmmirror.com/@squoosh/lib@0.5.3(patch_hash=ewgyxejjoc2xasfz3upgjgryrq):
+    resolution: {integrity: sha512-d/yn6M0P5rk+L0QOl/hzvlHDqXCCmEvwdcYu7sXwhyYDNskg9oxlZtZTBaKKbX6Vq0rzajI9GZkDC0zXlz/oRw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@squoosh/lib/-/lib-0.5.3.tgz}
+    id: registry.npmmirror.com/@squoosh/lib/0.5.3
+    name: '@squoosh/lib'
+    version: 0.5.3
+    engines: {node: ' ^12.5.0 || ^14.0.0 || ^16.0.0 '}
+    dependencies:
+      wasm-feature-detect: registry.npmmirror.com/wasm-feature-detect@1.5.1
+      web-streams-polyfill: registry.npmmirror.com/web-streams-polyfill@3.2.1
+    dev: false
+    patched: true
 
   registry.npmmirror.com/@tootallnate/once@2.0.0:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@tootallnate/once/-/once-2.0.0.tgz}
@@ -1165,12 +1183,25 @@ packages:
       xml-name-validator: registry.npmmirror.com/xml-name-validator@4.0.0
     dev: false
 
+  registry.npmmirror.com/wasm-feature-detect@1.5.1:
+    resolution: {integrity: sha512-GHr23qmuehNXHY4902/hJ6EV5sUANIJC3R/yMfQ7hWDg3nfhlcJfnIL96R2ohpIwa62araN6aN4bLzzzq5GXkg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/wasm-feature-detect/-/wasm-feature-detect-1.5.1.tgz}
+    name: wasm-feature-detect
+    version: 1.5.1
+    dev: false
+
   registry.npmmirror.com/wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/wcwidth/-/wcwidth-1.0.1.tgz}
     name: wcwidth
     version: 1.0.1
     dependencies:
       defaults: registry.npmmirror.com/defaults@1.0.3
+    dev: false
+
+  registry.npmmirror.com/web-streams-polyfill@3.2.1:
+    resolution: {integrity: sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/web-streams-polyfill/-/web-streams-polyfill-3.2.1.tgz}
+    name: web-streams-polyfill
+    version: 3.2.1
+    engines: {node: '>= 8'}
     dev: false
 
   registry.npmmirror.com/webidl-conversions@7.0.0:

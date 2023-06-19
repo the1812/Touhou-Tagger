@@ -1,6 +1,7 @@
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
 import id3 from 'node-id3'
+import { log } from '../../debug'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
@@ -11,7 +12,7 @@ const languageCodeConvert = (code: string | undefined) => {
   return code ? (mapping[code] || mapping.ja) : mapping.ja
 }
 export class Mp3Writer extends MetadataWriter {
-  getNodeId3Tag(metadata: Metadata, separator: string) {
+  private getNodeId3Tag(metadata: Metadata, separator: string) {
     const tag: id3.Tags = {
       title: metadata.title,
       artist: metadata.artists.join(separator),
@@ -52,16 +53,18 @@ export class Mp3Writer extends MetadataWriter {
       tag.unsynchronisedLyrics.text = ''
       tag.unsynchronisedLyrics.language = undefined
     }
+    log(this.config.coverCompressSize, this.config.coverCompressSize * 1024 * 1024, tag.image?.imageBuffer?.length)
+    if (
+      this.config.coverCompressSize > 0
+      && (tag.image?.imageBuffer?.length ?? 0) > this.config.coverCompressSize * 1024 * 1024
+    ) {
+      const { compressImage } = await import('../image-compress')
+      tag.image.imageBuffer = await compressImage(tag.image.imageBuffer)
+    }
     const result = id3.write(tag, filePath)
     if (result !== true) {
       throw new Error(`Write operation failed. filePath = ${filePath}`)
     }
   }
-  // async update(metadata: Metadata, filePath: string) {
-  //   const result = id3.update(getNodeId3Tag(metadata), filePath)
-  //   if (result === false) {
-  //     throw new Error(`Update operation failed. filePath = ${filePath}`)
-  //   }
-  // }
 }
 export const mp3Writer = new Mp3Writer()

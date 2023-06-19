@@ -4,6 +4,7 @@ import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/c
 import { log, setDebug } from '../core/debug'
 import { loadConfigFile, saveConfigFile } from './config-file'
 
+const configFile = loadConfigFile()
 const options = yargs(hideBin(process.argv))
   .parserConfiguration({
     "short-option-groups": false,
@@ -20,7 +21,7 @@ const options = yargs(hideBin(process.argv))
   })
   .option('comment-language', {
     type: 'string',
-    default: 'zho',
+    default: configFile?.commentLanguage ?? 'zho',
     description: '自定义 ID3 Tag 注释的语言 (ISO-639-2)',
   })
   .option('cover', {
@@ -28,6 +29,12 @@ const options = yargs(hideBin(process.argv))
     type: 'boolean',
     default: false,
     description: '是否将封面保存为独立文件',
+  })
+  .option('cover-compress-size', {
+    alias: 'ccs',
+    type: 'number',
+    default: configFile?.coverCompressSize ?? 0,
+    description: '封面达到指定的大小 (MB) 时, 自动进行压缩 (只影响嵌入文件的封面)',
   })
   .option('debug', {
     alias: 'd',
@@ -51,14 +58,14 @@ const options = yargs(hideBin(process.argv))
   .option('lyric-type', {
     alias: 'lt',
     type: 'string',
-    default: 'original',
+    default: configFile?.lyric?.type ?? 'original',
     choices: ['original', 'translated', 'mixed'],
     description: '歌词类型, 可以选择原文/译文/混合模式',
   })
   .option('lyric-output', {
     alias: 'lo',
     type: 'string',
-    default: 'metadata',
+    default: configFile?.lyric?.output ?? 'metadata',
     choices: ['metadata', 'lrc'],
     description: '歌词输出方式, 可以选择写入歌曲元数据或者保存为 lrc 文件',
   })
@@ -71,7 +78,7 @@ const options = yargs(hideBin(process.argv))
   .option('translation-separator', {
     alias: 'ts',
     type: 'string',
-    default: ' // ',
+    default: configFile?.lyric?.translationSeparator ?? ' // ',
     description: '指定混合歌词模式下, 使用的分隔符',
   })
   .option('lyric-time', {
@@ -92,17 +99,17 @@ const options = yargs(hideBin(process.argv))
   })
   .option('separator', {
     type: 'string',
-    default: DefaultMetadataSeparator,
+    default: configFile?.separator ?? DefaultMetadataSeparator,
     description: '指定 mp3 元数据的分隔符',
   })
   .option('timeout', {
     type: 'number',
-    default: 30,
+    default: configFile?.timeout ?? 30,
     description: '指定一次运行的超时时间',
   })
   .option('retry', {
     type: 'number',
-    default: 3,
+    default: configFile?.retry ?? 3,
     description: '指定超时后自动重试的最大次数',
   })
   .option('interactive', {
@@ -114,22 +121,6 @@ const options = yargs(hideBin(process.argv))
   .parseSync()
 
 setDebug(options.debug)
-
-const configFile = loadConfigFile()
-if (configFile !== null) {
-  log('config file: ', configFile)
-  const { lyric, ...restConfig } = configFile
-  if (lyric !== undefined) {
-    if (options.lyricOutput === undefined) {
-      options.lyricOutput = lyric.output
-    }
-    if (options.lyricType === undefined) {
-      options.lyricType = lyric.type
-    }
-    options.translationSeparator = lyric.translationSeparator
-  }
-  Object.assign(options, restConfig)
-}
 const lyric = {
   type: options.lyricType,
   output: options.lyricOutput,
@@ -140,6 +131,7 @@ const lyric = {
 const metadata: MetadataConfig = {
   lyric: options.lyric ? lyric : undefined,
   commentLanguage: options.commentLanguage,
+  coverCompressSize: options.coverCompressSize,
   separator: options.separator,
   timeout: options.timeout,
   retry: options.retry,
