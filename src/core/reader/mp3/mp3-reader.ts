@@ -42,4 +42,4 @@ export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
     return metadata
   }
 }
-export const mpeReader = new Mp3Reader()
+export const mp3Reader = new Mp3Reader()
