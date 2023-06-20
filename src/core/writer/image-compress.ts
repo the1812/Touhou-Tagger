@@ -16,13 +16,34 @@ const initImagePool = async () => {
 export type CompressedBuffer = Buffer & {
   [CompressedData]: Buffer
 }
-export const compressImage = async (buffer: Buffer | CompressedBuffer) => {
+export const compressImage = async (buffer: Buffer | CompressedBuffer, resolution?: number) => {
   await initImagePool()
   if (buffer[CompressedData]) {
     return buffer[CompressedData]
   }
+  const { default: imageInfo } = await import('imageinfo')
+  const info = imageInfo(buffer)
+  const resize = (() => {
+    if (!resolution) {
+      return undefined
+    }
+    if (info.width > resolution) {
+      return {
+        width: resolution,
+      }
+    }
+    if (info.height > resolution) {
+      return {
+        height: resolution,
+      }
+    }
+    return undefined
+  })()
   const image = imagePool.ingestImage(buffer)
-  await image.preprocess()
+
+  await image.preprocess({
+    resize,
+  })
   const result = await image.encode({
     mozjpeg: {
       quality: getQuality(buffer.length),

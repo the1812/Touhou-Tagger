@@ -10,6 +10,7 @@ export interface MetadataConfig {
   lyric?: LyricConfig
   commentLanguage: string
   coverCompressSize: number
+  coverCompressResolution: number
   separator: string
   timeout: number
   retry: number

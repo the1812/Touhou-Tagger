@@ -36,6 +36,12 @@ const options = yargs(hideBin(process.argv))
     default: configFile?.coverCompressSize ?? 0,
     description: '封面达到指定的大小 (MB) 时, 自动进行压缩 (只影响嵌入文件的封面)',
   })
+  .option('cover-compress-resolution', {
+    alias: 'ccr',
+    type: 'number',
+    default: configFile?.coverCompressResolution ?? 0,
+    description: '压缩封面时的最大边长, 超过时会进行缩放',
+  })
   .option('debug', {
     alias: 'd',
     type: 'boolean',
@@ -132,6 +138,7 @@ const metadata: MetadataConfig = {
   lyric: options.lyric ? lyric : undefined,
   commentLanguage: options.commentLanguage,
   coverCompressSize: options.coverCompressSize,
+  coverCompressResolution: options.coverCompressResolution,
   separator: options.separator,
   timeout: options.timeout,
   retry: options.retry,

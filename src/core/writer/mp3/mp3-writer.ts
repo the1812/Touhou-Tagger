@@ -40,7 +40,7 @@ export class Mp3Writer extends MetadataWriter {
           id: 3,
           name: 'front cover'
         },
-        description: metadata.album,
+        description: '', // 必须留空, 否则 iTunes 不识别封面
         imageBuffer: metadata.coverImage,
       }
     }
@@ -59,7 +59,7 @@ export class Mp3Writer extends MetadataWriter {
       && (tag.image?.imageBuffer?.length ?? 0) > this.config.coverCompressSize * 1024 * 1024
     ) {
       const { compressImage } = await import('../image-compress')
-      tag.image.imageBuffer = await compressImage(tag.image.imageBuffer)
+      tag.image.imageBuffer = await compressImage(tag.image.imageBuffer, this.config.coverCompressResolution)
     }
     const result = id3.write(tag, filePath)
     if (result !== true) {
