@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node dist/cli/index.js",
-    "watch": "tsc --watch",
+    "watch": "tsc --watch --sourceMap",
     "build": "tsc"
   },
   "repository": {

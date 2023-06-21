@@ -11,6 +11,9 @@ const languageCodeConvert = (code: string | undefined) => {
   return code ? (mapping[code] || mapping.jpn) : mapping.jpn
 }
 export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
+  get allowParallel() {
+    return true
+  }
   async readRaw(input: string | Buffer) {
     const { readFileSync } = await import('fs')
     const id3 = await import('node-id3')

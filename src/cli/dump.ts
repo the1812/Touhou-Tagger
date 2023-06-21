@@ -34,24 +34,41 @@ export const dump = async () => {
   const files = (await glob(`./**/*.@(${globTypes})`, { posix: true })).sort()
   log({ globTypes })
   log(files)
-  const results = await Promise.all(
-    files.map(async file => {
-      const type = extname(file)
-      const reader = readerMappings[type]
-      reader.config = metadataConfig
-      const buffer = readFileSync(file)
-      const rawTag = await reader.readRaw(buffer)
-      const metadata = await reader.read(rawTag)
-      return {
-        rawTag,
-        metadata,
-      }
-    }),
-  )
-  if (results.length === 0) {
+  if (files.length === 0) {
     console.log('没有找到能够提取的音乐文件')
     return
   }
+  const results: { metadata: Metadata; rawTag: any }[] = []
+  const sequentialTasks: (() => Promise<void>)[] = []
+  const parallelTasks: (() => Promise<void>)[] = []
+  files.forEach(async (file, index) => {
+    const type = extname(file)
+    const reader = readerMappings[type]
+    reader.config = metadataConfig
+    const task = async () => {
+      const buffer = readFileSync(file)
+      const rawTag = await reader.readRaw(buffer)
+      const metadata = await reader.read(rawTag)
+      results[index] = {
+        rawTag,
+        metadata,
+      }
+    }
+    if (reader.allowParallel) {
+      parallelTasks.push(task)
+    } else {
+      sequentialTasks.push(task)
+    }
+  })
+  await Promise.all([
+    parallelTasks.map(task => task()),
+    (async () => {
+      for (let taskIndex = 0; taskIndex < sequentialTasks.length; taskIndex++) {
+        await sequentialTasks[taskIndex]()
+      }
+    })(),
+  ])
+
   const metadatas = results.map(it => it.metadata)
   const rawTags = results.map(it => it.rawTag)
   writeFileSync(
