@@ -8,13 +8,13 @@
       "type": "node",
       "request": "launch",
       "console": "integratedTerminal",
-      "name": "启动程序",
+      "name": "写入元数据",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\dist\\cli\\index.js",
+      "program": "${workspaceFolder}/src/cli/index.ts",
       "args": ["-d"],
-      "cwd": "${workspaceFolder}\\test-files\\tagged"
+      "cwd": "${workspaceFolder}/test-files"
     },
     {
       "type": "node",
@@ -24,9 +24,25 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\dist\\cli\\index.js",
+      "program": "${workspaceFolder}/dist/cli/index.js",
       "args": ["-d", "-l"],
-      "cwd": "${workspaceFolder}\\test-files\\tagged"
+      "cwd": "${workspaceFolder}/test-files"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "name": "提取元数据",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/src/cli/index.ts",
+      "args": ["dump", "-d"],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "!**/node_modules/**"
+      ],
+      "cwd": "${workspaceFolder}/test-files"
     }
   ]
 }
