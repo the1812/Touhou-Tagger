@@ -1,26 +1,47 @@
+import { VorbisComment } from './metadata-block/vorbis-comment'
+import { PictureType } from './metadata-block/picture'
 import { readFileSync } from 'fs'
 import { FlacStream } from './stream'
-import { MetadataBlockType } from './metadata-block/header'
-import { VorbisCommentBlock } from './metadata-block/vorbis-comment'
-import { PictureBlock } from './metadata-block/picture'
 
-const test = () => {
-  const buffer = readFileSync(
-    'C:/Users/The18/Documents/Docs/Codes/Touhou-Tagger/test-files/06 白华.flac',
-  )
-  const stream = FlacStream.fromBuffer(buffer)
-  console.log({
-    length: stream.length,
-    blocks: stream.metadataBlocks.length,
-    frameDataLength: stream.frameData.length,
-    comments: (
-      stream.metadataBlocks.find(
-        it => it.header.type === MetadataBlockType.VorbisComment,
-      ) as VorbisCommentBlock
-    )?.commentList,
-    picture: stream.metadataBlocks.find(
-      it => it.header.type === MetadataBlockType.Picture,
-    ) as PictureBlock,
-  })
+export interface FlacTags {
+  vorbisComments: VorbisComment[]
+  picture?: {
+    pictureType?: PictureType
+    mime?: string
+    description?: string
+    colorDepth?: number
+    colors?: number
+    buffer: Buffer
+  }
 }
-test()
+export { FlacStream } from './stream'
+export { BufferBase } from './buffer-base'
+export { MetadataBlockType, MetadataBlockHeaderLength, MetadataBlockHeader } from './metadata-block/header'
+export { MetadataBlock } from './metadata-block'
+export { OtherMetadataBlock } from './metadata-block/other'
+export { PictureBlock, PictureType } from './metadata-block/picture'
+export { VorbisComment, VorbisCommentBlock } from './metadata-block/vorbis-comment'
+
+export const readFlacTags = (input: string | Buffer) => {
+  let buffer: Buffer
+  if (typeof input === 'string') {
+    buffer = readFileSync(input)
+  } else {
+    buffer = input
+  }
+
+  const stream = FlacStream.fromBuffer(buffer)
+  const { vorbisCommentBlock, pictureBlock } = stream
+  const tags: FlacTags = {
+    vorbisComments: vorbisCommentBlock?.commentList ?? [],
+    picture: pictureBlock ? ({
+      pictureType: pictureBlock.pictureType,
+      mime: pictureBlock.mime,
+      description: pictureBlock.description,
+      colorDepth: pictureBlock.colorDepth,
+      colors: pictureBlock.colors,
+      buffer: pictureBlock.pictureBuffer,
+    }) : undefined,
+  }
+  return tags
+}

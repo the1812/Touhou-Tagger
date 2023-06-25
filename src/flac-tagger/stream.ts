@@ -2,6 +2,8 @@ import { BufferBase } from './buffer-base'
 import { MetadataBlock } from './metadata-block'
 import { MetadataBlockType } from './metadata-block/header'
 import { parseBlock } from './metadata-block/parse'
+import type { PictureBlock } from './metadata-block/picture'
+import type { VorbisCommentBlock } from './metadata-block/vorbis-comment'
 
 const FlacStreamMarker = 'fLaC'
 // spec: https://xiph.org/flac/format.html
@@ -12,6 +14,14 @@ export class FlacStream extends BufferBase {
   constructor(initialValues: { metadataBlocks: MetadataBlock[]; frameData: Buffer }) {
     super()
     Object.assign(this, initialValues)
+  }
+
+  get vorbisCommentBlock(): VorbisCommentBlock | undefined {
+    return this.metadataBlocks.find(it => it.type === MetadataBlockType.VorbisComment) as VorbisCommentBlock
+  }
+
+  get pictureBlock(): PictureBlock | undefined {
+    return this.metadataBlocks.find(it => it.type === MetadataBlockType.Picture) as PictureBlock
   }
 
   static fromBuffer(buffer: Buffer) {
@@ -25,7 +35,7 @@ export class FlacStream extends BufferBase {
     while (isNotLastBlock()) {
       const restBlock = buffer.slice(bufferIndex)
       const block = parseBlock(restBlock)
-      if (block.header.type === MetadataBlockType.Invalid) {
+      if (block.type === MetadataBlockType.Invalid) {
         break
       }
       blocks.push(block)
@@ -40,7 +50,11 @@ export class FlacStream extends BufferBase {
   toBuffer() {
     return Buffer.concat([
       Buffer.from(FlacStreamMarker),
-      ...this.metadataBlocks.map(b => b.toBuffer()),
+      ...this.metadataBlocks.map((b, index) => {
+        const isLast = index === this.metadataBlocks.length - 1
+        b.header.isLast = isLast
+        return b.toBuffer()
+      }),
       this.frameData,
     ])
   }
