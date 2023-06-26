@@ -50,10 +50,11 @@ export class FlacStream extends BufferBase {
   toBuffer() {
     return Buffer.concat([
       Buffer.from(FlacStreamMarker),
-      ...this.metadataBlocks.map((b, index) => {
+      ...this.metadataBlocks.map((block, index) => {
         const isLast = index === this.metadataBlocks.length - 1
-        b.header.isLast = isLast
-        return b.toBuffer()
+        block.header.isLast = isLast
+        block.header.dataLength = block.length - block.header.length
+        return block.toBuffer()
       }),
       this.frameData,
     ])

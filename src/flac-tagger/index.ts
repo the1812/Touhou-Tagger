@@ -1,6 +1,6 @@
-import { VorbisComment } from './metadata-block/vorbis-comment'
-import { PictureType } from './metadata-block/picture'
-import { readFileSync } from 'fs'
+import { VorbisComment, VorbisCommentBlock } from './metadata-block/vorbis-comment'
+import { PictureBlock, PictureType } from './metadata-block/picture'
+import { readFileSync, writeFileSync } from 'fs'
 import { FlacStream } from './stream'
 
 export interface FlacTags {
@@ -44,4 +44,33 @@ export const readFlacTags = (input: string | Buffer) => {
     }) : undefined,
   }
   return tags
+}
+
+export const writeFlacTags = (tags: FlacTags, filePath: string) => {
+  const buffer = readFileSync(filePath)
+  const stream = FlacStream.fromBuffer(buffer)
+  if (stream.vorbisCommentBlock) {
+    stream.vorbisCommentBlock.commentList = tags.vorbisComments
+  } else {
+    stream.metadataBlocks.push(new VorbisCommentBlock({
+      commentList: tags.vorbisComments
+    }))
+  }
+
+  if (tags.picture) {
+    const { pictureBlock } = stream
+    if (pictureBlock) {
+      stream.metadataBlocks = stream.metadataBlocks.filter(b => b !== pictureBlock)
+    }
+
+    stream.metadataBlocks.push(new PictureBlock({
+      pictureBuffer: tags.picture.buffer,
+      mime: tags.picture.mime,
+      description: tags.picture.description,
+      colorDepth: tags.picture.colorDepth,
+      colors: tags.picture.colors,
+    }))
+  }
+
+  writeFileSync(filePath, stream.toBuffer())
 }

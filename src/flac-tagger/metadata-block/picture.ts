@@ -37,7 +37,7 @@ export class PictureBlock extends MetadataBlock {
   pictureBuffer: Buffer
 
   constructor(initialValues: {
-    header: MetadataBlockHeader
+    header?: MetadataBlockHeader
     pictureType?: PictureType
     mime?: string
     description?: string
@@ -49,7 +49,9 @@ export class PictureBlock extends MetadataBlock {
   }) {
     super()
     const {
-      header,
+      header = new MetadataBlockHeader({
+        type: MetadataBlockType.Picture,
+      }),
       pictureType = PictureType.FrontCover,
       mime,
       description = '',
@@ -67,9 +69,9 @@ export class PictureBlock extends MetadataBlock {
       this.height = height
     } else {
       const info = imageinfo(pictureBuffer)
-      this.mime = info.mimeType
-      this.width = info.width
-      this.height = info.height
+      this.mime = mime ?? info.mimeType
+      this.width = width ?? info.width
+      this.height = height ?? info.height
     }
     this.description = description
     this.colorDepth = colorDepth

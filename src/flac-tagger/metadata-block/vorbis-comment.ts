@@ -1,19 +1,31 @@
 import { MetadataBlockHeader, MetadataBlockHeaderLength, MetadataBlockType } from './header'
 import { MetadataBlock } from '.'
 
+export const DefaultVendorString = 'flac-tagger 1.0.0 20230626'
 export type VorbisComment = string
 export class VorbisCommentBlock extends MetadataBlock {
   header: MetadataBlockHeader
   vendorString: string
   commentList: VorbisComment[]
 
-  constructor(initialValues: {
-    header: MetadataBlockHeader
-    vendorString: string
-    commentList: VorbisComment[]
-  }) {
+  constructor(
+    initialValues: {
+      header?: MetadataBlockHeader
+      vendorString?: string
+      commentList?: VorbisComment[]
+    } = {},
+  ) {
     super()
-    Object.assign(this, initialValues)
+    const {
+      header = new MetadataBlockHeader({
+        type: MetadataBlockType.VorbisComment,
+      }),
+      vendorString = DefaultVendorString,
+      commentList = [],
+    } = initialValues
+    this.header = header
+    this.vendorString = vendorString
+    this.commentList = commentList
   }
 
   static fromBuffer(buffer: Buffer) {
@@ -51,7 +63,7 @@ export class VorbisCommentBlock extends MetadataBlock {
   toBuffer() {
     const commentBuffer = Buffer.alloc(this.commentListLength)
     let commentBufferIndex = 0
-    this.commentList.forEach((comment) => {
+    this.commentList.forEach(comment => {
       const length = Buffer.byteLength(comment)
       commentBuffer.writeUintLE(length, commentBufferIndex, 4)
       commentBufferIndex += 4
@@ -76,6 +88,12 @@ export class VorbisCommentBlock extends MetadataBlock {
   }
 
   get length() {
-    return MetadataBlockHeaderLength + 4 + Buffer.byteLength(this.vendorString) + 4 + this.commentListLength
+    return (
+      MetadataBlockHeaderLength +
+      4 +
+      Buffer.byteLength(this.vendorString) +
+      4 +
+      this.commentListLength
+    )
   }
 }

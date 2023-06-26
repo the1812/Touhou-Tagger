@@ -16,9 +16,12 @@ export class MetadataBlockHeader extends BufferBase {
   type: MetadataBlockType
   dataLength: number
 
-  constructor(initialValues: { isLast: boolean; type: MetadataBlockType; dataLength: number }) {
+  constructor(initialValues: { isLast?: boolean; type: MetadataBlockType; dataLength?: number }) {
     super()
-    Object.assign(this, initialValues)
+    const { isLast = false, type, dataLength = 0 } = initialValues
+    this.isLast = isLast
+    this.type = type
+    this.dataLength = dataLength
   }
 
   static fromBuffer(buffer: Buffer) {
