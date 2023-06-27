@@ -1,4 +1,4 @@
-import { BufferBase } from '../buffer-base'
+import { BufferBase, allocBufferAndWrite } from '../buffer-base'
 
 export enum MetadataBlockType {
   StreamInfo = 0,
@@ -34,10 +34,10 @@ export class MetadataBlockHeader extends BufferBase {
   }
 
   toBuffer() {
-    const buffer = Buffer.alloc(this.length)
-    buffer.writeUint8(this.type + (this.isLast ? 0b10000000 : 0))
-    buffer.writeUintBE(this.dataLength, 1, 3)
-    return buffer
+    return allocBufferAndWrite(this.length, buffer => {
+      buffer.writeUint8(this.type + (this.isLast ? 0b10000000 : 0))
+      buffer.writeUintBE(this.dataLength, 1, 3)
+    })
   }
 
   get length() {

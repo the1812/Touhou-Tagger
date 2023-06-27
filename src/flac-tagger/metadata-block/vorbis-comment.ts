@@ -1,5 +1,6 @@
 import { MetadataBlockHeader, MetadataBlockHeaderLength, MetadataBlockType } from './header'
 import { MetadataBlock } from '.'
+import { allocBufferAndWrite } from '../buffer-base'
 
 export const DefaultVendorString = 'flac-tagger 1.0.0 20230626'
 export type VorbisComment = string
@@ -74,9 +75,9 @@ export class VorbisCommentBlock extends MetadataBlock {
 
     return Buffer.concat([
       this.header.toBuffer(),
-      Buffer.alloc(4, vendorStringBuffer.length),
+      allocBufferAndWrite(4, b => b.writeUint32LE(vendorStringBuffer.length)),
       vendorStringBuffer,
-      Buffer.alloc(4, this.commentList.length),
+      allocBufferAndWrite(4, b => b.writeUint32LE(this.commentList.length)),
       commentBuffer,
     ])
   }

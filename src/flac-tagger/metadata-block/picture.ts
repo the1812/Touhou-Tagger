@@ -1,6 +1,7 @@
 import { MetadataBlockHeader, MetadataBlockHeaderLength, MetadataBlockType } from './header'
 import { MetadataBlock } from '.'
 import imageinfo from 'imageinfo'
+import { allocBufferAndWrite } from '../buffer-base'
 
 export enum PictureType {
   Other,
@@ -133,16 +134,16 @@ export class PictureBlock extends MetadataBlock {
   toBuffer() {
     return Buffer.concat([
       this.header.toBuffer(),
-      Buffer.alloc(4, this.pictureType),
-      Buffer.alloc(4, Buffer.byteLength(this.mime)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.pictureType)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(Buffer.byteLength(this.mime))),
       Buffer.from(this.mime),
-      Buffer.alloc(4, Buffer.byteLength(this.description)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(Buffer.byteLength(this.description))),
       Buffer.from(this.description),
-      Buffer.alloc(4, this.width),
-      Buffer.alloc(4, this.height),
-      Buffer.alloc(4, this.colorDepth),
-      Buffer.alloc(4, this.colors),
-      Buffer.alloc(4, this.pictureBuffer.length),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.width)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.height)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.colorDepth)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.colors)),
+      allocBufferAndWrite(4, b => b.writeUint32BE(this.pictureBuffer.length)),
       this.pictureBuffer,
     ])
   }
