@@ -2,8 +2,7 @@ import { VorbisComment, VorbisCommentBlock } from './metadata-block/vorbis-comme
 import { PictureBlock, PictureType } from './metadata-block/picture'
 import { readFileSync, writeFileSync } from 'fs'
 import { FlacStream } from './stream'
-import { MetadataBlockHeader, MetadataBlockHeaderLength, MetadataBlockType } from './metadata-block/header'
-import { OtherMetadataBlock } from './metadata-block/other'
+import { MetadataBlockType } from './metadata-block/header'
 
 export interface FlacTags {
   vorbisComments: VorbisComment[]
@@ -76,22 +75,19 @@ export const writeFlacTags = (tags: FlacTags, filePath: string) => {
     }))
   }
 
-  if (stream.metadataBlocks.some(b => b.type === MetadataBlockType.Padding)) {
-    stream.metadataBlocks = stream.metadataBlocks.filter(b => b.type !== MetadataBlockType.Padding)
-    const paddingLength = originalLength - stream.length
-    if (paddingLength - MetadataBlockHeaderLength > 0) {
-      stream.metadataBlocks.push(new OtherMetadataBlock({
-        header: new MetadataBlockHeader({
-          type: MetadataBlockType.Padding,
-        }),
-        data: Buffer.alloc(paddingLength - MetadataBlockHeaderLength),
-      }))
-    }
-  }
+  stream.metadataBlocks = stream.metadataBlocks.filter(b => b.type !== MetadataBlockType.Padding)
+  // if (stream.metadataBlocks.some(b => b.type === MetadataBlockType.Padding)) {
+  //   stream.metadataBlocks = stream.metadataBlocks.filter(b => b.type !== MetadataBlockType.Padding)
+  //   const paddingLength = originalLength - stream.length
+  //   if (paddingLength - MetadataBlockHeaderLength > 0) {
+  //     stream.metadataBlocks.push(new OtherMetadataBlock({
+  //       header: new MetadataBlockHeader({
+  //         type: MetadataBlockType.Padding,
+  //       }),
+  //       data: Buffer.alloc(paddingLength - MetadataBlockHeaderLength),
+  //     }))
+  //   }
+  // }
 
   writeFileSync(filePath, stream.toBuffer())
 }
-
-const tags = readFlacTags('C:/Users/The18/Documents/Docs/Codes/Touhou-Tagger/test-files/06 白华.flac')
-console.log({ tags })
-writeFlacTags(tags, 'C:/Users/The18/Documents/Docs/Codes/Touhou-Tagger/test-files/06 白华 - 副本2.flac')
