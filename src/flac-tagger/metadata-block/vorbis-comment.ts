@@ -2,7 +2,7 @@ import { MetadataBlockHeader, MetadataBlockHeaderLength, MetadataBlockType } fro
 import { MetadataBlock } from '.'
 import { allocBufferAndWrite } from '../buffer-base'
 
-export const DefaultVendorString = 'flac-tagger 1.0.0 20230626'
+export const DefaultVendorString = 'reference flac-tagger 1.0.0 20230626'
 export type VorbisComment = string
 export class VorbisCommentBlock extends MetadataBlock {
   header: MetadataBlockHeader
