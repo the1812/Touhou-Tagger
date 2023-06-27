@@ -19,9 +19,6 @@ dependencies:
   axios:
     specifier: ^0.27.2
     version: registry.npmmirror.com/axios@0.27.2
-  flac-metadata:
-    specifier: ^0.1.1
-    version: registry.npmmirror.com/flac-metadata@0.1.1
   fuse.js:
     specifier: ^6.6.2
     version: registry.npmmirror.com/fuse.js@6.6.2
@@ -527,13 +524,6 @@ packages:
     name: file-type
     version: 10.11.0
     engines: {node: '>=6'}
-    dev: false
-
-  registry.npmmirror.com/flac-metadata@0.1.1:
-    resolution: {integrity: sha512-JT91wr3XttDpoeVR+jO+nSJ++Cm2QR+kwphsUYMkflWNsNrE+z1YLE/D25rh9o1ChO8fu7k+zRodgv6GDrnVoA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/flac-metadata/-/flac-metadata-0.1.1.tgz}
-    name: flac-metadata
-    version: 0.1.1
-    engines: {node: '>=0.8'}
     dev: false
 
   registry.npmmirror.com/follow-redirects@1.15.1:
