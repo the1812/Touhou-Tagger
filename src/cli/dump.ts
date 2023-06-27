@@ -38,36 +38,20 @@ export const dump = async () => {
     console.log('没有找到能够提取的音乐文件')
     return
   }
-  const results: { metadata: Metadata; rawTag: any }[] = []
-  const sequentialTasks: (() => Promise<void>)[] = []
-  const parallelTasks: (() => Promise<void>)[] = []
-  files.forEach(async (file, index) => {
-    const type = extname(file)
-    const reader = readerMappings[type]
-    reader.config = metadataConfig
-    const task = async () => {
+  const results: { metadata: Metadata; rawTag: any }[] = await Promise.all(
+    files.map(async file => {
+      const type = extname(file)
+      const reader = readerMappings[type]
+      reader.config = metadataConfig
       const buffer = readFileSync(file)
       const rawTag = await reader.readRaw(buffer)
       const metadata = await reader.read(rawTag)
-      results[index] = {
+      return {
         rawTag,
         metadata,
       }
-    }
-    if (reader.allowParallel) {
-      parallelTasks.push(task)
-    } else {
-      sequentialTasks.push(task)
-    }
-  })
-  await Promise.all([
-    parallelTasks.map(task => task()),
-    (async () => {
-      for (let taskIndex = 0; taskIndex < sequentialTasks.length; taskIndex++) {
-        await sequentialTasks[taskIndex]()
-      }
-    })(),
-  ])
+    }),
+  )
 
   const metadatas = results.map(it => it.metadata)
   const rawTags = results.map(it => it.rawTag)
@@ -89,9 +73,7 @@ export const dump = async () => {
         rawTags,
         (_, value) => {
           const shouldNotSerialized =
-            typeof value === 'object' &&
-            value !== null &&
-            value.type === 'Buffer'
+            typeof value === 'object' && value !== null && value.type === 'Buffer'
           if (shouldNotSerialized) {
             return `<Buffer length=${value.data?.length ?? 0}>`
           }
