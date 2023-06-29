@@ -368,6 +368,18 @@ thtag --batch-depth 2
 thtag --timeout 60 --retry 5
 ```
 
+## 提取曲目信息
+在专辑文件夹中运行:
+```powershell
+thtag dump
+```
+可以提取文件夹中所有音乐文件的曲目信息, 并保存为一个 `metadata.json` 文件.
+
+`thtag dump` 也可以和部分选项结合使用:
+- `--cover`: 同时提取封面图片
+- `--debug`: 额外保存一个 `metadata.debug.json` 文件, 记录原始的数据结构
+- `--batch`: (未完成) 批量进行提取
+
 
 ## 特别感谢
 - [THBWiki](http://thwiki.cc/首页)
