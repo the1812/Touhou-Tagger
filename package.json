@@ -1,6 +1,6 @@
 {
   "name": "touhou-tagger",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
   "main": "dist/core/index.js",
   "bin": {
@@ -31,6 +31,7 @@
   "dependencies": {
     "@squoosh/lib": "0.5.3",
     "axios": "^0.27.2",
+    "flac-tagger": "^1.0.0",
     "fuse.js": "^6.6.2",
     "glob": "^10.2.7",
     "image-type": "^4.1.0",

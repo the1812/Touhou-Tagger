@@ -1,6 +1,6 @@
 import { Metadata } from '../../metadata/metadata'
 import { MetadataReader } from '../metadata-reader'
-import { FlacTags, readFlacTags } from '../../../flac-tagger'
+import { FlacTags, readFlacTags } from 'flac-tagger'
 
 export class FlacReader extends MetadataReader<FlacTags> {
   async readRaw(input: string | Buffer) {
@@ -9,15 +9,19 @@ export class FlacReader extends MetadataReader<FlacTags> {
   async read(input: string | Buffer | FlacTags) {
     const tag =
       typeof input === 'string' || input instanceof Buffer ? await this.readRaw(input) : input
-    const { vorbisComments, picture } = tag
+    const { tagMap, picture } = tag
     const readVorbisComments = ((name: string, asList?: boolean) => {
-      const comments = vorbisComments
-        .filter(c => c.startsWith(`${name.toUpperCase()}=`))
-        .map(c => c.replace(new RegExp(`^${name.toUpperCase()}=`), ''))
+      const comments = tagMap[name]
       if (asList) {
-        return comments.length === 0 ? undefined : comments
+        if (Array.isArray(comments)) {
+          return comments.length === 0 ? undefined : comments
+        }
+        return comments ? [comments] : undefined
       }
-      return comments[0]
+      if (Array.isArray(comments)) {
+        return comments[0]
+      }
+      return comments || undefined
     }) as {
       (name: string, asList?: undefined | false): string
       (name: string, asList: true): string[]
