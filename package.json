@@ -31,7 +31,7 @@
   "dependencies": {
     "@squoosh/lib": "0.5.3",
     "axios": "^0.27.2",
-    "flac-tagger": "^1.0.0",
+    "flac-tagger": "^1.0.2",
     "fuse.js": "^6.6.2",
     "glob": "^10.2.7",
     "image-type": "^4.1.0",

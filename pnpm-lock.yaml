@@ -20,8 +20,8 @@ dependencies:
     specifier: ^0.27.2
     version: registry.npmmirror.com/axios@0.27.2
   flac-tagger:
-    specifier: ^1.0.0
-    version: registry.npmjs.org/flac-tagger@1.0.0
+    specifier: ^1.0.2
+    version: registry.npmmirror.com/flac-tagger@1.0.2
   fuse.js:
     specifier: ^6.6.2
     version: registry.npmmirror.com/fuse.js@6.6.2
@@ -62,14 +62,6 @@ devDependencies:
     version: registry.npmmirror.com/typescript@4.9.5
 
 packages:
-
-  registry.npmjs.org/flac-tagger@1.0.0:
-    resolution: {integrity: sha512-tg77p7ffpy1kTk3NgKt0Gn2in9M93XXMOlVU8oJ7WMzmF7SYozLqLtlMiP02jBZ++G95EUF5ySO2f2IJ/i+G+w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmjs.org/flac-tagger/-/flac-tagger-1.0.0.tgz}
-    name: flac-tagger
-    version: 1.0.0
-    dependencies:
-      imageinfo: registry.npmmirror.com/imageinfo@1.0.4
-    dev: false
 
   registry.npmmirror.com/@isaacs/cliui@8.0.2:
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@isaacs/cliui/-/cliui-8.0.2.tgz}
@@ -535,6 +527,14 @@ packages:
     name: file-type
     version: 10.11.0
     engines: {node: '>=6'}
+    dev: false
+
+  registry.npmmirror.com/flac-tagger@1.0.2:
+    resolution: {integrity: sha512-OkUwoVdc2e81+3t2YyzOOHuh22EHdlRl3yLAz0Ew1p3EzeEaBKRhp4+EY8jY4uoOuK73VMQLQ6pRGCTkL6uHMA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/flac-tagger/-/flac-tagger-1.0.2.tgz}
+    name: flac-tagger
+    version: 1.0.2
+    dependencies:
+      imageinfo: registry.npmmirror.com/imageinfo@1.0.4
     dev: false
 
   registry.npmmirror.com/follow-redirects@1.15.1:
