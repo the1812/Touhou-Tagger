@@ -1,7 +1,7 @@
-import { LocalJsonPlugin } from './local-json'
+import { MetadataNormalizePlugin } from './normalize'
 
 /** 自动推测 trackNumber 和 discNumber */
-export const inferNumberPlugin: LocalJsonPlugin = () => {
+export const inferNumberPlugin: MetadataNormalizePlugin = () => {
   let cachedTrackNumber = 1
   let cachedDiscNumber = 1
 

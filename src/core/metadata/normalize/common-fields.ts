@@ -1,8 +1,8 @@
 import { Metadata } from '../metadata'
-import { LocalJsonPlugin } from './local-json'
+import { MetadataNormalizePlugin } from './normalize'
 
 /** 记录第一个 metadata 的公共字段, 后续可省略 */
-export const commonFieldsPlugin: LocalJsonPlugin = () => {
+export const commonFieldsPlugin: MetadataNormalizePlugin = () => {
   let firstMetadata: Metadata
   return ({ metadata, index }) => {
     if (index === 0) {

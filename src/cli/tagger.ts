@@ -54,8 +54,11 @@ export class CliTagger {
     const json = readFileSync(resolve(this.workingDir, localMetadata), { encoding: 'utf8' })
     log('localJson get')
     log(json)
-    const { localJson } = await import('../core/metadata/local-json/local-json')
-    return localJson.normalize((JSON.parse(json) as Metadata[]), await this.getLocalCover())
+    const { normalize } = await import('../core/metadata/normalize/normalize')
+    return normalize({
+      metadatas: JSON.parse(json) as Metadata[],
+      cover: await this.getLocalCover(),
+    })
   }
   async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
@@ -73,9 +76,10 @@ export class CliTagger {
     const dir = readdirSync(this.workingDir).sort(leadingNumberSort)
     const discFiles = dir
       .filter(f => f.match(/^Disc (\d+)/))
-      .flatMap(f => readdirSync(resolve(this.workingDir, f))
-        .sort(leadingNumberSort)
-        .map(inner => `${f}/${inner}`)
+      .flatMap(f =>
+        readdirSync(resolve(this.workingDir, f))
+          .sort(leadingNumberSort)
+          .map(inner => `${f}/${inner}`),
       )
       .filter(fileTypeFilter)
     const files = dir
@@ -90,7 +94,9 @@ export class CliTagger {
     }
     const targetFiles = files.map((file, index) => {
       const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2)
-      const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${metadata[index].title}${extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '')
+      const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${
+        metadata[index].title
+      }${extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '')
       return resolve(dirname(file), filename)
     })
     log(files, targetFiles)
@@ -135,7 +141,9 @@ export class CliTagger {
       try {
         const result = await Promise.race([
           action(),
-          new Promise<T>((_, reject) => setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000)),
+          new Promise<T>((_, reject) =>
+            setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000),
+          ),
         ])
         return result
       } catch (error) {
@@ -171,7 +179,7 @@ export class CliTagger {
       this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
       const localCover = await this.getLocalCover()
       const localJson = await this.getLocalJson()
-      const metadata = localJson || await this.downloadMetadata(album, localCover)
+      const metadata = localJson || (await this.downloadMetadata(album, localCover))
       log('final metadata', metadata)
       this.spinner.text = '创建文件中'
       const targetFiles = await this.createFiles(metadata)

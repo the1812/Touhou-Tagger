@@ -3,6 +3,7 @@ import Fuse from 'fuse.js'
 import { localJson } from '../local-json/local-json'
 import { Metadata } from '../metadata'
 import { MetadataSource } from '../metadata-source'
+import { normalize } from '../normalize/normalize'
 
 const owner = 'the1812'
 const repo = 'Doujin-Meta'
@@ -112,7 +113,10 @@ export class DoujinMeta extends MetadataSource {
     }
     const { data: metadataTree } = await githubApi.get<BlobResponse>(metadataNode.url)
     const metadataJson: Metadata[] = JSON.parse(Buffer.from(metadataTree.content, 'base64').toString('utf8'))
-    return localJson.normalize(metadataJson, coverBuffer)
+    return normalize({
+      metadatas: metadataJson,
+      cover: coverBuffer,
+    })
   }
 }
 export const doujinMeta = new DoujinMeta()

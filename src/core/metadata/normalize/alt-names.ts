@@ -1,8 +1,8 @@
 import { altNames } from '../alt-names'
-import { LocalJsonPlugin } from './local-json'
+import { MetadataNormalizePlugin } from './normalize'
 
 /** 使用 alt-names 的数据进行替换 */
-export const altNamesPlugin: LocalJsonPlugin = () => {
+export const altNamesPlugin: MetadataNormalizePlugin = () => {
   const altNameFields = [
     'artists',
     'lyricists',

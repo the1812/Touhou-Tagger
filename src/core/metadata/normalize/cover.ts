@@ -1,8 +1,8 @@
 import Axios from 'axios'
-import { LocalJsonPlugin } from './local-json'
+import { MetadataNormalizePlugin } from './normalize'
 
 /** 处理封面图片 */
-export const fetchCoverPlugin: LocalJsonPlugin = ({ cover, config }) => {
+export const fetchCoverPlugin: MetadataNormalizePlugin = ({ cover, config }) => {
   let firstCoverBuffer: Buffer | undefined = undefined
   const downloadRemoteCover = async (url: string) => {
     return Axios.get<Buffer>(url, {
