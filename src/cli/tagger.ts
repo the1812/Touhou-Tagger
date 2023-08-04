@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs'
+import { readdirSync, readFileSync, writeFileSync, renameSync } from 'fs'
 import { Ora } from 'ora'
-import { extname, resolve } from 'path'
+import { extname, resolve as resolvePath } from 'path'
 import { Metadata, MetadataSource } from '../core'
 import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
@@ -40,7 +40,7 @@ export class CliTagger {
       return undefined
     }
     const [coverFile] = localCoverFiles
-    const buffer = readFileSync(resolve(this.workingDir, coverFile))
+    const buffer = readFileSync(resolvePath(this.workingDir, coverFile))
     return buffer
   }
   async getLocalJson() {
@@ -51,7 +51,7 @@ export class CliTagger {
       return undefined
     }
     const [localMetadata] = localMetadataFiles
-    const json = readFileSync(resolve(this.workingDir, localMetadata), { encoding: 'utf8' })
+    const json = readFileSync(resolvePath(this.workingDir, localMetadata), { encoding: 'utf8' })
     log('localJson get')
     log(json)
     const { normalize } = await import('../core/metadata/normalize/normalize')
@@ -65,10 +65,9 @@ export class CliTagger {
     const metadataSource = sourceMappings[this.cliOptions.source]
     metadataSource.config = this.metadataConfig
     this.metadataSource = metadataSource
-    return await this.metadataSource.getMetadata(album, cover)
+    return this.metadataSource.getMetadata(album, cover)
   }
   async createFiles(metadata: Metadata[]) {
-    const { readdirSync, renameSync } = await import('fs')
     const { dirname } = await import('path')
     const { writerMappings } = await import('../core/writer/writer-mappings')
     const fileTypes = Object.keys(writerMappings)
@@ -77,7 +76,7 @@ export class CliTagger {
     const discFiles = dir
       .filter(f => f.match(/^Disc (\d+)/))
       .flatMap(f =>
-        readdirSync(resolve(this.workingDir, f))
+        readdirSync(resolvePath(this.workingDir, f))
           .sort(leadingNumberSort)
           .map(inner => `${f}/${inner}`),
       )
@@ -86,7 +85,7 @@ export class CliTagger {
       .filter(fileTypeFilter)
       .concat(discFiles)
       .slice(0, metadata.length)
-      .map(f => resolve(this.workingDir, f))
+      .map(f => resolvePath(this.workingDir, f))
     if (files.length === 0) {
       const message = '未找到任何支持的音乐文件.'
       this.spinner.fail(message)
@@ -96,8 +95,8 @@ export class CliTagger {
       const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2)
       const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${
         metadata[index].title
-      }${extname(file)}`.replace(/[\/\\:\*\?"<>\|]/g, '')
-      return resolve(dirname(file), filename)
+      }${extname(file)}`.replace(/[/\\:*?"<>|]/g, '')
+      return resolvePath(dirname(file), filename)
     })
     log(files, targetFiles)
     files.forEach((file, index) => {
@@ -115,7 +114,7 @@ export class CliTagger {
       writer.config = this.metadataConfig
       await writer.write(metadata[i], file)
       if (this.cliOptions.lyric && this.cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
-        writeFileSync(file.substring(0, file.lastIndexOf(type)) + '.lrc', metadata[i].lyric)
+        writeFileSync(`${file.substring(0, file.lastIndexOf(type))}.lrc`, metadata[i].lyric)
       }
     }
     // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
@@ -129,7 +128,7 @@ export class CliTagger {
       const { default: imageType } = await import('image-type')
       const type = imageType(coverBuffer)
       if (type !== null) {
-        const coverFilename = resolve(this.workingDir, `cover.${type.ext}`)
+        const coverFilename = resolvePath(this.workingDir, `cover.${type.ext}`)
         log('cover file', coverFilename)
         writeFileSync(coverFilename, coverBuffer)
       }
@@ -141,13 +140,13 @@ export class CliTagger {
       try {
         const result = await Promise.race([
           action(),
-          new Promise<T>((_, reject) =>
-            setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000),
-          ),
+          new Promise<T>((resolve, reject) => {
+            setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000)
+          }),
         ])
         return result
       } catch (error) {
-        retryCount++
+        retryCount += 1
         const reason = (() => {
           if (error === TimeoutError) {
             return `操作超时(${this.cliOptions.timeout}秒)`
@@ -175,7 +174,7 @@ export class CliTagger {
   }
   async fetchMetadata(album: string) {
     return this.withRetry(async () => {
-      const batch = this.cliOptions.batch
+      const { batch } = this.cliOptions
       this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
       const localCover = await this.getLocalCover()
       const localJson = await this.getLocalJson()

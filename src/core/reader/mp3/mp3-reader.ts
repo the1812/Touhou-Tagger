@@ -8,7 +8,7 @@ const languageCodeConvert = (code: string | undefined) => {
     deu: 'de',
     zho: 'zh',
   }
-  return code ? (mapping[code] || mapping.jpn) : mapping.jpn
+  return code ? mapping[code] || mapping.jpn : mapping.jpn
 }
 export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
   async readRaw(input: string | Buffer) {
@@ -18,9 +18,8 @@ export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
     return tag
   }
   async read(input: string | Buffer | NodeID3.Tags) {
-    const tag = (typeof input === 'string' || input instanceof Buffer)
-      ? await this.readRaw(input)
-      : input
+    const tag =
+      typeof input === 'string' || input instanceof Buffer ? await this.readRaw(input) : input
     const { separator } = this.config
     const metadata: Metadata = {
       title: tag.title ?? '',
@@ -36,7 +35,9 @@ export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
       albumArtists: tag.performerInfo?.split(separator),
       comments: tag.comment?.text,
       lyric: tag.unsynchronisedLyrics?.text,
-      lyricLanguage: tag.unsynchronisedLyrics ? languageCodeConvert(tag.unsynchronisedLyrics?.language) : undefined,
+      lyricLanguage: tag.unsynchronisedLyrics
+        ? languageCodeConvert(tag.unsynchronisedLyrics?.language)
+        : undefined,
       coverImage: tag.image?.imageBuffer,
     }
     return metadata

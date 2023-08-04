@@ -1,6 +1,6 @@
+import { FlacTagMap, writeFlacTags } from 'flac-tagger'
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
-import { FlacTagMap, writeFlacTags } from 'flac-tagger'
 
 const getVorbisComments = (metadata: Metadata): FlacTagMap => {
   const tagMap: FlacTagMap = {

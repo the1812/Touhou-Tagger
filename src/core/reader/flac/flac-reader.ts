@@ -1,6 +1,6 @@
+import { FlacTags, readFlacTags } from 'flac-tagger'
 import { Metadata } from '../../metadata/metadata'
 import { MetadataReader } from '../metadata-reader'
-import { FlacTags, readFlacTags } from 'flac-tagger'
 
 export class FlacReader extends MetadataReader<FlacTags> {
   async readRaw(input: string | Buffer) {

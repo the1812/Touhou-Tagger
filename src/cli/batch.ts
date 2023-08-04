@@ -28,8 +28,8 @@ export const runBatchTagger = async (folder: string, depth: number) => {
         text: '搜索中',
         spinner: {
           interval: 500,
-          frames: ['.  ', '.. ', '...']
-        }
+          frames: ['.  ', '.. ', '...'],
+        },
       }).start()
       spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`
       log(`start processing album #${index + 1}`)

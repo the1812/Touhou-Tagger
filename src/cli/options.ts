@@ -7,7 +7,7 @@ import { loadConfigFile, saveConfigFile } from './config-file'
 const configFile = loadConfigFile()
 const options = yargs(hideBin(process.argv))
   .parserConfiguration({
-    "short-option-groups": false,
+    'short-option-groups': false,
   })
   .command(['tag', '*'], '为音乐文件写入元数据', {}, () => {
     import('./run-tagger').then(({ runTagger }) => {

@@ -44,7 +44,7 @@
     "yargs": "^17.5.1"
   },
   "devDependencies": {
-    "@the1812/eslint-config": "1.0.2",
+    "@the1812/eslint-config": "1.0.3",
     "@types/jsdom": "^20.0.0",
     "@types/node": "^16",
     "@types/yargs": "^17.0.12",

@@ -25,5 +25,11 @@
     "Violetium",
     "Vorbis",
     "wikitable"
-  ]
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  }
 }

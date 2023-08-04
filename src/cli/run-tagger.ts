@@ -12,8 +12,8 @@ export const runTagger = () => {
         text: '搜索中',
         spinner: {
           interval: 500,
-          frames: ['.  ', '.. ', '...']
-        }
+          frames: ['.  ', '.. ', '...'],
+        },
       }).start()
     }
     const { CliTagger } = await import('./tagger')

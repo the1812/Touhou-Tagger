@@ -19,16 +19,18 @@ const specialFormats: SpecialFormat[] = [
   {
     name: 'Default',
     regex: /.+/,
-    resolve: match => match[0]
+    resolve: match => match[0],
   },
 ]
 export const getDefaultAlbumName = (currentFolder: string = basename(process.cwd())) => {
-  const [formatMatch] = specialFormats.map(f => {
-    const match = currentFolder.match(f.regex)
-    if (match) {
-      return f.resolve(match)
-    }
-    return null
-  }).filter((it): it is string => it !== null)
+  const [formatMatch] = specialFormats
+    .map(f => {
+      const match = currentFolder.match(f.regex)
+      if (match) {
+        return f.resolve(match)
+      }
+      return null
+    })
+    .filter((it): it is string => it !== null)
   return formatMatch || currentFolder
 }

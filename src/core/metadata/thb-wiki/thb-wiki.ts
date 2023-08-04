@@ -1,14 +1,14 @@
-import { MetadataSource } from '../metadata-source'
-import { Metadata } from '../metadata'
 import Axios from 'axios'
 import { JSDOM } from 'jsdom'
+import { MetadataSource } from '../metadata-source'
+import { Metadata } from '../metadata'
 import { log } from '../../debug'
 import { MetadataConfig } from '../../core-config'
 import { altNames } from '../alt-names'
 
 type TrackParseInfo = { name: string; result: string | string[] }
 
-export class THBWiki extends MetadataSource {
+export class ThbWiki extends MetadataSource {
   constructor(public readonly host = 'thwiki.cc') {
     super()
   }
@@ -30,12 +30,10 @@ export class THBWiki extends MetadataSource {
       const [name] = (names as string[]).filter(it => !it.startsWith('歌词:'))
       if (name === albumName) {
         return name
-      } else {
-        return names as string[]
       }
-    } else {
-      return []
+      return names as string[]
     }
+    return []
   }
   private async getAlbumCover(img: HTMLImageElement) {
     const src = img.src.replace('/thumb/', '/')
@@ -60,9 +58,8 @@ export class THBWiki extends MetadataSource {
         const nextElement = it.nextElementSibling as HTMLElement
         if (multiple) {
           return [...nextElement.querySelectorAll('a')].map(element => element.textContent)
-        } else {
-          return nextElement.textContent.trim()
         }
+        return nextElement.textContent.trim()
       })
       return item
     }
@@ -94,7 +91,7 @@ export class THBWiki extends MetadataSource {
         if (brIndex !== -1) {
           children.slice(brIndex).forEach(e => e.remove())
         }
-        let textContent = data.textContent!
+        let { textContent } = data
         /*
           要是这个值就是一个_, THBWiki 会转成一个警告...
           例如疯帽子茶会'千年战争'中出现的编曲者就有一个_ (现已更名为'底线')
@@ -113,7 +110,7 @@ export class THBWiki extends MetadataSource {
       }
     }
     const label = trackInfoRow.querySelector('.label').textContent.trim()
-    const data = trackInfoRow.querySelector('.text') as HTMLElement
+    const rawData = trackInfoRow.querySelector('.text') as HTMLElement
     const actions: { [infoName: string]: (data: HTMLElement) => TrackParseInfo } = {
       编曲: defaultInfoParser('arrangers'),
       再编曲: defaultInfoParser('remix'),
@@ -129,7 +126,7 @@ export class THBWiki extends MetadataSource {
       配音: data => {
         const name = 'voices'
         const rows = data.innerHTML.split('<br>').map(it => {
-          const document = new JSDOM(it).window.document
+          const { document } = new JSDOM(it).window
           const anchors = [...document.querySelectorAll('a:not(.external)')]
           const artists = anchors.map(a => {
             const isRealArtist =
@@ -138,12 +135,12 @@ export class THBWiki extends MetadataSource {
               a.nextSibling &&
               a.nextSibling.textContent === '）'
             if (isRealArtist) {
-              return a.textContent!
+              return a.textContent
             }
             return ''
           })
           if (artists.every(a => a === '')) {
-            return anchors.map(a => a.textContent!)
+            return anchors.map(a => a.textContent)
           }
           return artists.filter(a => a !== '')
         })
@@ -162,9 +159,9 @@ export class THBWiki extends MetadataSource {
               .trim()
               .split('：')
               .map(row => {
-                return new JSDOM(row).window.document.body.textContent!
+                return new JSDOM(row).window.document.body.textContent
               })
-            return performer ? performer : instrument
+            return performer || instrument
           })
           .flatMap(row => row.split('，'))
         return {
@@ -202,23 +199,26 @@ export class THBWiki extends MetadataSource {
     if (!action) {
       return { name: 'other', result: '' }
     }
-    return action(data)
+    return action(rawData)
   }
   private rowDataNormalize(rowData: Partial<Metadata>, removePatterns: RegExp[] = []) {
     const normalizeAction = (str: string) => {
       if (altNames.has(str)) {
-        return altNames.get(str)!
+        return altNames.get(str)
       }
-      return removePatterns
-        .reduce((previous, current) => previous.replace(current, ''), str)
-        .replace(/\u200b/g, '') // zero-width space
-        .replace(/　/g, ' ')
-        .replace(/([^\s])([\(])/g, '$1 $2')
-        .replace(/([\)])([^\s])/g, '$1 $2')
-        .replace(/([^\s]) ([（])/g, '$1$2')
-        .replace(/([）]) ([^\s])/g, '$1$2')
-        .replace(/’/g, "'")
-        .trim()
+      return (
+        removePatterns
+          .reduce((previous, current) => previous.replace(current, ''), str)
+          .replace(/\u200b/g, '') // zero-width space
+          // eslint-disable-next-line no-irregular-whitespace
+          .replace(/　/g, ' ')
+          .replace(/([^\s])([(])/g, '$1 $2')
+          .replace(/([)])([^\s])/g, '$1 $2')
+          .replace(/([^\s]) ([（])/g, '$1$2')
+          .replace(/([）]) ([^\s])/g, '$1$2')
+          .replace(/’/g, "'")
+          .trim()
+      )
     }
     for (const [key, value] of Object.entries(rowData)) {
       if (typeof value === 'string') {
@@ -231,7 +231,7 @@ export class THBWiki extends MetadataSource {
     return rowData
   }
   private async parseRow(trackNumberElement: Element) {
-    const trackNumber = parseInt(trackNumberElement.textContent!, 10).toString()
+    const trackNumber = parseInt(trackNumberElement.textContent).toString()
     const trackNumberRow = trackNumberElement.parentElement as HTMLTableRowElement
     const title = trackNumberRow.querySelector('.title').textContent.trim()
     const { lyricLanguage, lyric } = await (async () => {
@@ -240,16 +240,15 @@ export class THBWiki extends MetadataSource {
       ) as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
         const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics')
-        return await downloadLyrics(
-          'https://' + this.host + lyricLink.href,
+        return downloadLyrics(
+          `https://${this.host}${lyricLink.href}`,
           title,
           this.config as Required<MetadataConfig>,
         )
-      } else {
-        return {
-          lyric: undefined,
-          lyricLanguage: undefined,
-        }
+      }
+      return {
+        lyric: undefined,
+        lyricLanguage: undefined,
       }
     })()
     const relatedInfoRows = this.getRelatedRows(trackNumberRow)
@@ -306,7 +305,7 @@ export class THBWiki extends MetadataSource {
     const url = `https://${this.host}/${encodeURIComponent(albumName)}`
     const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
     const dom = new JSDOM(response.data)
-    const document = dom.window.document
+    const { document } = dom.window
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
     if (!infoTable) {
       throw new Error('页面不是同人专辑词条')
@@ -351,10 +350,10 @@ export class THBWiki extends MetadataSource {
         }
         metadatas.push(metadata)
       }
-      discNumber++
+      discNumber += 1
     }
     return metadatas
   }
 }
-export const thbWiki = new THBWiki()
-export const thbWikiCache = new THBWiki('cache.thwiki.cc')
+export const thbWiki = new ThbWiki()
+export const thbWikiCache = new ThbWiki('cache.thwiki.cc')

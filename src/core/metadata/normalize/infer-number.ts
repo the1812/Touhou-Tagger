@@ -16,6 +16,6 @@ export const inferNumberPlugin: MetadataNormalizePlugin = () => {
     if (!metadata.trackNumber) {
       metadata.trackNumber = cachedTrackNumber.toString()
     }
-    cachedTrackNumber++
+    cachedTrackNumber += 1
   }
 }

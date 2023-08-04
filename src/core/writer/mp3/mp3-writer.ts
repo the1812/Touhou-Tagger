@@ -1,15 +1,15 @@
+import id3 from 'node-id3'
 import { MetadataWriter } from '../metadata-writer'
 import { Metadata } from '../../metadata/metadata'
-import id3 from 'node-id3'
 import { log } from '../../debug'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
     ja: 'jpn',
     de: 'deu',
-    zh: 'zho'
+    zh: 'zho',
   }
-  return code ? (mapping[code] || mapping.ja) : mapping.ja
+  return code ? mapping[code] || mapping.ja : mapping.ja
 }
 export class Mp3Writer extends MetadataWriter {
   private getNodeId3Tag(metadata: Metadata, separator: string) {
@@ -38,7 +38,7 @@ export class Mp3Writer extends MetadataWriter {
       tag.image = {
         type: {
           id: 3,
-          name: 'front cover'
+          name: 'front cover',
         },
         description: '', // 必须留空, 否则 iTunes 不识别封面
         imageBuffer: metadata.coverImage,
@@ -53,13 +53,20 @@ export class Mp3Writer extends MetadataWriter {
       tag.unsynchronisedLyrics.text = ''
       tag.unsynchronisedLyrics.language = undefined
     }
-    log(this.config.coverCompressSize, this.config.coverCompressSize * 1024 * 1024, tag.image?.imageBuffer?.length)
+    log(
+      this.config.coverCompressSize,
+      this.config.coverCompressSize * 1024 * 1024,
+      tag.image?.imageBuffer?.length,
+    )
     if (
-      this.config.coverCompressSize > 0
-      && (tag.image?.imageBuffer?.length ?? 0) > this.config.coverCompressSize * 1024 * 1024
+      this.config.coverCompressSize > 0 &&
+      (tag.image?.imageBuffer?.length ?? 0) > this.config.coverCompressSize * 1024 * 1024
     ) {
       const { compressImage } = await import('../image-compress')
-      tag.image.imageBuffer = await compressImage(tag.image.imageBuffer, this.config.coverCompressResolution)
+      tag.image.imageBuffer = await compressImage(
+        tag.image.imageBuffer,
+        this.config.coverCompressResolution,
+      )
     }
     const result = id3.write(tag, filePath)
     if (result !== true) {

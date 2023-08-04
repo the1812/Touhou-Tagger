@@ -26,7 +26,6 @@ export const dump = async () => {
   const { glob } = await import('glob')
   const { extname } = await import('path')
   const { writeFileSync, readFileSync } = await import('fs')
-  const { log } = await import('../core/debug')
   const { readerMappings } = await import('../core/reader/reader-mappings')
   const globTypes = Object.keys(readerMappings)
     .map(readerType => readerType.replace(/^\./, ''))
@@ -58,8 +57,7 @@ export const dump = async () => {
   writeFileSync(
     'metadata.json',
     JSON.stringify(
-      metadatas.map(metadata => {
-        const { coverImage, ...restParts } = metadata
+      metadatas.map(({ coverImage, ...restParts }) => {
         return restParts
       }),
       undefined,
@@ -71,7 +69,7 @@ export const dump = async () => {
       'metadata.debug.json',
       JSON.stringify(
         rawTags,
-        (_, value) => {
+        (key, value) => {
           const shouldNotSerialized =
             typeof value === 'object' && value !== null && value.type === 'Buffer'
           if (shouldNotSerialized) {

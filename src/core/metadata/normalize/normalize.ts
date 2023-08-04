@@ -7,10 +7,7 @@ import { omitArtistsPlugin } from './omit-artists'
 
 export type MetadataNormalizePlugin = (init: {
   cover?: Buffer
-}) => (context: {
-  metadata: Metadata
-  index: number
-}) => void | Promise<void>
+}) => (context: { metadata: Metadata; index: number }) => void | Promise<void>
 
 const internalNormalize = async (params: {
   plugins: MetadataNormalizePlugin[]
@@ -22,31 +19,34 @@ const internalNormalize = async (params: {
     return metadatas
   }
   const pluginInstances = plugins.map(p => p({ cover }))
-  const results = await Promise.all(metadatas.map(async (metadata, index) => {
-    for (const instance of pluginInstances) {
-      await instance({
-        metadata,
-        index,
-      })
-    }
-    return metadata
-  }))
+  const results = await Promise.all(
+    metadatas.map(async (metadata, index) => {
+      for (const instance of pluginInstances) {
+        await instance({
+          metadata,
+          index,
+        })
+      }
+      return metadata
+    }),
+  )
   return results
 }
 
 /** 为简化的 Metadata JSON 填充完整信息 */
-export const normalize = async (params: {
-  metadatas: Metadata[]
-  cover?: Buffer
-}) => {
-  const plugins = [fetchCoverPlugin, omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
+export const normalize = async (params: { metadatas: Metadata[]; cover?: Buffer }) => {
+  const plugins = [
+    fetchCoverPlugin,
+    omitArtistsPlugin,
+    inferNumberPlugin,
+    commonFieldsPlugin,
+    altNamesPlugin,
+  ]
   return internalNormalize({ plugins, ...params })
 }
 
 /** 为简化的 Metadata JSON 填充完整信息, 但不处理封面图 */
-export const normalizeWithoutCover = async (params: {
-  metadatas: Metadata[]
-}) => {
+export const normalizeWithoutCover = async (params: { metadatas: Metadata[] }) => {
   const plugins = [omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
   return internalNormalize({ plugins, ...params })
 }

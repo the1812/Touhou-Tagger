@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 export interface NodeID3Tag {
   title: string
   artist: string

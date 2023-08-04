@@ -3,7 +3,7 @@ import { MetadataNormalizePlugin } from './normalize'
 
 /** 处理封面图片 */
 export const fetchCoverPlugin: MetadataNormalizePlugin = ({ cover, config }) => {
-  let firstCoverBuffer: Buffer | undefined = undefined
+  let firstCoverBuffer: Buffer | undefined
   const downloadRemoteCover = async (url: string) => {
     return Axios.get<Buffer>(url, {
       responseType: 'arraybuffer',

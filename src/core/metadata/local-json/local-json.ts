@@ -1,6 +1,6 @@
+import { readFileSync } from 'fs'
 import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
-import { readFileSync } from 'fs'
 import { resolvePath } from '../../exists'
 import { MetadataNormalizePlugin, normalize, normalizeWithoutCover } from '../normalize/normalize'
 
