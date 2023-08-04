@@ -9,6 +9,8 @@
   "scripts": {
     "start": "node dist/cli/index.js",
     "watch": "tsc --watch --sourceMap",
+    "lint": "eslint . --ext .cjs,.ts,.vue",
+    "eslint-fix": "eslint . --ext .cjs,.ts,.vue --fix",
     "build": "tsc"
   },
   "repository": {
@@ -42,9 +44,19 @@
     "yargs": "^17.5.1"
   },
   "devDependencies": {
+    "@the1812/eslint-config": "1.0.2",
     "@types/jsdom": "^20.0.0",
     "@types/node": "^16",
     "@types/yargs": "^17.0.12",
+    "@typescript-eslint/eslint-plugin": "5.57.1",
+    "@typescript-eslint/parser": "5.57.1",
+    "eslint": "8.38.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-vue": "9.10.0",
+    "prettier": "2.8.8",
     "typescript": "^4.9.5"
   },
   "pnpm": {
