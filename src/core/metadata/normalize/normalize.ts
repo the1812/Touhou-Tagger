@@ -3,7 +3,7 @@ import { altNamesPlugin } from './alt-names'
 import { expandCommonFieldsPlugin, simplifyCommonFieldsPlugin } from './common-fields'
 import { expandCoverPlugin } from './cover'
 import { expandNumberPlugin, simplifyNumberPlugin } from './number'
-import { expandArtistsPlugin } from './omit-artists'
+import { expandArtistsPlugin, simplifyArtistsPlugin } from './artists'
 
 export type MetadataNormalizePlugin = (init: {
   cover?: Buffer
@@ -59,5 +59,14 @@ export const expandMetadataInfoWithoutCover = async (params: { metadatas: Metada
 /** 对 Metadata JSON 进行简化 */
 export const simplifyMetadataInfo = async (params: { metadatas: Metadata[]; cover?: Buffer }) => {
   const plugins = [simplifyCommonFieldsPlugin, simplifyNumberPlugin]
+  return internalNormalize({ plugins, ...params })
+}
+
+/** 对 Metadata JSON 进行简化, 允许合并相同的 artists 和 composers (用于原创曲) */
+export const simplifyMetadataInfoWithArtists = async (params: {
+  metadatas: Metadata[]
+  cover?: Buffer
+}) => {
+  const plugins = [simplifyCommonFieldsPlugin, simplifyNumberPlugin, simplifyArtistsPlugin]
   return internalNormalize({ plugins, ...params })
 }

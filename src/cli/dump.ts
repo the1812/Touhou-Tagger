@@ -1,7 +1,15 @@
 import { Metadata } from '../core'
 import { log } from '../core/debug'
+import { simplifyMetadataInfo } from '../core/metadata/normalize/normalize'
 import { cliOptions, metadataConfig } from './options'
 
+const handleBufferStringify = (key: string, value: any) => {
+  const isBuffer = typeof value === 'object' && value !== null && value.type === 'Buffer'
+  if (isBuffer) {
+    return `<Buffer length=${value.data?.length ?? 0}>`
+  }
+  return value
+}
 const dumpCover = async (metadatas: Metadata[]) => {
   const { writeFileSync } = await import('fs')
   const { resolve } = await import('path')
@@ -54,6 +62,9 @@ export const dump = async () => {
 
   const metadatas = results.map(it => it.metadata)
   const rawTags = results.map(it => it.rawTag)
+  await simplifyMetadataInfo({
+    metadatas,
+  })
   writeFileSync(
     'metadata.json',
     JSON.stringify(
@@ -65,21 +76,7 @@ export const dump = async () => {
     ),
   )
   if (cliOptions.debug) {
-    writeFileSync(
-      'metadata.debug.json',
-      JSON.stringify(
-        rawTags,
-        (key, value) => {
-          const shouldNotSerialized =
-            typeof value === 'object' && value !== null && value.type === 'Buffer'
-          if (shouldNotSerialized) {
-            return `<Buffer length=${value.data?.length ?? 0}>`
-          }
-          return value
-        },
-        2,
-      ),
-    )
+    writeFileSync('metadata.debug.json', JSON.stringify(rawTags, handleBufferStringify, 2))
   }
   await dumpCover(metadatas)
 }
