@@ -1,4 +1,9 @@
 # Touhou Tagger
+
+<div align="center">
+  <img src="./logo.svg" height="300" />
+</div>
+
 从 [THBWiki](http://thwiki.cc/首页) 自动填写东方 Project CD 曲目信息.
 
 支持的曲目信息包括:
@@ -17,6 +22,10 @@
 - 发布年份
 - 封面图片
 
+<div align="center">
+  <img src="./example.jpg" width="1200" />
+</div>
+
 ## 安装 / 更新
 需要事先装有 [Node.js](https://nodejs.org/en/) 和 [pnpm](https://pnpm.io/installation), 然后使用以下命令来安装此工具:
 ```powershell
@@ -33,21 +42,6 @@ thtag
 启动后会询问专辑名称, 默认情况下自动取当前文件夹的名字, 如果检测到 TLMC 的命名格式则会提取其中的专辑名, 按回车表示接受自动提取的专辑名, 也可以自行输入专辑名称再按回车.
 
 如果最后输入的名称没有**精确匹配**的专辑(**精确匹配**在 THBWiki 中表现为输入到搜索框回车能直接跳转到词条), 则会列出以此名称在 THBWiki 中的搜索结果, 可以继续选择一项作为专辑信息. (有精确匹配的话会直接开始下载专辑信息)
-
-<details><summary><strong>图片示例</strong></summary>
-<div>
-  <img src="./before-files.jpg" alt="example" width="800">
-</div>
-<div>
-  <img src="./before.jpg" alt="example" width="400">
-</div>
-<div>
-  <img src="./after-files.jpg" alt="example" width="800">
-</div>
-<div>
-  <img src="./after.jpg" alt="example" width="400">
-</div>
-</details>
 
 ## 选项
 ### 保存封面为单独的文件
@@ -378,7 +372,7 @@ thtag dump
 `thtag dump` 也可以和部分选项结合使用:
 - `--cover`: 同时提取封面图片
 - `--debug`: 额外保存一个 `metadata.debug.json` 文件, 记录原始的数据结构
-- `--batch`: (未完成) 批量进行提取
+- `--batch`: 批量进行提取
 
 
 ## 特别感谢
