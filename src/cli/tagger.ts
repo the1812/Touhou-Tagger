@@ -6,6 +6,7 @@ import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
 import { CliOptions } from './options'
 import { readline } from '../core/readline'
+import { CliCommandBase } from './command-base'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -24,14 +25,15 @@ const leadingNumberSort = (a: string, b: string) => {
   return intCompare
 }
 const TimeoutError = Symbol('timeout')
-export class CliTagger {
-  workingDir = '.'
+export class CliTagger extends CliCommandBase {
   metadataSource: MetadataSource
   constructor(
     public cliOptions: CliOptions,
     public metadataConfig: MetadataConfig,
     public spinner: Ora,
-  ) {}
+  ) {
+    super(cliOptions)
+  }
   async getLocalCover() {
     const localCoverFiles = readdirSync(this.workingDir, { withFileTypes: true })
       .filter(f => f.isFile() && f.name.match(/^cover\.(jpg|jpeg|jpe|tif|tiff|bmp|png)$/))
