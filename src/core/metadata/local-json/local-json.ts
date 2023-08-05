@@ -2,17 +2,17 @@ import { readFileSync } from 'fs'
 import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import { resolvePath } from '../../exists'
-import { MetadataNormalizePlugin, normalize, normalizeWithoutCover } from '../normalize/normalize'
+import { MetadataNormalizePlugin, expandMetadataInfo, expandMetadataInfoWithoutCover } from '../normalize/normalize'
 
 /** @deprecated 请使用 {@link MetadataNormalizePlugin}. */
 export type LocalJsonPlugin = MetadataNormalizePlugin
 
 export class LocalJson extends MetadataSource {
   async normalize(metadatas: Metadata[], cover?: Buffer) {
-    return normalize({ metadatas, cover })
+    return expandMetadataInfo({ metadatas, cover })
   }
   async normalizeWithoutCover(metadatas: Metadata[]) {
-    return normalizeWithoutCover({ metadatas })
+    return expandMetadataInfoWithoutCover({ metadatas })
   }
   async resolveAlbumName(localSource: string) {
     return resolvePath(localSource)

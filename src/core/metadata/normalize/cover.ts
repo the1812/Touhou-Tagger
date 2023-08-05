@@ -1,7 +1,7 @@
 import { MetadataNormalizePlugin } from './normalize'
 
 /** 处理封面图片 */
-export const fetchCoverPlugin: MetadataNormalizePlugin = ({ cover }) => {
+export const expandCoverPlugin: MetadataNormalizePlugin = ({ cover }) => {
   let firstCoverBuffer: Buffer | undefined
   return async ({ metadata, index }) => {
     if (index === 0) {

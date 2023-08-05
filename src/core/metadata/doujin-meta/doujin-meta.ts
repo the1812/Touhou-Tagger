@@ -3,7 +3,7 @@ import Axios from 'axios'
 import Fuse from 'fuse.js'
 import { Metadata } from '../metadata'
 import { MetadataSource } from '../metadata-source'
-import { normalize } from '../normalize/normalize'
+import { expandMetadataInfo } from '../normalize/normalize'
 
 const owner = 'the1812'
 const repo = 'Doujin-Meta'
@@ -120,7 +120,7 @@ export class DoujinMeta extends MetadataSource {
     const metadataJson: Metadata[] = JSON.parse(
       Buffer.from(metadataTree.content, 'base64').toString('utf8'),
     )
-    return normalize({
+    return expandMetadataInfo({
       metadatas: metadataJson,
       cover: coverBuffer,
     })

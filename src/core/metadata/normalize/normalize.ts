@@ -1,9 +1,9 @@
 import type { Metadata } from '../metadata'
 import { altNamesPlugin } from './alt-names'
-import { commonFieldsPlugin } from './common-fields'
-import { fetchCoverPlugin } from './cover'
-import { inferNumberPlugin } from './infer-number'
-import { omitArtistsPlugin } from './omit-artists'
+import { expandCommonFieldsPlugin, simplifyCommonFieldsPlugin } from './common-fields'
+import { expandCoverPlugin } from './cover'
+import { expandNumberPlugin, simplifyNumberPlugin } from './number'
+import { expandArtistsPlugin } from './omit-artists'
 
 export type MetadataNormalizePlugin = (init: {
   cover?: Buffer
@@ -34,19 +34,30 @@ const internalNormalize = async (params: {
 }
 
 /** 为简化的 Metadata JSON 填充完整信息 */
-export const normalize = async (params: { metadatas: Metadata[]; cover?: Buffer }) => {
+export const expandMetadataInfo = async (params: { metadatas: Metadata[]; cover?: Buffer }) => {
   const plugins = [
-    fetchCoverPlugin,
-    omitArtistsPlugin,
-    inferNumberPlugin,
-    commonFieldsPlugin,
+    expandCoverPlugin,
+    expandArtistsPlugin,
+    expandNumberPlugin,
+    expandCommonFieldsPlugin,
     altNamesPlugin,
   ]
   return internalNormalize({ plugins, ...params })
 }
 
 /** 为简化的 Metadata JSON 填充完整信息, 但不处理封面图 */
-export const normalizeWithoutCover = async (params: { metadatas: Metadata[] }) => {
-  const plugins = [omitArtistsPlugin, inferNumberPlugin, commonFieldsPlugin, altNamesPlugin]
+export const expandMetadataInfoWithoutCover = async (params: { metadatas: Metadata[] }) => {
+  const plugins = [
+    expandArtistsPlugin,
+    expandNumberPlugin,
+    expandCommonFieldsPlugin,
+    altNamesPlugin,
+  ]
+  return internalNormalize({ plugins, ...params })
+}
+
+/** 对 Metadata JSON 进行简化 */
+export const simplifyMetadataInfo = async (params: { metadatas: Metadata[]; cover?: Buffer }) => {
+  const plugins = [simplifyCommonFieldsPlugin, simplifyNumberPlugin]
   return internalNormalize({ plugins, ...params })
 }

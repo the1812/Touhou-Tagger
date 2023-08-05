@@ -54,7 +54,7 @@ export class CliTagger {
     const json = readFileSync(resolvePath(this.workingDir, localMetadata), { encoding: 'utf8' })
     log('localJson get')
     log(json)
-    const { normalize } = await import('../core/metadata/normalize/normalize')
+    const { expandMetadataInfo: normalize } = await import('../core/metadata/normalize/normalize')
     return normalize({
       metadatas: JSON.parse(json) as Metadata[],
       cover: await this.getLocalCover(),
