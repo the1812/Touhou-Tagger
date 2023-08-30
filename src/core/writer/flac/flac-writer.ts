@@ -36,13 +36,20 @@ const getVorbisComments = (metadata: Metadata): FlacTagMap => {
 }
 export class FlacWriter extends MetadataWriter {
   async write(metadata: Metadata, filePath: string) {
+    const coverBuffer = await (async () => {
+      if (!metadata.coverImage) {
+        return undefined
+      }
+      const { compressImageByConfig } = await import('../image-compress')
+      return compressImageByConfig(metadata.coverImage, this.config)
+    })()
     await writeFlacTags(
       {
         tagMap: getVorbisComments(metadata),
-        picture: metadata.coverImage
+        picture: coverBuffer
           ? {
               description: metadata.album,
-              buffer: metadata.coverImage,
+              buffer: coverBuffer,
             }
           : undefined,
       },

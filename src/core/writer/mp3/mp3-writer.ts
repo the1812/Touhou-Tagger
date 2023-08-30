@@ -58,15 +58,9 @@ export class Mp3Writer extends MetadataWriter {
       this.config.coverCompressSize * 1024 * 1024,
       tag.image?.imageBuffer?.length,
     )
-    if (
-      this.config.coverCompressSize > 0 &&
-      (tag.image?.imageBuffer?.length ?? 0) > this.config.coverCompressSize * 1024 * 1024
-    ) {
-      const { compressImage } = await import('../image-compress')
-      tag.image.imageBuffer = await compressImage(
-        tag.image.imageBuffer,
-        this.config.coverCompressResolution,
-      )
+    if (tag.image?.imageBuffer) {
+      const { compressImageByConfig } = await import('../image-compress')
+      tag.image.imageBuffer = await compressImageByConfig(tag.image.imageBuffer, this.config)
     }
     const result = id3.write(tag, filePath)
     if (result !== true) {
