@@ -1,5 +1,5 @@
 import Axios, { AxiosResponse } from 'axios'
-import { JSDOM } from 'jsdom'
+import { parseHTML } from 'linkedom'
 import { MetadataConfig } from '../../../core-config'
 import { log } from '../../../debug'
 import { getLyricParser, LyricParser } from './lyric-parser'
@@ -45,8 +45,7 @@ export const downloadLyrics = async (
   let document = lyricDocumentCache.find(it => it.url === url)?.document
   if (!document) {
     const response = await Axios.get(url, { timeout: config.timeout * 1000 })
-    const dom = new JSDOM(response.data)
-    document = dom.window.document
+    document = parseHTML(response.data).window.document
     lyricDocumentCache.push({ url, document })
     if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
       lyricDocumentCache.shift()

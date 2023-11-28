@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { JSDOM } from 'jsdom'
+import { parseHTML } from 'linkedom'
 import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import { log } from '../../debug'
@@ -14,7 +14,6 @@ export class ThbWiki extends MetadataSource {
   }
 
   cache = new Map<string, { document: Document; cover: Buffer | undefined }>()
-  // /api.php?action=opensearch&format=json&search=kappa&limit=20&suggest=true
   async resolveAlbumName(albumName: string) {
     const url = `https://${
       this.host
@@ -126,7 +125,7 @@ export class ThbWiki extends MetadataSource {
       配音: data => {
         const name = 'voices'
         const rows = data.innerHTML.split('<br>').map(it => {
-          const { document } = new JSDOM(it).window
+          const { document } = parseHTML(it)
           const anchors = [...document.querySelectorAll('a:not(.external)')]
           const artists = anchors.map(a => {
             const isRealArtist =
@@ -159,7 +158,7 @@ export class ThbWiki extends MetadataSource {
               .trim()
               .split('：')
               .map(row => {
-                return new JSDOM(row).window.document.body.textContent
+                return parseHTML(row).window.document.body.textContent
               })
             return performer || instrument
           })
@@ -304,8 +303,7 @@ export class ThbWiki extends MetadataSource {
     // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
     const url = `https://${this.host}/${encodeURIComponent(albumName)}`
     const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
-    const dom = new JSDOM(response.data)
-    const { document } = dom.window
+    const { document } = parseHTML(response.data).window
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
     if (!infoTable) {
       throw new Error('页面不是同人专辑词条')
