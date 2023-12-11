@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Axios from 'axios'
+import axios from 'axios'
 import Fuse from 'fuse.js'
 import { Metadata } from '../metadata'
 import { MetadataSource } from '../metadata-source'
@@ -7,7 +7,7 @@ import { expandMetadataInfo } from '../normalize/normalize'
 
 const owner = 'the1812'
 const repo = 'Doujin-Meta'
-const githubApi = Axios.create({
+const githubApi = axios.create({
   headers: {
     Accept: 'application/vnd.github+json',
   },

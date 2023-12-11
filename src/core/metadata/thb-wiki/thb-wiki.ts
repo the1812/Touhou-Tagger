@@ -1,4 +1,4 @@
-import Axios from 'axios'
+import axios from 'axios'
 import { parseHTML } from 'linkedom'
 import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
@@ -6,6 +6,27 @@ import { log } from '../../debug'
 import { MetadataConfig } from '../../core-config'
 import { altNames } from '../alt-names'
 
+const isNodeAnElement = <TargetType extends Element>(
+  node: Node,
+  tagName: string,
+): node is TargetType => {
+  // Node.ELEMENT_NODE === 1
+  return node.nodeType === 1 && (node as Element).tagName.toLowerCase() === tagName
+}
+const splitChildNodesByBr = (element: Element) => {
+  const result: ChildNode[][] = []
+  const allNodes = [...element.childNodes]
+  let startIndex = 0
+  allNodes.forEach((node, index) => {
+    if (isNodeAnElement(node, 'br')) {
+      const slice = allNodes.slice(startIndex, index)
+      result.push(slice)
+      startIndex = index + 1
+    }
+  })
+  result.push(allNodes.slice(startIndex))
+  return result
+}
 type TrackParseInfo = { name: string; result: string | string[] }
 
 export class ThbWiki extends MetadataSource {
@@ -20,7 +41,7 @@ export class ThbWiki extends MetadataSource {
     }/api.php?action=opensearch&format=json&formatversion=2&search=${encodeURIComponent(
       albumName,
     )}&limit=20&suggest=true`
-    const response = await Axios.get(url, {
+    const response = await axios.get(url, {
       responseType: 'json',
       timeout: this.config.timeout * 1000,
     })
@@ -37,7 +58,7 @@ export class ThbWiki extends MetadataSource {
   private async getAlbumCover(img: HTMLImageElement) {
     const src = img.src.replace('/thumb/', '/')
     const url = src.substring(0, src.lastIndexOf('/'))
-    const response = await Axios.get(url, {
+    const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: this.config.timeout * 1000,
     })
@@ -124,9 +145,9 @@ export class ThbWiki extends MetadataSource {
       作词: defaultInfoParser('lyricists'),
       配音: data => {
         const name = 'voices'
-        const rows = data.innerHTML.split('<br>').map(it => {
-          const { document } = parseHTML(it)
-          const anchors = [...document.querySelectorAll('a:not(.external)')]
+        const slices = splitChildNodesByBr(data)
+        const rows = slices.map(it => {
+          const anchors = it.filter((a): a is HTMLAnchorElement => isNodeAnElement(a, 'a'))
           const artists = anchors.map(a => {
             const isRealArtist =
               a.previousSibling &&
@@ -151,15 +172,12 @@ export class ThbWiki extends MetadataSource {
       },
       演奏: data => {
         const name = 'instruments'
-        const rows = data.innerHTML
-          .split('<br>')
+        const slices = splitChildNodesByBr(data)
+        const rows = slices
           .map(it => {
-            const [instrument, performer] = it
-              .trim()
-              .split('：')
-              .map(row => {
-                return parseHTML(row).window.document.body.textContent
-              })
+            const [instrument, performer] = (it as [ChildNode, HTMLAnchorElement]).map(
+              row => row.textContent,
+            )
             return performer || instrument
           })
           .flatMap(row => row.split('，'))
@@ -302,7 +320,7 @@ export class ThbWiki extends MetadataSource {
   async getMetadata(albumName: string, cover?: Buffer) {
     // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
     const url = `https://${this.host}/${encodeURIComponent(albumName)}`
-    const response = await Axios.get(url, { timeout: this.config.timeout * 1000 })
+    const response = await axios.get(url, { timeout: this.config.timeout * 1000 })
     const { document } = parseHTML(response.data).window
     const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
     if (!infoTable) {
