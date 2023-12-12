@@ -1,12 +1,16 @@
-import { readdirSync } from 'fs'
 import { join } from 'path'
 import type { Options as OraOptions, Ora } from 'ora'
+import { readdir } from 'fs/promises'
 import { log } from '../core/debug'
 import { getDefaultAlbumName } from './default-album-name'
 import { cliOptions, metadataConfig } from './options'
+import { asyncFlatMap } from './helper'
 
-const readFolder = (folder: string, depth: number): { name: string; path: string }[] => {
-  const currentSubFolders = readdirSync(folder, { withFileTypes: true })
+const readFolder = async (
+  folder: string,
+  depth: number,
+): Promise<{ name: string; path: string }[]> => {
+  const currentSubFolders = (await readdir(folder, { withFileTypes: true }))
     .filter(dir => dir.isDirectory())
     .map(dir => ({
       name: dir.name,
@@ -15,7 +19,10 @@ const readFolder = (folder: string, depth: number): { name: string; path: string
   if (depth <= 1) {
     return currentSubFolders
   }
-  return currentSubFolders.flatMap(subFolder => readFolder(join(folder, subFolder.name), depth - 1))
+  const allSubFolders = await asyncFlatMap(currentSubFolders, subFolder =>
+    readFolder(join(folder, subFolder.name), depth - 1),
+  )
+  return allSubFolders
 }
 
 const createBatchRun = async (config: {
@@ -30,7 +37,7 @@ const createBatchRun = async (config: {
   }) => Promise<void>
 }) => {
   const { folder, depth, oraOptions, onProcess } = config
-  const albums = readFolder(folder, depth)
+  const albums = await readFolder(folder, depth)
   const albumCount = albums.length
   const { default: ora } = await import('ora')
   for (let index = 0; index < albumCount; index++) {

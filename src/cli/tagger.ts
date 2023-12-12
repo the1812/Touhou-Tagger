@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync, writeFileSync, renameSync } from 'fs'
 import { Ora } from 'ora'
 import { extname, resolve as resolvePath } from 'path'
+import { readFile, readdir, rename, writeFile } from 'fs/promises'
 import { Metadata, MetadataSource } from '../core'
 import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
@@ -9,6 +9,7 @@ import { readline } from '../core/readline'
 import { CliCommandBase } from './command-base'
 import { getDefaultAlbumName } from './default-album-name'
 import { setAlbumOptions } from './album-options'
+import { asyncFlatMap } from './helper'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -37,25 +38,25 @@ export class CliTagger extends CliCommandBase {
     super(cliOptions)
   }
   async getLocalCover() {
-    const localCoverFiles = readdirSync(this.workingDir, { withFileTypes: true })
+    const localCoverFiles = (await readdir(this.workingDir, { withFileTypes: true }))
       .filter(f => f.isFile() && f.name.match(/^cover\.(jpg|jpeg|jpe|tif|tiff|bmp|png)$/))
       .map(f => f.name)
     if (localCoverFiles.length === 0) {
       return undefined
     }
     const [coverFile] = localCoverFiles
-    const buffer = readFileSync(resolvePath(this.workingDir, coverFile))
+    const buffer = await readFile(resolvePath(this.workingDir, coverFile))
     return buffer
   }
   async getLocalJson() {
-    const localMetadataFiles = readdirSync(this.workingDir, { withFileTypes: true })
+    const localMetadataFiles = (await readdir(this.workingDir, { withFileTypes: true }))
       .filter(f => f.isFile() && f.name.match(/^metadata\.jsonc?$/))
       .map(f => f.name)
     if (localMetadataFiles.length === 0) {
       return undefined
     }
     const [localMetadata] = localMetadataFiles
-    const json = readFileSync(resolvePath(this.workingDir, localMetadata), { encoding: 'utf8' })
+    const json = await readFile(resolvePath(this.workingDir, localMetadata), { encoding: 'utf8' })
     log('localJson get')
     log(json)
     const { expandMetadataInfo: normalize } = await import('../core/metadata/normalize/normalize')
@@ -76,15 +77,17 @@ export class CliTagger extends CliCommandBase {
     const { writerMappings } = await import('../core/writer/writer-mappings')
     const fileTypes = Object.keys(writerMappings)
     const fileTypeFilter = (file: string) => fileTypes.some(type => file.endsWith(type))
-    const dir = readdirSync(this.workingDir).sort(leadingNumberSort)
-    const discFiles = dir
-      .filter(f => f.match(/^Disc (\d+)/))
-      .flatMap(f =>
-        readdirSync(resolvePath(this.workingDir, f))
-          .sort(leadingNumberSort)
-          .map(inner => `${f}/${inner}`),
+    const dir = (await readdir(this.workingDir)).sort(leadingNumberSort)
+    const discFiles = (
+      await asyncFlatMap(
+        dir.filter(f => f.match(/^Disc (\d+)/)),
+        async f => {
+          return (await readdir(resolvePath(this.workingDir, f)))
+            .sort(leadingNumberSort)
+            .map(inner => `${f}/${inner}`)
+        },
       )
-      .filter(fileTypeFilter)
+    ).filter(fileTypeFilter)
     const files = dir
       .filter(fileTypeFilter)
       .concat(discFiles)
@@ -103,9 +106,11 @@ export class CliTagger extends CliCommandBase {
       return resolvePath(dirname(file), filename)
     })
     log(files, targetFiles)
-    files.forEach((file, index) => {
-      renameSync(file, targetFiles[index])
-    })
+    await Promise.all(
+      files.map((file, index) => {
+        return rename(file, targetFiles[index])
+      }),
+    )
     return targetFiles
   }
   async writeMetadataToFile(metadata: Metadata[], targetFiles: string[]) {
@@ -118,7 +123,7 @@ export class CliTagger extends CliCommandBase {
       writer.config = this.metadataConfig
       await writer.write(metadata[i], file)
       if (this.cliOptions.lyric && this.cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
-        writeFileSync(`${file.substring(0, file.lastIndexOf(type))}.lrc`, metadata[i].lyric)
+        await writeFile(`${file.substring(0, file.lastIndexOf(type))}.lrc`, metadata[i].lyric)
       }
     }
     // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
@@ -134,7 +139,7 @@ export class CliTagger extends CliCommandBase {
       if (type !== null) {
         const coverFilename = resolvePath(this.workingDir, `cover.${type.ext}`)
         log('cover file', coverFilename)
-        writeFileSync(coverFilename, coverBuffer)
+        await writeFile(coverFilename, coverBuffer)
       }
     }
   }
