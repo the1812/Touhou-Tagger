@@ -3,7 +3,7 @@ import { readline } from '../core/readline'
 import { getDefaultAlbumName } from './default-album-name'
 import { cliOptions, metadataConfig } from './options'
 
-export const runTagger = () => {
+export const runTagger = async () => {
   let spinner: Ora
   const start = async (album: string) => {
     const { default: ora } = await import('ora')
@@ -22,7 +22,7 @@ export const runTagger = () => {
     process.exit()
   }
 
-  const defaultAlbumName = getDefaultAlbumName()
+  const defaultAlbumName = await getDefaultAlbumName()
   if (cliOptions.batch) {
     import('./batch').then(({ runBatchTagger }) => {
       runBatchTagger(cliOptions.batch, cliOptions.batchDepth)

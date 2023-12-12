@@ -7,6 +7,8 @@ import { log } from '../core/debug'
 import { CliOptions } from './options'
 import { readline } from '../core/readline'
 import { CliCommandBase } from './command-base'
+import { getDefaultAlbumName } from './default-album-name'
+import { setAlbumOptions } from './album-options'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -186,6 +188,12 @@ export class CliTagger extends CliCommandBase {
       const targetFiles = await this.createFiles(metadata)
       this.spinner.text = '写入专辑信息中'
       await this.writeMetadataToFile(metadata, targetFiles)
+      const defaultAlbumName = await getDefaultAlbumName(this.workingDir)
+      if (album !== defaultAlbumName) {
+        await setAlbumOptions(this.workingDir, {
+          defaultAlbumHint: album,
+        })
+      }
       this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`)
     })
   }

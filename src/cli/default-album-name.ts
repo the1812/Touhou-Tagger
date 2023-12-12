@@ -1,4 +1,6 @@
-import { basename } from 'path'
+import { basename, resolve } from 'path'
+import { getAlbumOptions } from './album-options'
+import { log } from '../core/debug'
 
 interface SpecialFormat {
   name: string
@@ -22,7 +24,13 @@ const specialFormats: SpecialFormat[] = [
     resolve: match => match[0],
   },
 ]
-export const getDefaultAlbumName = (currentFolder: string = basename(process.cwd())) => {
+export const getDefaultAlbumName = async (workingDir: string = process.cwd()) => {
+  const albumOptions = await getAlbumOptions(workingDir)
+  if (albumOptions.defaultAlbumHint) {
+    log('defaultAlbumHint:', albumOptions.defaultAlbumHint)
+    return albumOptions.defaultAlbumHint
+  }
+  const currentFolder = basename(resolve(workingDir))
   const [formatMatch] = specialFormats
     .map(f => {
       const match = currentFolder.match(f.regex)

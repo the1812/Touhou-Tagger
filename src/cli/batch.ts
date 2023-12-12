@@ -35,7 +35,7 @@ const createBatchRun = async (config: {
   const { default: ora } = await import('ora')
   for (let index = 0; index < albumCount; index++) {
     try {
-      const album = getDefaultAlbumName(albums[index].name)
+      const album = await getDefaultAlbumName(albums[index].name)
       const spinner = ora(oraOptions).start()
       spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`
       log(`start processing album #${index + 1}`)
