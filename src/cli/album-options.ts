@@ -1,31 +1,30 @@
 import { existsSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { resolve } from 'path'
-import { CliOptions } from './options'
 
-export interface AlbumOptions extends Partial<CliOptions> {
+export interface AlbumOptions {
   defaultAlbumHint?: string
 }
 
 const AlbumOptionsFileName = 'thtag.json'
 export const getAlbumOptions = async (
   workingDir: string,
-  baseOptions: Partial<CliOptions> = {},
+  fallback: Partial<AlbumOptions> = {},
 ): Promise<AlbumOptions> => {
   const albumOptionsPath = resolve(workingDir, AlbumOptionsFileName)
   if (!existsSync(albumOptionsPath)) {
-    return baseOptions
+    return fallback
   }
   try {
     const albumOptions = JSON.parse(
       await readFile(albumOptionsPath, { encoding: 'utf-8' }),
     ) as AlbumOptions
     return {
-      ...baseOptions,
+      ...fallback,
       ...albumOptions,
     }
   } catch (error) {
-    return baseOptions
+    return fallback
   }
 }
 export const setAlbumOptions = async (workingDir: string, options: Partial<AlbumOptions>) => {
