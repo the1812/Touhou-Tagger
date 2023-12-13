@@ -146,7 +146,7 @@ export class ThbWiki extends MetadataSource {
       配音: data => {
         const name = 'voices'
         const slices = splitChildNodesByBr(data)
-        const rows = slices.map(it => {
+        const rows = slices.flatMap(it => {
           const anchors = it.filter((a): a is HTMLAnchorElement => isNodeAnElement(a, 'a'))
           const artists = anchors.map(a => {
             const isRealArtist =
@@ -164,10 +164,9 @@ export class ThbWiki extends MetadataSource {
           }
           return artists.filter(a => a !== '')
         })
-        // log(rows.flat())
         return {
           name,
-          result: rows.flat(),
+          result: rows,
         }
       },
       演奏: data => {
@@ -273,10 +272,7 @@ export class ThbWiki extends MetadataSource {
     const [lyricists] = infos.filter(it => it.name === 'lyricists').map(it => it.result as string[])
     const [comments] = infos.filter(it => it.name === 'comments').map(it => it.result as string)
     const arrangers = ['remix', 'arrangers', 'scripts'].flatMap(name =>
-      infos
-        .filter(it => it.name === name)
-        .map(it => it.result as string[])
-        .flat(),
+      infos.filter(it => it.name === name).flatMap(it => it.result as string[]),
     )
     const performers = [
       'vocals',
@@ -286,12 +282,7 @@ export class ThbWiki extends MetadataSource {
       'chorusVocals',
       'instruments',
       'voices',
-    ].flatMap(name =>
-      infos
-        .filter(it => it.name === name)
-        .map(it => it.result as string[])
-        .flat(),
-    )
+    ].flatMap(name => infos.filter(it => it.name === name).flatMap(it => it.result as string[]))
     const [composers] = infos.filter(it => it.name === 'composers').map(it => it.result as string[])
     // log('artists:', artists)
     if (arrangers.length === 0 && composers) {

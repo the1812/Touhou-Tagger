@@ -32,35 +32,33 @@ export class LocalMp3 extends MetadataSource {
   }
   async getMetadata(fullPath: string, cover?: Buffer) {
     const discs = await this.getMultipleDiscFiles(fullPath)
-    const metadatas = discs
-      .map((discFiles, index) => {
-        const discNumber = (index + 1).toString()
-        return discFiles.map(file => {
-          const tags = defaultsToEmptyString(id3.read(file))
-          const { separator } = this.config
-          const metadata: Metadata = {
-            title: tags.title,
-            artists: tags.artist.split(separator),
-            discNumber,
-            trackNumber: tags.trackNumber,
-            composers: tags.composer ? tags.composer.split(separator) : undefined,
-            comments: tags.comment ? tags.comment.text : undefined,
-            lyricists: tags.textWriter ? tags.textWriter.split(separator) : undefined,
-            album: tags.album,
-            albumOrder: tags.albumOrder || '',
-            albumArtists: tags.performerInfo ? tags.performerInfo.split(separator) : undefined,
-            genres: tags.genre ? tags.genre.split(separator) : undefined,
-            year: tags.year || undefined,
-            coverImage: (tags.image && tags.image.imageBuffer) || cover || undefined,
-          }
-          if (this.config.lyric && tags.unsynchronisedLyrics) {
-            metadata.lyric = tags.unsynchronisedLyrics.text
-            metadata.lyricLanguage = tags.unsynchronisedLyrics.language
-          }
-          return metadata
-        })
+    const metadatas = discs.flatMap((discFiles, index) => {
+      const discNumber = (index + 1).toString()
+      return discFiles.map(file => {
+        const tags = defaultsToEmptyString(id3.read(file))
+        const { separator } = this.config
+        const metadata: Metadata = {
+          title: tags.title,
+          artists: tags.artist.split(separator),
+          discNumber,
+          trackNumber: tags.trackNumber,
+          composers: tags.composer ? tags.composer.split(separator) : undefined,
+          comments: tags.comment ? tags.comment.text : undefined,
+          lyricists: tags.textWriter ? tags.textWriter.split(separator) : undefined,
+          album: tags.album,
+          albumOrder: tags.albumOrder || '',
+          albumArtists: tags.performerInfo ? tags.performerInfo.split(separator) : undefined,
+          genres: tags.genre ? tags.genre.split(separator) : undefined,
+          year: tags.year || undefined,
+          coverImage: (tags.image && tags.image.imageBuffer) || cover || undefined,
+        }
+        if (this.config.lyric && tags.unsynchronisedLyrics) {
+          metadata.lyric = tags.unsynchronisedLyrics.text
+          metadata.lyricLanguage = tags.unsynchronisedLyrics.language
+        }
+        return metadata
       })
-      .flat()
+    })
     return metadatas
   }
 }
