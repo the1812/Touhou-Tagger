@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-import './options'
+import { loadOptions } from './options'
+
+loadOptions()

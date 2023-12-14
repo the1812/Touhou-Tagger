@@ -1,6 +1,13 @@
-import type { CliOptions } from './options'
+import { AlbumOptions, getAlbumOptions } from './album-options'
+import { getCliOptions, type CliOptions } from './options'
 
 export abstract class CliCommandBase {
   workingDir = '.'
-  constructor(public cliOptions: CliOptions) {}
+  options: AlbumOptions & CliOptions
+  constructor() {
+    this.options = getCliOptions()
+  }
+  protected loadAlbumOptions() {
+    Object.assign(this.options, getAlbumOptions(this.workingDir))
+  }
 }

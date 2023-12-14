@@ -1,10 +1,11 @@
 import type { Ora } from 'ora'
 import { readline } from '../core/readline'
 import { getDefaultAlbumName } from './default-album-name'
-import { cliOptions, metadataConfig } from './options'
+import { getCliOptions } from './options'
 
 export const runTagger = async () => {
   let spinner: Ora
+  const cliOptions = getCliOptions()
   const start = async (album: string) => {
     const { default: ora } = await import('ora')
     if (!spinner) {
@@ -17,7 +18,7 @@ export const runTagger = async () => {
       }).start()
     }
     const { CliTagger } = await import('./tagger')
-    const tagger = new CliTagger(cliOptions, metadataConfig, spinner)
+    const tagger = new CliTagger(spinner)
     await tagger.run(album)
     process.exit()
   }

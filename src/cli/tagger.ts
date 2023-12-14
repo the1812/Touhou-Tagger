@@ -4,7 +4,7 @@ import { readFile, readdir, rename, writeFile } from 'fs/promises'
 import { Metadata, MetadataSource } from '../core'
 import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
-import { CliOptions } from './options'
+import { getMetadataConfig } from './options'
 import { readline } from '../core/readline'
 import { CliCommandBase } from './command-base'
 import { getDefaultAlbumName } from './default-album-name'
@@ -30,12 +30,10 @@ const leadingNumberSort = (a: string, b: string) => {
 const TimeoutError = Symbol('timeout')
 export class CliTagger extends CliCommandBase {
   metadataSource: MetadataSource
-  constructor(
-    public cliOptions: CliOptions,
-    public metadataConfig: MetadataConfig,
-    public spinner: Ora,
-  ) {
-    super(cliOptions)
+  metadataConfig: MetadataConfig
+  constructor(public spinner: Ora) {
+    super()
+    this.metadataConfig = getMetadataConfig(this.options)
   }
   async getLocalCover() {
     const localCoverFiles = (await readdir(this.workingDir, { withFileTypes: true }))
@@ -67,7 +65,7 @@ export class CliTagger extends CliCommandBase {
   }
   async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
-    const metadataSource = sourceMappings[this.cliOptions.source]
+    const metadataSource = sourceMappings[this.options.source]
     metadataSource.config = this.metadataConfig
     this.metadataSource = metadataSource
     return this.metadataSource.getMetadata(album, cover)
@@ -122,7 +120,7 @@ export class CliTagger extends CliCommandBase {
       const writer = writerMappings[type]
       writer.config = this.metadataConfig
       await writer.write(metadata[i], file)
-      if (this.cliOptions.lyric && this.cliOptions['lyric-output'] === 'lrc' && metadata[i].lyric) {
+      if (this.options.lyric && this.options['lyric-output'] === 'lrc' && metadata[i].lyric) {
         await writeFile(`${file.substring(0, file.lastIndexOf(type))}.lrc`, metadata[i].lyric)
       }
     }
@@ -133,7 +131,7 @@ export class CliTagger extends CliCommandBase {
     //   return writerMappings[type].write(metadata[index], file)
     // }))
     const coverBuffer = metadata[0].coverImage
-    if (this.cliOptions.cover && coverBuffer) {
+    if (this.options.cover && coverBuffer) {
       const { default: imageType } = await import('image-type')
       const type = imageType(coverBuffer)
       if (type !== null) {
@@ -145,12 +143,12 @@ export class CliTagger extends CliCommandBase {
   }
   async withRetry<T>(action: () => Promise<T>) {
     let retryCount = 0
-    while (retryCount < this.cliOptions.retry) {
+    while (retryCount < this.options.retry) {
       try {
         const result = await Promise.race([
           action(),
           new Promise<T>((resolve, reject) => {
-            setTimeout(() => reject(TimeoutError), this.cliOptions.timeout * 1000)
+            setTimeout(() => reject(TimeoutError), this.options.timeout * 1000)
           }),
         ])
         return result
@@ -158,7 +156,7 @@ export class CliTagger extends CliCommandBase {
         retryCount += 1
         const reason = (() => {
           if (error === TimeoutError) {
-            return `操作超时(${this.cliOptions.timeout}秒)`
+            return `操作超时(${this.options.timeout}秒)`
           }
           if (!error) {
             return '发生未知错误'
@@ -172,7 +170,7 @@ export class CliTagger extends CliCommandBase {
         if (reason.stack) {
           log(`\n${reason.stack}`)
         }
-        if (retryCount < this.cliOptions.retry) {
+        if (retryCount < this.options.retry) {
           this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
         } else {
           throw new Error(reason)
@@ -183,7 +181,7 @@ export class CliTagger extends CliCommandBase {
   }
   async fetchMetadata(album: string) {
     return this.withRetry(async () => {
-      const { batch } = this.cliOptions
+      const { batch } = this.options
       this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
       const localCover = await this.getLocalCover()
       const localJson = await this.getLocalJson()
@@ -203,11 +201,12 @@ export class CliTagger extends CliCommandBase {
     })
   }
   async run(album: string) {
+    this.loadAlbumOptions()
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
-    const metadataSource = sourceMappings[this.cliOptions.source]
-    const noInteractive = this.cliOptions['no-interactive']
+    const metadataSource = sourceMappings[this.options.source]
+    const noInteractive = this.options['no-interactive']
     if (!metadataSource) {
-      const message = `未找到与'${this.cliOptions.source}'相关联的数据源.`
+      const message = `未找到与'${this.options.source}'相关联的数据源.`
       this.spinner.fail(message)
       throw new Error(message)
     }

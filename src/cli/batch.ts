@@ -3,7 +3,6 @@ import type { Options as OraOptions, Ora } from 'ora'
 import { readdir } from 'fs/promises'
 import { log } from '../core/debug'
 import { getDefaultAlbumName } from './default-album-name'
-import { cliOptions, metadataConfig } from './options'
 import { asyncFlatMap } from './helper'
 
 const readFolder = async (
@@ -74,7 +73,7 @@ export const runBatchTagger = async (folder: string, depth: number) => {
       },
     },
     onProcess: async ({ currentAlbum, workingDir, spinner }) => {
-      const tagger = new CliTagger(cliOptions, metadataConfig, spinner)
+      const tagger = new CliTagger(spinner)
       tagger.workingDir = workingDir
       await tagger.run(currentAlbum)
     },
@@ -93,7 +92,7 @@ export const runBatchDump = async (folder: string, depth: number) => {
       },
     },
     onProcess: async ({ workingDir, spinner }) => {
-      const tagger = new CliDumper(cliOptions)
+      const tagger = new CliDumper()
       tagger.workingDir = workingDir
       await tagger.run()
       spinner.stop()

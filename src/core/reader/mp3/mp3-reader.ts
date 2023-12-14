@@ -1,4 +1,4 @@
-import type NodeID3 from 'node-id3'
+import type nodeId3 from 'node-id3'
 import { Metadata } from '../../metadata/metadata'
 import { MetadataReader } from '../metadata-reader'
 
@@ -10,14 +10,14 @@ const languageCodeConvert = (code: string | undefined) => {
   }
   return code ? mapping[code] || mapping.jpn : mapping.jpn
 }
-export class Mp3Reader extends MetadataReader<NodeID3.Tags> {
+export class Mp3Reader extends MetadataReader<nodeId3.Tags> {
   async readRaw(input: string | Buffer) {
     const { readFileSync } = await import('fs')
     const id3 = await import('node-id3')
     const tag = id3.read(typeof input === 'string' ? readFileSync(input) : input)
     return tag
   }
-  async read(input: string | Buffer | NodeID3.Tags) {
+  async read(input: string | Buffer | nodeId3.Tags) {
     const tag =
       typeof input === 'string' || input instanceof Buffer ? await this.readRaw(input) : input
     const { separator } = this.config

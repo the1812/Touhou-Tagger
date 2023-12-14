@@ -1,12 +1,13 @@
 import { CliDumper } from './dumper'
-import { cliOptions } from './options'
+import { getCliOptions } from './options'
 
 export const dump = async () => {
+  const cliOptions = getCliOptions()
   if (cliOptions.batch) {
     import('./batch').then(({ runBatchDump }) => {
       runBatchDump(cliOptions.batch, cliOptions.batchDepth)
     })
   } else {
-    await new CliDumper(cliOptions).run()
+    await new CliDumper().run()
   }
 }

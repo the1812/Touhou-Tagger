@@ -2,7 +2,7 @@ import { Metadata } from '../core'
 import { log } from '../core/debug'
 import { simplifyMetadataInfo } from '../core/metadata/normalize/normalize'
 import { CliCommandBase } from './command-base'
-import { CliOptions, metadataConfig } from './options'
+import { getMetadataConfig } from './options'
 
 const handleBufferStringify = (key: string, value: any) => {
   const isBuffer = typeof value === 'object' && value !== null && value.type === 'Buffer'
@@ -29,11 +29,12 @@ const dumpCover = async (metadatas: Metadata[]) => {
 }
 
 export class CliDumper extends CliCommandBase {
-  constructor(cliOptions: CliOptions) {
-    super(cliOptions)
+  constructor() {
+    super()
   }
 
   async run() {
+    this.loadAlbumOptions()
     const { glob } = await import('glob')
     const { extname, resolve } = await import('path')
     const { writeFileSync, readFileSync } = await import('fs')
@@ -54,7 +55,7 @@ export class CliDumper extends CliCommandBase {
       files.map(async file => {
         const type = extname(file)
         const reader = readerMappings[type]
-        reader.config = metadataConfig
+        reader.config = getMetadataConfig(this.options)
         const buffer = readFileSync(resolve(this.workingDir, file))
         const rawTag = await reader.readRaw(buffer)
         const metadata = await reader.read(rawTag)
@@ -80,13 +81,13 @@ export class CliDumper extends CliCommandBase {
         2,
       ),
     )
-    if (this.cliOptions.debug) {
+    if (this.options.debug) {
       writeFileSync(
         resolve(this.workingDir, 'metadata.debug.json'),
         JSON.stringify(rawTags, handleBufferStringify, 2),
       )
     }
-    if (this.cliOptions.cover) {
+    if (this.options.cover) {
       await dumpCover(metadatas)
     }
   }
