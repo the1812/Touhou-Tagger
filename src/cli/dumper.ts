@@ -34,7 +34,7 @@ export class CliDumper extends CliCommandBase {
   }
 
   async run() {
-    this.loadAlbumOptions()
+    await this.loadAlbumOptions()
     const { glob } = await import('glob')
     const { extname, resolve } = await import('path')
     const { writeFileSync, readFileSync } = await import('fs')

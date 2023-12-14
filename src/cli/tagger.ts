@@ -201,7 +201,7 @@ export class CliTagger extends CliCommandBase {
     })
   }
   async run(album: string) {
-    this.loadAlbumOptions()
+    await this.loadAlbumOptions()
     const { sourceMappings } = await import(`../core/metadata/source-mappings`)
     const metadataSource = sourceMappings[this.options.source]
     const noInteractive = this.options['no-interactive']
