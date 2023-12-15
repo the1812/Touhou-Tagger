@@ -37,13 +37,26 @@ export const simplifyCommonFieldsPlugin: MetadataNormalizePlugin = () => {
     }
     return false
   }
+  const deleteEmptyField = (metadata: Metadata, field: string) => {
+    const value = metadata[field]
+    if ((Array.isArray(value) && value.length === 0) || value === '') {
+      delete metadata[field]
+    }
+  }
   return ({ metadata, index }) => {
     if (index === 0) {
+      albumDataFields.forEach(field => {
+        deleteEmptyField(metadata, field)
+      })
       firstMetadata = metadata
     }
     if (index > 0) {
       albumDataFields.forEach(field => {
-        if (metadata[field] && isMetadataFieldEqual(metadata[field], firstMetadata[field])) {
+        deleteEmptyField(metadata, field)
+        if (
+          metadata[field] !== undefined &&
+          isMetadataFieldEqual(metadata[field], firstMetadata[field])
+        ) {
           delete metadata[field]
         }
       })

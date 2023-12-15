@@ -31,9 +31,12 @@ export const simplifyNumberPlugin: MetadataNormalizePlugin = () => {
   }
 
   return ({ metadata, index }) => {
-    if (metadata.discNumber) {
+    if (metadata.discNumber !== undefined) {
       const discNumber = parseInt(metadata.discNumber)
-      if (discNumber === cachedDiscNumber.number && index !== cachedDiscNumber.index) {
+      if (
+        Number.isNaN(discNumber) ||
+        (discNumber === cachedDiscNumber.number && index !== cachedDiscNumber.index)
+      ) {
         delete metadata.discNumber
       } else if (discNumber !== cachedDiscNumber.number) {
         cachedDiscNumber.number = discNumber
@@ -41,9 +44,9 @@ export const simplifyNumberPlugin: MetadataNormalizePlugin = () => {
         cachedTrackNumber.number = 1
       }
     }
-    if (metadata.trackNumber) {
+    if (metadata.trackNumber !== undefined) {
       const trackNumber = parseInt(metadata.trackNumber)
-      if (trackNumber === cachedTrackNumber.number) {
+      if (Number.isNaN(trackNumber) || trackNumber === cachedTrackNumber.number) {
         delete metadata.trackNumber
       }
     }
