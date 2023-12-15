@@ -40,7 +40,7 @@ export class ThbWiki extends MetadataSource {
       this.host
     }/api.php?action=opensearch&format=json&formatversion=2&search=${encodeURIComponent(
       albumName,
-    )}&limit=20&suggest=true`
+    )}&limit=${MetadataSource.MaxSearchCount}&suggest=true`
     const response = await axios.get(url, {
       responseType: 'json',
       timeout: this.config.timeout * 1000,

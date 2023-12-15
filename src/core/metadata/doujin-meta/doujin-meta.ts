@@ -1,127 +1,56 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import axios from 'axios'
-import Fuse from 'fuse.js'
+import fuse from 'fuse.js'
 import { Metadata } from '../metadata'
 import { MetadataSource } from '../metadata-source'
 import { expandMetadataInfo } from '../normalize/normalize'
 
-const owner = 'the1812'
-const repo = 'Doujin-Meta'
-const githubApi = axios.create({
-  headers: {
-    Accept: 'application/vnd.github+json',
-  },
+const doujinMetaApi = axios.create({
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  baseURL: 'https://doujin-meta.vercel.app',
   responseType: 'json',
 })
 
-interface GitTreeNode {
-  path: string
-  mode: string
-  type: string
-  sha: string
-  url: string
-}
-interface TreeResponse {
-  sha: string
-  url: string
-  tree: GitTreeNode[]
-}
-interface ContentsNode {
+interface DoujinMetaSearchItem {
+  id: string
   name: string
-  path: string
-  sha: string
-  size: number
-  url: string
-  html_url: string
-  git_url: string
-  download_url: string
-  type: string
+  coverUrl: string
+  detailUrl: string
+  matches: fuse.RangeTuple[]
 }
-type ContentsResponse = ContentsNode[]
-interface BlobResponse {
-  sha: string
-  url: string
-  size: number
-  content: string
-  encoding: string
+type DoujinMetaSearchResult = DoujinMetaSearchItem[]
+interface DoujinMetaAlbumDetail {
+  name: string
+  coverUrl: string
+  metadata: Metadata[]
+  metadataUrl: string
+  rawUrl: string
 }
 
 export class DoujinMeta extends MetadataSource {
-  private dataTree: Promise<TreeResponse>
-  private fuse: Promise<Fuse<GitTreeNode>>
-
-  private async getDataTree() {
-    const publicTreeApi = `https://api.github.com/repos/${owner}/${repo}/contents/public`
-    const { data: publicContents } = await githubApi.get<ContentsResponse>(publicTreeApi)
-    const dataUrl = publicContents.find(it => it.name === 'data')?.git_url
-    if (!dataUrl) {
-      throw new Error('获取 public/data 文件夹失败')
-    }
-    const { data: dataTree } = await githubApi.get<TreeResponse>(dataUrl)
-    return dataTree
-  }
-
-  private init() {
-    this.dataTree = this.getDataTree()
-    this.fuse = this.dataTree.then(
-      ({ tree }) =>
-        new Fuse(tree, {
-          keys: ['path'],
-          threshold: 0.4,
-        }),
-    )
-  }
-
-  private checkInitStatus() {
-    if (!this.dataTree) {
-      this.init()
-    }
-  }
-
-  private async findCover(nodes: GitTreeNode[]) {
-    const allowedExtensions = ['.jpg', '.png']
-    const result = nodes.find(it =>
-      allowedExtensions.some(extension => it.path === `cover${extension}`),
-    )
-    if (!result) {
-      return undefined
-    }
-    const { data: coverData } = await githubApi.get<BlobResponse>(result.url)
-    return Buffer.from(coverData.content, 'base64')
-  }
-
   async resolveAlbumName(albumName: string): Promise<string | string[]> {
-    this.checkInitStatus()
-    const fuse = await this.fuse
-    const result = fuse.search(albumName)
-    if (result.length === 1) {
-      return result[0].item.path
-    }
-    if (result.length > 0 && result[0].item.path === albumName) {
+    const { data: searchResult } = await doujinMetaApi.get<DoujinMetaSearchResult>(
+      `/api/albums/search/${albumName}`,
+    )
+    if (searchResult.length > 0 && searchResult[0].name === albumName) {
       return albumName
     }
-    return result.map(it => it.item.path).slice(0, 20)
+    return searchResult.map(it => it.name).slice(0, MetadataSource.MaxSearchCount)
   }
 
   async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> {
-    this.checkInitStatus()
-    const { tree } = await this.dataTree
-    const node = tree.find(it => it.path === albumName)
-    if (!node) {
-      throw new Error(`data 目录中不存在 "${albumName}"`)
-    }
-    const { data: albumDetailTree } = await githubApi.get<TreeResponse>(node.url)
-    const coverBuffer = cover ?? (await this.findCover(albumDetailTree.tree))
-    const metadataNode = albumDetailTree.tree.find(it => it.path === 'metadata.json')
-    if (!metadataNode) {
-      throw new Error(`${albumName} 元数据缺失`)
-    }
-    const { data: metadataTree } = await githubApi.get<BlobResponse>(metadataNode.url)
-    const metadataJson: Metadata[] = JSON.parse(
-      Buffer.from(metadataTree.content, 'base64').toString('utf8'),
+    const { data: albumDetail } = await doujinMetaApi.get<DoujinMetaAlbumDetail>(
+      `/api/albums/detail/${albumName}`,
     )
+    const downloadCover = async () => {
+      const { data: coverData } = await doujinMetaApi.get<Buffer>(albumDetail.coverUrl, {
+        responseType: 'arraybuffer',
+      })
+      return coverData
+    }
+    const coverBuffer = cover ?? (await downloadCover())
+
     return expandMetadataInfo({
-      metadatas: metadataJson,
+      metadatas: albumDetail.metadata,
       cover: coverBuffer,
     })
   }
