@@ -8,7 +8,7 @@ export abstract class CliCommandBase {
     this.options = getCliOptions()
   }
   protected async loadAlbumOptions() {
-    const albumOptions = await getAlbumOptions(this.workingDir)
+    const albumOptions = await getAlbumOptions(this.workingDir, getCliOptions())
     Object.assign(this.options, albumOptions)
   }
 }

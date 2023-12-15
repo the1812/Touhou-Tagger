@@ -126,7 +126,7 @@ const readCliOptionsFromFile = () => {
       description: '是否允许交互',
     })
     .parseSync()
-  return options
+  return Object.freeze({ ...options })
 }
 export type CliOptions = ReturnType<typeof readCliOptionsFromFile>
 export const getLyricConfig = (options: CliOptions): LyricConfig => {
@@ -153,10 +153,10 @@ export const getMetadataConfig = (options: CliOptions): MetadataConfig => {
 let cliOptions: CliOptions
 export const getCliOptions = (): CliOptions => {
   if (cliOptions) {
-    return cliOptions
+    return { ...cliOptions }
   }
   cliOptions = readCliOptionsFromFile()
-  return cliOptions
+  return { ...cliOptions }
 }
 
 export const loadOptions = () => {
