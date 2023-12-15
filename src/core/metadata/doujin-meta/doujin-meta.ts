@@ -29,7 +29,7 @@ interface DoujinMetaAlbumDetail {
 export class DoujinMeta extends MetadataSource {
   async resolveAlbumName(albumName: string): Promise<string | string[]> {
     const { data: searchResult } = await doujinMetaApi.get<DoujinMetaSearchResult>(
-      `/api/albums/search/${albumName}`,
+      `/api/albums/search/${encodeURIComponent(albumName)}`,
     )
     if (searchResult.length > 0 && searchResult[0].name === albumName) {
       return albumName
@@ -39,7 +39,7 @@ export class DoujinMeta extends MetadataSource {
 
   async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> {
     const { data: albumDetail } = await doujinMetaApi.get<DoujinMetaAlbumDetail>(
-      `/api/albums/detail/${albumName}`,
+      `/api/albums/detail/${encodeURIComponent(albumName)}`,
     )
     const downloadCover = async () => {
       const { data: coverData } = await doujinMetaApi.get<Buffer>(albumDetail.coverUrl, {
