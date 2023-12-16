@@ -87,7 +87,7 @@ export class ThbWiki extends MetadataSource {
     const albumOrder = getTableItem('编号')
     const albumArtists = getTableItem('制作方', true)
     const genres = getTableItem('风格类型').split('，')
-    const year = parseInt(getTableItem('首发日期')).toString()
+    const year = parseInt(getTableItem('首发日期'))
     const replaceAltNames = (str: string) => {
       if (albumArtistsAltNames.has(str)) {
         return albumArtistsAltNames.get(str)
@@ -99,7 +99,7 @@ export class ThbWiki extends MetadataSource {
       albumOrder,
       albumArtists: albumArtists.map(it => replaceAltNames(it)),
       genres,
-      year,
+      year: Number.isNaN(year) ? undefined : year.toString(),
     }
   }
   private getRelatedRows(trackNumberRow: Element): Element[] {
