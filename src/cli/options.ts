@@ -64,7 +64,7 @@ const readCliOptionsFromFile = () => {
       alias: 's',
       type: 'string',
       default: 'thb-wiki',
-      choices: ['thb-wiki', 'thb-wiki-cache', 'doujin-meta', 'local-mp3', 'local-json'],
+      choices: ['thb-wiki', 'thb-wiki-cache', 'doujin-meta'],
       description: '设置数据源',
     })
     .option('lyric', {
