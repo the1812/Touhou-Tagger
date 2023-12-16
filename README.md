@@ -374,6 +374,27 @@ thtag dump
 - `--debug`: 额外保存一个 `metadata.debug.json` 文件, 记录原始的数据结构
 - `--batch`: 批量进行提取
 
+## 专辑配置
+可以为每一张专辑保存不同的配置, 无论是单独进行写入还是批量模式, 程序都会尝试读取专辑文件夹下的 `thtag.json` 文件. 可配置的内容有:
+- `defaultAlbumHint`: 默认用于搜索的专辑名称
+- `source`: 使用的数据源
+
+例子:
+```
+folder
+  ├─专辑A
+  │  └─thtag.json `{ "defaultAlbumHint": "Album A" }`
+  ├─专辑B
+  │  └─thtag.json `{ "source": "doujin-meta" }`
+  └─专辑C
+```
+
+当批量运行时
+```powershell
+thtag -b folder
+```
+
+对 `专辑A`, 会使用 `Album A` 去 THBWiki 搜索; 对 `专辑B`, 会使用 `专辑B` 去 Doujin Meta 搜索; 对 `专辑C`, 会使用 `专辑C` 去 THBWiki 搜索.
 
 ## 特别感谢
 - [THBWiki](http://thwiki.cc/首页)
