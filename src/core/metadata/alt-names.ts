@@ -62,4 +62,5 @@ export const altNames = new Map<string, string>([
 ])
 export const albumArtistsAltNames = new Map<string, string>([
   ['Coloured Glaze（琉光溢彩）', 'Coloured Glaze'],
+  ['Psysia（同人社团）', 'Psysia'],
 ])
