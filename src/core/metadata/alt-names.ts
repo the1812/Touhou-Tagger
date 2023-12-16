@@ -60,3 +60,6 @@ export const altNames = new Map<string, string>([
   ['Mask_Zombie_Man', '張尼瑪'],
   ['莲汰-AiTeN', '蓮汰-AiTeN'],
 ])
+export const albumArtistsAltNames = new Map<string, string>([
+  ['Coloured Glaze（琉光溢彩）', 'Coloured Glaze'],
+])

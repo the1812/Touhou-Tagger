@@ -4,7 +4,7 @@ import { MetadataSource } from '../metadata-source'
 import { Metadata } from '../metadata'
 import { log } from '../../debug'
 import { MetadataConfig } from '../../core-config'
-import { altNames } from '../alt-names'
+import { albumArtistsAltNames, altNames } from '../alt-names'
 
 const isNodeAnElement = <TargetType extends Element>(
   node: Node,
@@ -88,10 +88,16 @@ export class ThbWiki extends MetadataSource {
     const albumArtists = getTableItem('制作方', true)
     const genres = getTableItem('风格类型').split('，')
     const year = parseInt(getTableItem('首发日期')).toString()
+    const replaceAltNames = (str: string) => {
+      if (albumArtistsAltNames.has(str)) {
+        return albumArtistsAltNames.get(str)
+      }
+      return str
+    }
     return {
       album,
       albumOrder,
-      albumArtists,
+      albumArtists: albumArtists.map(it => replaceAltNames(it)),
       genres,
       year,
     }
@@ -174,10 +180,15 @@ export class ThbWiki extends MetadataSource {
         const slices = splitChildNodesByBr(data)
         const rows = slices
           .map(it => {
-            const [instrument, performer] = (it as [ChildNode, HTMLAnchorElement]).map(
+            const [instrumentOrPerformer, performer] = (it as [ChildNode, HTMLAnchorElement]).map(
               row => row.textContent,
             )
-            return performer || instrument
+            const result = performer || instrumentOrPerformer
+            const sequenceIndex = result.indexOf('：')
+            if (sequenceIndex !== -1) {
+              return result.substring(sequenceIndex + 1)
+            }
+            return result
           })
           .flatMap(row => row.split('，'))
         return {
