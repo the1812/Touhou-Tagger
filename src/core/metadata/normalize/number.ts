@@ -2,54 +2,51 @@ import { MetadataNormalizePlugin } from './normalize'
 
 /** 自动推测 trackNumber 和 discNumber */
 export const expandNumberPlugin: MetadataNormalizePlugin = () => {
-  let cachedTrackNumber = 1
-  let cachedDiscNumber = 1
+  const cachedNumber = {
+    track: 1,
+    disc: 1,
+  }
 
   return ({ metadata }) => {
-    if (metadata.discNumber && parseInt(metadata.discNumber) !== cachedDiscNumber) {
-      cachedDiscNumber = parseInt(metadata.discNumber)
-      cachedTrackNumber = 1
+    const discNumberFromMetadata =
+      metadata.discNumber !== undefined ? parseInt(metadata.discNumber) : NaN
+    if (!Number.isNaN(discNumberFromMetadata) && discNumberFromMetadata !== cachedNumber.disc) {
+      cachedNumber.disc = discNumberFromMetadata
+      cachedNumber.track = 1
     }
     if (!metadata.discNumber) {
-      metadata.discNumber = cachedDiscNumber.toString()
+      metadata.discNumber = cachedNumber.disc.toString()
     }
     if (!metadata.trackNumber) {
-      metadata.trackNumber = cachedTrackNumber.toString()
+      metadata.trackNumber = cachedNumber.track.toString()
     }
-    cachedTrackNumber += 1
+    cachedNumber.track += 1
   }
 }
 
 /** 自动省略 trackNumber 和 discNumber */
 export const simplifyNumberPlugin: MetadataNormalizePlugin = () => {
-  const cachedTrackNumber = {
-    number: 1,
-  }
-  const cachedDiscNumber = {
-    index: 0,
-    number: 1,
+  const cachedNumber = {
+    track: 1,
+    disc: 1,
   }
 
-  return ({ metadata, index }) => {
+  return ({ metadata }) => {
     if (metadata.discNumber !== undefined) {
       const discNumber = parseInt(metadata.discNumber)
-      if (
-        Number.isNaN(discNumber) ||
-        (discNumber === cachedDiscNumber.number && index !== cachedDiscNumber.index)
-      ) {
+      if (Number.isNaN(discNumber) || discNumber === cachedNumber.disc) {
         delete metadata.discNumber
-      } else if (discNumber !== cachedDiscNumber.number) {
-        cachedDiscNumber.number = discNumber
-        cachedDiscNumber.index = index
-        cachedTrackNumber.number = 1
+      } else if (discNumber !== cachedNumber.disc) {
+        cachedNumber.disc = discNumber
+        cachedNumber.track = 1
       }
     }
     if (metadata.trackNumber !== undefined) {
       const trackNumber = parseInt(metadata.trackNumber)
-      if (Number.isNaN(trackNumber) || trackNumber === cachedTrackNumber.number) {
+      if (Number.isNaN(trackNumber) || trackNumber === cachedNumber.track) {
         delete metadata.trackNumber
       }
     }
-    cachedTrackNumber.number += 1
+    cachedNumber.track += 1
   }
 }
