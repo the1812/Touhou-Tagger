@@ -16,6 +16,7 @@ export const altNames = new Map<string, string>([
   ['Edelritter(Nhato×Taishi)', 'Edelritter'],
   ['Frozen Starfall', 'FS'],
   ['hachysu', 'Hachysu'],
+  ['hazecat', 'Hazecat'],
   ['Kirin', 'きりん'],
   ['Miokio米歌', 'Miokio米欧'],
   ['米欧', 'Miokio米欧'],
