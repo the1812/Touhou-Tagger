@@ -135,6 +135,10 @@ export class ThbWiki extends MetadataSource {
         }
       }
     }
+    const isSequence = (data: Element) => {
+      return [...data.childNodes].some(node => isNodeAnElement(node, 'br'))
+    }
+
     const label = trackInfoRow.querySelector('.label').textContent.trim()
     const rawData = trackInfoRow.querySelector('.text') as HTMLElement
     const actions: { [infoName: string]: (data: HTMLElement) => TrackParseInfo } = {
@@ -151,6 +155,9 @@ export class ThbWiki extends MetadataSource {
       作词: defaultInfoParser('lyricists'),
       配音: data => {
         const name = 'voices'
+        if (!isSequence(data)) {
+          return defaultInfoParser(name)(data)
+        }
         const slices = splitChildNodesByBr(data)
         const rows = slices.flatMap(it => {
           const anchors = it.filter((a): a is HTMLAnchorElement => isNodeAnElement(a, 'a'))
@@ -177,6 +184,9 @@ export class ThbWiki extends MetadataSource {
       },
       演奏: data => {
         const name = 'instruments'
+        if (!isSequence(data)) {
+          return defaultInfoParser(name)(data)
+        }
         const slices = splitChildNodesByBr(data)
         const rows = slices
           .map(it => {
