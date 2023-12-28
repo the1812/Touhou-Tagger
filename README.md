@@ -105,7 +105,7 @@ thtag -s xxx
 thtag --source xxx
 ```
 
-此工具还内置了另外三种数据源:
+此工具还内置了另外一种数据源:
 
 #### doujin-meta
 从 [Doujin-Meta](https://github.com/the1812/Doujin-Meta) 获取曲目信息, 通常用于获取原创同人曲目信息.
