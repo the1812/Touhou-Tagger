@@ -110,6 +110,13 @@ export class ThbWiki extends MetadataSource {
     return [nextElement, ...this.getRelatedRows(nextElement)]
   }
   private parseRelatedRowInfo(trackInfoRow: Element): TrackParseInfo {
+    const replaceSinglePrefix = (data: string) => {
+      const match = data.match(/^(.+?)：(.+)$/)
+      if (match) {
+        return match[2]
+      }
+      return data
+    }
     const defaultInfoParser = (name: string): ((data: Element) => TrackParseInfo) => {
       return (data: Element) => {
         const children = [...data.children]
@@ -131,7 +138,10 @@ export class ThbWiki extends MetadataSource {
         }
         return {
           name,
-          result: textContent.trim().split('，'),
+          result: textContent
+            .trim()
+            .split('，')
+            .map(it => replaceSinglePrefix(it)),
         }
       }
     }
@@ -173,9 +183,9 @@ export class ThbWiki extends MetadataSource {
             return ''
           })
           if (artists.every(a => a === '')) {
-            return anchors.map(a => a.textContent)
+            return anchors.map(a => a.textContent.trim())
           }
-          return artists.filter(a => a !== '')
+          return artists.filter(a => a !== '').map(a => a.trim())
         })
         return {
           name,
@@ -201,6 +211,7 @@ export class ThbWiki extends MetadataSource {
             return result
           })
           .flatMap(row => row.split('，'))
+          .map(it => it.trim())
         return {
           name,
           result: rows,
