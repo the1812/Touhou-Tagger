@@ -192,7 +192,7 @@ export class CliTagger extends CliCommandBase {
       this.spinner.text = '写入专辑信息中'
       await this.writeMetadataToFile(metadata, targetFiles)
       const defaultAlbumName = await getDefaultAlbumName(this.workingDir)
-      if (album !== defaultAlbumName) {
+      if (album !== defaultAlbumName && !localJson) {
         await setAlbumOptions(this.workingDir, {
           defaultAlbumHint: album,
         })
