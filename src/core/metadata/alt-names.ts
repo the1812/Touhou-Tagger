@@ -18,6 +18,8 @@ export const altNames = new Map<string, string>([
   ['hachysu', 'Hachysu'],
   ['hazecat', 'Hazecat'],
   ['Kirin', 'きりん'],
+  ['KUMI(ヲタみん)', 'KUMI'],
+  ['Mei Ayakura', '綾倉盟'],
   ['Miokio米歌', 'Miokio米欧'],
   ['米欧', 'Miokio米欧'],
   ['NANO-Fuckyig', 'NANO-FXXKYIG'],
