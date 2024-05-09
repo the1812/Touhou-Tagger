@@ -19,6 +19,7 @@ export const altNames = new Map<string, string>([
   ['hazecat', 'Hazecat'],
   ['Kirin', 'きりん'],
   ['KUMI(ヲタみん)', 'KUMI'],
+  ['Mai(SynthV)', 'Mai'],
   ['Mei Ayakura', '綾倉盟'],
   ['Miokio米歌', 'Miokio米欧'],
   ['米欧', 'Miokio米欧'],
@@ -66,4 +67,6 @@ export const altNames = new Map<string, string>([
 export const albumArtistsAltNames = new Map<string, string>([
   ['Coloured Glaze（琉光溢彩）', 'Coloured Glaze'],
   ['Psysia（同人社团）', 'Psysia'],
+  ['AD：Peak', 'AD: Peak'],
+  ['无名目录', 'Nameless Catalogue'],
 ])
