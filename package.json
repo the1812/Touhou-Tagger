@@ -32,7 +32,7 @@
   "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
   "dependencies": {
     "@squoosh/lib": "0.5.3",
-    "axios": "^1.6.7",
+    "axios": "^1.7.9",
     "flac-tagger": "^1.0.7",
     "fuse.js": "^6.6.2",
     "glob": "^10.2.7",
