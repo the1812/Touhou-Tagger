@@ -126,6 +126,9 @@ const readCliOptionsFromFile = () => {
       description: '是否允许交互',
     })
     .parseSync()
+  if (options.debug) {
+    console.log('Node.js version:', process.version)
+  }
   return Object.freeze({ ...options })
 }
 export type CliOptions = ReturnType<typeof readCliOptionsFromFile>

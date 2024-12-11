@@ -161,8 +161,8 @@ export class CliTagger extends CliCommandBase {
           if (!error) {
             return '发生未知错误'
           }
-          if (error.message) {
-            return error.message
+          if (error.stack) {
+            return error.stack
           }
           return error.toString()
         })()
