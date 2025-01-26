@@ -395,4 +395,4 @@ export class ThbWiki extends MetadataSource {
   }
 }
 export const thbWiki = new ThbWiki()
-export const thbWikiCache = new ThbWiki('cache.thwiki.cc')
+export const thbWikiCache = new ThbWiki('thbwiki.cc')
