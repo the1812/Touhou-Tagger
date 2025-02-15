@@ -15,7 +15,10 @@ export abstract class LyricParser {
   protected get firstRowData() {
     return this.rowData[0]
   }
-  constructor(protected table: Element, public config: LyricConfig) {
+  constructor(
+    protected table: Element,
+    public config: LyricConfig,
+  ) {
     this.rows = [...table.querySelectorAll('tbody > tr:not(.tt-lyrics-header)')]
     log('rows length: ', this.rows.length)
     this.rowData = this.rows.map(row => {

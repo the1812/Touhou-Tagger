@@ -32,35 +32,36 @@
   "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
   "dependencies": {
     "@squoosh/lib": "0.5.3",
-    "axios": "^1.7.9",
-    "flac-tagger": "^1.0.7",
-    "fuse.js": "^6.6.2",
-    "glob": "^10.2.7",
-    "image-type": "^4.1.0",
-    "imageinfo": "^1.0.4",
-    "linkedom": "^0.16.4",
-    "node-id3": "^0.2.3",
+    "axios": "1.7.9",
+    "flac-tagger": "1.0.7",
+    "fuse.js": "6.6.2",
+    "glob": "10.2.7",
+    "image-type": "4.1.0",
+    "imageinfo": "1.0.4",
+    "linkedom": "0.16.4",
+    "node-id3": "0.2.3",
     "ora": "^5.4.1",
-    "yargs": "^17.5.1"
+    "yargs": "17.5.1"
   },
   "devDependencies": {
-    "@the1812/eslint-config": "^1.2.0",
+    "@the1812/eslint-config": "1.2.0",
     "@types/node": "^18",
-    "@types/yargs": "^17.0.12",
-    "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0",
-    "eslint": "^8.54.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-prettier": "^5.0.1",
+    "@types/yargs": "17.0.12",
+    "@typescript-eslint/eslint-plugin": "6.13.0",
+    "@typescript-eslint/parser": "6.13.0",
+    "eslint": "8.54.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-prettier": "5.0.1",
     "prettier": "3.1.0",
-    "typescript": "^5.3.2"
+    "typescript": "5.3.2"
   },
   "pnpm": {
     "patchedDependencies": {
       "node-id3@0.2.3": "patches/node-id3@0.2.3.patch",
       "@squoosh/lib@0.5.3": "patches/@squoosh__lib@0.5.3.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52"
 }
