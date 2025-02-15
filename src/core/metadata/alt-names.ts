@@ -20,6 +20,8 @@ export const altNames = new Map<string, string>([
   ['Kirin', 'きりん'],
   ['KUMI(ヲタみん)', 'KUMI'],
   ['Mai(SynthV)', 'Mai'],
+  ['Mai (SynthV)', 'Mai'],
+  ['诗岸 (SynthV)', '诗岸'],
   ['Mei Ayakura', '綾倉盟'],
   ['Miokio米歌', 'Miokio米欧'],
   ['米欧', 'Miokio米欧'],
