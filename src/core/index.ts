@@ -3,7 +3,7 @@ export * from './metadata/metadata-source'
 export * from './metadata/metadata'
 export * from './metadata/source-mappings'
 
-export { thbWiki, thbWikiCache } from './metadata/thb-wiki/thb-wiki'
+export { thbWiki } from './metadata/thb-wiki/thb-wiki'
 export { localMp3 } from './metadata/local-mp3/local-mp3'
 export { localJson } from './metadata/local-json/local-json'
 export { doujinMeta } from './metadata/doujin-meta/doujin-meta'

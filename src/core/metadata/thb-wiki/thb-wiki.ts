@@ -30,11 +30,10 @@ const splitChildNodesByBr = (element: Element) => {
 type TrackParseInfo = { name: string; result: string | string[] }
 
 export class ThbWiki extends MetadataSource {
-  constructor(public readonly host = 'thwiki.cc') {
+  constructor(public readonly host = 'thbwiki.cc') {
     super()
   }
 
-  cache = new Map<string, { document: Document; cover: Buffer | undefined }>()
   async resolveAlbumName(albumName: string) {
     const url = `https://${
       this.host
@@ -395,4 +394,3 @@ export class ThbWiki extends MetadataSource {
   }
 }
 export const thbWiki = new ThbWiki()
-export const thbWikiCache = new ThbWiki('thbwiki.cc')
