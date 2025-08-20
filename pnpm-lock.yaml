@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@squoosh/lib@0.5.3':
-    hash: f8de8ac3a9df16a82a821555c207770aa23a2ea5cfb536328605fd21e4c325ae
+    hash: 44c9c4cda0396efe22f2871becfd49669d316a8a72f504bfe0859515842c5bca
     path: patches/@squoosh__lib@0.5.3.patch
   node-id3@0.2.3:
     hash: 1c18e3db4ee8f393ed9fa21837a01adcee7d2b82a5d29c35b08c7c072e7166cc
@@ -18,7 +18,7 @@ importers:
     dependencies:
       '@squoosh/lib':
         specifier: 0.5.3
-        version: 0.5.3(patch_hash=f8de8ac3a9df16a82a821555c207770aa23a2ea5cfb536328605fd21e4c325ae)
+        version: 0.5.3(patch_hash=44c9c4cda0396efe22f2871becfd49669d316a8a72f504bfe0859515842c5bca)
       axios:
         specifier: 1.7.9
         version: 1.7.9
@@ -1544,7 +1544,7 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
-  '@squoosh/lib@0.5.3(patch_hash=f8de8ac3a9df16a82a821555c207770aa23a2ea5cfb536328605fd21e4c325ae)':
+  '@squoosh/lib@0.5.3(patch_hash=44c9c4cda0396efe22f2871becfd49669d316a8a72f504bfe0859515842c5bca)':
     dependencies:
       wasm-feature-detect: 1.8.0
       web-streams-polyfill: 3.3.3
