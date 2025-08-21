@@ -170,7 +170,7 @@ export class CliTagger extends CliCommandBase {
         if (reason.stack) {
           log(`\n${reason.stack}`)
         }
-        if (retryCount < this.options.retry) {
+        if (error === TimeoutError && retryCount < this.options.retry) {
           this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
         } else {
           throw new Error(reason)
