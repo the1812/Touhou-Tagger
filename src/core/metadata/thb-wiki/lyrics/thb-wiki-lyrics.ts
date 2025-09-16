@@ -19,7 +19,7 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
   const lyricLanguage = lyricParser.findLanguage()
   const languageSuffix = lyricParser.getLrcFileSuffix()
   const indexString = index === 0 ? '' : `.${index + 1}`
-  const url = `https://touhou.cd/lyrics/${encodeURIComponent(title)}${indexString}${languageSuffix}.lrc`
+  const url = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(title)}${indexString}${languageSuffix}.lrc`
   log(url)
   let response: AxiosResponse<string>
   try {
