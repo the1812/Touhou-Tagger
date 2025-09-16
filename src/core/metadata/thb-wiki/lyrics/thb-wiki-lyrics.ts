@@ -44,7 +44,17 @@ export const downloadLyrics = async (
   log(`\n下载歌词中: ${title}`)
   let document = lyricDocumentCache.find(it => it.url === url)?.document
   if (!document) {
-    const response = await axios.get(url, { timeout: config.timeout * 1000 })
+    log(url)
+    let response: AxiosResponse<string>
+    try {
+      response = await axios.get(url, { timeout: config.timeout * 1000 })
+    } catch (error) {
+      console.error(`下载歌词页面失败: ${url}`)
+      return {
+        lyric: '',
+        lyricLanguage: undefined,
+      }
+    }
     document = parseHTML(response.data).window.document
     lyricDocumentCache.push({ url, document })
     if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
