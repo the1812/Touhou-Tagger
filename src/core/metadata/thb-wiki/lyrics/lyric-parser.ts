@@ -73,7 +73,7 @@ class OriginalLyricParser extends LyricParser {
     return originalData.textContent
   }
   getLrcFileSuffix(): string {
-    return ''
+    return '.'
   }
 }
 class TranslatedLyricParser extends LyricParser {

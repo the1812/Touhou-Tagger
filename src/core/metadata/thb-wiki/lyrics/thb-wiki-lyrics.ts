@@ -16,16 +16,17 @@ const downloadMetadataLyrics = async () => {
   }
 }
 const downloadLrcLyrics = async (title: string, index: number, config: MetadataConfig) => {
-  const language = lyricParser.findLanguage()
+  const lyricLanguage = lyricParser.findLanguage()
+  const languageSuffix = lyricParser.getLrcFileSuffix()
   const indexString = index === 0 ? '' : `.${index + 1}`
-  const url = `https://touhou.cd/lyrics/${encodeURIComponent(title)}${indexString}${language}.lrc`
+  const url = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(title)}${indexString}${languageSuffix}.lrc`
   log(url)
   let response: AxiosResponse<string>
   try {
     response = await axios.get(url, { responseType: 'text', timeout: config.timeout * 1000 })
     return {
       lyric: response.data,
-      lyricLanguage: undefined,
+      lyricLanguage: lyricLanguage,
     }
   } catch (error) {
     console.error(`下载歌词失败: ${url}`)
@@ -44,7 +45,17 @@ export const downloadLyrics = async (
   log(`\n下载歌词中: ${title}`)
   let document = lyricDocumentCache.find(it => it.url === url)?.document
   if (!document) {
-    const response = await axios.get(url, { timeout: config.timeout * 1000 })
+    log(url)
+    let response: AxiosResponse<string>
+    try {
+      response = await axios.get(url, { timeout: config.timeout * 1000 })
+    } catch (error) {
+      console.error(`下载歌词页面失败: ${url}`)
+      return {
+        lyric: '',
+        lyricLanguage: undefined,
+      }
+    }
     document = parseHTML(response.data).window.document
     lyricDocumentCache.push({ url, document })
     if (lyricDocumentCache.length > config.lyric.maxCacheSize) {
