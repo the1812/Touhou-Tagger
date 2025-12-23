@@ -1,7 +1,7 @@
 # Touhou Tagger
 
 <div align="center">
-  <img src="./logo.svg" height="300" />
+  <img src="./assets/logo.svg" height="300" />
 </div>
 
 从 [THBWiki](http://thwiki.cc/首页) 自动填写东方 Project CD 曲目信息.

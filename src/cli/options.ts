@@ -7,6 +7,7 @@ import { loadConfigFile, saveConfigFile } from './config-file'
 const readCliOptionsFromFile = () => {
   const configFile = loadConfigFile()
   const options = yargs(hideBin(process.argv))
+    .scriptName('thtag')
     .parserConfiguration({
       'short-option-groups': false,
     })

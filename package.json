@@ -11,7 +11,7 @@
     "watch": "tsc --watch --sourceMap",
     "lint": "eslint . --ext .cjs,.ts,.vue",
     "eslint-fix": "eslint . --ext .cjs,.ts,.vue --fix",
-    "build": "tsc"
+    "build": "bun bun-build.ts && tsc"
   },
   "repository": {
     "type": "git",
@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@the1812/eslint-config": "1.2.0",
+    "@types/bun": "^1.3.5",
     "@types/node": "^18",
     "@types/yargs": "17.0.12",
     "@typescript-eslint/eslint-plugin": "6.13.0",
@@ -57,11 +58,9 @@
     "prettier": "3.1.0",
     "typescript": "5.3.2"
   },
-  "pnpm": {
-    "patchedDependencies": {
-      "node-id3@0.2.3": "patches/node-id3@0.2.3.patch",
-      "@squoosh/lib@0.5.3": "patches/@squoosh__lib@0.5.3.patch"
-    }
-  },
-  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52"
+  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52",
+  "patchedDependencies": {
+    "node-id3@0.2.3": "patches/node-id3@0.2.3.patch",
+    "@squoosh/lib@0.5.3": "patches/@squoosh__lib@0.5.3.patch"
+  }
 }
