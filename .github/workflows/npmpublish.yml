@@ -8,6 +8,10 @@ on:
   release:
     types: [created]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish-npm:
     runs-on: windows-latest
@@ -22,5 +26,3 @@ jobs:
       - run: bun install
       - run: bun run build
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
