@@ -27,12 +27,20 @@
 </div>
 
 ## 安装 / 更新
+
+### 方式 1: Node.js
 需要事先装有 [Node.js](https://nodejs.org/en/) 和 [pnpm](https://pnpm.io/installation), 然后使用以下命令来安装此工具:
 ```powershell
 pnpm install --global touhou-tagger
 ```
 
 > 如果曾经使用其他包管理器安装过 v1.5.0 之前的版本, 需要先卸载再使用 pnpm 安装.
+
+### 方式 2: 可执行文件 (Windows)
+从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中直接下载 `thtag.exe`, 将其存放目录添加到 Path 中即可.
+
+> 可执行文件使用 [Bun](https://bun.com/docs) 打包, 体积会略微比 Node.js 版大一点; 其他操作系统也可以从源码自行打包.
+
 
 ## 使用
 假设您为一个专辑的音乐建立了单独的文件夹, 在专辑文件夹中运行:
