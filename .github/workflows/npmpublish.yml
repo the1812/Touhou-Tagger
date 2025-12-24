@@ -10,17 +10,17 @@ on:
 
 jobs:
   publish-npm:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
-          registry-url: https://registry.npmjs.org/
-      - uses: pnpm/action-setup@v4
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
         with:
-          run_install: true
-      - run: pnpm build
+          bun-version-file: ".bun-version"
+      - run: bun install
+      - run: bun run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

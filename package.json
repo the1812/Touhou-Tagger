@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
   "main": "dist/core/index.js",
+  "engines": {
+    "bun": "1.3.5"
+  },
   "bin": {
     "thtag": "dist/cli/index.js"
   },
@@ -11,7 +14,8 @@
     "watch": "tsc --watch --sourceMap",
     "lint": "eslint . --ext .cjs,.ts,.vue",
     "eslint-fix": "eslint . --ext .cjs,.ts,.vue --fix",
-    "build": "bun bun-build.ts && tsc"
+    "build": "tsc",
+    "build:executable": "bun bun-build.ts"
   },
   "repository": {
     "type": "git",

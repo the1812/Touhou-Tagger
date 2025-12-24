@@ -1,0 +1,34 @@
+name: Build Executable
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: ".bun-version"
+      - run: bun install
+      - run: bun run build:executable
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thtag-executable
+          path: bin/thtag.exe
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        # spell-checker: disable-next-line
+        uses: irongut/EditRelease@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: ${{ github.event.release.id }}
+          files: bin/thtag.exe
