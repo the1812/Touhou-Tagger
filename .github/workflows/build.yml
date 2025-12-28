@@ -5,15 +5,18 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
@@ -26,9 +29,6 @@ jobs:
           path: bin/thtag.exe
       - name: Upload to Release
         if: github.event_name == 'release'
-        # spell-checker: disable-next-line
-        uses: irongut/EditRelease@v1.2.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          id: ${{ github.event.release.id }}
-          files: bin/thtag.exe
+        run: gh release upload ${{ github.event.release.tag_name }} bin/thtag.exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
