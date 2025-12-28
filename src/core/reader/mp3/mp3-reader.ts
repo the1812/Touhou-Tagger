@@ -18,8 +18,13 @@ export class Mp3Reader extends MetadataReader<nodeId3.Tags> {
     return tag
   }
   async read(input: string | Buffer | nodeId3.Tags) {
-    const tag =
-      typeof input === 'string' || input instanceof Buffer ? await this.readRaw(input) : input
+    const tag: nodeId3.Tags = await (async () => {
+      if (typeof input === 'string' || input instanceof Buffer) {
+        return this.readRaw(input)
+      }
+      return input as nodeId3.Tags
+    })()
+
     const { separator } = this.config
     const metadata: Metadata = {
       title: tag.title ?? '',
