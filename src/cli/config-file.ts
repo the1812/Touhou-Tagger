@@ -11,5 +11,7 @@ export const loadConfigFile = () => {
   return JSON.parse(readFileSync(filePath, { encoding: 'utf8' })) as MetadataConfig
 }
 export const saveConfigFile = (config: MetadataConfig) => {
-  writeFileSync(filePath, JSON.stringify(config, undefined, 2))
+  writeFileSync(filePath, JSON.stringify(config, undefined, 2), {
+    flag: 'r+',
+  })
 }
