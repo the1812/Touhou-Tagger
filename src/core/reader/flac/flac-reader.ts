@@ -8,7 +8,7 @@ export class FlacReader extends MetadataReader<FlacTags> {
   }
   async read(input: string | Buffer | FlacTags) {
     const tag =
-      typeof input === 'string' || input instanceof Buffer ? await this.readRaw(input) : input
+      typeof input === 'string' || Buffer.isBuffer(input) ? await this.readRaw(input) : input
     const { tagMap, picture } = tag
     const readVorbisComments = ((name: string, asList?: boolean) => {
       const comments = tagMap[name]
