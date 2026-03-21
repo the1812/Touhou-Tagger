@@ -39,6 +39,8 @@ export class Mp3Reader extends MetadataReader<nodeId3.Tags> {
       lyricists: tag.textWriter?.split(separator),
       albumArtists: tag.performerInfo?.split(separator),
       comments: tag.comment?.text,
+      bpm: tag.bpm,
+      key: tag.initialKey,
       lyric: tag.unsynchronisedLyrics?.text,
       lyricLanguage: tag.unsynchronisedLyrics
         ? languageCodeConvert(tag.unsynchronisedLyrics?.language)

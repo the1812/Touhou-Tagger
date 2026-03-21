@@ -17,4 +17,6 @@ export interface Metadata extends AlbumMetadata {
   lyricLanguage?: string
   lyric?: string
   lyricists?: string[]
+  bpm?: string
+  key?: string
 }

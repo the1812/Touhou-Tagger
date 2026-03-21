@@ -25,6 +25,8 @@ export class Mp3Writer extends MetadataWriter {
       year: metadata.year || '',
       textWriter: metadata.lyricists ? metadata.lyricists.join(separator) : '',
       performerInfo: metadata.albumArtists ? metadata.albumArtists.join(separator) : '',
+      bpm: metadata.bpm,
+      initialKey: metadata.key,
       comment: {
         language: this.config.commentLanguage,
         text: metadata.comments || '',

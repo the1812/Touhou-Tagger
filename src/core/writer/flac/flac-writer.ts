@@ -32,6 +32,12 @@ const getVorbisComments = (metadata: Metadata): FlacTagMap => {
   if (metadata.year) {
     tagMap.date = metadata.year
   }
+  if (metadata.bpm) {
+    tagMap.bpm = metadata.bpm
+  }
+  if (metadata.key) {
+    tagMap.key = metadata.key
+  }
   return tagMap
 }
 export class FlacWriter extends MetadataWriter {

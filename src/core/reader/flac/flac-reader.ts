@@ -40,6 +40,8 @@ export class FlacReader extends MetadataReader<FlacTags> {
       albumArtists: readVorbisComments('albumArtist', true),
       comments: readVorbisComments('comment'),
       lyric: readVorbisComments('lyrics'),
+      bpm: readVorbisComments('bpm'),
+      key: readVorbisComments('key'),
       coverImage: picture.buffer,
     }
     return metadata
