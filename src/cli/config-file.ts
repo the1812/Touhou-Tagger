@@ -1,6 +1,14 @@
 import { homedir } from 'os'
 import { join } from 'path'
-import { readFileSync, existsSync, writeFileSync } from 'fs'
+import {
+  closeSync,
+  existsSync,
+  ftruncateSync,
+  openSync,
+  readFileSync,
+  writeFileSync,
+  writeSync,
+} from 'fs'
 import { MetadataConfig } from '../core/core-config'
 
 export const filePath = join(homedir(), '.thtag.json')
@@ -11,7 +19,16 @@ export const loadConfigFile = () => {
   return JSON.parse(readFileSync(filePath, { encoding: 'utf8' })) as MetadataConfig
 }
 export const saveConfigFile = (config: MetadataConfig) => {
-  writeFileSync(filePath, JSON.stringify(config, undefined, 2), {
-    flag: 'r+',
-  })
+  const content = JSON.stringify(config, undefined, 2)
+  if (!existsSync(filePath)) {
+    writeFileSync(filePath, content)
+    return
+  }
+  const fd = openSync(filePath, 'r+')
+  try {
+    ftruncateSync(fd, 0)
+    writeSync(fd, content)
+  } finally {
+    closeSync(fd)
+  }
 }
