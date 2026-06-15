@@ -1,9 +1,8 @@
 import axios from 'axios'
-import fuse from 'fuse.js'
 
-import { Metadata } from '../metadata'
-import { MetadataSource } from '../metadata-source'
-import { expandMetadataInfo } from '../normalize/normalize'
+import { MetadataSource } from '../metadata-source.js'
+import { Metadata } from '../metadata.js'
+import { expandMetadataInfo } from '../normalize/normalize.js'
 
 const doujinMetaApi = axios.create({
   baseURL: 'https://doujin-meta.vercel.app',
@@ -15,7 +14,7 @@ interface DoujinMetaSearchItem {
   name: string
   coverUrl: string
   detailUrl: string
-  matches: fuse.RangeTuple[]
+  matches: [number, number][]
 }
 type DoujinMetaSearchResult = DoujinMetaSearchItem[]
 interface DoujinMetaAlbumDetail {

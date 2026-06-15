@@ -1,3 +1,5 @@
+import * as Bun from 'bun'
+
 import packageJson from './package.json' with { type: 'json' }
 
 Bun.build({

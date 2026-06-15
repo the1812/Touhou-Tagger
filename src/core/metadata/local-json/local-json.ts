@@ -1,13 +1,13 @@
 import { readFile } from 'fs/promises'
 
-import { resolvePath } from '../../exists'
-import { Metadata } from '../metadata'
-import { MetadataSource } from '../metadata-source'
+import { resolvePath } from '../../exists.js'
+import { MetadataSource } from '../metadata-source.js'
+import { Metadata } from '../metadata.js'
 import {
   MetadataNormalizePlugin,
   expandMetadataInfo,
   expandMetadataInfoWithoutCover,
-} from '../normalize/normalize'
+} from '../normalize/normalize.js'
 
 /** @deprecated 请使用 {@link MetadataNormalizePlugin}. */
 export type LocalJsonPlugin = MetadataNormalizePlugin

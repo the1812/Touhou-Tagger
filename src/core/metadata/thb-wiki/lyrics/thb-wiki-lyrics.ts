@@ -1,9 +1,9 @@
 import axios, { AxiosResponse } from 'axios'
 import { parseHTML } from 'linkedom'
 
-import { MetadataConfig } from '../../../core-config'
-import { log } from '../../../debug'
-import { getLyricParser, LyricParser } from './lyric-parser'
+import { MetadataConfig } from '../../../core-config.js'
+import { log } from '../../../debug.js'
+import { getLyricParser, LyricParser } from './lyric-parser.js'
 
 let lyricParser: LyricParser
 const downloadMetadataLyrics = async () => {

@@ -1,6 +1,6 @@
-import { doujinMeta } from './doujin-meta/doujin-meta'
-import { MetadataSource } from './metadata-source'
-import { thbWiki } from './thb-wiki/thb-wiki'
+import { doujinMeta } from './doujin-meta/doujin-meta.js'
+import { MetadataSource } from './metadata-source.js'
+import { thbWiki } from './thb-wiki/thb-wiki.js'
 
 export const sourceMappings = {
   'thb-wiki': thbWiki,

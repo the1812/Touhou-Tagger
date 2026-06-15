@@ -1,5 +1,5 @@
-import { MetadataConfig } from '../core-config'
-import { Metadata } from '../metadata/metadata'
+import { MetadataConfig } from '../core-config.js'
+import { Metadata } from '../metadata/metadata.js'
 
 export abstract class MetadataWriter {
   config: MetadataConfig

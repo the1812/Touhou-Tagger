@@ -1,12 +1,12 @@
-import type { Metadata } from '../metadata'
-import { altNamesPlugin } from './alt-names'
-import { expandArtistsPlugin, simplifyArtistsPlugin } from './artists'
-import { expandCommonFieldsPlugin, simplifyCommonFieldsPlugin } from './common-fields'
-import { expandCoverPlugin } from './cover'
-import { expandNumberPlugin, simplifyNumberPlugin } from './number'
-import type { MetadataNormalizePlugin } from './types'
+import type { Metadata } from '../metadata.js'
+import { altNamesPlugin } from './alt-names.js'
+import { expandArtistsPlugin, simplifyArtistsPlugin } from './artists.js'
+import { expandCommonFieldsPlugin, simplifyCommonFieldsPlugin } from './common-fields.js'
+import { expandCoverPlugin } from './cover.js'
+import { expandNumberPlugin, simplifyNumberPlugin } from './number.js'
+import type { MetadataNormalizePlugin } from './types.js'
 
-export type { MetadataNormalizePlugin } from './types'
+export type { MetadataNormalizePlugin } from './types.js'
 
 const internalNormalize = async (params: {
   plugins: MetadataNormalizePlugin[]

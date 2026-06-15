@@ -3,10 +3,10 @@ import { readdir } from 'fs/promises'
 
 import id3 from 'node-id3'
 
-import { resolvePath } from '../../exists'
-import { defaultsToEmptyString } from '../../proxy'
-import { Metadata } from '../metadata'
-import { MetadataSource } from '../metadata-source'
+import { resolvePath } from '../../exists.js'
+import { defaultsToEmptyString } from '../../proxy.js'
+import { MetadataSource } from '../metadata-source.js'
+import { Metadata } from '../metadata.js'
 
 const dirFilter = async <Result = string>(
   path: string,

@@ -1,7 +1,7 @@
 import { FlacTags, readFlacTags } from 'flac-tagger'
 
-import { Metadata } from '../../metadata/metadata'
-import { MetadataReader } from '../metadata-reader'
+import { Metadata } from '../../metadata/metadata.js'
+import { MetadataReader } from '../metadata-reader.js'
 
 export class FlacReader extends MetadataReader<FlacTags> {
   async readRaw(input: string | Buffer) {

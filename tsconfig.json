@@ -16,5 +16,6 @@
     "declarationDir": "./dist/",
     "outDir": "./dist/"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/core/index.ts", "src/cli/index.ts"],
+  "exclude": ["dist/", "node_modules/", "test-files/", "patches/", "bin/"]
 }

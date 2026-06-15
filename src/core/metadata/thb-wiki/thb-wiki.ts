@@ -1,11 +1,11 @@
 import axios from 'axios'
 import { parseHTML } from 'linkedom'
 
-import { MetadataConfig } from '../../core-config'
-import { log } from '../../debug'
-import { albumArtistsAltNames, altNames } from '../alt-names'
-import { Metadata } from '../metadata'
-import { MetadataSource } from '../metadata-source'
+import { MetadataConfig } from '../../core-config.js'
+import { log } from '../../debug.js'
+import { albumArtistsAltNames, altNames } from '../alt-names.js'
+import { MetadataSource } from '../metadata-source.js'
+import { Metadata } from '../metadata.js'
 
 const isNodeAnElement = <TargetType extends Element>(
   node: Node,

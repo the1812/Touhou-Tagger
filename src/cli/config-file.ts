@@ -11,7 +11,7 @@ import {
 import { homedir } from 'os'
 import { dirname, join } from 'path'
 
-import { MetadataConfig } from '../core/core-config'
+import { MetadataConfig } from '../core/core-config.js'
 
 export const legacyFilePath = join(homedir(), '.thtag.json')
 export const filePath = (() => {

@@ -1,8 +1,8 @@
 import type { Ora } from 'ora'
 
-import { readline } from '../core/readline'
-import { getDefaultAlbumName } from './default-album-name'
-import { getCliOptions } from './options'
+import { readline } from '../core/readline.js'
+import { getDefaultAlbumName } from './default-album-name.js'
+import { getCliOptions } from './options.js'
 
 export const runTagger = async () => {
   let spinner: Ora

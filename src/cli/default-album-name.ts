@@ -1,7 +1,7 @@
 import { basename, resolve } from 'path'
 
-import { log } from '../core/debug'
-import { getAlbumOptions } from './album-options'
+import { log } from '../core/debug.js'
+import { getAlbumOptions } from './album-options.js'
 
 interface SpecialFormat {
   name: string

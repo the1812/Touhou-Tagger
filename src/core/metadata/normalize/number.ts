@@ -1,4 +1,4 @@
-import type { MetadataNormalizePlugin } from './types'
+import type { MetadataNormalizePlugin } from './types.js'
 
 /** 自动推测 trackNumber 和 discNumber */
 export const expandNumberPlugin: MetadataNormalizePlugin = () => {

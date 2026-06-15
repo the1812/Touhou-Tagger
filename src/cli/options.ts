@@ -1,9 +1,9 @@
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config'
-import { log, setDebug } from '../core/debug'
-import { loadConfigFile, saveConfigFile } from './config-file'
+import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config.js'
+import { log, setDebug } from '../core/debug.js'
+import { loadConfigFile, saveConfigFile } from './config-file.js'
 
 const readCliOptionsFromFile = () => {
   const configFile = loadConfigFile()

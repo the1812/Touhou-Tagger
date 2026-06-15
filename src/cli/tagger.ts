@@ -3,15 +3,15 @@ import { extname, resolve as resolvePath } from 'path'
 
 import { Ora } from 'ora'
 
-import { Metadata, MetadataSource } from '../core'
-import { MetadataConfig } from '../core/core-config'
-import { log } from '../core/debug'
-import { readline } from '../core/readline'
-import { setAlbumOptions } from './album-options'
-import { CliCommandBase } from './command-base'
-import { getDefaultAlbumName } from './default-album-name'
-import { asyncFlatMap } from './helper'
-import { getMetadataConfig } from './options'
+import { MetadataConfig } from '../core/core-config.js'
+import { log } from '../core/debug.js'
+import { Metadata, MetadataSource } from '../core/index.js'
+import { readline } from '../core/readline.js'
+import { setAlbumOptions } from './album-options.js'
+import { CliCommandBase } from './command-base.js'
+import { getDefaultAlbumName } from './default-album-name.js'
+import { asyncFlatMap } from './helper.js'
+import { getMetadataConfig } from './options.js'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -164,15 +164,12 @@ export class CliTagger extends CliCommandBase {
           if (!error) {
             return '发生未知错误'
           }
-          if (error.stack) {
+          if (error instanceof Error && error.stack) {
             return error.stack
           }
           return typeof error === 'string' ? error : JSON.stringify(error)
         })()
         log('\nretry get error', retryCount, reason)
-        if (reason.stack) {
-          log(`\n${reason.stack}`)
-        }
         if (error === TimeoutError && retryCount < this.options.retry) {
           this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
         } else {

@@ -1,5 +1,5 @@
-import { CliDumper } from './dumper'
-import { getCliOptions } from './options'
+import { CliDumper } from './dumper.js'
+import { getCliOptions } from './options.js'
 
 export const dump = async () => {
   const cliOptions = getCliOptions()

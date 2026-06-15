@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { resolve } from 'path'
 
-import { type CliOptions } from './options'
+import { type CliOptions } from './options.js'
 
 export interface AlbumOptions extends Partial<CliOptions> {
   defaultAlbumHint?: string

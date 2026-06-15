@@ -1,5 +1,5 @@
-import { AlbumOptions, getAlbumOptions } from './album-options'
-import { getCliOptions, type CliOptions } from './options'
+import { AlbumOptions, getAlbumOptions } from './album-options.js'
+import { getCliOptions, type CliOptions } from './options.js'
 
 export abstract class CliCommandBase {
   workingDir = '.'

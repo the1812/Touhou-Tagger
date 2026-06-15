@@ -2,7 +2,7 @@ import { cpus } from 'os'
 
 import type { ImagePool as ImagePoolType } from '@squoosh/lib'
 
-import type { MetadataConfig } from '../core-config'
+import type { MetadataConfig } from '../core-config.js'
 
 const getQuality = (size: number) => Math.round(92.647 - 1.683e-6 * size)
 const CompressedData = Symbol('CompressedData')

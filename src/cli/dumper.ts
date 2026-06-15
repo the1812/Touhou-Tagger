@@ -1,8 +1,8 @@
-import { Metadata } from '../core'
-import { log } from '../core/debug'
-import { simplifyMetadataInfo } from '../core/metadata/normalize/normalize'
-import { CliCommandBase } from './command-base'
-import { getMetadataConfig } from './options'
+import { log } from '../core/debug.js'
+import { Metadata } from '../core/index.js'
+import { simplifyMetadataInfo } from '../core/metadata/normalize/normalize.js'
+import { CliCommandBase } from './command-base.js'
+import { getMetadataConfig } from './options.js'
 
 const handleBufferStringify = (key: string, value: any) => {
   const isBuffer = typeof value === 'object' && value !== null && value.type === 'Buffer'

@@ -1,5 +1,5 @@
-import { Metadata } from '../metadata'
-import type { MetadataNormalizePlugin } from './types'
+import { Metadata } from '../metadata.js'
+import type { MetadataNormalizePlugin } from './types.js'
 
 const albumDataFields: string[] = [
   'album',

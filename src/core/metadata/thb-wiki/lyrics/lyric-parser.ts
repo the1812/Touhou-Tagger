@@ -1,5 +1,5 @@
-import { LyricConfig } from '../../../core-config'
-import { log } from '../../../debug'
+import { LyricConfig } from '../../../core-config.js'
+import { log } from '../../../debug.js'
 
 export abstract class LyricParser {
   protected rows: Element[]

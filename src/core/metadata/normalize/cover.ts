@@ -1,4 +1,4 @@
-import type { MetadataNormalizePlugin } from './types'
+import type { MetadataNormalizePlugin } from './types.js'
 
 /** 处理封面图片 */
 export const expandCoverPlugin: MetadataNormalizePlugin = ({ cover }) => {

@@ -1,4 +1,4 @@
-import type { Metadata } from '../metadata'
+import type { Metadata } from '../metadata.js'
 
 export type MetadataNormalizePlugin = (init: {
   cover?: Buffer

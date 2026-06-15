@@ -3,9 +3,9 @@ import { join } from 'path'
 
 import type { Options as OraOptions, Ora } from 'ora'
 
-import { log } from '../core/debug'
-import { getDefaultAlbumName } from './default-album-name'
-import { asyncFlatMap } from './helper'
+import { log } from '../core/debug.js'
+import { getDefaultAlbumName } from './default-album-name.js'
+import { asyncFlatMap } from './helper.js'
 
 const readFolder = async (
   folder: string,
@@ -55,7 +55,7 @@ const createBatchRun = async (config: {
       })
       log(`processed album #${index + 1}`)
     } catch (error) {
-      log('batch error:', error.message)
+      log('batch error:', (error as Error).message)
       continue
     }
   }

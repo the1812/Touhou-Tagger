@@ -1,8 +1,8 @@
 import id3 from 'node-id3'
 
-import { log } from '../../debug'
-import { Metadata } from '../../metadata/metadata'
-import { MetadataWriter } from '../metadata-writer'
+import { log } from '../../debug.js'
+import { Metadata } from '../../metadata/metadata.js'
+import { MetadataWriter } from '../metadata-writer.js'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
