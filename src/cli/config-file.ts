@@ -1,9 +1,10 @@
 import { homedir } from 'os'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import {
   closeSync,
   existsSync,
   ftruncateSync,
+  mkdirSync,
   openSync,
   readFileSync,
   writeFileSync,
@@ -11,15 +12,35 @@ import {
 } from 'fs'
 import { MetadataConfig } from '../core/core-config'
 
-export const filePath = join(homedir(), '.thtag.json')
+export const legacyFilePath = join(homedir(), '.thtag.json')
+export const filePath = (() => {
+  switch (process.platform) {
+    case 'win32':
+      return join(
+        process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'),
+        'Touhou Tagger',
+        'config.json',
+      )
+    case 'darwin':
+      return join(homedir(), 'Library', 'Application Support', 'Touhou Tagger', 'config.json')
+    default:
+      return join(
+        process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config'),
+        'touhou-tagger',
+        'config.json',
+      )
+  }
+})()
 export const loadConfigFile = () => {
-  if (!existsSync(filePath)) {
+  const configPath = existsSync(filePath) ? filePath : legacyFilePath
+  if (!existsSync(configPath)) {
     return null
   }
-  return JSON.parse(readFileSync(filePath, { encoding: 'utf8' })) as MetadataConfig
+  return JSON.parse(readFileSync(configPath, { encoding: 'utf8' })) as MetadataConfig
 }
 export const saveConfigFile = (config: MetadataConfig) => {
   const content = JSON.stringify(config, undefined, 2)
+  mkdirSync(dirname(filePath), { recursive: true })
   if (!existsSync(filePath)) {
     writeFileSync(filePath, content)
     return
