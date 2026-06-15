@@ -38,7 +38,7 @@ export class CliDumper extends CliCommandBase {
     const { glob } = await import('glob')
     const { extname, resolve } = await import('path')
     const { writeFileSync, readFileSync } = await import('fs')
-    const { readerMappings } = await import('../core/reader/reader-mappings')
+    const { readerMappings } = await import('../core/reader/reader-mappings.js')
     const globTypes = Object.keys(readerMappings)
       .map(readerType => readerType.replace(/^\./, ''))
       .join('|')

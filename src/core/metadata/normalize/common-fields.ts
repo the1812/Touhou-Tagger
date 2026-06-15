@@ -1,5 +1,5 @@
 import { Metadata } from '../metadata'
-import { MetadataNormalizePlugin } from './normalize'
+import type { MetadataNormalizePlugin } from './types'
 
 const albumDataFields: string[] = [
   'album',

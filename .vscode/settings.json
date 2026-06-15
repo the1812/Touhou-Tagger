@@ -16,6 +16,8 @@
     "ogmusic",
     "opensearch",
     "ORIGINALYEAR",
+    "oxfmt",
+    "oxlint",
     "postprocess",
     "promisify",
     "squoosh",
@@ -32,10 +34,11 @@
     "Vorbis",
     "wikitable"
   ],
+  "oxc.fmt.configPath": ".oxfmtrc.jsonc",
   "[javascript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

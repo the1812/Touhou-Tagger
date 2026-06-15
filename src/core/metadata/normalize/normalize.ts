@@ -1,13 +1,12 @@
 import type { Metadata } from '../metadata'
 import { altNamesPlugin } from './alt-names'
+import { expandArtistsPlugin, simplifyArtistsPlugin } from './artists'
 import { expandCommonFieldsPlugin, simplifyCommonFieldsPlugin } from './common-fields'
 import { expandCoverPlugin } from './cover'
 import { expandNumberPlugin, simplifyNumberPlugin } from './number'
-import { expandArtistsPlugin, simplifyArtistsPlugin } from './artists'
+import type { MetadataNormalizePlugin } from './types'
 
-export type MetadataNormalizePlugin = (init: {
-  cover?: Buffer
-}) => (context: { metadata: Metadata; index: number }) => void | Promise<void>
+export type { MetadataNormalizePlugin } from './types'
 
 const internalNormalize = async (params: {
   plugins: MetadataNormalizePlugin[]

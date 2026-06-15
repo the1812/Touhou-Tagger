@@ -1,11 +1,11 @@
 import axios from 'axios'
 import fuse from 'fuse.js'
+
 import { Metadata } from '../metadata'
 import { MetadataSource } from '../metadata-source'
 import { expandMetadataInfo } from '../normalize/normalize'
 
 const doujinMetaApi = axios.create({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   baseURL: 'https://doujin-meta.vercel.app',
   responseType: 'json',
 })

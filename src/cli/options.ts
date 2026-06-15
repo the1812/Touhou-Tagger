@@ -1,5 +1,6 @@
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
+
 import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config'
 import { log, setDebug } from '../core/debug'
 import { loadConfigFile, saveConfigFile } from './config-file'
@@ -12,12 +13,12 @@ const readCliOptionsFromFile = () => {
       'short-option-groups': false,
     })
     .command(['tag', '*'], '为音乐文件写入元数据', {}, () => {
-      import('./run-tagger').then(({ runTagger }) => {
+      import('./run-tagger.js').then(({ runTagger }) => {
         runTagger()
       })
     })
     .command('dump', '从音乐文件提取元数据', {}, () => {
-      import('./run-dumper').then(({ dump }) => {
+      import('./run-dumper.js').then(({ dump }) => {
         dump()
       })
     })

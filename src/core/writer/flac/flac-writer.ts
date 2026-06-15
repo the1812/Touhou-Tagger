@@ -1,6 +1,7 @@
 import { FlacTagMap, writeFlacTags } from 'flac-tagger'
-import { MetadataWriter } from '../metadata-writer'
+
 import { Metadata } from '../../metadata/metadata'
+import { MetadataWriter } from '../metadata-writer'
 
 const getVorbisComments = (metadata: Metadata): FlacTagMap => {
   const tagMap: FlacTagMap = {
@@ -46,7 +47,7 @@ export class FlacWriter extends MetadataWriter {
       if (!metadata.coverImage) {
         return undefined
       }
-      const { compressImageByConfig } = await import('../image-compress')
+      const { compressImageByConfig } = await import('../image-compress.js')
       return compressImageByConfig(metadata.coverImage, this.config)
     })()
     await writeFlacTags(

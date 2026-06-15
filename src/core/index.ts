@@ -15,4 +15,3 @@ export { mp3Writer } from './writer/mp3/mp3-writer'
 export { flacWriter } from './writer/flac/flac-writer'
 
 export * from './core-config'
-export * from '.'

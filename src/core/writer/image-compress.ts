@@ -1,5 +1,7 @@
-import type { ImagePool as ImagePoolType } from '@squoosh/lib'
 import { cpus } from 'os'
+
+import type { ImagePool as ImagePoolType } from '@squoosh/lib'
+
 import type { MetadataConfig } from '../core-config'
 
 const getQuality = (size: number) => Math.round(92.647 - 1.683e-6 * size)

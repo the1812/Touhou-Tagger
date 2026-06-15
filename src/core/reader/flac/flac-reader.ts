@@ -1,4 +1,5 @@
 import { FlacTags, readFlacTags } from 'flac-tagger'
+
 import { Metadata } from '../../metadata/metadata'
 import { MetadataReader } from '../metadata-reader'
 
@@ -23,7 +24,7 @@ export class FlacReader extends MetadataReader<FlacTags> {
       }
       return comments || undefined
     }) as {
-      (name: string, asList?: undefined | false): string
+      (name: string, asList?: false): string
       (name: string, asList: true): string[]
     }
     const metadata: Metadata = {
@@ -42,7 +43,7 @@ export class FlacReader extends MetadataReader<FlacTags> {
       lyric: readVorbisComments('lyrics'),
       bpm: readVorbisComments('bpm'),
       key: readVorbisComments('key'),
-      coverImage: picture.buffer,
+      coverImage: picture?.buffer,
     }
     return metadata
   }

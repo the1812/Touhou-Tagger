@@ -1,4 +1,5 @@
 import type { Ora } from 'ora'
+
 import { readline } from '../core/readline'
 import { getDefaultAlbumName } from './default-album-name'
 import { getCliOptions } from './options'
@@ -17,7 +18,7 @@ export const runTagger = async () => {
         },
       }).start()
     }
-    const { CliTagger } = await import('./tagger')
+    const { CliTagger } = await import('./tagger.js')
     const tagger = new CliTagger(spinner)
     await tagger.run(album)
     process.exit()
@@ -25,14 +26,12 @@ export const runTagger = async () => {
 
   const defaultAlbumName = await getDefaultAlbumName()
   if (cliOptions.batch) {
-    import('./batch').then(({ runBatchTagger }) => {
-      runBatchTagger(cliOptions.batch, cliOptions.batchDepth)
-    })
+    const { runBatchTagger } = await import('./batch.js')
+    await runBatchTagger(cliOptions.batch, cliOptions.batchDepth)
   } else if (cliOptions['no-interactive']) {
-    start(defaultAlbumName)
+    await start(defaultAlbumName)
   } else {
-    readline(`请输入专辑名称(${defaultAlbumName}): `).then(album => {
-      start(album || defaultAlbumName)
-    })
+    const album = await readline(`请输入专辑名称(${defaultAlbumName}): `)
+    await start(album || defaultAlbumName)
   }
 }

@@ -2,43 +2,41 @@
   "name": "touhou-tagger",
   "version": "2.2.0",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
-  "main": "dist/core/index.js",
-  "engines": {
-    "bun": "1.3.5",
-    "node": ">= 22"
+  "keywords": [
+    "metadata",
+    "mp3",
+    "music-tagger",
+    "touhou",
+    "touhou-project"
+  ],
+  "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
+  "bugs": {
+    "url": "https://github.com/the1812/Touhou-Tagger/issues"
   },
-  "bin": {
-    "thtag": "dist/cli/index.js"
-  },
-  "scripts": {
-    "start": "node dist/cli/index.js",
-    "watch": "tsc --watch --sourceMap",
-    "lint": "eslint . --ext .cjs,.ts,.vue",
-    "eslint-fix": "eslint . --ext .cjs,.ts,.vue --fix",
-    "build": "tsc",
-    "build:executable": "bun bun-build.ts"
-  },
+  "license": "MIT",
+  "author": "Grant Howard",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/the1812/Touhou-Tagger.git"
   },
-  "keywords": [
-    "touhou",
-    "touhou-project",
-    "music-tagger",
-    "mp3",
-    "metadata"
-  ],
-  "author": "Grant Howard",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/the1812/Touhou-Tagger/issues"
+  "bin": {
+    "thtag": "dist/cli/index.js"
   },
-  "homepage": "https://github.com/the1812/Touhou-Tagger#readme",
+  "main": "dist/core/index.js",
+  "scripts": {
+    "start": "node dist/cli/index.js",
+    "watch": "tsc --watch --sourceMap",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "build": "tsc",
+    "build:executable": "bun bun-build.ts"
+  },
   "dependencies": {
     "@squoosh/lib": "0.5.3",
     "axios": "1.7.9",
-    "flac-tagger": "1.0.7",
+    "flac-tagger": "2.0.0",
     "fuse.js": "6.6.2",
     "glob": "10.2.7",
     "image-type": "4.1.0",
@@ -49,21 +47,19 @@
     "yargs": "17.5.1"
   },
   "devDependencies": {
-    "@the1812/eslint-config": "1.2.0",
     "@types/bun": "^1.3.5",
     "@types/node": "^25.5.0",
     "@types/yargs": "17.0.12",
-    "@typescript-eslint/eslint-plugin": "6.13.0",
-    "@typescript-eslint/parser": "6.13.0",
-    "eslint": "8.54.0",
-    "eslint-config-airbnb-base": "15.0.0",
-    "eslint-config-prettier": "9.0.0",
-    "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-prettier": "5.0.1",
-    "prettier": "3.1.0",
+    "oxfmt": "0.54.0",
+    "oxlint": "1.69.0",
+    "oxlint-tsgolint": "^0.23.0",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52",
+  "engines": {
+    "bun": "1.3.5",
+    "node": ">= 22"
+  },
+  "packageManager": "bun@1.3.5",
   "patchedDependencies": {
     "node-id3@0.2.3": "patches/node-id3@0.2.3.patch",
     "@squoosh/lib@0.5.3": "patches/@squoosh__lib@0.5.3.patch"

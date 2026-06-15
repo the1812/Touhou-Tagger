@@ -1,5 +1,5 @@
 import { altNames } from '../alt-names'
-import { MetadataNormalizePlugin } from './normalize'
+import type { MetadataNormalizePlugin } from './types'
 
 /** 使用 alt-names 的数据进行替换 */
 export const altNamesPlugin: MetadataNormalizePlugin = () => {

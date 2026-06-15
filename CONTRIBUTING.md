@@ -1,13 +1,17 @@
 # 代码贡献指南
+
 需要已安装 `Node.js`, `pnpm` 及 `TypeScript`
 
 ## 安装依赖项
+
 ```powershell
 pnpm install
 ```
 
 ## 添加其他数据源
+
 在 `src/core/metadata/` 中添加文件 `xxx.ts`, 继承 `MetadataSource` 类:
+
 ```TypeScript
 import { MetadataSource } from './metadata-source'
 import { Metadata } from './metadata'
@@ -20,7 +24,9 @@ export class XXX extends MetadataSource {
 }
 export const xxx = new XXX()
 ```
+
 然后在 `src/core/metadata/source-mappings.ts` 中添加对应项:
+
 ```TypeScript
 import { thbWiki } from './thb-wiki';
 import { xxx } from './xxx';
@@ -31,7 +37,9 @@ export const sourceMappings = {
   'xxx': xxx,
 } as { [type: string]: MetadataSource }
 ```
+
 最后在 `src/cli/options.ts` 中添加选项:
+
 ```TypeScript
 .option('source', {
   alias: 's',
@@ -43,7 +51,9 @@ export const sourceMappings = {
 ```
 
 ## 添加其他文件类型支持
+
 在 `src/core/writer/` 中添加文件 `xxx-writer.ts`, 继承 `MetadataWriter` 类:
+
 ```TypeScript
 import { MetadataWriter } from './metadata-writer'
 import { Metadata } from './metadata'
@@ -54,7 +64,9 @@ export class XxxWriter extends MetadataWriter {
 }
 export const xxxWriter = new XxxWriter()
 ```
+
 然后在 `src/core/writer/writer-mappings.ts` 中添加对应项:
+
 ```TypeScript
 import { MetadataWriter } from './metadata-writer'
 import { mp3Writer } from './mp3-writer'
@@ -67,6 +79,7 @@ export const writerMappings = {
 ```
 
 ## 编译
+
 ```powershell
 pnpm watch
 ```
@@ -74,11 +87,13 @@ pnpm watch
 ## 本地版本
 
 安装:
+
 ```powershell
 pnpm link --global
 ```
 
 卸载:
+
 ```powershell
 pnpm remove --global touhou-tagger
 ```

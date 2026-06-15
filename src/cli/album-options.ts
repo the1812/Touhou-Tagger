@@ -1,6 +1,7 @@
 import { existsSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { resolve } from 'path'
+
 import { type CliOptions } from './options'
 
 export interface AlbumOptions extends Partial<CliOptions> {
@@ -24,7 +25,7 @@ export const getAlbumOptions = async (
       ...baseOptions,
       ...albumOptions,
     }
-  } catch (error) {
+  } catch {
     return baseOptions
   }
 }
@@ -45,7 +46,7 @@ export const setAlbumOptions = async (workingDir: string, options: Partial<Album
         2,
       ),
     )
-  } catch (error) {
+  } catch {
     await writeFile(albumOptionsPath, JSON.stringify(options, undefined, 2))
   }
 }

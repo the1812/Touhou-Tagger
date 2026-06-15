@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 import { parseHTML } from 'linkedom'
+
 import { MetadataConfig } from '../../../core-config'
 import { log } from '../../../debug'
 import { getLyricParser, LyricParser } from './lyric-parser'
@@ -30,7 +31,7 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
       lyric: response.data,
       lyricLanguage,
     }
-  } catch (error) {
+  } catch {
     console.error(`下载歌词失败: ${url}`)
     return {
       lyric: '',
@@ -51,7 +52,7 @@ export const downloadLyrics = async (
     let response: AxiosResponse<string>
     try {
       response = await axios.get(url, { timeout: config.timeout * 1000 })
-    } catch (error) {
+    } catch {
       console.error(`下载歌词页面失败: ${url}`)
       return {
         lyric: '',

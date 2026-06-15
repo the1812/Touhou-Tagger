@@ -1,5 +1,3 @@
-import { homedir } from 'os'
-import { dirname, join } from 'path'
 import {
   closeSync,
   existsSync,
@@ -10,6 +8,9 @@ import {
   writeFileSync,
   writeSync,
 } from 'fs'
+import { homedir } from 'os'
+import { dirname, join } from 'path'
+
 import { MetadataConfig } from '../core/core-config'
 
 export const legacyFilePath = join(homedir(), '.thtag.json')

@@ -1,15 +1,17 @@
-import { Ora } from 'ora'
-import { extname, resolve as resolvePath } from 'path'
 import { readFile, readdir, rename, writeFile } from 'fs/promises'
+import { extname, resolve as resolvePath } from 'path'
+
+import { Ora } from 'ora'
+
 import { Metadata, MetadataSource } from '../core'
 import { MetadataConfig } from '../core/core-config'
 import { log } from '../core/debug'
-import { getMetadataConfig } from './options'
 import { readline } from '../core/readline'
+import { setAlbumOptions } from './album-options'
 import { CliCommandBase } from './command-base'
 import { getDefaultAlbumName } from './default-album-name'
-import { setAlbumOptions } from './album-options'
 import { asyncFlatMap } from './helper'
+import { getMetadataConfig } from './options'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -57,14 +59,15 @@ export class CliTagger extends CliCommandBase {
     const json = await readFile(resolvePath(this.workingDir, localMetadata), { encoding: 'utf8' })
     log('localJson get')
     log(json)
-    const { expandMetadataInfo: normalize } = await import('../core/metadata/normalize/normalize')
+    const { expandMetadataInfo: normalize } =
+      await import('../core/metadata/normalize/normalize.js')
     return normalize({
       metadatas: JSON.parse(json) as Metadata[],
       cover: await this.getLocalCover(),
     })
   }
   async downloadMetadata(album: string, cover?: Buffer) {
-    const { sourceMappings } = await import(`../core/metadata/source-mappings`)
+    const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
     metadataSource.config = this.metadataConfig
     this.metadataSource = metadataSource
@@ -72,7 +75,7 @@ export class CliTagger extends CliCommandBase {
   }
   async createFiles(metadata: Metadata[]) {
     const { dirname } = await import('path')
-    const { writerMappings } = await import('../core/writer/writer-mappings')
+    const { writerMappings } = await import('../core/writer/writer-mappings.js')
     const fileTypes = Object.keys(writerMappings)
     const fileTypeFilter = (file: string) => fileTypes.some(type => file.endsWith(type))
     const dir = (await readdir(this.workingDir)).sort(leadingNumberSort)
@@ -112,7 +115,7 @@ export class CliTagger extends CliCommandBase {
     return targetFiles
   }
   async writeMetadataToFile(metadata: Metadata[], targetFiles: string[]) {
-    const { writerMappings } = await import('../core/writer/writer-mappings')
+    const { writerMappings } = await import('../core/writer/writer-mappings.js')
     for (let i = 0; i < targetFiles.length; i++) {
       const file = targetFiles[i]
       log(file)
@@ -164,7 +167,7 @@ export class CliTagger extends CliCommandBase {
           if (error.stack) {
             return error.stack
           }
-          return error.toString()
+          return typeof error === 'string' ? error : JSON.stringify(error)
         })()
         log('\nretry get error', retryCount, reason)
         if (reason.stack) {
@@ -202,7 +205,7 @@ export class CliTagger extends CliCommandBase {
   }
   async run(album: string) {
     await this.loadAlbumOptions()
-    const { sourceMappings } = await import(`../core/metadata/source-mappings`)
+    const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
     const noInteractive = this.options['no-interactive']
     if (!metadataSource) {

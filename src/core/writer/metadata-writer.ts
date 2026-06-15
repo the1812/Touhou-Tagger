@@ -1,5 +1,5 @@
-import { Metadata } from '../metadata/metadata'
 import { MetadataConfig } from '../core-config'
+import { Metadata } from '../metadata/metadata'
 
 export abstract class MetadataWriter {
   config: MetadataConfig

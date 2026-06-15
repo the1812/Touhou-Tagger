@@ -1,4 +1,4 @@
-import { MetadataNormalizePlugin } from './normalize'
+import type { MetadataNormalizePlugin } from './types'
 
 /** 省略 artists 且带有 composers 时, 使用 composers 填充 artists */
 export const expandArtistsPlugin: MetadataNormalizePlugin = () => {

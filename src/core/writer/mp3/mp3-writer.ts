@@ -1,7 +1,8 @@
 import id3 from 'node-id3'
-import { MetadataWriter } from '../metadata-writer'
-import { Metadata } from '../../metadata/metadata'
+
 import { log } from '../../debug'
+import { Metadata } from '../../metadata/metadata'
+import { MetadataWriter } from '../metadata-writer'
 
 const languageCodeConvert = (code: string | undefined) => {
   const mapping = {
@@ -61,7 +62,7 @@ export class Mp3Writer extends MetadataWriter {
       tag.image?.imageBuffer?.length,
     )
     if (tag.image?.imageBuffer) {
-      const { compressImageByConfig } = await import('../image-compress')
+      const { compressImageByConfig } = await import('../image-compress.js')
       tag.image.imageBuffer = await compressImageByConfig(tag.image.imageBuffer, this.config)
     }
     const result = id3.write(tag, filePath)

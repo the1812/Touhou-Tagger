@@ -1,4 +1,5 @@
 import type nodeId3 from 'node-id3'
+
 import { Metadata } from '../../metadata/metadata'
 import { MetadataReader } from '../metadata-reader'
 

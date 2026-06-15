@@ -1,7 +1,8 @@
 import { readFile } from 'fs/promises'
-import { MetadataSource } from '../metadata-source'
-import { Metadata } from '../metadata'
+
 import { resolvePath } from '../../exists'
+import { Metadata } from '../metadata'
+import { MetadataSource } from '../metadata-source'
 import {
   MetadataNormalizePlugin,
   expandMetadataInfo,

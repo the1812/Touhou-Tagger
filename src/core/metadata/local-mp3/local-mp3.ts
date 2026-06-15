@@ -1,10 +1,12 @@
 import { Dirent } from 'fs'
-import id3 from 'node-id3'
 import { readdir } from 'fs/promises'
-import { MetadataSource } from '../metadata-source'
-import { Metadata } from '../metadata'
+
+import id3 from 'node-id3'
+
 import { resolvePath } from '../../exists'
 import { defaultsToEmptyString } from '../../proxy'
+import { Metadata } from '../metadata'
+import { MetadataSource } from '../metadata-source'
 
 const dirFilter = async <Result = string>(
   path: string,

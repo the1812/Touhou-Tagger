@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { parseHTML } from 'linkedom'
-import { MetadataSource } from '../metadata-source'
-import { Metadata } from '../metadata'
-import { log } from '../../debug'
+
 import { MetadataConfig } from '../../core-config'
+import { log } from '../../debug'
 import { albumArtistsAltNames, altNames } from '../alt-names'
+import { Metadata } from '../metadata'
+import { MetadataSource } from '../metadata-source'
 
 const isNodeAnElement = <TargetType extends Element>(
   node: Node,
@@ -257,7 +258,7 @@ export class ThbWiki extends MetadataSource {
         removePatterns
           .reduce((previous, current) => previous.replace(current, ''), str)
           .replace(/\u200b/g, '') // zero-width space
-          // eslint-disable-next-line no-irregular-whitespace
+          // oxlint-disable-next-line no-irregular-whitespace
           .replace(/　/g, ' ')
           .replace(/([^\s])([(])/g, '$1 $2')
           .replace(/([)])([^\s])/g, '$1 $2')
@@ -286,7 +287,7 @@ export class ThbWiki extends MetadataSource {
         ':not(.new) > a:not(.external)',
       ) as HTMLAnchorElement
       if (this.config.lyric && lyricLink) {
-        const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics')
+        const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics.js')
         return downloadLyrics(
           `https://${this.host}${lyricLink.href}`,
           title,

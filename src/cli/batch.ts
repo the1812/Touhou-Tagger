@@ -1,6 +1,8 @@
-import { join } from 'path'
-import type { Options as OraOptions, Ora } from 'ora'
 import { readdir } from 'fs/promises'
+import { join } from 'path'
+
+import type { Options as OraOptions, Ora } from 'ora'
+
 import { log } from '../core/debug'
 import { getDefaultAlbumName } from './default-album-name'
 import { asyncFlatMap } from './helper'
@@ -61,7 +63,7 @@ const createBatchRun = async (config: {
 }
 
 export const runBatchTagger = async (folder: string, depth: number) => {
-  const { CliTagger } = await import('./tagger')
+  const { CliTagger } = await import('./tagger.js')
   await createBatchRun({
     folder,
     depth,
@@ -80,7 +82,7 @@ export const runBatchTagger = async (folder: string, depth: number) => {
   })
 }
 export const runBatchDump = async (folder: string, depth: number) => {
-  const { CliDumper } = await import('./dumper')
+  const { CliDumper } = await import('./dumper.js')
   await createBatchRun({
     folder,
     depth,
