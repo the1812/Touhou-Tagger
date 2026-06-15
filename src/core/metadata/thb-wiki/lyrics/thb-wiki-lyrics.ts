@@ -19,14 +19,16 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
   const lyricLanguage = lyricParser.findLanguage()
   const languageSuffix = lyricParser.getLrcFileSuffix()
   const indexString = index === 0 ? '' : `.${index + 1}`
-  const url = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(title)}${indexString}${languageSuffix}.lrc`
+  const url = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(
+    title,
+  )}${indexString}${languageSuffix}.lrc`
   log(url)
   let response: AxiosResponse<string>
   try {
     response = await axios.get(url, { responseType: 'text', timeout: config.timeout * 1000 })
     return {
       lyric: response.data,
-      lyricLanguage: lyricLanguage,
+      lyricLanguage,
     }
   } catch (error) {
     console.error(`下载歌词失败: ${url}`)
