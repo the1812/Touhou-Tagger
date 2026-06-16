@@ -19,7 +19,7 @@ const getVorbisComments = (metadata: Metadata): FlacTagMap => {
     tagMap.comment = metadata.comments
   }
   if (metadata.lyric) {
-    tagMap.lyric = metadata.lyric
+    tagMap.lyrics = metadata.lyric
   }
   if (metadata.lyricists) {
     tagMap.lyricist = metadata.lyricists
