@@ -1,6 +1,6 @@
 {
   "name": "touhou-tagger",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "从 THBWiki 自动填写东方 Project CD 曲目信息.",
   "keywords": [
     "metadata",
