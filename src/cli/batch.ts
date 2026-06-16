@@ -59,7 +59,6 @@ const createBatchRun = async (config: {
       continue
     }
   }
-  process.exit()
 }
 
 export const runBatchTagger = async (folder: string, depth: number) => {

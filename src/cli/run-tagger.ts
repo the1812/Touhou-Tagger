@@ -21,7 +21,6 @@ export const runTagger = async () => {
     const { CliTagger } = await import('./tagger.js')
     const tagger = new CliTagger(spinner)
     await tagger.run(album)
-    process.exit()
   }
 
   const defaultAlbumName = await getDefaultAlbumName()

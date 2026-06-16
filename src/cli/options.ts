@@ -2,25 +2,44 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
 import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config.js'
-import { log, setDebug } from '../core/debug.js'
-import { loadConfigFile, saveConfigFile } from './config-file.js'
+import { loadConfigFile } from './config-file.js'
 
-const readCliOptionsFromFile = () => {
+export type CliOptions = ReturnType<typeof readCliOptionsFromFile>
+
+let cliOptions: CliOptions
+
+export const getLyricConfig = (options: CliOptions): LyricConfig => {
+  return {
+    type: options.lyricType,
+    output: options.lyricOutput,
+    time: options.lyricTime,
+    translationSeparator: options.translationSeparator,
+    maxCacheSize: options.lyricCacheSize,
+  }
+}
+export const getMetadataConfig = (options: CliOptions): MetadataConfig => {
+  return {
+    lyric: options.lyric ? getLyricConfig(options) : undefined,
+    commentLanguage: options.commentLanguage,
+    coverCompressSize: options.coverCompressSize,
+    coverCompressResolution: options.coverCompressResolution,
+    separator: options.separator,
+    timeout: options.timeout,
+    retry: options.retry,
+  }
+}
+
+export const setCliOptions = (options: CliOptions) => {
+  cliOptions = Object.freeze({ ...options })
+  return cliOptions
+}
+
+export const createCliOptionsParser = (argv = hideBin(process.argv)) => {
   const configFile = loadConfigFile()
-  const options = yargs(hideBin(process.argv))
+  return yargs(argv)
     .scriptName('thtag')
     .parserConfiguration({
       'short-option-groups': false,
-    })
-    .command(['tag', '*'], '为音乐文件写入元数据', {}, () => {
-      import('./run-tagger.js').then(({ runTagger }) => {
-        runTagger()
-      })
-    })
-    .command('dump', '从音乐文件提取元数据', {}, () => {
-      import('./run-dumper.js').then(({ dump }) => {
-        dump()
-      })
     })
     .option('cover', {
       alias: 'c',
@@ -127,53 +146,14 @@ const readCliOptionsFromFile = () => {
       default: true,
       description: '是否允许交互',
     })
-    .parseSync()
-  if (options.debug) {
-    console.log('Node.js version:', process.version)
-  }
-  return Object.freeze({ ...options })
-}
-export type CliOptions = ReturnType<typeof readCliOptionsFromFile>
-export const getLyricConfig = (options: CliOptions): LyricConfig => {
-  return {
-    type: options.lyricType,
-    output: options.lyricOutput,
-    time: options.lyricTime,
-    translationSeparator: options.translationSeparator,
-    maxCacheSize: options.lyricCacheSize,
-  }
-}
-export const getMetadataConfig = (options: CliOptions): MetadataConfig => {
-  return {
-    lyric: options.lyric ? getLyricConfig(options) : undefined,
-    commentLanguage: options.commentLanguage,
-    coverCompressSize: options.coverCompressSize,
-    coverCompressResolution: options.coverCompressResolution,
-    separator: options.separator,
-    timeout: options.timeout,
-    retry: options.retry,
-  }
 }
 
-let cliOptions: CliOptions
+const readCliOptionsFromFile = () => {
+  return Object.freeze({ ...createCliOptionsParser().parseSync() })
+}
 export const getCliOptions = (): CliOptions => {
   if (cliOptions) {
     return { ...cliOptions }
   }
-  cliOptions = readCliOptionsFromFile()
-  return { ...cliOptions }
-}
-
-export const loadOptions = () => {
-  const options = getCliOptions()
-  setDebug(options.debug)
-
-  const metadataConfig = getMetadataConfig(options)
-  const lyricConfig = getLyricConfig(options)
-
-  log(options)
-  log(metadataConfig)
-  saveConfigFile({ ...metadataConfig, lyric: lyricConfig })
-
-  return options
+  return { ...setCliOptions(readCliOptionsFromFile()) }
 }
