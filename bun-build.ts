@@ -5,6 +5,7 @@ import packageJson from './package.json' with { type: 'json' }
 Bun.build({
   entrypoints: ['./src/cli/index.ts'],
   target: 'bun',
+  format: 'esm',
   bytecode: true,
   compile: {
     outfile: 'bin/thtag',
