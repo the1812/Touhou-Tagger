@@ -23,7 +23,7 @@ const writeAlbum = async (albumPath: string, audioFile: string, metadataTitle: s
 }
 
 describe('batch mode', () => {
-  test('tags local-json albums without remote metadata requests', async () => {
+  test('tags every album folder in batch mode', async () => {
     const batchRoot = tmpPath('batch')
     const flacAlbum = join(batchRoot, 'Flac Album')
     const mp3Album = join(batchRoot, 'Mp3 Album')
