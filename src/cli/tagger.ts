@@ -148,13 +148,17 @@ export class CliTagger extends CliCommandBase {
     let retryCount = 0
     while (retryCount < this.options.retry) {
       try {
-        const result = await Promise.race([
-          action(),
-          new Promise<T>((resolve, reject) => {
-            setTimeout(() => reject(TimeoutError), this.options.timeout * 1000)
-          }),
-        ])
-        return result
+        let timeout: ReturnType<typeof setTimeout> | undefined
+        try {
+          return await Promise.race([
+            action(),
+            new Promise<T>((resolve, reject) => {
+              timeout = setTimeout(() => reject(TimeoutError), this.options.timeout * 1000)
+            }),
+          ])
+        } finally {
+          clearTimeout(timeout)
+        }
       } catch (error) {
         retryCount += 1
         const reason = (() => {
@@ -204,7 +208,7 @@ export class CliTagger extends CliCommandBase {
     await this.loadAlbumOptions()
     const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
-    const noInteractive = this.options['no-interactive']
+    const noInteractive = !this.options.interactive
     if (!metadataSource) {
       const message = `未找到与'${this.options.source}'相关联的数据源.`
       this.spinner.fail(message)

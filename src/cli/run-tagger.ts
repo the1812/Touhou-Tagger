@@ -27,7 +27,7 @@ export const runTagger = async () => {
   if (cliOptions.batch) {
     const { runBatchTagger } = await import('./batch.js')
     await runBatchTagger(cliOptions.batch, cliOptions.batchDepth)
-  } else if (cliOptions['no-interactive']) {
+  } else if (!cliOptions.interactive) {
     await start(defaultAlbumName)
   } else {
     const album = await readline(`请输入专辑名称(${defaultAlbumName}): `)
