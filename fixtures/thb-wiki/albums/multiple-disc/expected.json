@@ -1,0 +1,124 @@
+{
+  "cover": true,
+  "album": {
+    "album": "Touhou Colours：Carnelian",
+    "albumOrder": "THCL04B",
+    "albumArtists": ["Chroma Sounds"],
+    "genres": ["其他电子", "House", "Trance", "古典", "硬核"],
+    "year": "2026"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["Rainbow Illusion"],
+      "title": "Quantum Eye",
+      "trackNumber": "1",
+      "comments": "原曲: 聖徳太子のペガサス ～ Dark Pegasus (东方鬼形兽 ～ Wily Beast and Weakest Creature.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["ぱらどっと"],
+      "title": "INDIGOQUARTZ",
+      "trackNumber": "2",
+      "comments": "原曲: 無間の鐘 ～ Infinite Nightmare (Double Spoiler ～ 东方文花帖)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Trashyboi"],
+      "title": "DONTCHUWANNADANCE",
+      "trackNumber": "3",
+      "comments": "原曲: 他愛も無い二人の博物誌 (燕石博物志 ～ Dr.Latency's Freak Report.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["NullTech_EndBlue"],
+      "title": "Snowy Illusion",
+      "trackNumber": "4",
+      "comments": "原曲: 幻想のホワイトトラベラー (东方天空璋 ～ Hidden Star in Four Seasons.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Choefeker"],
+      "title": "THE SINGULARITY is not the ultimate belief",
+      "trackNumber": "5",
+      "comments": "原曲: 地蔵だけが知る哀嘆 (东方鬼形兽 ～ Wily Beast and Weakest Creature.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["KEKiite"],
+      "title": "Ephemera",
+      "trackNumber": "6",
+      "comments": "原曲: 竹取飛翔 ～ Lunatic Princess (东方永夜抄 ～ Imperishable Night.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["RHYX"],
+      "title": "HYPEROUT",
+      "trackNumber": "7",
+      "comments": "原曲: フラワリングナイト (东方花映塚 ～ Phantasmagoria of Flower View.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Soyce"],
+      "title": "Dismal",
+      "trackNumber": "8",
+      "comments": "原曲: Bad Apple!! (东方幻想乡 ～ Lotus Land Story.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["IneSim"],
+      "title": "Where the Firmament weeps perpetually, the Luminous Annulus never declined",
+      "trackNumber": "1",
+      "comments": "原曲: 竹取飛翔 ～ Lunatic Princess (东方永夜抄 ～ Imperishable Night.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["ABSD"],
+      "title": "Scarlet Naissance",
+      "trackNumber": "2",
+      "comments": "原曲: 魔法少女達の百年祭, U.N.オーエンは彼女なのか？ (东方红魔乡 ～ the Embodiment of Scarlet Devil.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["Gaia"],
+      "title": "Flying Dutchman",
+      "trackNumber": "3",
+      "comments": "原曲: 幽霊客船の時空を越えた旅 (东方星莲船 ～ Undefined Fantastic Object.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["BeWiLdEred"],
+      "title": "...;;what the heck that rat blocking my way",
+      "trackNumber": "4",
+      "comments": "原曲: 春の湊に (东方星莲船 ～ Undefined Fantastic Object.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["Eléxia", "Lorph"],
+      "title": "Spectral Skyscraper ~ Eternal Shrine",
+      "trackNumber": "5",
+      "comments": "原曲: 感情の摩天楼 ～ Cosmic Mind (东方星莲船 ～ Undefined Fantastic Object.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["Akamasumi."],
+      "title": "Feel the Rhythm",
+      "trackNumber": "6",
+      "comments": "原曲: 逸脱者達の無礙光 ～ Kingdom of Nothingness. (东方兽王园 ～ Unfinished Dream of All Living Ghost.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["Salty Salt"],
+      "title": "Battle of a Dream",
+      "trackNumber": "7",
+      "comments": "原曲: 少女綺想曲 ～ Dream Battle (东方永夜抄 ～ Imperishable Night.)"
+    },
+    {
+      "discNumber": "2",
+      "artists": ["Relemo"],
+      "title": "Paper Meteor",
+      "trackNumber": "8",
+      "comments": "原曲: 星の器 ～ Casket of Star (东方幻想乡 ～ Lotus Land Story.)"
+    }
+  ]
+}

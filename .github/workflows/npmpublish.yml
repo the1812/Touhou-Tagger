@@ -6,7 +6,7 @@ name: npm Package Publish
 on:
   workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 permissions:
   id-token: write
@@ -14,15 +14,15 @@ permissions:
 
 jobs:
   publish-npm:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version-file: '.bun-version'
-      - run: bun install
+      - run: bun install --frozen-lockfile
       - run: bun run build
       - run: npm publish

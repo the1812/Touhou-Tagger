@@ -14,8 +14,9 @@ beforeEach(async () => {
 
 const writeAlbum = async (albumPath: string, audioFile: string, metadataTitle: string) => {
   await mkdir(albumPath, { recursive: true })
-  await copyFile(fixturePath(audioFile), join(albumPath, audioFile))
-  await copyFile(fixturePath('cover.jpg'), join(albumPath, 'cover.jpg'))
+  const format = audioFile.endsWith('.flac') ? 'flac' : 'mp3'
+  await copyFile(fixturePath('media', format, audioFile), join(albumPath, audioFile))
+  await copyFile(fixturePath('media', 'images', 'cover.jpg'), join(albumPath, 'cover.jpg'))
   const metadata = createMetadata()
   metadata.title = metadataTitle
   metadata.album = metadataTitle.replace(' Track', ' Album')

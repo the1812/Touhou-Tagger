@@ -1,34 +1,102 @@
-name: Build Executable
+name: Windows Release Assets
 
 on:
   workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: windows-latest
-
+  package-go:
+    name: Package Go CLI
+    runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-go@v6.5.0
         with:
-          node-version: 24
-      - uses: oven-sh/setup-bun@v2
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - name: Build Go CLI
+        working-directory: go
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $version = if ($env:RELEASE_TAG) { $env:RELEASE_TAG } else { git describe --tags --always }
+          $commit = git rev-parse --short HEAD
+          $date = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+          go build -trimpath -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" -o ./bin/thtag.exe ./cmd/thtag
+      - name: Create zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release/go | Out-Null
+          Copy-Item -LiteralPath go/bin/thtag.exe -Destination release/go/thtag.exe
+          Compress-Archive -LiteralPath release/go/thtag.exe -DestinationPath release/touhou-tagger-go-windows-x64.zip -CompressionLevel Optimal
+      - uses: actions/upload-artifact@v7.0.1
         with:
-          bun-version-file: '.bun-version'
-      - run: bun install
-      - run: bun run build:executable
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+          name: touhou-tagger-go-windows-x64
+          path: release/touhou-tagger-go-windows-x64.zip
+          if-no-files-found: error
+
+  package-gui:
+    name: Package GUI
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-go@v6.5.0
         with:
-          name: thtag-executable
-          path: bin/thtag.exe
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        run: gh release upload ${{ github.event.release.tag_name }} bin/thtag.exe
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - name: Install Wails CLI
+        shell: pwsh
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.117
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Wails CLI installation failed.'
+          }
+          Join-Path (go env GOPATH) bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install GUI frontend dependencies
+        working-directory: go/gui/frontend
+        run: bun install --frozen-lockfile
+      - name: Build GUI
+        working-directory: go/gui
+        run: wails3 build GOOS=windows GOARCH=amd64
+      - name: Create zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release/gui | Out-Null
+          Copy-Item -LiteralPath go/bin/TouhouTagger.exe -Destination release/gui/TouhouTagger.exe
+          Compress-Archive -LiteralPath release/gui/TouhouTagger.exe -DestinationPath release/touhou-tagger-gui-windows-x64.zip -CompressionLevel Optimal
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: touhou-tagger-gui-windows-x64
+          path: release/touhou-tagger-gui-windows-x64.zip
+          if-no-files-found: error
+
+  publish-release:
+    name: Upload Release Assets
+    if: github.event_name == 'release'
+    needs: [package-go, package-gui]
+    runs-on: windows-2025
+    steps:
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Upload zips
+        shell: pwsh
+        run: |
+          Get-ChildItem -LiteralPath release-assets -Filter *.zip | ForEach-Object {
+            gh release upload $env:RELEASE_TAG $_.FullName --clobber
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to upload release asset $($_.Name)."
+            }
+          }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}

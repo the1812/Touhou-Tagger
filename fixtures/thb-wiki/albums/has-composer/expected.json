@@ -1,0 +1,88 @@
+{
+  "cover": true,
+  "album": {
+    "album": "IGNITION DANCEHALL",
+    "albumOrder": "ARCD-0054",
+    "albumArtists": ["Alstroemeria Records"],
+    "genres": [],
+    "year": "2016"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["Masayoshi Minoshima"],
+      "composers": ["Masayoshi Minoshima"],
+      "title": "Ignition",
+      "trackNumber": "1"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["坂上なち", "Masayoshi Minoshima"],
+      "lyricists": ["綾倉盟"],
+      "title": "Beautiful Sky",
+      "trackNumber": "2",
+      "comments": "原曲: U.N.オーエンは彼女なのか？ (东方红魔乡 ～ the Embodiment of Scarlet Devil.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["ayame", "Masayoshi Minoshima"],
+      "lyricists": ["ayame"],
+      "title": "missing pages",
+      "trackNumber": "3",
+      "comments": "原曲: Tabula rasa ～空白少女 (东方梦时空 ～ Phantasmagoria of Dim. Dream.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["mican*", "Syrufit"],
+      "lyricists": ["Kazumi Mogi"],
+      "title": "A_Loops_Z",
+      "trackNumber": "4",
+      "comments": "原曲: 神さびた古戦場 ～ Suwa Foughten Field (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["綾倉盟", "かめりあ"],
+      "lyricists": ["かめりあ"],
+      "title": "Dream Again",
+      "trackNumber": "5",
+      "comments": "原曲: the Last Judgement (东方怪绮谈 ～ Mystic Square.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Tracy"],
+      "title": "Apparition Mountain",
+      "trackNumber": "6",
+      "comments": "原曲: 妖怪の山 ～ Mysterious Mountain (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["nomico", "Masayoshi Minoshima"],
+      "lyricists": ["綾倉盟"],
+      "title": "Don 't Lose",
+      "trackNumber": "7",
+      "comments": "原曲: 亡き王女の為のセプテット (东方红魔乡 ～ the Embodiment of Scarlet Devil.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Optimistic"],
+      "title": "Score",
+      "trackNumber": "8",
+      "comments": "原曲: プレイヤーズスコア (东方地灵殿 ～ Subterranean Animism.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["KUMI", "Masayoshi Minoshima", "溝口ゆうま"],
+      "lyricists": ["溝口ゆうま"],
+      "title": "Eyes of Truth (ALR REMIX)",
+      "trackNumber": "9",
+      "comments": "原曲: ラストリモート (东方地灵殿 ～ Subterranean Animism.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Nardis"],
+      "title": "Kokytos",
+      "trackNumber": "10",
+      "comments": "原曲: メイプルワイズ (东方怪绮谈 ～ Mystic Square.)"
+    }
+  ]
+}

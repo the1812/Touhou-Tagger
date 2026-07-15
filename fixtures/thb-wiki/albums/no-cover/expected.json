@@ -1,0 +1,19 @@
+{
+  "cover": false,
+  "album": {
+    "album": "Shared Secret",
+    "albumOrder": "",
+    "albumArtists": ["Floating Torch"],
+    "genres": ["其他电子"],
+    "year": "2025"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["白煤"],
+      "title": "Shared Secret",
+      "trackNumber": "1",
+      "comments": "原曲: 他愛も無い二人の博物誌 (燕石博物志 ～ Dr.Latency's Freak Report.)"
+    }
+  ]
+}

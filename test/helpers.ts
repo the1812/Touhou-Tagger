@@ -1,12 +1,16 @@
 import { mkdir, rm } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve } from 'path'
+import { fileURLToPath } from 'url'
 
 import { expect } from 'vitest'
 
 import type { Metadata, MetadataConfig } from '../src/core/index.js'
 
-export const fixturePath = (...paths: string[]) => join(process.cwd(), 'test', 'fixtures', ...paths)
-export const tmpPath = (...paths: string[]) => join(process.cwd(), 'test', '.tmp', ...paths)
+const testDirectory = fileURLToPath(new URL('.', import.meta.url))
+const repositoryRoot = resolve(testDirectory, '..')
+
+export const fixturePath = (...paths: string[]) => join(repositoryRoot, 'fixtures', ...paths)
+export const tmpPath = (...paths: string[]) => join(testDirectory, '.tmp', ...paths)
 
 export const cleanTmp = async () => {
   await rm(tmpPath(), { recursive: true, force: true })

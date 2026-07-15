@@ -1,0 +1,35 @@
+name: WASM
+
+on:
+  push:
+    paths:
+      - go/wasm-src/**
+      - go/internal/imagecodec/assets/**
+  pull_request:
+    paths:
+      - go/wasm-src/**
+      - go/internal/imagecodec/assets/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wasm:
+    name: WASM
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-go@v6.5.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - name: Rebuild pinned WASM assets
+        shell: pwsh
+        run: ./go/wasm-src/build.ps1
+      - name: Verify committed assets and hashes
+        shell: pwsh
+        run: git diff --exit-code -- go/internal/imagecodec/assets go/wasm-src/versions.json
+      - name: Test image pipeline
+        working-directory: go
+        run: go test ./internal/imagecodec/...

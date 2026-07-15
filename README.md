@@ -41,9 +41,9 @@ pnpm install --global touhou-tagger
 
 ### 方式 2: 可执行文件 (Windows)
 
-从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中直接下载 `thtag.exe`, 将其存放目录添加到 Path 中即可.
+从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中下载 `touhou-tagger-go-windows-x64.zip`, 解压后将 `thtag.exe` 的存放目录添加到 Path 中即可.
 
-> 可执行文件使用 [Bun](https://bun.com/docs) 打包, 体积会略微比 Node.js 版大一点; 其他操作系统也可以从源码自行打包.
+> 可执行文件由 Go 实现, 仅支持 Windows, 其他操作系统也可以从源码自行打包.
 
 ## 使用
 

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "original-with-time",
+    "title": "歌于绯想 剑问真情",
+    "type": "original",
+    "time": true,
+    "translationSeparator": " / ",
+    "language": "zh",
+    "expected": "expected/original-with-time.txt"
+  },
+  {
+    "name": "original-without-time",
+    "title": "歌于绯想 剑问真情",
+    "type": "original",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "zh",
+    "expected": "expected/original-without-time.txt"
+  },
+  {
+    "name": "translated-falls-back-to-original",
+    "title": "歌于绯想 剑问真情",
+    "type": "translated",
+    "time": true,
+    "translationSeparator": " / ",
+    "language": "zh",
+    "expected": "expected/original-with-time.txt"
+  },
+  {
+    "name": "mixed-single-language",
+    "title": "歌于绯想 剑问真情",
+    "type": "mixed",
+    "time": true,
+    "translationSeparator": " / ",
+    "language": "zh",
+    "expected": "expected/original-with-time.txt"
+  }
+]

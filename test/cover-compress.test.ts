@@ -8,7 +8,7 @@ import { fixturePath, metadataConfig } from './helpers.js'
 
 describe('cover compression', () => {
   test('compresses cover when size threshold is exceeded', async () => {
-    const cover = await readFile(fixturePath('cover.jpg'))
+    const cover = await readFile(fixturePath('media', 'images', 'cover.jpg'))
     const compressed = await compressImageByConfig(
       Buffer.from(cover),
       metadataConfig({
@@ -22,7 +22,7 @@ describe('cover compression', () => {
   })
 
   test('compresses and resizes cover when resolution limit is configured', async () => {
-    const cover = await readFile(fixturePath('cover.jpg'))
+    const cover = await readFile(fixturePath('media', 'images', 'cover.jpg'))
     const compressed = await compressImageByConfig(
       Buffer.from(cover),
       metadataConfig({

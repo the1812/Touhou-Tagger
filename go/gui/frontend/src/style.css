@@ -1,0 +1,50 @@
+:root {
+  color: #342f35;
+  background: #f8f5f1;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+main {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #a8354b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: -0.04em;
+}
+
+.message {
+  margin: 20px 0 0;
+  color: #696169;
+  font-size: 1.125rem;
+}

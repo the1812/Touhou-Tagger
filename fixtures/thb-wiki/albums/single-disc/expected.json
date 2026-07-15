@@ -1,0 +1,69 @@
+{
+  "cover": true,
+  "album": {
+    "album": "Void Ocean／Heavy Rain",
+    "albumOrder": "NHCD-0001",
+    "albumArtists": ["Nami Haven"],
+    "genres": ["Trance", "硬核", "其他电子", "Jpop"],
+    "year": "2019"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["Zris"],
+      "title": "Fuga Romantica -Intro-",
+      "trackNumber": "1",
+      "comments": "原曲: ロマンチック逃飛行 (弹幕天邪鬼 ～ Impossible Spell Card.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["MiraGevot"],
+      "title": "Summer Wave",
+      "trackNumber": "2",
+      "comments": "原曲: 幻想浄瑠璃 (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["天游"],
+      "title": "Rough Sea",
+      "trackNumber": "3",
+      "comments": "原曲: 幻想浄瑠璃 (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["NoisiestLunatic"],
+      "title": "Feel the Ocean Stomp",
+      "trackNumber": "4",
+      "comments": "原曲: 幻想浄瑠璃 (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["NANO-FXXKYIG"],
+      "title": "Wander in the Rain",
+      "trackNumber": "5",
+      "comments": "原曲: 幻想浄瑠璃 (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Zris"],
+      "title": "Save the Water",
+      "trackNumber": "6",
+      "comments": "原曲: 幻想浄瑠璃 (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["hanachan"],
+      "title": "Rustring",
+      "trackNumber": "7",
+      "comments": "原曲: マジカルストーム (东方辉针城 ～ Double Dealing Character.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["鬼千鶴", "Zris"],
+      "lyricists": ["鬼千鶴"],
+      "title": "永久の狂い踊り子 〜 Eternal Lunatic Dancers.",
+      "trackNumber": "8",
+      "comments": "原曲: クレイジーバックダンサーズ (东方天空璋 ～ Hidden Star in Four Seasons.)"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+[package]
+name = "touhou-tagger-resize-wasm"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+bytemuck = "=1.4.1"
+resize = "=0.5.5"
+rgb = "=0.8.25"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

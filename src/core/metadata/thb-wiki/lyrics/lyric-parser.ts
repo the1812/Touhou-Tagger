@@ -1,11 +1,33 @@
 import { LyricConfig } from '../../../core-config.js'
 import { log } from '../../../debug.js'
 
+const readCellText = (element: Element | undefined) => {
+  if (!element) {
+    return ''
+  }
+  const readNode = (node: Node): string => {
+    if (node.nodeType === 1 && (node as Element).tagName.toLowerCase() === 'br') {
+      return '\n'
+    }
+    if (node.nodeType === 3) {
+      return node.textContent.replace(/\r/g, '').replace(/\n\s*/g, '')
+    }
+    return [...node.childNodes].map(readNode).join('')
+  }
+  return readNode(element)
+    .split('\n')
+    .map(line => line.trim())
+    .join('\n')
+    .trim()
+}
+
 export abstract class LyricParser {
   protected rows: Element[]
   protected rowData: {
     originalData: Element
     translatedData: Element
+    originalText: string
+    translatedText: string
     hasTranslatedData: boolean
     time: string
   }[]
@@ -24,18 +46,25 @@ export abstract class LyricParser {
     this.rowData = this.rows.map(row => {
       const time = row.querySelector('td.tt-time,td.tt-sep') as Element
       const [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')]
+      const originalText = readCellText(originalData)
+      const translatedText = readCellText(translatedData)
       let finalData: Element
-      const hasTranslatedData = Boolean(translatedData && translatedData.textContent)
+      let finalText: string
+      const hasTranslatedData = translatedText !== ''
       if (!hasTranslatedData) {
         finalData = originalData
+        finalText = originalText
       } else {
         finalData = translatedData
+        finalText = translatedText
       }
-      const hasTime = Boolean(time && time.textContent.trim() !== '')
+      const timeText = readCellText(time)
       return {
-        time: hasTime ? `[${time.textContent.trim()}] ` : '',
+        time: timeText ? `[${timeText}] ` : '',
         originalData,
         translatedData: finalData,
+        originalText,
+        translatedText: finalText,
         hasTranslatedData,
       }
     })
@@ -56,7 +85,7 @@ export abstract class LyricParser {
   }
   protected readEmptyRow(row: Element): string {
     const { time } = this.getRowData(row)
-    return time
+    return this.config.time ? time.trimEnd() : ''
   }
   abstract findLanguage(): string | undefined
   abstract getLrcFileSuffix(): string
@@ -66,11 +95,11 @@ class OriginalLyricParser extends LyricParser {
     return this.firstRowData.originalData.getAttribute('lang')
   }
   readLyricRow(row: Element): string {
-    const { originalData, time } = this.getRowData(row)
+    const { originalText, time } = this.getRowData(row)
     if (this.config.time) {
-      return time + originalData.textContent
+      return time + originalText
     }
-    return originalData.textContent
+    return originalText
   }
   getLrcFileSuffix(): string {
     return '.'
@@ -85,11 +114,11 @@ class TranslatedLyricParser extends LyricParser {
     return originalData.getAttribute('lang')
   }
   readLyricRow(row: Element): string {
-    const { translatedData, time } = this.getRowData(row)
+    const { translatedText, time } = this.getRowData(row)
     if (this.config.time) {
-      return time + translatedData.textContent
+      return time + translatedText
     }
-    return translatedData.textContent
+    return translatedText
   }
   getLrcFileSuffix(): string {
     return `.${this.findLanguage()}`
@@ -104,10 +133,10 @@ class MixedLyricParser extends LyricParser {
     return originalData.getAttribute('lang')
   }
   readLyricRow(row: Element): string {
-    const { originalData, translatedData, hasTranslatedData, time } = this.getRowData(row)
-    let lyric = originalData.textContent
+    const { originalText, translatedText, hasTranslatedData, time } = this.getRowData(row)
+    let lyric = originalText
     if (hasTranslatedData) {
-      lyric += this.config.translationSeparator + translatedData.textContent
+      lyric += this.config.translationSeparator + translatedText
     }
     if (this.config.time) {
       lyric = lyric

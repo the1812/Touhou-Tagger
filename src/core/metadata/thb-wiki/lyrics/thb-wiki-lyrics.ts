@@ -72,14 +72,15 @@ export const downloadLyrics = async (
   log('tables length: ', tables.length)
   if (tables.length > 1) {
     // 歌词可能有多个版本
-    const titles = tables.map(table => {
-      const t = table.parentElement.title
-      return t.substring(0, t.length - 1) // 移除最后一个'版'字
-    })
+    const titles = tables.map(table =>
+      (table.closest('[data-mw-tabber-title]')?.getAttribute('data-mw-tabber-title') ?? '')
+        .trim()
+        .replace(/版$/, ''),
+    )
     log(titles)
     // 如果传入的标题匹配(包含)其中某个标题, 就使用对应版本, 否则使用默认版本
     // 反转了一下让后面的优先匹配
-    const matchIndex = [...titles].reverse().findIndex(t => title.includes(t))
+    const matchIndex = [...titles].reverse().findIndex(t => t !== '' && title.includes(t))
     log(matchIndex, tables.length - matchIndex - 1)
     if (matchIndex !== -1) {
       lyricTable = tables[tables.length - matchIndex - 1]
@@ -93,7 +94,10 @@ export const downloadLyrics = async (
   lyricParser = getLyricParser(lyricTable, config.lyric)
   switch (config.lyric.output) {
     case 'lrc': {
-      const originalTitle = document.querySelector('.firstHeading').textContent.replace('歌词:', '')
+      const originalTitle = document
+        .querySelector('.firstHeading')
+        .textContent.replace(/^\s*歌词\s*[:：]\s*/, '')
+        .trim()
       return downloadLrcLyrics(originalTitle, tables.indexOf(lyricTable), config)
     }
     case 'metadata': // fallthrough

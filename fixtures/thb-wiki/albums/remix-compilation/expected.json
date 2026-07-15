@@ -1,0 +1,93 @@
+{
+  "cover": true,
+  "album": {
+    "album": "リカレイド",
+    "albumOrder": "SBCD-0022",
+    "albumArtists": ["森羅万象"],
+    "genres": [],
+    "year": "2023"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["あよ", "cosMo＠暴走P", "kaztora", "ハム"],
+      "lyricists": ["ticat"],
+      "title": "無意識レクイエム (cosmobsp rmx)",
+      "trackNumber": "1",
+      "comments": "原曲: ハルトマンの妖怪少女 (东方地灵殿 ～ Subterranean Animism.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あやぽんず＊", "モリモリあつし", "kaztora", "ハム"],
+      "lyricists": ["ticat", "kaztora"],
+      "title": "有頂天ドリーマーズ (MRM REMIX)",
+      "trackNumber": "2",
+      "comments": "原曲: 有頂天変 ～ Wonderful Heaven (东方绯想天 ～ Scarlet Weather Rhapsody.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あよ", "Hedonist", "kaztora"],
+      "lyricists": ["Caral"],
+      "title": "MY Heart Rate (Hedonist Remix)",
+      "trackNumber": "3",
+      "comments": "原曲: 春色小径 ～ Colorful Path (东方花映塚 ～ Phantasmagoria of Flower View.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あやぽんず＊", "Tim Vegas", "発熱巫女～ず", "kaztora"],
+      "lyricists": ["ticat"],
+      "title": "雨、時々、カランコロン (T.V. Brilliance of Nostalgia Remix)",
+      "trackNumber": "4",
+      "comments": "原曲: 万年置き傘にご注意を (东方星莲船 ～ Undefined Fantastic Object.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あやぽんず＊", "あよ", "Massive New Krew", "kaztora", "ACTRock"],
+      "lyricists": ["ticat"],
+      "title": "狂響のフォーチュネットポルカ (Massive New Krew Remix)",
+      "trackNumber": "5",
+      "comments": "原曲: クレイジーバックダンサーズ (东方天空璋 ～ Hidden Star in Four Seasons.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あよ", "MK", "kaztora", "Hedonist"],
+      "lyricists": ["ACTRock"],
+      "title": "メイドノココロハ アヤツリドール (MK Remix)",
+      "trackNumber": "6",
+      "comments": "原曲: フラワリングナイト (东方花映塚 ～ Phantasmagoria of Flower View.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あやぽんず＊", "Hommarju", "kaztora"],
+      "lyricists": ["ticat", "kaztora"],
+      "title": "純情アルメリア (Hommarju Remix)",
+      "trackNumber": "7",
+      "comments": "原曲: 広有射怪鳥事 ～ Till When?, 東方妖々夢 ～ Ancient Temple (东方妖妖梦 ～ Perfect Cherry Blossom.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["あよ", "Android52", "kaztora"],
+      "lyricists": ["kaztora"],
+      "title": "ハングオーバー (Android52 Remix)",
+      "trackNumber": "8",
+      "comments": "原曲: 砕月 (东方萃梦想 ～ Immaterial and Missing Power.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": [
+        "あやぽんず＊",
+        "あよ",
+        "小坂ナオ",
+        "Pira",
+        "裕木レオン",
+        "森羅万象",
+        "kaztora",
+        "Hedonist"
+      ],
+      "lyricists": ["ticat", "kaztora"],
+      "title": "悪戯センセーション バンドVer",
+      "trackNumber": "9",
+      "comments": "原曲: 亡き王女の為のセプテット, U.N.オーエンは彼女なのか？ (东方红魔乡 ～ the Embodiment of Scarlet Devil.)"
+    }
+  ]
+}

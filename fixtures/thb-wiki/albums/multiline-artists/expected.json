@@ -1,0 +1,90 @@
+{
+  "cover": true,
+  "album": {
+    "album": "あの日の夢のアリス",
+    "albumOrder": "SBCD-002",
+    "albumArtists": ["森羅万象"],
+    "genres": [],
+    "year": "2012"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["めらみぽっぷ", "Candy", "みぃ", "MIRI", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "あの日の夢のアリス",
+      "trackNumber": "1",
+      "comments": "原曲: 禁断の魔法 ～ Forbidden Magic, Romantic Children, プラスチックマインド, 神話幻想 ～ Infinite Being, 不思議の国のアリス (东方怪绮谈 ～ Mystic Square.) , 平安のエイリアン, 小さな小さな賢将 (东方星莲船 ～ Undefined Fantastic Object.) , 天空のグリニッジ (大空魔术 ～ Magical Astronomy) , 夜のデンデラ野を逝く, 魔術師メリー (莲台野夜行 ～ Ghostly Field Club.) , ネクロファンタジア, ブクレシュティの人形師, 人形裁判 ～ 人の形弄びし少女 (东方妖妖梦 ～ Perfect Cherry Blossom.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["kaztora"],
+      "title": "チルノの動く城",
+      "trackNumber": "2",
+      "comments": "原曲: おてんば恋娘 (东方红魔乡 ～ the Embodiment of Scarlet Devil.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["めらみぽっぷ", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "汝は白狼なりや？",
+      "trackNumber": "3",
+      "comments": "原曲: フォールオブフォール ～ 秋めく滝 (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Candy", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "Corpse Dance",
+      "trackNumber": "4",
+      "comments": "原曲: フラワリングナイト (东方花映塚 ～ Phantasmagoria of Flower View.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["みぃ", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "React",
+      "trackNumber": "5",
+      "comments": "原曲: 竹取飛翔 ～ Lunatic Princess (东方永夜抄 ～ Imperishable Night.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["めらみぽっぷ", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "天の邪鬼",
+      "trackNumber": "6",
+      "comments": "原曲: 砕月 (东方绯想天 ～ Scarlet Weather Rhapsody.) , 華のさかづき大江山 (东方地灵殿 ～ Subterranean Animism.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["kaztora"],
+      "title": "世にも奇妙な平安のストーリーテラー",
+      "trackNumber": "7",
+      "comments": "原曲: 平安のエイリアン (东方星莲船 ～ Undefined Fantastic Object.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["みぃ", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "かぜのいろ",
+      "trackNumber": "8",
+      "comments": "原曲: 少女が見た日本の原風景 (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["Candy", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "桜風",
+      "trackNumber": "9",
+      "comments": "原曲: 幽雅に咲かせ、墨染の桜 ～ Border of Life, アルティメットトゥルース (东方妖妖梦 ～ Perfect Cherry Blossom.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["めらみぽっぷ", "kaztora"],
+      "lyricists": ["azuki"],
+      "title": "無限界仮説の切符",
+      "trackNumber": "10",
+      "comments": "原曲: 衛星カフェテラス, 車椅子の未来宇宙 (大空魔术 ～ Magical Astronomy)"
+    }
+  ]
+}

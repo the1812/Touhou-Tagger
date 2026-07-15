@@ -6,5 +6,12 @@
   "arrowParens": "avoid",
   "printWidth": 100,
   "sortImports": true,
-  "ignorePatterns": ["dist/", "node_modules/", "test-files/", "patches/"],
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "test-files/",
+    "patches/",
+    "go/",
+    "fixtures/**/*.html",
+  ],
 }

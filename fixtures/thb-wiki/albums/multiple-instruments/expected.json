@@ -1,0 +1,61 @@
+{
+  "cover": true,
+  "album": {
+    "album": "Touhou Standards 1",
+    "albumOrder": "SWV3",
+    "albumArtists": ["Scharlachrot Kammermusik"],
+    "genres": ["爵士"],
+    "year": "2023"
+  },
+  "tracks": [
+    {
+      "discNumber": "1",
+      "artists": ["方圆", "莹凡", "找遍地", "Hz", "粢饭", "Lucio Cheli", "坑爹的事实"],
+      "title": "掉落秋泷",
+      "trackNumber": "1",
+      "comments": "原曲: フォールオブフォール ～ 秋めく滝 (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["赫尔-血族骑士道", "找遍地", "坑爹的事实", "Hz", "粢饭", "杨宜达"],
+      "title": "Apollo",
+      "trackNumber": "2",
+      "comments": "原曲: 宇宙を飛ぶ不思議な巫女 (东方绀珠传 ～ Legacy of Lunatic Kingdom.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["赫尔-血族骑士道", "找遍地", "坑爹的事实", "Hz", "粢饭", "杨宜达", "小红"],
+      "title": "Melancholy magician",
+      "trackNumber": "3",
+      "comments": "原曲: 魔法使いの憂鬱 (东方刚欲异闻 ～ 被水淹没的沉愁地狱)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["赫尔-血族骑士道", "找遍地", "坑爹的事实", "Davidsan", "喵燐", "杨宜达"],
+      "title": "Tropical de Touhou",
+      "trackNumber": "4",
+      "comments": "原曲: 少女綺想曲 ～ Dream Battle (东方永夜抄 ～ Imperishable Night.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["赫尔-血族骑士道", "找遍地", "坑爹的事实", "Hz", "粢饭", "杨宜达"],
+      "title": "Doll tango",
+      "trackNumber": "5",
+      "comments": "原曲: 人形裁判 ～ 人の形弄びし少女 (东方妖妖梦 ～ Perfect Cherry Blossom.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["坑爹的事实", "Hz", "粢饭", "Lucio Cheli", "小红"],
+      "title": "Shinkou Bop",
+      "trackNumber": "6",
+      "comments": "原曲: 信仰は儚き人間の為に (东方风神录 ～ Mountain of Faith.)"
+    },
+    {
+      "discNumber": "1",
+      "artists": ["找遍地", "坑爹的事实", "Hz", "粢饭", "杨宜达"],
+      "title": "Emerald Funk",
+      "trackNumber": "7",
+      "comments": "原曲: 砕月, 東方萃夢想 (东方萃梦想 ～ Immaterial and Missing Power.)"
+    }
+  ]
+}

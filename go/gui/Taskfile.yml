@@ -1,0 +1,66 @@
+version: "3"
+
+vars:
+  APP_NAME: TouhouTagger
+  BIN_DIR: ../bin
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  GOARCH: '{{.GOARCH | default "amd64"}}'
+
+tasks:
+  install:frontend:
+    dir: frontend
+    sources:
+      - package.json
+      - bun.lock
+    generates:
+      - node_modules/**/*
+    cmds:
+      - bun install --frozen-lockfile
+
+  generate:bindings:
+    sources:
+      - "*.go"
+      - ../go.mod
+      - ../go.sum
+    generates:
+      - frontend/bindings/**/*
+    cmds:
+      - wails3 generate bindings -clean=true -ts -i
+
+  build:frontend:
+    deps:
+      - install:frontend
+      - generate:bindings
+    dir: frontend
+    cmds:
+      - bun run {{if eq .DEV "true"}}build:dev{{else}}build{{end}}
+
+  build:
+    deps:
+      - build:frontend
+    cmds:
+      - >-
+        go build
+        {{if ne .DEV "true"}}-tags production -trimpath -ldflags="-w -s -H windowsgui"{{else}}-gcflags=all="-l"{{end}}
+        -buildvcs=false
+        -o "{{.BIN_DIR}}/{{.APP_NAME}}.exe"
+        .
+    env:
+      CGO_ENABLED: "0"
+      GOOS: windows
+      GOARCH: "{{.GOARCH}}"
+
+  dev:frontend:
+    deps:
+      - install:frontend
+    dir: frontend
+    cmds:
+      - bun run dev -- --port {{.VITE_PORT}} --strictPort
+
+  run:
+    cmds:
+      - '"{{.BIN_DIR}}/{{.APP_NAME}}.exe"'
+
+  dev:
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}

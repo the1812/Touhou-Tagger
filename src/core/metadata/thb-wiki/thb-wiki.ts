@@ -47,11 +47,12 @@ export class ThbWiki extends MetadataSource {
     })
     if (response.status === 200 && Array.isArray(response.data) && response.data.length > 1) {
       const [, names] = response.data
-      const [name] = (names as string[]).filter(it => !it.startsWith('歌词:'))
+      const filteredNames = (names as string[]).filter(it => !it.startsWith('歌词:'))
+      const [name] = filteredNames
       if (name === albumName) {
         return name
       }
-      return names as string[]
+      return filteredNames
     }
     return []
   }
@@ -86,7 +87,8 @@ export class ThbWiki extends MetadataSource {
     const album = getTableItem('名称')
     const albumOrder = getTableItem('编号')
     const albumArtists = getTableItem('制作方', true)
-    const genres = getTableItem('风格类型').split('，')
+    const genre = getTableItem('风格类型')
+    const genres = genre ? genre.split('，') : []
     const year = parseInt(getTableItem('首发日期'))
     const replaceAltNames = (str: string) => {
       if (albumArtistsAltNames.has(str)) {
@@ -174,9 +176,9 @@ export class ThbWiki extends MetadataSource {
           const artists = anchors.map(a => {
             const isRealArtist =
               a.previousSibling &&
-              a.previousSibling.textContent === '（' &&
+              a.previousSibling.textContent.trim() === '（' &&
               a.nextSibling &&
-              a.nextSibling.textContent === '）'
+              a.nextSibling.textContent.trim() === '）'
             if (isRealArtist) {
               return a.textContent
             }
@@ -273,7 +275,7 @@ export class ThbWiki extends MetadataSource {
         rowData[key] = normalizeAction(value)
       }
       if (Array.isArray(value)) {
-        rowData[key] = value.map(v => normalizeAction(v))
+        rowData[key] = [...new Set(value.map(v => normalizeAction(v)))]
       }
     }
     return rowData

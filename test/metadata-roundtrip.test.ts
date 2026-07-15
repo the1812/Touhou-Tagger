@@ -20,10 +20,10 @@ beforeEach(cleanTmp)
 describe('metadata read/write', () => {
   test('writes and reads MP3 metadata', async () => {
     const writePath = tmpPath('metadata.mp3')
-    const cover = await readFile(fixturePath('cover.jpg'))
+    const cover = await readFile(fixturePath('media', 'images', 'cover.jpg'))
     const metadata = createMetadata(cover)
 
-    await copyFile(fixturePath('audio-blank.mp3'), writePath)
+    await copyFile(fixturePath('media', 'mp3', 'audio-blank.mp3'), writePath)
     mp3Writer.config = metadataConfig()
     await mp3Writer.write(metadata, writePath)
 
@@ -36,10 +36,10 @@ describe('metadata read/write', () => {
 
   test('writes and reads FLAC metadata', async () => {
     const writePath = tmpPath('metadata.flac')
-    const cover = await readFile(fixturePath('cover.jpg'))
+    const cover = await readFile(fixturePath('media', 'images', 'cover.jpg'))
     const metadata = createMetadata(cover)
 
-    await copyFile(fixturePath('audio-blank.flac'), writePath)
+    await copyFile(fixturePath('media', 'flac', 'audio-blank.flac'), writePath)
     flacWriter.config = metadataConfig()
     await flacWriter.write(metadata, writePath)
 

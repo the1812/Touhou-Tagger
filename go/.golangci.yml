@@ -1,0 +1,44 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - contextcheck
+    - durationcheck
+    - errcheck
+    - errorlint
+    - exhaustive
+    - govet
+    - ineffassign
+    - misspell
+    - musttag
+    - nilerr
+    - nilnesserr
+    - noctx
+    - nolintlint
+    - staticcheck
+    - unconvert
+    - unused
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+  exclusions:
+    generated: strict
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

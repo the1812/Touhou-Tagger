@@ -1,0 +1,22 @@
+{
+  "name": "@touhou-tagger/gui-frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:dev": "vue-tsc --noEmit && vite build --minify false --mode development",
+    "build": "vue-tsc --noEmit && vite build --mode production"
+  },
+  "dependencies": {
+    "@wailsio/runtime": "3.0.0-alpha.97",
+    "vue": "3.5.39"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.8",
+    "typescript": "6.0.3",
+    "vite": "8.1.4",
+    "vue-tsc": "3.3.7"
+  },
+  "packageManager": "bun@1.3.5"
+}

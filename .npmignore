@@ -8,3 +8,6 @@ src/
 *.png
 .gitattributes
 tsconfig.json
+/fixtures/
+/go/
+/test/

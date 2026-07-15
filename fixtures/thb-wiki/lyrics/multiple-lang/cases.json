@@ -1,0 +1,56 @@
+[
+  {
+    "name": "unmatched-title-uses-first-version",
+    "title": "unmatched title",
+    "type": "original",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "ja",
+    "expected": "expected/original-default.txt"
+  },
+  {
+    "name": "later-overlapping-version-wins",
+    "title": "Bad Apple!! feat. nomico feat.nomico (TOS Remix) feat. 抹, ｙｔｒ",
+    "type": "original",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "ja",
+    "expected": "expected/original-tos-remix.txt"
+  },
+  {
+    "name": "version-without-ban-suffix-keeps-full-title",
+    "title": "Bad Apple!! Graph Tech Remix",
+    "type": "original",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "ja",
+    "expected": "expected/original-graph-tech-remix.txt"
+  },
+  {
+    "name": "selects-final-version",
+    "title": "Bad Apple!! Nardis Remix",
+    "type": "original",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "ja",
+    "expected": "expected/original-nardis-remix.txt"
+  },
+  {
+    "name": "translated",
+    "title": "unmatched title",
+    "type": "translated",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": "zh",
+    "expected": "expected/translated-default.txt"
+  },
+  {
+    "name": "mixed",
+    "title": "unmatched title",
+    "type": "mixed",
+    "time": false,
+    "translationSeparator": " / ",
+    "language": null,
+    "expected": "expected/mixed-default.txt"
+  }
+]
