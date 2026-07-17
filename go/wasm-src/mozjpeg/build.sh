@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cp -R /source/. /build/
+tar -xzf /source.tar.gz --strip-components=1 -C /build
 cd /build
 
 autoreconf -iv
@@ -13,7 +13,7 @@ emconfigure ./configure \
   --without-arith-dec \
   --with-build-date=squoosh
 
-emmake make -j1 libjpeg.la rdswitch.o \
+emmake make -j4 libjpeg.la rdswitch.o \
   CFLAGS="-O3 -flto" \
   CXXFLAGS="-O3 -flto -std=c++17"
 
@@ -33,4 +33,6 @@ em++ \
   /project/mozjpeg.cpp \
   /build/rdswitch.o \
   /build/.libs/libjpeg.a \
-  -o /out/mozjpeg.wasm
+  -o /build/mozjpeg.wasm
+
+cp /build/mozjpeg.wasm /out/mozjpeg.wasm

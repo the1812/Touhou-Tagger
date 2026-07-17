@@ -40,25 +40,16 @@ try {
     throw "MozJPEG source hash mismatch: expected $($versions.mozjpeg.sourceSha256), got $sourceHash"
   }
 
-  $mozjpegRoot = Join-Path $temporaryRoot 'mozjpeg'
-  New-Item -ItemType Directory -Path $mozjpegRoot | Out-Null
-  tar -xzf $archivePath --strip-components=1 -C $mozjpegRoot
-  if ($LASTEXITCODE -ne 0) {
-    throw 'MozJPEG source extraction failed'
-  }
-
   $dockerTag = "touhou-tagger-mozjpeg-wasm:$($versions.mozjpeg.emscripten)"
   docker build --tag $dockerTag (Join-Path $sourceRoot 'mozjpeg')
   if ($LASTEXITCODE -ne 0) {
     throw 'MozJPEG build image creation failed'
   }
 
-  $mozjpegProject = (Join-Path $sourceRoot 'mozjpeg').Replace('\', '/')
-  $mozjpegSource = $mozjpegRoot.Replace('\', '/')
+  $mozjpegArchive = $archivePath.Replace('\', '/')
   $mozjpegOutput = $outputRoot.Replace('\', '/')
   docker run --rm `
-    --volume "${mozjpegProject}:/project:ro" `
-    --volume "${mozjpegSource}:/source:ro" `
+    --volume "${mozjpegArchive}:/source.tar.gz:ro" `
     --volume "${mozjpegOutput}:/out" `
     $dockerTag
   if ($LASTEXITCODE -ne 0) {
