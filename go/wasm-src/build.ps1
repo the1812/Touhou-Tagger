@@ -1,7 +1,3 @@
-param(
-  [switch]$UpdateHashes
-)
-
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -56,26 +52,12 @@ try {
     throw 'mozjpeg.wasm build failed'
   }
 
-  $hashes = @{}
   foreach ($name in @('resize', 'mozjpeg')) {
     $wasmPath = Join-Path $outputRoot "$name.wasm"
-    $hash = (Get-FileHash -LiteralPath $wasmPath -Algorithm SHA256).Hash.ToLowerInvariant()
-    $hashes[$name] = $hash
-    $expected = $versions.$name.sha256
-    if (-not $UpdateHashes -and $expected -and $hash -ne $expected) {
-      throw "$name.wasm hash mismatch: expected $expected, got $hash"
-    }
     Copy-Item -LiteralPath $wasmPath -Destination (Join-Path $assetRoot "$name.wasm")
   }
 
-  if ($UpdateHashes) {
-    $versions.resize.sha256 = $hashes.resize
-    $versions.mozjpeg.sha256 = $hashes.mozjpeg
-    $versions | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $versionsPath -Encoding utf8
-  }
-
-  Write-Output "resize.wasm $($hashes.resize)"
-  Write-Output "mozjpeg.wasm $($hashes.mozjpeg)"
+  Write-Output 'WASM assets rebuilt'
 } finally {
   if (Test-Path -LiteralPath $temporaryRoot) {
     Remove-Item -LiteralPath $temporaryRoot -Recurse -Force

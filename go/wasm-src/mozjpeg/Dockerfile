@@ -6,5 +6,4 @@ RUN apt-get update \
 
 WORKDIR /build
 COPY build.sh mozjpeg.cpp /project/
-ENV EMCC_CORES=4
 ENTRYPOINT ["/bin/bash", "/project/build.sh"]

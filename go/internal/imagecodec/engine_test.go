@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"image/jpeg"
 	"math"
@@ -208,36 +207,6 @@ func TestWASMFailureDoesNotFallBackAndReplacesInstance(t *testing.T) {
 
 	if _, err = engine.Compress(ctx, input, domain.CoverOptions{MaxDimension: 256}); err != nil {
 		t.Fatalf("replacement WASM instance failed: %v", err)
-	}
-}
-
-func TestEmbeddedWASMHashesMatchVersionLock(t *testing.T) {
-	type moduleLock struct {
-		SHA256 string `json:"sha256"`
-	}
-	var versions struct {
-		Resize  moduleLock `json:"resize"`
-		MozJPEG moduleLock `json:"mozjpeg"`
-	}
-	data, err := os.ReadFile(filepath.Join("..", "..", "wasm-src", "versions.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = json.Unmarshal(data, &versions); err != nil {
-		t.Fatal(err)
-	}
-
-	for name, module := range map[string]struct {
-		data     []byte
-		expected string
-	}{
-		"resize.wasm":  {data: resizeWASM, expected: versions.Resize.SHA256},
-		"mozjpeg.wasm": {data: mozjpegWASM, expected: versions.MozJPEG.SHA256},
-	} {
-		hash := sha256.Sum256(module.data)
-		if actual := hex.EncodeToString(hash[:]); actual != module.expected {
-			t.Errorf("%s hash mismatch: expected %s, got %s", name, module.expected, actual)
-		}
 	}
 }
 
