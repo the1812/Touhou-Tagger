@@ -73,12 +73,14 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	}
 	runner.options = newOptions(stored)
 	root := &cobra.Command{
-		Use:           "thtag [album]",
-		Short:         "Tag Touhou Project albums",
-		Version:       runner.build.Version,
-		SilenceErrors: true,
-		SilenceUsage:  true,
-		Args:          cobra.MaximumNArgs(1),
+		Use:               "thtag [album]",
+		Short:             "Touhou Tagger",
+		Long:              "Touhou Tagger\n\n为音乐文件写入元数据",
+		Version:           runner.build.Version,
+		SilenceErrors:     true,
+		SilenceUsage:      true,
+		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+		Args:              cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return runner.runTag(ctx, firstArgument(args))
 		},
@@ -86,10 +88,15 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	root.SetOut(runner.output)
 	root.SetErr(runner.errors)
 	root.SetVersionTemplate("{{.Version}}\n")
+	root.SetUsageTemplate(strings.ReplaceAll(root.UsageTemplate(), "Flags:", "Options:"))
 	runner.bindFlags(root)
+	root.InitDefaultHelpFlag()
+	root.InitDefaultVersionFlag()
+	root.Flags().Lookup("help").Usage = "显示帮助信息"
+	root.Flags().Lookup("version").Usage = "显示版本号"
 	tagCommand := &cobra.Command{
 		Use:   "tag [album]",
-		Short: "Write metadata to an album",
+		Short: "为音乐文件写入元数据",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			return runner.runTag(ctx, firstArgument(args))
@@ -97,7 +104,7 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	}
 	dumpCommand := &cobra.Command{
 		Use:   "dump",
-		Short: "Extract metadata from an album",
+		Short: "从音乐文件提取元数据",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return runner.runDump(ctx)
@@ -105,7 +112,7 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	}
 	versionCommand := &cobra.Command{
 		Use:   "version",
-		Short: "Print build version",
+		Short: "显示构建版本",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			_, err := fmt.Fprintln(runner.output, runner.versionText())
@@ -113,30 +120,38 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 		},
 	}
 	root.AddCommand(tagCommand, dumpCommand, versionCommand)
+	root.InitDefaultHelpCmd()
+	for _, command := range root.Commands() {
+		if command.Name() == "help" {
+			command.Short = "显示任何命令的帮助信息"
+			command.Long = "显示任何命令的帮助信息。"
+			break
+		}
+	}
 	return root, nil
 }
 
 func (runner *Runner) bindFlags(command *cobra.Command) {
 	flags := command.PersistentFlags()
-	flags.BoolVarP(&runner.options.Cover, "cover", "c", false, "save the original cover as a separate file")
-	flags.BoolVarP(&runner.options.Debug, "debug", "d", false, "print debug information")
-	flags.StringVarP(&runner.options.Batch, "batch", "b", "", "process album folders under this directory")
-	flags.IntVar(&runner.options.BatchDepth, "batch-depth", runner.options.BatchDepth, "album folder depth in batch mode")
-	flags.StringVar(&runner.options.CommentLanguage, "comment-language", runner.options.CommentLanguage, "ID3 comment ISO-639-2 language")
-	flags.Float64Var(&runner.options.CoverCompressSize, "cover-compress-size", runner.options.CoverCompressSize, "compress embedded covers larger than this size in MB")
-	flags.IntVar(&runner.options.CoverCompressResolution, "cover-compress-resolution", runner.options.CoverCompressResolution, "maximum cover dimension when compressing")
-	flags.StringVarP(&runner.options.Source, "source", "s", runner.options.Source, "metadata source: thb-wiki or doujin-meta")
-	flags.BoolVarP(&runner.options.Lyric, "lyric", "l", false, "fetch and write lyrics")
-	flags.StringVar(&runner.options.LyricType, "lyric-type", runner.options.LyricType, "lyrics type: original, translated, or mixed")
-	flags.StringVar(&runner.options.LyricOutput, "lyric-output", runner.options.LyricOutput, "lyrics output: metadata or lrc")
-	flags.IntVar(&runner.options.LyricCacheSize, "lyric-cache-size", runner.options.LyricCacheSize, "maximum number of cached lyric pages")
-	flags.StringVar(&runner.options.TranslationSeparator, "translation-separator", runner.options.TranslationSeparator, "separator for mixed lyrics")
-	flags.BoolVar(&runner.options.LyricTime, "lyric-time", runner.options.LyricTime, "include lyric timestamps")
-	flags.StringVar(&runner.options.Separator, "separator", runner.options.Separator, "separator for multi-value MP3 metadata")
-	flags.IntVar(&runner.options.Timeout, "timeout", runner.options.Timeout, "per-attempt timeout in seconds")
-	flags.IntVar(&runner.options.Retry, "retry", runner.options.Retry, "maximum attempt count")
-	flags.BoolVarP(&runner.options.Interactive, "interactive", "i", runner.options.Interactive, "allow terminal prompts")
-	flags.BoolVar(&runner.options.NoInteractive, "no-interactive", false, "disable terminal prompts")
+	flags.BoolVarP(&runner.options.Cover, "cover", "c", false, "是否将封面保存为独立文件")
+	flags.BoolVarP(&runner.options.Debug, "debug", "d", false, "是否启用调试模式, 输出更杂碎的日志")
+	flags.StringVarP(&runner.options.Batch, "batch", "b", "", "是否使用批量模式, 参数为开始批量运行的路径")
+	flags.IntVar(&runner.options.BatchDepth, "batch-depth", runner.options.BatchDepth, "指定批量模式的文件夹层级")
+	flags.StringVar(&runner.options.CommentLanguage, "comment-language", runner.options.CommentLanguage, "自定义 ID3 Tag 注释的语言 (ISO-639-2)")
+	flags.Float64Var(&runner.options.CoverCompressSize, "cover-compress-size", runner.options.CoverCompressSize, "封面达到指定的大小 (MB) 时, 自动进行压缩 (只影响嵌入文件的封面)")
+	flags.IntVar(&runner.options.CoverCompressResolution, "cover-compress-resolution", runner.options.CoverCompressResolution, "压缩封面时的最大边长, 超过时会进行缩放")
+	flags.StringVarP(&runner.options.Source, "source", "s", runner.options.Source, "设置数据源")
+	flags.BoolVarP(&runner.options.Lyric, "lyric", "l", false, "是否启用歌词写入 (会增加运行时间)")
+	flags.StringVar(&runner.options.LyricType, "lyric-type", runner.options.LyricType, "歌词类型, 可以选择原文/译文/混合模式")
+	flags.StringVar(&runner.options.LyricOutput, "lyric-output", runner.options.LyricOutput, "歌词输出方式, 可以选择写入歌曲元数据或者保存为 lrc 文件")
+	flags.IntVar(&runner.options.LyricCacheSize, "lyric-cache-size", runner.options.LyricCacheSize, "下载歌词时的最大缓存数量")
+	flags.StringVar(&runner.options.TranslationSeparator, "translation-separator", runner.options.TranslationSeparator, "指定混合歌词模式下, 使用的分隔符")
+	flags.BoolVar(&runner.options.LyricTime, "lyric-time", runner.options.LyricTime, "是否启用歌词时轴")
+	flags.StringVar(&runner.options.Separator, "separator", runner.options.Separator, "指定 mp3 元数据的分隔符")
+	flags.IntVar(&runner.options.Timeout, "timeout", runner.options.Timeout, "指定一次运行的超时时间")
+	flags.IntVar(&runner.options.Retry, "retry", runner.options.Retry, "指定超时后自动重试的最大次数")
+	flags.BoolVarP(&runner.options.Interactive, "interactive", "i", runner.options.Interactive, "是否允许交互")
+	flags.BoolVar(&runner.options.NoInteractive, "no-interactive", false, "禁用终端交互")
 }
 
 func (runner *Runner) runTag(ctx context.Context, albumArgument string) error {
