@@ -26,7 +26,14 @@ jobs:
           cache-dependency-path: go/go.sum
       - name: Rebuild pinned WASM assets
         shell: pwsh
-        run: ./go/wasm-src/build.ps1
+        run: ./go/wasm-src/build.ps1 -UpdateHashes
+      - name: Upload rebuilt assets for diagnosis
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rebuilt-wasm-${{ github.sha }}
+          path: |
+            go/internal/imagecodec/assets/*.wasm
+            go/wasm-src/versions.json
       - name: Verify committed assets and hashes
         shell: pwsh
         run: git diff --exit-code -- go/internal/imagecodec/assets go/wasm-src/versions.json
