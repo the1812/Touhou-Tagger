@@ -9,6 +9,6 @@ RUN mkdir /manifest/src \
     && cargo fetch --locked --target wasm32-unknown-unknown
 
 ENV CARGO_NET_OFFLINE=true
-ENV CARGO_TARGET_DIR=/out
+ENV CARGO_TARGET_DIR=/target
 WORKDIR /src
-ENTRYPOINT ["cargo", "build", "--offline", "--locked", "--release", "--target", "wasm32-unknown-unknown"]
+ENTRYPOINT ["/bin/sh", "-c", "cargo build --offline --locked --release --target wasm32-unknown-unknown && cp /target/wasm32-unknown-unknown/release/touhou_tagger_resize_wasm.wasm /out/resize.wasm"]

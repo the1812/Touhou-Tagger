@@ -23,10 +23,8 @@ try {
     throw 'Resize build image creation failed'
   }
 
-  $resizeBuildOutput = Join-Path $temporaryRoot 'resize-output'
-  New-Item -ItemType Directory -Path $resizeBuildOutput | Out-Null
   $resizeProject = $resizeRoot.Replace('\', '/')
-  $resizeOutputVolume = $resizeBuildOutput.Replace('\', '/')
+  $resizeOutputVolume = $outputRoot.Replace('\', '/')
   docker run --rm `
     --volume "${resizeProject}:/src:ro" `
     --volume "${resizeOutputVolume}:/out" `
@@ -34,9 +32,6 @@ try {
   if ($LASTEXITCODE -ne 0) {
     throw 'resize.wasm build failed'
   }
-
-  $resizeOutput = Join-Path $resizeBuildOutput 'wasm32-unknown-unknown/release/touhou_tagger_resize_wasm.wasm'
-  Copy-Item -LiteralPath $resizeOutput -Destination (Join-Path $outputRoot 'resize.wasm')
 
   $archivePath = Join-Path $temporaryRoot 'mozjpeg.tar.gz'
   Invoke-WebRequest -Uri $versions.mozjpeg.sourceUrl -OutFile $archivePath
