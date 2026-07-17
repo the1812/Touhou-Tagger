@@ -5,4 +5,5 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
+ENV EMCC_CORES=1
 ENTRYPOINT ["/bin/bash", "/project/build.sh"]

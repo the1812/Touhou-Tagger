@@ -13,7 +13,7 @@ emconfigure ./configure \
   --without-arith-dec \
   --with-build-date=squoosh
 
-emmake make -j"$(nproc)" libjpeg.la rdswitch.o \
+emmake make -j1 libjpeg.la rdswitch.o \
   CFLAGS="-O3 -flto" \
   CXXFLAGS="-O3 -flto -std=c++17"
 
