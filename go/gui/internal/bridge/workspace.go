@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -396,7 +397,7 @@ func (service *WorkspaceService) DiscardPlan(planID string) bool {
 	return service.plans.discard(planID)
 }
 
-func (service *WorkspaceService) RevealDirectory(_ context.Context, directory string) error {
+func (service *WorkspaceService) RevealDirectory(ctx context.Context, directory string) error {
 	info, err := os.Stat(directory)
 	if err != nil {
 		return fmt.Errorf("打开目录 %q: %w", directory, err)
@@ -404,11 +405,15 @@ func (service *WorkspaceService) RevealDirectory(_ context.Context, directory st
 	if !info.IsDir() {
 		return fmt.Errorf("%q 不是目录", directory)
 	}
-	command := exec.Command("explorer.exe", directory)
+	command := exec.CommandContext(ctx, "explorer.exe", directory)
 	if err := command.Start(); err != nil {
 		return fmt.Errorf("打开资源管理器: %w", err)
 	}
-	go command.Wait()
+	go func() {
+		if err := command.Wait(); err != nil && ctx.Err() == nil {
+			log.Printf("wait for explorer: %v", err)
+		}
+	}()
 	return nil
 }
 
