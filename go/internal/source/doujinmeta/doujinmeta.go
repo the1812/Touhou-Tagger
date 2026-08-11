@@ -79,11 +79,15 @@ func (sourceClient *Source) Fetch(
 	if len(cover) == 0 && detail.CoverURL != "" {
 		coverURL, err := sourceClient.baseURL.Parse(detail.CoverURL)
 		if err != nil {
-			return nil, fmt.Errorf("resolve Doujin Meta cover URL: %w", err)
+			return domain.ExpandMetadata(detail.Metadata, nil), &source.PartialFetchError{
+				Err: fmt.Errorf("resolve Doujin Meta cover URL: %w", err),
+			}
 		}
 		cover, err = sourceClient.getBytes(ctx, coverURL.String())
 		if err != nil {
-			return nil, fmt.Errorf("fetch Doujin Meta cover: %w", err)
+			return domain.ExpandMetadata(detail.Metadata, nil), &source.PartialFetchError{
+				Err: fmt.Errorf("fetch Doujin Meta cover: %w", err),
+			}
 		}
 	}
 	return domain.ExpandMetadata(detail.Metadata, cover), nil

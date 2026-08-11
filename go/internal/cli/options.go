@@ -15,6 +15,7 @@ type Options struct {
 	CoverCompressResolution int
 	Source                  string
 	Lyric                   bool
+	LyricEnabled            bool
 	LyricType               string
 	LyricOutput             string
 	LyricCacheSize          int
@@ -37,7 +38,8 @@ func newOptions(value domain.MetadataConfig) Options {
 		CommentLanguage:         value.CommentLanguage,
 		CoverCompressSize:       value.CoverCompressSize,
 		CoverCompressResolution: value.CoverCompressResolution,
-		Source:                  "thb-wiki",
+		Source:                  value.Source,
+		LyricEnabled:            value.LyricEnabled,
 		LyricType:               string(lyric.Type),
 		LyricOutput:             string(lyric.Output),
 		LyricCacheSize:          lyric.MaxCacheSize,
@@ -51,7 +53,18 @@ func newOptions(value domain.MetadataConfig) Options {
 }
 
 func (options Options) metadataConfig() domain.MetadataConfig {
-	value := domain.MetadataConfig{
+	return config.RuntimeMetadata(options.config(options.Lyric))
+}
+
+func (options Options) persistedConfig() domain.MetadataConfig {
+	return options.config(options.LyricEnabled)
+}
+
+func (options Options) config(lyricEnabled bool) domain.MetadataConfig {
+	return domain.MetadataConfig{
+		Lyric:                   options.lyricConfig(),
+		LyricEnabled:            lyricEnabled,
+		Source:                  options.Source,
 		CommentLanguage:         options.CommentLanguage,
 		CoverCompressSize:       options.CoverCompressSize,
 		CoverCompressResolution: options.CoverCompressResolution,
@@ -59,16 +72,6 @@ func (options Options) metadataConfig() domain.MetadataConfig {
 		Timeout:                 options.Timeout,
 		Retry:                   options.Retry,
 	}
-	if options.Lyric {
-		value.Lyric = options.lyricConfig()
-	}
-	return value
-}
-
-func (options Options) persistedConfig() domain.MetadataConfig {
-	value := options.metadataConfig()
-	value.Lyric = options.lyricConfig()
-	return value
 }
 
 func (options Options) lyricConfig() *domain.LyricConfig {
@@ -82,54 +85,28 @@ func (options Options) lyricConfig() *domain.LyricConfig {
 }
 
 func (options Options) forDirectory(directory string) (Options, error) {
-	album, err := config.LoadAlbum(directory)
+	resolved, err := config.ResolveAlbum(directory, options.persistedConfig(), options.Lyric)
 	if err != nil {
 		return Options{}, err
 	}
-	if album.Source != "" {
-		options.Source = album.Source
+	options.Source = resolved.Metadata.Source
+	options.CommentLanguage = resolved.Metadata.CommentLanguage
+	options.CoverCompressSize = resolved.Metadata.CoverCompressSize
+	options.CoverCompressResolution = resolved.Metadata.CoverCompressResolution
+	options.Separator = resolved.Metadata.Separator
+	options.Timeout = resolved.Metadata.Timeout
+	options.Retry = resolved.Metadata.Retry
+	options.Lyric = resolved.Metadata.LyricEnabled
+	options.LyricType = string(resolved.Lyric.Type)
+	options.LyricOutput = string(resolved.Lyric.Output)
+	options.LyricTime = resolved.Lyric.Time
+	options.LyricCacheSize = resolved.Lyric.MaxCacheSize
+	options.TranslationSeparator = resolved.Lyric.TranslationSeparator
+	if resolved.Interactive != nil {
+		options.Interactive = *resolved.Interactive
 	}
-	if album.Interactive != nil {
-		options.Interactive = *album.Interactive
-	}
-	if album.Cover != nil {
-		options.Cover = *album.Cover
-	}
-	if album.Lyric != nil {
-		options.Lyric = *album.Lyric
-	}
-	if album.LyricType != "" {
-		options.LyricType = album.LyricType
-	}
-	if album.LyricOutput != "" {
-		options.LyricOutput = album.LyricOutput
-	}
-	if album.LyricTime != nil {
-		options.LyricTime = *album.LyricTime
-	}
-	if album.LyricCacheSize > 0 {
-		options.LyricCacheSize = album.LyricCacheSize
-	}
-	if album.TranslationSeparator != "" {
-		options.TranslationSeparator = album.TranslationSeparator
-	}
-	if album.CommentLanguage != "" {
-		options.CommentLanguage = album.CommentLanguage
-	}
-	if album.CoverCompressSize != nil {
-		options.CoverCompressSize = *album.CoverCompressSize
-	}
-	if album.CoverCompressResolution != nil {
-		options.CoverCompressResolution = *album.CoverCompressResolution
-	}
-	if album.Separator != "" {
-		options.Separator = album.Separator
-	}
-	if album.Timeout > 0 {
-		options.Timeout = album.Timeout
-	}
-	if album.Retry > 0 {
-		options.Retry = album.Retry
+	if resolved.Cover != nil {
+		options.Cover = *resolved.Cover
 	}
 	return options, nil
 }

@@ -65,7 +65,7 @@ func TestApplyTagPlanSupportsFilenameSwaps(t *testing.T) {
 	plan.Items[0].Metadata.Lyric = "first lyric"
 	writer := &recordingWriter{}
 	service := Service{
-		Config:  domain.MetadataConfig{Lyric: &lyric},
+		Config:  domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true},
 		Writers: tagio.Writers{domain.FormatMP3: writer},
 	}
 	if err := service.ApplyTagPlan(context.Background(), plan); err != nil {
@@ -94,7 +94,7 @@ func TestRenameTwoPhaseRestoresSwapAfterCommitFailure(t *testing.T) {
 			failed = true
 			return injected
 		}
-		return os.Rename(oldPath, newPath)
+		return renameNoReplace(oldPath, newPath)
 	}
 	err := renameTwoPhaseWith(items, rename)
 	if !errors.Is(err, injected) {
@@ -132,6 +132,281 @@ func TestApplyTagPlanLeavesOriginalsUntouchedWhenPreparationFails(t *testing.T) 
 	assertFileContent(t, first, "first")
 	assertFileContent(t, second, "second")
 	assertNoTemporaryFiles(t, directory)
+}
+
+func TestApplyTagPlanRejectsSourceChangedDuringPreparation(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Track.mp3")
+	writeTestFile(t, source, "audio")
+	scan, err := albumfs.ScanAlbum(context.Background(), directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := BuildTagPlan(scan, []domain.Metadata{{
+		Title:       "Track",
+		Artists:     []string{},
+		TrackNumber: "1",
+		DiscNumber:  "1",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	changed := false
+	service := Service{
+		Config:  domain.DefaultMetadataConfig(),
+		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{}},
+		Events: func(event domain.ProgressEvent) error {
+			if event.Stage != domain.StageWrite || changed {
+				return nil
+			}
+			changed = true
+			return os.WriteFile(source, []byte("external source change"), 0o644)
+		},
+	}
+	err = service.ApplyTagPlan(context.Background(), plan)
+	if err == nil || !strings.Contains(err.Error(), "changed while preparing") {
+		t.Fatalf("ApplyTagPlan() error = %v", err)
+	}
+	if TagFilesMayHaveChanged(err) {
+		t.Fatalf("source snapshot failure was reported as a committed change: %v", err)
+	}
+	assertFileContent(t, source, "external source change")
+	assertNoTemporaryFiles(t, directory)
+}
+
+func TestReplaceOriginalsRejectsSourceChangedAfterRevalidation(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Track.mp3")
+	temporary := filepath.Join(directory, ".thtag-write-test")
+	writeTestFile(t, source, "original")
+	writeTestFile(t, temporary, "prepared")
+	items := []domain.TagPlanItem{{SourcePath: source}}
+	sources, err := snapshotSources(items)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := validateSourceSnapshots(sources); err != nil {
+		t.Fatal(err)
+	}
+	changed := false
+	move := func(oldPath, newPath string) error {
+		if !changed &&
+			oldPath == source &&
+			strings.Contains(filepath.Base(newPath), ".thtag-backup-") {
+			changed = true
+			if err := os.WriteFile(source, []byte("late external source"), 0o644); err != nil {
+				return err
+			}
+		}
+		return renameNoReplace(oldPath, newPath)
+	}
+	err = replaceOriginalsWith([]preparedWrite{{
+		item:      items[0],
+		temporary: temporary,
+	}}, sources, move)
+	if err == nil || !strings.Contains(err.Error(), "changed before replacement") {
+		t.Fatalf("replaceOriginalsWith() error = %v", err)
+	}
+	assertFileContent(t, source, "late external source")
+	assertFileContent(t, temporary, "prepared")
+	backups, globErr := filepath.Glob(filepath.Join(directory, ".thtag-backup-*"))
+	if globErr != nil {
+		t.Fatal(globErr)
+	}
+	if len(backups) != 0 {
+		t.Fatalf("changed source was not restored from backup: %#v", backups)
+	}
+}
+
+func TestApplyTagPlanDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Old.mp3")
+	target := filepath.Join(directory, "01 New.mp3")
+	writeTestFile(t, source, "audio")
+	scan, err := albumfs.ScanAlbum(context.Background(), directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := BuildTagPlan(scan, []domain.Metadata{{
+		Title:       "New",
+		Artists:     []string{},
+		TrackNumber: "1",
+		DiscNumber:  "1",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	service := Service{
+		Config:  domain.DefaultMetadataConfig(),
+		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{}},
+		Events: func(event domain.ProgressEvent) error {
+			if event.Stage != domain.StageRename {
+				return nil
+			}
+			return os.WriteFile(target, []byte("external target"), 0o644)
+		},
+	}
+	err = service.ApplyTagPlan(context.Background(), plan)
+	if err == nil || !TagFilesMayHaveChanged(err) {
+		t.Fatalf("ApplyTagPlan() error = %v", err)
+	}
+	assertFileContent(t, target, "external target")
+	assertFileContent(t, source, "audio:New")
+	assertNoTemporaryFiles(t, directory)
+}
+
+func TestReplaceOriginalsRetainsBackupWhenSourceReappears(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Track.mp3")
+	temporary := filepath.Join(directory, ".thtag-write-test")
+	writeTestFile(t, source, "original")
+	writeTestFile(t, temporary, "prepared")
+	items := []domain.TagPlanItem{{SourcePath: source}}
+	sources, err := snapshotSources(items)
+	if err != nil {
+		t.Fatal(err)
+	}
+	created := false
+	move := func(oldPath, newPath string) error {
+		if !created && oldPath == temporary && newPath == source {
+			created = true
+			if err := os.WriteFile(source, []byte("external"), 0o644); err != nil {
+				return err
+			}
+		}
+		return renameNoReplace(oldPath, newPath)
+	}
+	err = replaceOriginalsWith([]preparedWrite{{
+		item:      items[0],
+		temporary: temporary,
+	}}, sources, move)
+	if err == nil {
+		t.Fatal("replaceOriginalsWith() unexpectedly replaced a reappeared source")
+	}
+	assertFileContent(t, source, "external")
+	assertFileContent(t, temporary, "prepared")
+	backups, globErr := filepath.Glob(filepath.Join(directory, ".thtag-backup-*"))
+	if globErr != nil {
+		t.Fatal(globErr)
+	}
+	if len(backups) != 1 {
+		t.Fatalf("backup files = %#v", backups)
+	}
+	assertFileContent(t, backups[0], "original")
+	if !strings.Contains(err.Error(), filepath.Base(backups[0])) {
+		t.Fatalf("error does not identify retained backup %q: %v", backups[0], err)
+	}
+}
+
+func TestReplaceOriginalsRetainsBackupChangedInPlace(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Track.mp3")
+	temporary := filepath.Join(directory, ".thtag-write-test")
+	writeTestFile(t, source, "original")
+	writeTestFile(t, temporary, "prepared")
+	items := []domain.TagPlanItem{{SourcePath: source}}
+	sources, err := snapshotSources(items)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var backup string
+	move := func(oldPath, newPath string) error {
+		if oldPath == source && strings.Contains(filepath.Base(newPath), ".thtag-backup-") {
+			backup = newPath
+		}
+		if err := renameNoReplace(oldPath, newPath); err != nil {
+			return err
+		}
+		if oldPath == temporary && newPath == source {
+			return os.WriteFile(backup, []byte("externally changed backup"), 0o644)
+		}
+		return nil
+	}
+	err = replaceOriginalsWith([]preparedWrite{{
+		item:      items[0],
+		temporary: temporary,
+	}}, sources, move)
+	if err == nil || !strings.Contains(err.Error(), "changed before cleanup") {
+		t.Fatalf("replaceOriginalsWith() error = %v", err)
+	}
+	assertFileContent(t, source, "prepared")
+	assertFileContent(t, backup, "externally changed backup")
+}
+
+func TestReplacementRollbackRetainsCurrentFileChangedInPlace(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "01 Track.mp3")
+	backup := filepath.Join(directory, ".thtag-backup-test")
+	writeTestFile(t, source, "prepared")
+	writeTestFile(t, backup, "original")
+	written, err := captureOwnedFile(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var retained string
+	move := func(oldPath, newPath string) error {
+		if err := renameNoReplace(oldPath, newPath); err != nil {
+			return err
+		}
+		if oldPath == source && strings.Contains(filepath.Base(newPath), ".thtag-rollback-") {
+			retained = newPath
+			return os.WriteFile(retained, []byte("externally changed current file"), 0o644)
+		}
+		return nil
+	}
+	err = rollbackReplacementsWith([]replacement{{
+		source:  source,
+		backup:  backup,
+		written: written,
+	}}, move)
+	if err == nil || !strings.Contains(err.Error(), "changed during rollback") {
+		t.Fatalf("rollbackReplacementsWith() error = %v", err)
+	}
+	assertFileContent(t, source, "original")
+	assertFileContent(t, retained, "externally changed current file")
+	if !strings.Contains(err.Error(), filepath.Base(retained)) {
+		t.Fatalf("error does not identify retained file %q: %v", retained, err)
+	}
+}
+
+func TestRenameRollbackDoesNotReplaceReappearedSource(t *testing.T) {
+	directory := t.TempDir()
+	source := filepath.Join(directory, "A.mp3")
+	target := filepath.Join(directory, "B.mp3")
+	writeTestFile(t, source, "audio")
+	writeTestFile(t, target, "external target")
+	created := false
+	move := func(oldPath, newPath string) error {
+		if !created &&
+			strings.Contains(filepath.Base(oldPath), ".thtag-rename-") &&
+			newPath == source {
+			created = true
+			if err := os.WriteFile(source, []byte("external source"), 0o644); err != nil {
+				return err
+			}
+		}
+		return renameNoReplace(oldPath, newPath)
+	}
+	err := renameTwoPhaseWith([]domain.TagPlanItem{{
+		SourcePath: source,
+		TargetPath: target,
+	}}, move)
+	if err == nil {
+		t.Fatal("renameTwoPhaseWith() unexpectedly replaced an external file")
+	}
+	assertFileContent(t, source, "external source")
+	assertFileContent(t, target, "external target")
+	staged, globErr := filepath.Glob(filepath.Join(directory, ".thtag-rename-*"))
+	if globErr != nil {
+		t.Fatal(globErr)
+	}
+	if len(staged) != 1 {
+		t.Fatalf("staged files = %#v", staged)
+	}
+	assertFileContent(t, staged[0], "audio")
+	if !strings.Contains(err.Error(), filepath.Base(staged[0])) {
+		t.Fatalf("error does not identify retained staged file %q: %v", staged[0], err)
+	}
 }
 
 func TestApplyTagPlanAppliesCaseOnlyFilenameChanges(t *testing.T) {

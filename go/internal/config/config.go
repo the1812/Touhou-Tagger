@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
@@ -116,6 +117,9 @@ func writeFileAtomic(path string, data []byte, mode os.FileMode) (resultErr erro
 
 func applyDefaults(value *domain.MetadataConfig) {
 	defaults := domain.DefaultMetadataConfig()
+	if value.Source == "" {
+		value.Source = defaults.Source
+	}
 	if value.CommentLanguage == "" {
 		value.CommentLanguage = defaults.CommentLanguage
 	}
@@ -128,8 +132,10 @@ func applyDefaults(value *domain.MetadataConfig) {
 	if value.Retry <= 0 {
 		value.Retry = defaults.Retry
 	}
-	if value.Lyric != nil {
-		lyricDefaults := domain.DefaultLyricConfig()
+	lyricDefaults := domain.DefaultLyricConfig()
+	if value.Lyric == nil {
+		value.Lyric = &lyricDefaults
+	} else {
 		if value.Lyric.Type == "" {
 			value.Lyric.Type = lyricDefaults.Type
 		}
@@ -143,4 +149,50 @@ func applyDefaults(value *domain.MetadataConfig) {
 			value.Lyric.MaxCacheSize = lyricDefaults.MaxCacheSize
 		}
 	}
+}
+
+func ValidateMetadata(value domain.MetadataConfig) error {
+	if len(value.CommentLanguage) != 3 {
+		return fmt.Errorf("comment language must be a three-letter ISO-639-2 code")
+	}
+	if value.CoverCompressSize < 0 || value.CoverCompressResolution < 0 {
+		return fmt.Errorf("cover compression limits must not be negative")
+	}
+	if strings.TrimSpace(value.Separator) == "" {
+		return fmt.Errorf("metadata separator must not be empty")
+	}
+	if value.Timeout <= 0 {
+		return fmt.Errorf("timeout must be positive")
+	}
+	if value.Retry <= 0 {
+		return fmt.Errorf("retry must be positive")
+	}
+	if value.Lyric == nil && !value.LyricEnabled {
+		return nil
+	}
+	if value.Lyric == nil {
+		return fmt.Errorf("lyric preferences are required when lyrics are enabled")
+	}
+	if value.Lyric.Type != domain.LyricOriginal &&
+		value.Lyric.Type != domain.LyricTranslated &&
+		value.Lyric.Type != domain.LyricMixed {
+		return fmt.Errorf("unsupported lyric type %q", value.Lyric.Type)
+	}
+	if value.Lyric.Output != domain.LyricMetadata && value.Lyric.Output != domain.LyricLRC {
+		return fmt.Errorf("unsupported lyric output %q", value.Lyric.Output)
+	}
+	if value.Lyric.MaxCacheSize <= 0 {
+		return fmt.Errorf("lyric cache size must be positive")
+	}
+	if strings.TrimSpace(value.Lyric.TranslationSeparator) == "" {
+		return fmt.Errorf("lyric translation separator must not be empty")
+	}
+	return nil
+}
+
+func RuntimeMetadata(value domain.MetadataConfig) domain.MetadataConfig {
+	if !value.LyricEnabled {
+		value.Lyric = nil
+	}
+	return value
 }

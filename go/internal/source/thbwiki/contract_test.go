@@ -178,7 +178,8 @@ func TestLRCContracts(t *testing.T) {
 
 func testMetadataConfig(lyric *domain.LyricConfig) domain.MetadataConfig {
 	return domain.MetadataConfig{
-		Lyric: lyric, CommentLanguage: "zho", Separator: domain.DefaultMetadataSeparator,
+		Lyric: lyric, LyricEnabled: lyric != nil,
+		CommentLanguage: "zho", Separator: domain.DefaultMetadataSeparator,
 		Timeout: 5, Retry: 1,
 	}
 }

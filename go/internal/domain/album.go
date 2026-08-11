@@ -37,6 +37,7 @@ type BatchJob struct {
 	Directory    string
 	Name         string
 	PreflightErr error
+	Ignored      bool
 }
 
 type BatchResult struct {
@@ -53,6 +54,7 @@ const (
 	StageFetch    EventStage = "fetch"
 	StagePlan     EventStage = "plan"
 	StageWrite    EventStage = "write"
+	StageCommit   EventStage = "commit"
 	StageRename   EventStage = "rename"
 	StageComplete EventStage = "complete"
 )

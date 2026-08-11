@@ -45,6 +45,11 @@ func (service *Service) ScanBatch(
 			continue
 		}
 		if len(scan.AudioFiles) == 0 {
+			jobs = append(jobs, domain.BatchJob{
+				Directory: albumDirectory,
+				Name:      filepath.Base(albumDirectory),
+				Ignored:   true,
+			})
 			continue
 		}
 		name, err := DefaultAlbumName(albumDirectory)
@@ -74,6 +79,10 @@ func (service *Service) RunBatch(
 		}
 		if job.PreflightErr != nil {
 			results = append(results, domain.BatchResult{Job: job, Err: job.PreflightErr})
+			continue
+		}
+		if job.Ignored {
+			results = append(results, domain.BatchResult{Job: job})
 			continue
 		}
 		started := time.Now()

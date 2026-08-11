@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -16,12 +15,43 @@ import (
 
 type EventSink func(domain.ProgressEvent) error
 
+type ProcessWarning struct {
+	Message   string
+	Details   string
+	Directory string
+}
+
+type WarningSink func(ProcessWarning) error
+
 type Service struct {
-	Sources source.Registry
-	Readers tagio.Readers
-	Writers tagio.Writers
-	Config  domain.MetadataConfig
-	Events  EventSink
+	Sources  source.Registry
+	Readers  tagio.Readers
+	Writers  tagio.Writers
+	Config   domain.MetadataConfig
+	Events   EventSink
+	Warnings WarningSink
+}
+
+type TagData struct {
+	Scan     domain.AlbumScan
+	Metadata []domain.Metadata
+}
+
+type TagFilesChangedError struct {
+	Err error
+}
+
+func (err *TagFilesChangedError) Error() string {
+	return err.Err.Error()
+}
+
+func (err *TagFilesChangedError) Unwrap() error {
+	return err.Err
+}
+
+func TagFilesMayHaveChanged(err error) bool {
+	var changed *TagFilesChangedError
+	return errors.As(err, &changed)
 }
 
 func (service *Service) ScanAlbum(
@@ -56,18 +86,37 @@ func (service *Service) BuildTagPlan(
 	directory string,
 	candidate domain.AlbumCandidate,
 ) (domain.TagPlan, []byte, error) {
-	scan, err := service.ScanAlbum(ctx, directory)
+	data, cover, err := service.FetchTagData(ctx, directory, candidate)
 	if err != nil {
 		return domain.TagPlan{}, nil, err
 	}
+	plan, err := BuildTagPlan(data.Scan, data.Metadata)
+	if err != nil {
+		return domain.TagPlan{}, nil, err
+	}
+	if err := service.emit(domain.ProgressEvent{Stage: domain.StagePlan, Directory: data.Scan.Directory, Total: len(plan.Items)}); err != nil {
+		return domain.TagPlan{}, nil, err
+	}
+	return plan, cover, nil
+}
+
+func (service *Service) FetchTagData(
+	ctx context.Context,
+	directory string,
+	candidate domain.AlbumCandidate,
+) (TagData, []byte, error) {
+	scan, err := service.ScanAlbum(ctx, directory)
+	if err != nil {
+		return TagData{}, nil, err
+	}
 	if len(scan.AudioFiles) == 0 {
-		return domain.TagPlan{}, nil, fmt.Errorf("no supported audio files found in %q", scan.Directory)
+		return TagData{}, nil, fmt.Errorf("no supported audio files found in %q", scan.Directory)
 	}
 	var cover []byte
 	if scan.CoverPath != "" {
 		cover, err = os.ReadFile(scan.CoverPath)
 		if err != nil {
-			return domain.TagPlan{}, nil, fmt.Errorf("read local cover %q: %w", scan.CoverPath, err)
+			return TagData{}, nil, fmt.Errorf("read local cover %q: %w", scan.CoverPath, err)
 		}
 	}
 	metadataSourceName := candidate.Source
@@ -78,30 +127,59 @@ func (service *Service) BuildTagPlan(
 	}
 	metadataSource, exists := service.Sources[metadataSourceName]
 	if !exists {
-		return domain.TagPlan{}, nil, fmt.Errorf("metadata source %q is not registered", metadataSourceName)
+		return TagData{}, nil, fmt.Errorf("metadata source %q is not registered", metadataSourceName)
 	}
 	if err := service.emit(domain.ProgressEvent{Stage: domain.StageFetch, Directory: scan.Directory, Message: metadataID}); err != nil {
-		return domain.TagPlan{}, nil, err
+		return TagData{}, nil, err
 	}
-	metadata, err := withRetry(ctx, service.Config, func(attemptContext context.Context) ([]domain.Metadata, error) {
-		return metadataSource.Fetch(attemptContext, metadataID, cover)
-	})
+	var fallbackMetadata []domain.Metadata
+	var partialFetchErr error
+	metadata, err := withRetry(
+		ctx,
+		service.Config,
+		func(attemptContext context.Context) ([]domain.Metadata, error) {
+			value, fetchErr := metadataSource.Fetch(attemptContext, metadataID, cover)
+			var partial *source.PartialFetchError
+			if errors.As(fetchErr, &partial) {
+				fallbackMetadata = value
+				partialFetchErr = fetchErr
+			}
+			return value, fetchErr
+		},
+	)
 	if err != nil {
-		return domain.TagPlan{}, nil, err
+		if partialFetchErr == nil || errors.Is(err, context.Canceled) {
+			return TagData{}, nil, err
+		}
+		metadata = fallbackMetadata
+		warning := ProcessWarning{
+			Message: fmt.Sprintf(
+				"从 %s 下载远程封面失败，已使用无封面继续预览。",
+				metadataSourceName,
+			),
+			Details:   err.Error(),
+			Directory: scan.Directory,
+		}
+		if service.Warnings == nil {
+			return TagData{}, nil, fmt.Errorf("%s %s", warning.Message, warning.Details)
+		}
+		if warningErr := service.Warnings(warning); warningErr != nil {
+			return TagData{}, nil, fmt.Errorf("report process warning: %w", warningErr)
+		}
 	}
-	plan, err := BuildTagPlan(scan, metadata)
-	if err != nil {
-		return domain.TagPlan{}, nil, err
-	}
-	if err := service.emit(domain.ProgressEvent{Stage: domain.StagePlan, Directory: scan.Directory, Total: len(plan.Items)}); err != nil {
-		return domain.TagPlan{}, nil, err
-	}
-	return plan, cover, nil
+	return TagData{Scan: scan, Metadata: metadata}, cover, nil
 }
 
 func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) error {
 	if len(plan.Items) == 0 {
 		return fmt.Errorf("tag plan for %q is empty", plan.Directory)
+	}
+	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
+		return err
+	}
+	sourceSnapshots, err := snapshotSources(plan.Items)
+	if err != nil {
+		return err
 	}
 	prepared := make([]preparedWrite, 0, len(plan.Items))
 	for index, item := range plan.Items {
@@ -134,30 +212,53 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 		}
 	}
 	if err := service.emit(domain.ProgressEvent{
-		Stage: domain.StageRename, Directory: plan.Directory, Total: len(plan.Items),
+		Stage:     domain.StageCommit,
+		Directory: plan.Directory,
+		Current:   len(plan.Items),
+		Total:     len(plan.Items),
 	}); err != nil {
 		return errors.Join(err, cleanupPrepared(prepared))
 	}
-	if err := replaceOriginals(prepared); err != nil {
+	if err := ctx.Err(); err != nil {
 		return errors.Join(err, cleanupPrepared(prepared))
 	}
-	if err := renameTwoPhase(plan.Items); err != nil {
-		return err
+	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
+		return errors.Join(err, cleanupPrepared(prepared))
 	}
-	if service.Config.Lyric != nil && service.Config.Lyric.Output == domain.LyricLRC {
-		for _, item := range plan.Items {
-			if item.Metadata.Lyric == "" {
-				continue
-			}
-			lyricPath := item.TargetPath[:len(item.TargetPath)-len(filepath.Ext(item.TargetPath))] + ".lrc"
-			if err := atomicWrite(lyricPath, []byte(item.Metadata.Lyric), 0o644); err != nil {
-				return fmt.Errorf("write LRC %q: %w", lyricPath, err)
+	if err := validateSourceSnapshots(sourceSnapshots); err != nil {
+		return errors.Join(err, cleanupPrepared(prepared))
+	}
+	if err := replaceOriginals(prepared, sourceSnapshots); err != nil {
+		return errors.Join(&TagFilesChangedError{Err: err}, cleanupPrepared(prepared))
+	}
+	if err := service.emit(domain.ProgressEvent{
+		Stage:     domain.StageRename,
+		Directory: plan.Directory,
+		Current:   len(plan.Items),
+		Total:     len(plan.Items),
+	}); err != nil {
+		return &TagFilesChangedError{Err: err}
+	}
+	if err := renameTwoPhase(plan.Items); err != nil {
+		return &TagFilesChangedError{Err: err}
+	}
+	for _, output := range TagPlanOutputs(plan, service.Config) {
+		item := plan.Items[output.ItemIndex]
+		if err := writeNewFile(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
+			return &TagFilesChangedError{
+				Err: fmt.Errorf("write LRC %q: %w", output.Path, err),
 			}
 		}
 	}
-	return service.emit(domain.ProgressEvent{
-		Stage: domain.StageComplete, Directory: plan.Directory, Total: len(plan.Items),
-	})
+	if err := service.emit(domain.ProgressEvent{
+		Stage:     domain.StageComplete,
+		Directory: plan.Directory,
+		Current:   len(plan.Items),
+		Total:     len(plan.Items),
+	}); err != nil {
+		return &TagFilesChangedError{Err: err}
+	}
+	return nil
 }
 
 func (service *Service) emit(event domain.ProgressEvent) error {

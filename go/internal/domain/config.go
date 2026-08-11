@@ -1,6 +1,7 @@
 package domain
 
 const DefaultMetadataSeparator = " / "
+const DefaultMetadataSource = "thb-wiki"
 
 type LyricType string
 
@@ -27,6 +28,8 @@ type LyricConfig struct {
 
 type MetadataConfig struct {
 	Lyric                   *LyricConfig `json:"lyric,omitempty"`
+	LyricEnabled            bool         `json:"lyricEnabled,omitempty"`
+	Source                  string       `json:"source"`
 	CommentLanguage         string       `json:"commentLanguage"`
 	CoverCompressSize       float64      `json:"coverCompressSize"`
 	CoverCompressResolution int          `json:"coverCompressResolution"`
@@ -36,7 +39,10 @@ type MetadataConfig struct {
 }
 
 func DefaultMetadataConfig() MetadataConfig {
+	lyric := DefaultLyricConfig()
 	return MetadataConfig{
+		Lyric:                   &lyric,
+		Source:                  DefaultMetadataSource,
 		CommentLanguage:         "zho",
 		CoverCompressSize:       0,
 		CoverCompressResolution: 0,

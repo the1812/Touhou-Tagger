@@ -116,6 +116,7 @@ func (wiki *Source) ParseAlbumHTML(
 		genres = splitValues(genreValue)
 	}
 	year := leadingDigits(tableValue(infoTable, "首发日期"))
+	var coverErr error
 	if len(cover) == 0 {
 		image := document.Find(".cover-artwork img").First()
 		if image.Length() > 0 {
@@ -123,7 +124,8 @@ func (wiki *Source) ParseAlbumHTML(
 			if exists && sourceURL != "" {
 				cover, err = wiki.downloadCover(ctx, sourceURL)
 				if err != nil {
-					return nil, err
+					cover = nil
+					coverErr = &source.PartialFetchError{Err: err}
 				}
 			}
 		}
@@ -157,7 +159,7 @@ func (wiki *Source) ParseAlbumHTML(
 	if parseErr != nil {
 		return nil, parseErr
 	}
-	return metadata, nil
+	return metadata, coverErr
 }
 
 func (wiki *Source) downloadCover(ctx context.Context, sourceURL string) ([]byte, error) {

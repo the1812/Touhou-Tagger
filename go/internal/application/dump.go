@@ -69,7 +69,10 @@ func (service *Service) DumpMetadata(
 		}
 	}
 	if err := service.emit(domain.ProgressEvent{
-		Stage: domain.StageComplete, Directory: scan.Directory, Total: len(metadata),
+		Stage:     domain.StageComplete,
+		Directory: scan.Directory,
+		Current:   len(metadata),
+		Total:     len(metadata),
 	}); err != nil {
 		return nil, err
 	}
@@ -83,6 +86,17 @@ func SaveCover(directory string, cover []byte) (string, error) {
 	}
 	if err := atomicWrite(path, cover, 0o644); err != nil {
 		return "", fmt.Errorf("write cover %q: %w", path, err)
+	}
+	return path, nil
+}
+
+func SaveCoverNew(directory string, cover []byte) (string, error) {
+	path, err := CoverPath(directory, cover)
+	if err != nil {
+		return "", err
+	}
+	if err := writeNewFile(path, cover, 0o644); err != nil {
+		return "", fmt.Errorf("write new cover %q: %w", path, err)
 	}
 	return path, nil
 }

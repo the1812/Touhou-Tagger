@@ -6,24 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/bootstrap"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/imagecodec"
-	"github.com/the1812/Touhou-Tagger/go/internal/source"
-	"github.com/the1812/Touhou-Tagger/go/internal/source/doujinmeta"
-	"github.com/the1812/Touhou-Tagger/go/internal/source/localjson"
-	"github.com/the1812/Touhou-Tagger/go/internal/source/thbwiki"
-	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
-	flactag "github.com/the1812/Touhou-Tagger/go/internal/tagio/flac"
-	id3tag "github.com/the1812/Touhou-Tagger/go/internal/tagio/id3"
 )
 
 type BuildInfo struct {
@@ -377,32 +369,24 @@ func (runner *Runner) dumpDirectory(ctx context.Context, directory string) error
 
 func (runner *Runner) service(options Options) (*application.Service, error) {
 	metadataConfig := options.metadataConfig()
-	client := &http.Client{Timeout: time.Duration(metadataConfig.Timeout) * time.Second}
-	wiki, err := thbwiki.New(client, "https://thwiki.cc", metadataConfig)
-	if err != nil {
-		return nil, err
+	return bootstrap.NewService(bootstrap.Options{
+		Config:         metadataConfig,
+		Events:         runner.reportProgress,
+		Warnings:       runner.reportWarning,
+		CoverProcessor: runner.codec,
+	})
+}
+
+func (runner *Runner) reportWarning(warning application.ProcessWarning) error {
+	if _, err := fmt.Fprintf(
+		runner.errors,
+		"警告: %s\n详情: %s\n",
+		warning.Message,
+		warning.Details,
+	); err != nil {
+		return fmt.Errorf("write warning output: %w", err)
 	}
-	doujin, err := doujinmeta.New(client, "https://doujin-meta.vercel.app")
-	if err != nil {
-		return nil, err
-	}
-	return &application.Service{
-		Config: metadataConfig,
-		Events: runner.reportProgress,
-		Sources: source.Registry{
-			"thb-wiki":    wiki,
-			"doujin-meta": doujin,
-			"local-json":  localjson.Source{},
-		},
-		Readers: tagio.Readers{
-			domain.FormatMP3:  id3tag.Reader{},
-			domain.FormatFLAC: flactag.Reader{},
-		},
-		Writers: tagio.Writers{
-			domain.FormatMP3:  id3tag.Writer{CoverProcessor: runner.codec},
-			domain.FormatFLAC: flactag.Writer{CoverProcessor: runner.codec},
-		},
-	}, nil
+	return nil
 }
 
 func (runner *Runner) reportProgress(event domain.ProgressEvent) error {
@@ -422,8 +406,10 @@ func (runner *Runner) reportProgress(event domain.ProgressEvent) error {
 			action = "读取标签"
 		}
 		message = fmt.Sprintf("%s [%d/%d]: %s", action, event.Current, event.Total, event.Path)
-	case domain.StageRename:
+	case domain.StageCommit:
 		message = fmt.Sprintf("提交文件: %s", event.Directory)
+	case domain.StageRename:
+		message = fmt.Sprintf("重命名文件: %s", event.Directory)
 	case domain.StageComplete:
 		message = fmt.Sprintf("完成: %s", event.Directory)
 	}
@@ -437,29 +423,11 @@ func validateOptions(options Options) error {
 	if options.BatchDepth < 1 {
 		return fmt.Errorf("batch depth must be at least 1")
 	}
-	if options.Timeout <= 0 {
-		return fmt.Errorf("timeout must be positive")
-	}
-	if options.Retry <= 0 {
-		return fmt.Errorf("retry must be positive")
-	}
-	if options.CoverCompressSize < 0 || options.CoverCompressResolution < 0 {
-		return fmt.Errorf("cover compression limits must not be negative")
+	if err := config.ValidateMetadata(options.persistedConfig()); err != nil {
+		return err
 	}
 	if options.Source != "thb-wiki" && options.Source != "doujin-meta" {
 		return fmt.Errorf("unsupported metadata source %q", options.Source)
-	}
-	if options.LyricType != "original" && options.LyricType != "translated" && options.LyricType != "mixed" {
-		return fmt.Errorf("unsupported lyric type %q", options.LyricType)
-	}
-	if options.LyricOutput != "metadata" && options.LyricOutput != "lrc" {
-		return fmt.Errorf("unsupported lyric output %q", options.LyricOutput)
-	}
-	if options.LyricCacheSize <= 0 {
-		return fmt.Errorf("lyric cache size must be positive")
-	}
-	if len(options.CommentLanguage) != 3 {
-		return fmt.Errorf("comment language must be a three-letter ISO-639-2 code")
 	}
 	return nil
 }
