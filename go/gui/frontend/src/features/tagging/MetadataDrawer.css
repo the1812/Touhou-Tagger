@@ -1,0 +1,61 @@
+.metadata-form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.metadata-form label {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.metadata-form label small {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.metadata-form label .field-error {
+  color: var(--error-color);
+}
+
+.metadata-form label .field-warning {
+  color: var(--warning-color);
+}
+
+.metadata-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.source-file {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+}
+
+.source-file span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.drawer-issues {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+}
+
+.drawer-issues ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}

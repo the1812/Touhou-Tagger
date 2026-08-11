@@ -4,6 +4,8 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
     "strict": true,
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -11,5 +13,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "bindings"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "bindings"]
 }

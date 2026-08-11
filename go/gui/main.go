@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"io/fs"
 	"log"
+	"time"
 
+	"github.com/the1812/Touhou-Tagger/go/gui/internal/bridge"
+	"github.com/the1812/Touhou-Tagger/go/internal/config"
+	"github.com/the1812/Touhou-Tagger/go/internal/imagecodec"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -16,24 +21,66 @@ func main() {
 	if err != nil {
 		log.Fatalf("load frontend assets: %v", err)
 	}
+	storedConfig, err := config.Load()
+	if err != nil {
+		log.Fatalf("load configuration: %v", err)
+	}
+	codec, err := imagecodec.New(context.Background(), imagecodec.Options{})
+	if err != nil {
+		log.Fatalf("initialize image pipeline: %v", err)
+	}
+	factory, sources, err := runtimeOptions(codec)
+	if err != nil {
+		log.Fatalf("initialize GUI runtime: %v", err)
+	}
+	backend := bridge.NewBackend(bridge.BackendOptions{
+		Context:          context.Background(),
+		Config:           storedConfig,
+		Factory:          factory,
+		Sources:          sources,
+		StartupDirectory: startupDirectory(),
+	})
+	staticAssets := application.AssetFileServerFS(assets)
+	savedWindowState, err := loadWindowState()
+	if err != nil {
+		log.Printf("load GUI state: %v", err)
+	}
 
 	app := application.New(application.Options{
 		Name:        "Touhou Tagger",
 		Description: "Touhou Project music metadata tagger",
-		Services: []application.Service{
-			application.NewService(&App{}),
-		},
 		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
+			Handler: backend.AssetHandler(staticAssets),
 		},
 	})
 
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
+	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Touhou Tagger",
-		Width:            800,
-		Height:           500,
+		Width:            savedWindowState.Width,
+		Height:           savedWindowState.Height,
+		MinWidth:         minimumWindowWidth,
+		MinHeight:        minimumWindowHeight,
 		BackgroundColour: application.NewRGB(248, 245, 241),
 		URL:              "/",
+	})
+	if savedWindowState.Maximised {
+		window.Maximise()
+	}
+	windowState := newWindowStateTracker(savedWindowState, window)
+	backend.Attach(app, window)
+	app.RegisterService(application.NewService(backend.Workspace))
+	app.RegisterService(application.NewService(backend.Batch))
+	app.RegisterService(application.NewService(backend.Settings))
+	app.OnShutdown(func() {
+		backend.Close()
+		if err := windowState.save(window); err != nil {
+			log.Printf("save GUI state: %v", err)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := codec.Close(ctx); err != nil {
+			log.Printf("close image pipeline: %v", err)
+		}
 	})
 
 	if err := app.Run(); err != nil {

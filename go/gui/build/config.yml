@@ -25,9 +25,9 @@ dev_mode:
       - "*.go"
     git_ignore: true
   executes:
-    - cmd: wails3 build DEV=true
+    - cmd: .task/bin/wails3.exe build DEV=true
       type: blocking
-    - cmd: wails3 task dev:frontend
+    - cmd: .task/bin/wails3.exe task dev:frontend
       type: background
-    - cmd: wails3 task run
+    - cmd: .task/bin/wails3.exe task run
       type: primary

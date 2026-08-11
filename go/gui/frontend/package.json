@@ -5,18 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:dev": "vue-tsc --noEmit && vite build --minify false --mode development",
-    "build": "vue-tsc --noEmit && vite build --mode production"
+    "build:dev": "tsc --noEmit && vite build --minify false --mode development",
+    "build": "tsc --noEmit && vite build --mode production"
   },
   "dependencies": {
+    "@primeuix/themes": "2.0.3",
+    "@primevue/forms": "4.5.5",
     "@wailsio/runtime": "3.0.0-alpha.97",
-    "vue": "3.5.39"
+    "lucide-vue-next": "0.577.0",
+    "pinia": "3.0.4",
+    "primevue": "4.5.5",
+    "vue": "3.5.39",
+    "vue-router": "4.6.4"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "6.0.8",
+    "@vitejs/plugin-vue-jsx": "5.1.5",
     "typescript": "6.0.3",
-    "vite": "8.1.4",
-    "vue-tsc": "3.3.7"
+    "vite": "8.1.4"
   },
   "packageManager": "bun@1.3.5"
 }

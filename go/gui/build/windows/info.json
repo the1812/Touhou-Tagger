@@ -1,0 +1,17 @@
+{
+  "fixed": {
+    "file_version": "2.3.0.0",
+    "product_version": "2.3.0.0"
+  },
+  "info": {
+    "0409": {
+      "FileVersion": "2.3.0",
+      "ProductVersion": "2.3.0",
+      "CompanyName": "Grant Howard",
+      "FileDescription": "Touhou Project music metadata tagger",
+      "LegalCopyright": "Copyright Grant Howard",
+      "ProductName": "Touhou Tagger",
+      "Comments": "Touhou Tagger desktop application"
+    }
+  }
+}

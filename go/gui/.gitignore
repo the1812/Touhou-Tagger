@@ -2,3 +2,4 @@
 frontend/node_modules/
 frontend/bindings/
 frontend/embed/dist/
+resource_windows_*.syso
