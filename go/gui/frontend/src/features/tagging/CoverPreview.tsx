@@ -1,11 +1,12 @@
-import { computed, defineComponent, type PropType, ref } from 'vue'
+import { Image as ImageIcon, Maximize2 } from 'lucide-vue-next'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
-import { Image as ImageIcon, Maximize2 } from 'lucide-vue-next'
+import { computed, defineComponent, type PropType, ref } from 'vue'
 
 import type { CoverPreview as CoverPreviewData } from '../../api'
 
-import './CoverPreview.css'
+const coverFrameClass =
+  'relative grid size-[188px] place-items-center overflow-hidden rounded-xl border border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800 max-[720px]:w-[min(188px,100%)]'
 
 export const CoverPreview = defineComponent({
   name: 'CoverPreview',
@@ -34,30 +35,33 @@ export const CoverPreview = defineComponent({
 
     return () => (
       <>
-        <section class={['cover-card', { 'cover-card--error': props.cover.issue }]}>
+        <section class="grid w-[188px] min-w-0 gap-2">
           {props.cover.url ? (
             <button
               type="button"
-              class="cover-card__image-button"
-              aria-label="查看封面大图"
+              class={`${coverFrameClass} group cursor-zoom-in p-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary`}
               onClick={() => {
                 expanded.value = true
               }}
             >
-              <img src={props.cover.url} alt={`${props.cover.sourceLabel}预览`} />
-              <span class="cover-card__expand">
+              <img
+                class="size-full object-contain"
+                src={props.cover.url}
+                alt={`${props.cover.sourceLabel}预览`}
+              />
+              <span class="image-hover-label">
                 <Maximize2 size={16} /> 查看大图
               </span>
             </button>
           ) : (
-            <div class="cover-card__empty">
+            <div class={`${coverFrameClass} content-center gap-2 p-5 text-center`}>
               <ImageIcon size={38} stroke-width={1.5} />
-              <strong>没有封面</strong>
+              <strong class="text-color">没有封面</strong>
             </div>
           )}
 
-          <div class="cover-card__details">
-            <div class="cover-card__metadata">
+          <div class="grid min-w-0 gap-2">
+            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-[.78rem] text-muted-color">
               <span>{dimensions.value}</span>
               <span>{fileSize.value}</span>
             </div>
@@ -73,11 +77,10 @@ export const CoverPreview = defineComponent({
           v-model:visible={expanded.value}
           modal
           header="封面预览"
-          class="cover-dialog"
-          style={{ width: 'min(760px, 90vw)' }}
+          class="w-[min(760px,90vw)]"
         >
           <img
-            class="cover-dialog__image"
+            class="block max-h-[70vh] w-full object-contain"
             src={props.cover.url}
             alt={`${props.cover.sourceLabel}大图`}
           />

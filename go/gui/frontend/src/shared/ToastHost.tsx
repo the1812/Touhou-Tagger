@@ -1,13 +1,11 @@
-import { defineComponent, watch } from 'vue'
+import { Check, Copy, Info, TriangleAlert } from 'lucide-vue-next'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { Check, Copy, Info, TriangleAlert } from 'lucide-vue-next'
+import { defineComponent, watch } from 'vue'
 
 import { type ProcessNotification, useNotificationsStore } from '../stores/notifications'
-
-import './ToastHost.css'
 
 interface ToastSlotMessage extends ToastMessageOptions {
   data?: ProcessNotification
@@ -30,11 +28,7 @@ export const ToastHost = defineComponent({
           severity: notification.severity,
           summary: notification.summary,
           detail: notification.detail,
-          life: notification.sticky
-            ? undefined
-            : notification.severity === 'error'
-              ? 7000
-              : 3500,
+          life: notification.sticky ? undefined : notification.severity === 'error' ? 7000 : 3500,
           closable: true,
           data: notification,
         }
@@ -57,24 +51,25 @@ export const ToastHost = defineComponent({
           message: ({ message }: { message: ToastSlotMessage }) => {
             const diagnostics = message.data?.diagnostics
             return (
-              <div class="toast-message">
+              <div class="flex w-[min(360px,calc(100vw-48px))] items-start gap-3">
                 {message.severity === 'success' ? (
-                  <Check size={20} aria-hidden="true" />
+                  <Check size={20} />
                 ) : message.severity === 'info' ? (
-                  <Info size={20} aria-hidden="true" />
+                  <Info size={20} />
                 ) : (
-                  <TriangleAlert size={20} aria-hidden="true" />
+                  <TriangleAlert size={20} />
                 )}
-                <div class="toast-message__content">
+                <div class="grid min-w-0 gap-1">
                   <strong>{message.summary}</strong>
-                  <span>{message.detail}</span>
+                  <span class="text-muted-color leading-[1.45]">{message.detail}</span>
                   {diagnostics && (
                     <Button
                       label="复制详情"
                       size="small"
                       severity="secondary"
                       text
-                      onClick={() => void copyDetails(diagnostics)}
+                      class="-ml-2 mt-1 justify-self-start"
+                      onClick={() => copyDetails(diagnostics)}
                     >
                       {{ icon: () => <Copy size={14} /> }}
                     </Button>

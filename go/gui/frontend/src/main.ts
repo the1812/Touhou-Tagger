@@ -1,15 +1,15 @@
-import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
 import Tooltip from 'primevue/tooltip'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 
 import { App } from './App'
 import { router } from './app/router'
 import { TouhouTaggerPreset } from './app/theme'
 
-import './style.css'
+import './tailwind.css'
 
 createApp(App)
   .use(createPinia())
@@ -20,7 +20,10 @@ createApp(App)
       preset: TouhouTaggerPreset,
       options: {
         darkModeSelector: 'system',
-        cssLayer: false,
+        cssLayer: {
+          name: 'primevue',
+          order: 'theme, base, primevue',
+        },
       },
     },
   })

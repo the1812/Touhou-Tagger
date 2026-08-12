@@ -1,6 +1,5 @@
-import { computed, defineComponent, onMounted } from 'vue'
+import { Info, RotateCcw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { onBeforeRouteLeave } from 'vue-router'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import InputNumber from 'primevue/inputnumber'
@@ -9,11 +8,16 @@ import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useConfirm } from 'primevue/useconfirm'
-import { Info, RotateCcw } from 'lucide-vue-next'
+import { computed, defineComponent, onMounted } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
 import { useSettingsStore } from '../../stores/settings'
 
-import './SettingsPage.css'
+const fieldClass =
+  'grid content-start gap-1.5 text-[.8rem] font-semibold text-color [&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color'
+const sectionClass =
+  'grid gap-4 border-b border-surface-200 py-5 last:border-b-0 dark:border-surface-700 [&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold'
+const gridClass = 'grid grid-cols-2 gap-x-4 gap-y-3.5 max-[980px]:grid-cols-1'
 
 export const SettingsPage = defineComponent({
   name: 'SettingsPage',
@@ -46,7 +50,7 @@ export const SettingsPage = defineComponent({
       },
     })
 
-    onMounted(() => void settingsStore.load())
+    onMounted(() => settingsStore.load())
 
     onBeforeRouteLeave(async () => {
       if (!dirty.value) {
@@ -87,20 +91,20 @@ export const SettingsPage = defineComponent({
     return () => {
       const currentDraft = draft.value
       return (
-        <div class="settings-page">
+        <div class="-mx-6 -my-5 h-[calc(100%+2.5rem)] min-h-0">
           {loading.value || !currentDraft ? (
-            <div class="settings-loading">
+            <div class="grid gap-4 px-6 py-5">
               <Skeleton height="10rem" />
               <Skeleton height="8rem" />
               <Skeleton height="12rem" />
             </div>
           ) : (
-            <div class="settings-form">
-              <div class="settings-sections">
-                <section class="settings-section">
+            <div class="h-full min-h-0 overflow-auto">
+              <div class="px-6">
+                <section class={sectionClass}>
                   <h2>常规</h2>
-                  <div class="settings-grid">
-                    <label class="field">
+                  <div class={gridClass}>
+                    <label class={fieldClass}>
                       <span>默认数据源</span>
                       <Select
                         v-model={currentDraft.defaultSource}
@@ -111,10 +115,12 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                       {errors.value.defaultSource && (
-                        <small class="field-error">{errors.value.defaultSource}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.defaultSource}
+                        </small>
                       )}
                     </label>
-                    <label class="field">
+                    <label class={fieldClass}>
                       <span>注释语言</span>
                       <Select
                         v-model={currentDraft.commentLanguage}
@@ -125,7 +131,7 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                     </label>
-                    <label class="field settings-grid__wide">
+                    <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
                       <span>MP3 多值分隔符</span>
                       <InputText
                         v-model={currentDraft.mp3MultiValueSeparator}
@@ -134,12 +140,14 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                       {errors.value.mp3MultiValueSeparator ? (
-                        <small class="field-error">{errors.value.mp3MultiValueSeparator}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.mp3MultiValueSeparator}
+                        </small>
                       ) : (
                         <small>用于把多个艺术家、风格等值写入一个 MP3 文本字段。</small>
                       )}
                     </label>
-                    <label class="field">
+                    <label class={fieldClass}>
                       <span>请求超时（秒）</span>
                       <InputNumber
                         v-model={currentDraft.requestTimeoutSeconds}
@@ -151,10 +159,12 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.requestTimeoutSeconds)}
                       />
                       {errors.value.requestTimeoutSeconds && (
-                        <small class="field-error">{errors.value.requestTimeoutSeconds}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.requestTimeoutSeconds}
+                        </small>
                       )}
                     </label>
-                    <label class="field">
+                    <label class={fieldClass}>
                       <span>重试次数</span>
                       <InputNumber
                         v-model={currentDraft.retryCount}
@@ -166,22 +176,23 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.retryCount)}
                       />
                       {errors.value.retryCount && (
-                        <small class="field-error">{errors.value.retryCount}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.retryCount}
+                        </small>
                       )}
                     </label>
                   </div>
                 </section>
 
-                <section class="settings-section">
+                <section class={sectionClass}>
                   <h2>封面</h2>
-                  <div class="settings-grid">
-                    <label class="field">
-                      <span class="field-label">
+                  <div class={gridClass}>
+                    <label class={fieldClass}>
+                      <span class="flex items-center gap-1">
                         压缩阈值（KB）
                         <button
                           type="button"
-                          class="field-info"
-                          aria-label="压缩阈值说明"
+                          class="help-icon"
                           v-tooltip={{ value: '设为 0 时不启用封面压缩。' }}
                         >
                           <Info size={13} />
@@ -197,18 +208,17 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.coverCompressionThresholdKb)}
                       />
                       {errors.value.coverCompressionThresholdKb && (
-                        <small class="field-error">
+                        <small class="text-red-700! dark:text-red-300!">
                           {errors.value.coverCompressionThresholdKb}
                         </small>
                       )}
                     </label>
-                    <label class="field">
-                      <span class="field-label">
+                    <label class={fieldClass}>
+                      <span class="flex items-center gap-1">
                         最大边长（像素）
                         <button
                           type="button"
-                          class="field-info"
-                          aria-label="最大边长说明"
+                          class="help-icon"
                           v-tooltip={{ value: '设为 0 时不限制封面最大边长。' }}
                         >
                           <Info size={13} />
@@ -225,16 +235,18 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.coverMaxEdge)}
                       />
                       {errors.value.coverMaxEdge && (
-                        <small class="field-error">{errors.value.coverMaxEdge}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.coverMaxEdge}
+                        </small>
                       )}
                     </label>
                   </div>
                 </section>
 
-                <section class="settings-section">
+                <section class={sectionClass}>
                   <h2>歌词</h2>
-                  <div class="settings-grid">
-                    <label class="field">
+                  <div class={gridClass}>
+                    <label class={fieldClass}>
                       <span>输出位置</span>
                       <Select
                         v-model={lyricDestination.value}
@@ -245,10 +257,12 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                       {errors.value.lyricDestination && (
-                        <small class="field-error">{errors.value.lyricDestination}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.lyricDestination}
+                        </small>
                       )}
                     </label>
-                    <label class="field">
+                    <label class={fieldClass}>
                       <span>歌词类型</span>
                       <Select
                         v-model={currentDraft.lyricType}
@@ -260,7 +274,7 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <label class="field settings-grid__wide">
+                    <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
                       <span>混合歌词分隔符</span>
                       <InputText
                         v-model={currentDraft.mixedLyricSeparator}
@@ -270,20 +284,24 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.mixedLyricSeparator)}
                       />
                       {errors.value.mixedLyricSeparator && (
-                        <small class="field-error">{errors.value.mixedLyricSeparator}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.mixedLyricSeparator}
+                        </small>
                       )}
                     </label>
-                    <label class="switch-field">
-                      <span>
+                    <label class="flex min-w-0 items-center justify-between gap-4 text-[.8rem]">
+                      <span class="grid gap-1">
                         <strong>保留歌词时间轴</strong>
-                        <small>保留现有时间标记，供 metadata 或 LRC 输出使用。</small>
+                        <small class="font-normal text-muted-color">
+                          保留现有时间标记，供 metadata 或 LRC 输出使用。
+                        </small>
                       </span>
                       <ToggleSwitch
                         v-model={currentDraft.preserveLyricTimeline}
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <label class="field">
+                    <label class={fieldClass}>
                       <span>歌词缓存数量</span>
                       <InputNumber
                         v-model={currentDraft.lyricCacheSize}
@@ -296,14 +314,16 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.lyricCacheSize)}
                       />
                       {errors.value.lyricCacheSize && (
-                        <small class="field-error">{errors.value.lyricCacheSize}</small>
+                        <small class="text-red-700! dark:text-red-300!">
+                          {errors.value.lyricCacheSize}
+                        </small>
                       )}
                     </label>
                   </div>
                 </section>
               </div>
 
-              <div class="settings-reset-row">
+              <div class="flex items-center justify-center border-t border-surface-200 px-6 pb-6 pt-4 dark:border-surface-700">
                 <Button
                   label="恢复默认设置"
                   type="button"

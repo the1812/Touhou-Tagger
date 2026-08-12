@@ -1,0 +1,182 @@
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
+
+@utility app-root {
+  @apply min-h-screen min-w-[800px] bg-[#f6f5f9] text-color antialiased selection:bg-primary-400/35 dark:bg-[#17161d];
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+@utility app-body {
+  @apply m-0 min-h-screen min-w-[800px] overflow-hidden bg-[#f6f5f9] dark:bg-[#17161d];
+}
+
+@utility primevue-defaults {
+  & .p-component {
+    font-family: system-ui, sans-serif;
+  }
+
+  & .p-button {
+    @apply min-h-[34px] px-3 py-2 text-[.8rem] leading-none;
+    font-weight: 650;
+  }
+
+  & .p-button-lg {
+    @apply min-h-9 px-3.5 py-2 text-[.86rem];
+  }
+
+  & .p-button-icon-only {
+    @apply size-8 p-0;
+  }
+
+  & input.p-inputtext,
+  & .p-select,
+  & .p-inputnumber {
+    @apply h-[34px] min-h-[34px] text-[.82rem];
+  }
+
+  & .p-select-label,
+  & input.p-inputtext {
+    padding-block: 0.35rem;
+  }
+
+  & .p-select-label {
+    @apply flex items-center text-[.78rem] leading-[1.2];
+  }
+
+  & .p-inputnumber-input {
+    @apply text-[.82rem];
+  }
+
+  & .p-select-dropdown,
+  & .p-inputnumber-button {
+    @apply w-8;
+  }
+
+  & .p-select-overlay,
+  & .p-select-option {
+    @apply text-[.78rem];
+  }
+
+  & .p-select-option {
+    padding: 0.45rem 0.65rem;
+  }
+
+  & .p-toast {
+    @apply opacity-100;
+  }
+
+  & .p-dialog {
+    @apply border-surface-200 text-[.82rem] dark:border-surface-700;
+  }
+
+  & .p-dialog-close-button {
+    @apply size-8 min-h-8 min-w-8 rounded-full p-0;
+  }
+
+  & .p-dialog .p-textarea {
+    @apply px-2.5 py-2 text-[.82rem] leading-[1.45];
+  }
+
+  & .p-tooltip {
+    @apply text-xs leading-[1.35];
+  }
+
+  & .p-datatable-table-container {
+    scrollbar-width: thin;
+  }
+}
+
+@utility app-scrollbar {
+  scrollbar-color: var(--p-surface-400) transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    @apply size-2;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-full border-2 border-transparent bg-surface-400 bg-clip-padding;
+  }
+}
+
+@utility app-nav-item {
+  @apply relative flex min-h-[42px] items-center gap-3 rounded-lg px-3 py-2.5 text-[.88rem] font-semibold text-muted-color no-underline transition-colors duration-150 hover:bg-primary-50 hover:text-color dark:hover:bg-primary-950;
+
+  &.router-link-active {
+    @apply bg-primary-50 text-primary dark:bg-primary-950;
+  }
+
+  &.router-link-active::before {
+    @apply absolute inset-y-2.5 -left-3 w-[3px] rounded-r bg-primary;
+    content: '';
+  }
+}
+
+@utility status-chip {
+  @apply flex items-center border border-primary-200 bg-primary-50 font-semibold text-primary dark:border-primary-700 dark:bg-primary-950;
+}
+
+@utility status-icon {
+  @apply inline-flex h-8 items-center justify-center rounded-md text-surface-400 hover:bg-primary-50 dark:text-surface-500 dark:hover:bg-primary-950;
+}
+
+@utility help-icon {
+  @apply inline-grid size-4 cursor-help place-items-center rounded-full border-0 bg-transparent p-0 text-muted-color outline-none hover:text-primary focus-visible:text-primary;
+}
+
+@utility app-kbd {
+  @apply rounded border border-b-2 border-surface-200 bg-surface-0 px-1.5 py-0.5 font-sans dark:border-surface-700 dark:bg-surface-900;
+}
+
+@utility action-bar {
+  @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-surface-0/95 px-6 py-3 dark:border-surface-700 dark:bg-surface-900/95;
+}
+
+@utility round-icon-buttons {
+  & .p-button-icon-only {
+    @apply min-h-8 min-w-8 rounded-full;
+  }
+}
+
+@utility metric-strip {
+  @apply grid grid-cols-4 border-b border-surface-200 py-3 dark:border-surface-700;
+
+  & > div {
+    @apply flex items-baseline justify-between border-r border-surface-200 px-4 py-1 dark:border-surface-700;
+  }
+
+  & > div:first-child {
+    @apply pl-0;
+  }
+
+  & > div:last-child {
+    @apply border-r-0;
+  }
+
+  & span {
+    @apply text-[.8rem] text-muted-color;
+  }
+
+  & strong {
+    @apply text-[1.35rem] tabular-nums;
+  }
+}
+
+@utility candidate-option {
+  @apply grid min-h-[3.25rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 disabled:cursor-default dark:border-surface-700 dark:hover:bg-[#29243a];
+
+  &[data-selected='true'] {
+    @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-[#29243a];
+  }
+}
+
+@utility image-hover-label {
+  @apply pointer-events-none absolute right-2.5 bottom-2.5 flex translate-y-1 items-center gap-1.5 rounded-lg bg-surface-950/80 px-2 py-1.5 text-xs text-white opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100;
+}

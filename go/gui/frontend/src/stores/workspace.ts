@@ -49,18 +49,25 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   let activeOperationId = ''
 
   const isBusy = computed(() =>
-    ['selecting', 'scanning', 'searching', 'preparing', 'editing', 'writing', 'committing', 'renaming'].includes(
-      phase.value,
-    ),
+    [
+      'selecting',
+      'scanning',
+      'searching',
+      'preparing',
+      'editing',
+      'writing',
+      'committing',
+      'renaming',
+    ].includes(phase.value),
   )
   const blockingIssues = computed(() => {
     const issues = [
       ...(summary.value?.issues ?? []),
       ...(plan.value?.issues ?? []),
       ...(plan.value?.cover.issue ? [plan.value.cover.issue] : []),
-      ...(plan.value?.items.flatMap((item) => item.issues) ?? []),
+      ...(plan.value?.items.flatMap(item => item.issues) ?? []),
     ]
-    return issues.filter((issue) => issue.severity === 'error')
+    return issues.filter(issue => issue.severity === 'error')
   })
   const canSearch = computed(
     () =>
@@ -108,6 +115,72 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     defaultSource.value = value
     if (phase.value === 'idle' && !summary.value) {
       source.value = value
+    }
+  }
+
+  async function preparePlan(sourceOverride?: string) {
+    if (!canPrepare.value || !summary.value) {
+      return
+    }
+    contextVersion += 1
+    const requestVersion = contextVersion
+    phase.value = 'preparing'
+    try {
+      const api = await getApi()
+      const nextPlan = await api.preparePlan(
+        summary.value.directory,
+        selectedCandidateId.value,
+        sourceOverride ?? source.value,
+      )
+      if (requestVersion !== contextVersion) {
+        return
+      }
+      plan.value = nextPlan
+      phase.value = 'ready'
+    } catch (error) {
+      if (requestVersion !== contextVersion) {
+        return
+      }
+      phase.value = 'matched'
+      notifications.error('生成写入预览失败', error)
+    }
+  }
+
+  async function search() {
+    if (!canSearch.value) {
+      return
+    }
+    contextVersion += 1
+    const requestVersion = contextVersion
+    phase.value = 'searching'
+    try {
+      const api = await getApi()
+      const nextCandidates = await api.searchAlbums(
+        directory.value,
+        query.value.trim(),
+        source.value,
+      )
+      if (requestVersion !== contextVersion) {
+        return
+      }
+      candidates.value = nextCandidates
+      hasSearched.value = true
+      const exact =
+        candidates.value.length === 1
+          ? candidates.value[0]
+          : candidates.value.find(candidate => candidate.exactMatch)
+      selectedCandidateId.value = exact?.id ?? ''
+      plan.value = undefined
+      phase.value = selectedCandidateId.value ? 'matched' : 'scanned'
+      if (candidates.value.length === 1) {
+        await preparePlan()
+      }
+    } catch (error) {
+      if (requestVersion !== contextVersion) {
+        return
+      }
+      phase.value = candidates.value.length ? 'matched' : 'scanned'
+      notifications.error('搜索专辑失败', error)
     }
   }
 
@@ -167,44 +240,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
-  const search = async () => {
-    if (!canSearch.value) {
-      return
-    }
-    contextVersion += 1
-    const requestVersion = contextVersion
-    phase.value = 'searching'
-    try {
-      const api = await getApi()
-      const nextCandidates = await api.searchAlbums(
-        directory.value,
-        query.value.trim(),
-        source.value,
-      )
-      if (requestVersion !== contextVersion) {
-        return
-      }
-      candidates.value = nextCandidates
-      hasSearched.value = true
-      const exact =
-        candidates.value.length === 1
-          ? candidates.value[0]
-          : candidates.value.find((candidate) => candidate.exactMatch)
-      selectedCandidateId.value = exact?.id ?? ''
-      plan.value = undefined
-      phase.value = selectedCandidateId.value ? 'matched' : 'scanned'
-      if (candidates.value.length === 1) {
-        await preparePlan()
-      }
-    } catch (error) {
-      if (requestVersion !== contextVersion) {
-        return
-      }
-      phase.value = candidates.value.length ? 'matched' : 'scanned'
-      notifications.error('搜索专辑失败', error)
-    }
-  }
-
   const selectCandidate = (candidateId: string) => {
     if (isBusy.value) {
       return
@@ -225,34 +260,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     hasSearched.value = false
     plan.value = undefined
     phase.value = summary.value ? 'scanned' : 'idle'
-  }
-
-  const preparePlan = async (sourceOverride?: string) => {
-    if (!canPrepare.value || !summary.value) {
-      return
-    }
-    contextVersion += 1
-    const requestVersion = contextVersion
-    phase.value = 'preparing'
-    try {
-      const api = await getApi()
-      const nextPlan = await api.preparePlan(
-        summary.value.directory,
-        selectedCandidateId.value,
-        sourceOverride ?? source.value,
-      )
-      if (requestVersion !== contextVersion) {
-        return
-      }
-      plan.value = nextPlan
-      phase.value = 'ready'
-    } catch (error) {
-      if (requestVersion !== contextVersion) {
-        return
-      }
-      phase.value = 'matched'
-      notifications.error('生成写入预览失败', error)
-    }
   }
 
   const backToSearch = async () => {

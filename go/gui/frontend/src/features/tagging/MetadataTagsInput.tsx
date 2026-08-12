@@ -1,6 +1,6 @@
-import { defineComponent, type PropType } from 'vue'
-import AutoComplete from 'primevue/autocomplete'
 import { X } from 'lucide-vue-next'
+import AutoComplete from 'primevue/autocomplete'
+import { defineComponent, type PropType } from 'vue'
 
 const normalizeValues = (values: string[]) => [
   ...new Set(values.map(value => value.trim()).filter(Boolean)),
@@ -13,14 +13,8 @@ export const MetadataTagsInput = defineComponent({
       type: Array as PropType<string[]>,
       required: true,
     },
-    ariaLabel: {
-      type: String,
-      required: true,
-    },
   },
-  emits: {
-    'update:modelValue': (_value: string[]) => true,
-  },
+  emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => (
       <AutoComplete
@@ -33,19 +27,21 @@ export const MetadataTagsInput = defineComponent({
         typeahead={false}
         fluid
         size="small"
-        ariaLabel={props.ariaLabel}
+        class="text-[.82rem]"
+        pt={{
+          inputMultiple: { class: 'min-h-[34px] gap-1 px-2 py-1' },
+          pcChip: { root: { class: 'px-1.5 py-0.5 text-[.78rem]' } },
+          inputChip: { class: '[&_input]:text-[.82rem]' },
+        }}
       >
         {{
-          chipicon: ({ class: iconClass, removeCallback }: {
+          chipicon: ({
+            class: iconClass,
+            removeCallback,
+          }: {
             class?: string
             removeCallback: (event: Event) => void
-          }) => (
-            <X
-              class={iconClass}
-              size={13}
-              onClick={event => removeCallback(event)}
-            />
-          ),
+          }) => <X class={iconClass} size={13} onClick={event => removeCallback(event)} />,
         }}
       </AutoComplete>
     )

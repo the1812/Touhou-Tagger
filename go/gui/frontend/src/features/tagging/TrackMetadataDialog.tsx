@@ -1,13 +1,14 @@
-import { defineComponent, type PropType, reactive, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
+import { defineComponent, type PropType, reactive, watch } from 'vue'
 
-import type { PlanItemPreview, TrackMetadataPatch } from '../../api'
+import type { PlanItemPreview } from '../../api'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
-import './MetadataDialog.css'
+const fieldClass =
+  'grid gap-1.5 text-[.82rem] font-semibold [&>small]:text-xs [&>small]:font-normal'
 
 export const TrackMetadataDialog = defineComponent({
   name: 'TrackMetadataDialog',
@@ -18,10 +19,7 @@ export const TrackMetadataDialog = defineComponent({
     },
     item: Object as PropType<PlanItemPreview>,
   },
-  emits: {
-    'update:visible': (_value: boolean) => true,
-    save: (_patch: TrackMetadataPatch) => true,
-  },
+  emits: ['update:visible', 'save'],
   setup(props, { emit }) {
     const draft = reactive({
       discNumber: '',
@@ -67,25 +65,31 @@ export const TrackMetadataDialog = defineComponent({
         {...{ 'onUpdate:visible': (value: boolean) => emit('update:visible', value) }}
         modal
         header="编辑曲目信息"
-        class="metadata-dialog"
-        style={{ width: 'min(560px, calc(100vw - 2rem))' }}
+        class="w-[min(560px,calc(100vw-2rem))]"
       >
         {{
           default: () =>
             props.item && (
-              <div class="metadata-form">
-                <div class="metadata-source">
-                  <span>本地文件</span>
-                  <strong title={props.item.sourceName}>{props.item.sourceName}</strong>
+              <div class="grid gap-3.5">
+                <div class="grid min-w-0 gap-1">
+                  <span class="text-xs text-muted-color">本地文件</span>
+                  <strong
+                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem]"
+                    title={props.item.sourceName}
+                  >
+                    {props.item.sourceName}
+                  </strong>
                 </div>
 
-                <label>
+                <label class={fieldClass}>
                   <span>标题</span>
                   <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
-                  {!draft.title.trim() && <small class="field-error">标题不能为空。</small>}
+                  {!draft.title.trim() && (
+                    <small class="text-red-700 dark:text-red-300">标题不能为空。</small>
+                  )}
                 </label>
 
-                <label>
+                <label class={fieldClass}>
                   <span>艺术家</span>
                   <MetadataTagsInput
                     modelValue={draft.artists}
@@ -94,33 +98,34 @@ export const TrackMetadataDialog = defineComponent({
                         draft.artists = values
                       },
                     }}
-                    ariaLabel="艺术家"
                   />
                   {draft.artists.length === 0 && (
-                    <small class="field-warning">数据源未提供艺术家，将以空值继续写入。</small>
+                    <small class="text-amber-700 dark:text-amber-300">
+                      数据源未提供艺术家，将以空值继续写入。
+                    </small>
                   )}
                 </label>
 
-                <div class="metadata-form__row">
-                  <label>
+                <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
+                  <label class={fieldClass}>
                     <span>碟号</span>
                     <InputText v-model={draft.discNumber} fluid />
                   </label>
-                  <label>
+                  <label class={fieldClass}>
                     <span>轨号</span>
                     <InputText v-model={draft.trackNumber} fluid />
                   </label>
                 </div>
 
-                <label>
+                <label class={fieldClass}>
                   <span>注释</span>
                   <Textarea v-model={draft.comments} rows={6} fluid />
                 </label>
 
                 {props.item.issues.length > 0 && (
-                  <div class="metadata-issues">
+                  <div class="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 dark:border-amber-700 dark:bg-amber-950/50">
                     <strong>当前问题</strong>
-                    <ul>
+                    <ul class="mb-0 mt-1.5 pl-4">
                       {props.item.issues.map(issue => (
                         <li key={issue.code}>{issue.message}</li>
                       ))}

@@ -41,16 +41,11 @@ export const useSettingsStore = defineStore('settings', () => {
     }
     if (
       value.coverCompressionThresholdKb !== 0 &&
-      (value.coverCompressionThresholdKb < 64 ||
-        value.coverCompressionThresholdKb > 102400)
+      (value.coverCompressionThresholdKb < 64 || value.coverCompressionThresholdKb > 102400)
     ) {
-      next.coverCompressionThresholdKb =
-        '输入 0 可禁用压缩，否则阈值必须在 64 到 102400 KB 之间。'
+      next.coverCompressionThresholdKb = '输入 0 可禁用压缩，否则阈值必须在 64 到 102400 KB 之间。'
     }
-    if (
-      (value.coverMaxEdge !== 0 && value.coverMaxEdge < 256) ||
-      value.coverMaxEdge > 8192
-    ) {
+    if ((value.coverMaxEdge !== 0 && value.coverMaxEdge < 256) || value.coverMaxEdge > 8192) {
       next.coverMaxEdge = '输入 0 可禁用缩放，否则边长必须在 256 到 8192 像素之间。'
     }
     if (value.writeLyricsMetadata && value.writeLrcFiles) {
@@ -65,7 +60,7 @@ export const useSettingsStore = defineStore('settings', () => {
     if (
       capabilities.value &&
       !capabilities.value.sources.some(
-        (source) => source.supportsSearch && source.value === value.defaultSource,
+        source => source.supportsSearch && source.value === value.defaultSource,
       )
     ) {
       next.defaultSource = '请选择支持搜索的数据源。'
@@ -106,22 +101,7 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  const scheduleSave = () => {
-    clearSaveTimer()
-    if (!draft.value || !dirty.value || !valid.value) {
-      return
-    }
-    if (saving.value) {
-      saveQueued = true
-      return
-    }
-    saveTimer = setTimeout(() => {
-      saveTimer = undefined
-      void save()
-    }, autoSaveDelay)
-  }
-
-  const save = (): Promise<boolean> => {
+  function save(): Promise<boolean> {
     clearSaveTimer()
     if (!draft.value || !valid.value || !dirty.value) {
       return Promise.resolve(!dirty.value)
@@ -151,11 +131,29 @@ export const useSettingsStore = defineStore('settings', () => {
         savePromise = undefined
         if (saveQueued) {
           saveQueued = false
-          scheduleSave()
+          saveTimer = setTimeout(() => {
+            saveTimer = undefined
+            save()
+          }, autoSaveDelay)
         }
       }
     })()
     return savePromise
+  }
+
+  function scheduleSave() {
+    clearSaveTimer()
+    if (!draft.value || !dirty.value || !valid.value) {
+      return
+    }
+    if (saving.value) {
+      saveQueued = true
+      return
+    }
+    saveTimer = setTimeout(() => {
+      saveTimer = undefined
+      save()
+    }, autoSaveDelay)
   }
 
   const flush = async () => {

@@ -1,11 +1,9 @@
-import { computed, defineComponent, type PropType } from 'vue'
+import { Ban, LockKeyhole } from 'lucide-vue-next'
 import Button from 'primevue/button'
 import ProgressBar from 'primevue/progressbar'
-import { Ban, LockKeyhole } from 'lucide-vue-next'
+import { computed, defineComponent, type PropType } from 'vue'
 
 import type { OperationProgress } from '../../api'
-
-import './OperationPanel.css'
 
 export const OperationPanel = defineComponent({
   name: 'OperationPanel',
@@ -39,21 +37,27 @@ export const OperationPanel = defineComponent({
     })
 
     return () => (
-      <section class="operation-panel" aria-live="polite">
-        <div class="operation-panel__heading">
+      <section class="grid gap-5 border-b border-surface-200 py-5 dark:border-surface-700">
+        <div class="flex items-center justify-between gap-4">
           <div>
-            <h2>{stageLabel.value}</h2>
+            <h2 class="mt-1 font-bold">{stageLabel.value}</h2>
           </div>
-          <strong>
+          <strong class="text-primary tabular-nums">
             {props.operation.current} / {props.operation.total}
           </strong>
         </div>
         <ProgressBar value={progress.value} />
-        <div class="operation-panel__detail">
-          <span class="operation-panel__current">
-            {props.operation.path && <strong>{props.operation.path}</strong>}
+        <div class="flex items-center justify-between gap-4 text-sm text-muted-color">
+          <span class="grid min-w-0 gap-1">
+            {props.operation.path && (
+              <strong class="overflow-hidden text-ellipsis whitespace-nowrap text-color">
+                {props.operation.path}
+              </strong>
+            )}
             {props.operation.message !== props.operation.path && (
-              <small>{props.operation.message}</small>
+              <small class="overflow-hidden text-ellipsis whitespace-nowrap">
+                {props.operation.message}
+              </small>
             )}
           </span>
           {props.operation.cancellable ? (
@@ -66,7 +70,7 @@ export const OperationPanel = defineComponent({
               {{ icon: () => <Ban size={16} /> }}
             </Button>
           ) : (
-            <span class="operation-panel__locked">
+            <span class="flex items-center gap-1.5 text-color">
               <LockKeyhole size={15} />
               正在提交，暂时无法取消
             </span>

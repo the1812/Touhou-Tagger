@@ -1,10 +1,10 @@
-import { computed, defineComponent, type PropType } from 'vue'
 import Column from 'primevue/column'
 import DataTable, { type DataTableRowClickEvent } from 'primevue/datatable'
+import { computed, defineComponent, type PropType } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
 
-import './PlanTable.css'
+const cellClass = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[.78rem]'
 
 const PlanTableText = defineComponent({
   name: 'PlanTableText',
@@ -18,7 +18,10 @@ const PlanTableText = defineComponent({
   setup(props) {
     return () => (
       <span
-        class={['plan-table__text', { 'target-name--changed': props.changed }]}
+        class={[
+          'block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap',
+          { 'font-semibold text-primary': props.changed },
+        ]}
         v-tooltip={props.value}
       >
         {props.value}
@@ -36,9 +39,7 @@ export const PlanTable = defineComponent({
     },
     disabled: Boolean,
   },
-  emits: {
-    edit: (_item: PlanItemPreview) => true,
-  },
+  emits: ['edit'],
   setup(props, { emit }) {
     const hasMultipleDiscs = computed(
       () => new Set(props.items.map(item => item.discNumber)).size > 1,
@@ -48,14 +49,23 @@ export const PlanTable = defineComponent({
         emit('edit', event.data as PlanItemPreview)
       }
     }
-    const rowClass = (item: PlanItemPreview) => ({
-      'plan-table__row--disabled': props.disabled,
-      'plan-table__row--error': item.issues.some(issue => issue.severity === 'error'),
-      'plan-table__row--warning':
-        item.issues.length > 0 && !item.issues.some(issue => issue.severity === 'error'),
-    })
-    const bodySlot = (render: (item: PlanItemPreview) => unknown) =>
-      ({ data }: { data: PlanItemPreview }) => render(data)
+    const rowClass = (item: PlanItemPreview) => {
+      const hasError = item.issues.some(issue => issue.severity === 'error')
+      const hasWarning = item.issues.length > 0 && !hasError
+      return [
+        'h-[42px]',
+        props.disabled
+          ? 'cursor-default'
+          : 'cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-950',
+        hasError && 'bg-red-50 hover:bg-red-50 dark:bg-red-950/50 dark:hover:bg-red-950/50',
+        hasWarning &&
+          'bg-amber-50 hover:bg-amber-50 dark:bg-amber-950/50 dark:hover:bg-amber-950/50',
+      ]
+    }
+    const bodySlot =
+      (render: (item: PlanItemPreview) => unknown) =>
+      ({ data }: { data: PlanItemPreview }) =>
+        render(data)
 
     return () => (
       <DataTable
@@ -64,54 +74,66 @@ export const PlanTable = defineComponent({
         scrollable
         scrollHeight="flex"
         size="small"
-        tableStyle={{ width: '100%', tableLayout: 'fixed' }}
-        class="plan-table"
+        tableClass="w-full min-w-0 max-w-full table-fixed"
+        class="min-h-60 w-full min-w-0 max-w-full [--p-datatable-body-cell-sm-padding:.375rem_1rem] [--p-datatable-header-cell-sm-padding:.375rem_1rem]"
         rowClass={rowClass}
-        v-slots={{ empty: () => <div class="table-empty">没有可预览的曲目。</div> }}
+        pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
+        v-slots={{
+          empty: () => <div class="p-8 text-center text-muted-color">没有可预览的曲目。</div>,
+        }}
         {...{ onRowClick }}
       >
         <Column
           field="sourceName"
           header="本地文件"
-          style={{ width: '20%' }}
+          headerClass={`${cellClass} w-[20%]`}
+          bodyClass={`${cellClass} w-[20%]`}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.sourceName} />) }}
         />
         {hasMultipleDiscs.value && (
           <Column
             field="discNumber"
             header="碟号"
-            style={{ width: '4rem' }}
+            headerClass={`${cellClass} w-16`}
+            bodyClass={`${cellClass} w-16`}
             v-slots={{
-              body: bodySlot(item => <span class="track-index">{item.discNumber}</span>),
+              body: bodySlot(item => (
+                <span class="text-muted-color tabular-nums">{item.discNumber}</span>
+              )),
             }}
           />
         )}
         <Column
           field="trackNumber"
           header="轨号"
-          style={{ width: '4rem' }}
+          headerClass={`${cellClass} w-16`}
+          bodyClass={`${cellClass} w-16`}
           v-slots={{
-            body: bodySlot(item => <span class="track-index">{item.trackNumber}</span>),
+            body: bodySlot(item => (
+              <span class="text-muted-color tabular-nums">{item.trackNumber}</span>
+            )),
           }}
         />
         <Column
           field="title"
           header="标题"
-          style={{ width: '23%' }}
+          headerClass={`${cellClass} w-[23%]`}
+          bodyClass={`${cellClass} w-[23%]`}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.title} />) }}
         />
         <Column
           header="艺术家"
-          style={{ width: '20%' }}
+          headerClass={`${cellClass} w-[20%]`}
+          bodyClass={`${cellClass} w-[20%]`}
           v-slots={{
-            body: bodySlot(item => (
-              <PlanTableText value={item.artists.join(' / ') || '—'} />
-            )),
+            body: bodySlot(item => <PlanTableText value={item.artists.join(' / ') || '—'} />),
           }}
         />
         <Column
           field="targetName"
           header="目标文件名"
+          headerClass={cellClass}
+          bodyClass={cellClass}
           v-slots={{
             body: bodySlot(item => (
               <PlanTableText value={item.targetName} changed={item.willRename} />

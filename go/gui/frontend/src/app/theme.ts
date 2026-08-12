@@ -40,42 +40,120 @@ export const TouhouTaggerPreset = definePreset(Aura, {
     },
     colorScheme: {
       light: {
+        surface: {
+          0: '#ffffff',
+          50: '#f8f7fb',
+          100: '#f1eef9',
+          200: '#e4e1eb',
+          300: '#c9c4d2',
+          400: '#918b9a',
+          500: '#6f6a79',
+          600: '#55505e',
+          700: '#302d3d',
+          800: '#2f2c4e',
+          900: '#201e27',
+          950: '#17161d',
+        },
         formField: {
+          background: '{surface.0}',
           disabledBackground: '#efedf4',
           disabledColor: '#817b89',
+          borderColor: '#e4e1eb',
+          hoverBorderColor: '#c9c4d2',
+          color: '#302d3d',
+          placeholderColor: '#918b9a',
+          iconColor: '#918b9a',
+        },
+        text: {
+          color: '#302d3d',
+          hoverColor: '#2f2c4e',
+          mutedColor: '#6f6a79',
+          hoverMutedColor: '#55505e',
+        },
+        content: {
+          background: '#ffffff',
+          hoverBackground: '#f1eef9',
+          borderColor: '#e4e1eb',
+          color: '#302d3d',
+          hoverColor: '#2f2c4e',
+        },
+        overlay: {
+          select: {
+            background: '#ffffff',
+            borderColor: '#e4e1eb',
+            color: '#302d3d',
+          },
+          popover: {
+            background: '#ffffff',
+            borderColor: '#e4e1eb',
+            color: '#302d3d',
+          },
+          modal: {
+            background: '#ffffff',
+            borderColor: '#e4e1eb',
+            color: '#302d3d',
+          },
         },
       },
       dark: {
+        surface: {
+          0: '#eeebf4',
+          50: '#e1dce8',
+          100: '#cec8d6',
+          200: '#bdb7c5',
+          300: '#b0aab8',
+          400: '#89828f',
+          500: '#6d6673',
+          600: '#55505e',
+          700: '#383440',
+          800: '#27242e',
+          900: '#201e27',
+          950: '#17161d',
+        },
         formField: {
+          background: '#17161d',
           disabledBackground: '#2a2731',
           disabledColor: '#aaa4b2',
+          borderColor: '#55505e',
+          hoverBorderColor: '#6d6673',
+          color: '#eeebf4',
+          placeholderColor: '#89828f',
+          iconColor: '#89828f',
+        },
+        text: {
+          color: '#eeebf4',
+          hoverColor: '#ffffff',
+          mutedColor: '#b0aab8',
+          hoverMutedColor: '#cec8d6',
+        },
+        content: {
+          background: '#201e27',
+          hoverBackground: '#2b2736',
+          borderColor: '#383440',
+          color: '#eeebf4',
+          hoverColor: '#ffffff',
+        },
+        overlay: {
+          select: {
+            background: '#201e27',
+            borderColor: '#383440',
+            color: '#eeebf4',
+          },
+          popover: {
+            background: '#201e27',
+            borderColor: '#383440',
+            color: '#eeebf4',
+          },
+          modal: {
+            background: '#201e27',
+            borderColor: '#383440',
+            color: '#eeebf4',
+          },
         },
       },
     },
   },
   components: {
-    autocomplete: {
-      css: `
-        .p-autocomplete {
-          font-size: 0.82rem;
-        }
-
-        .p-autocomplete-input-multiple {
-          min-height: 34px;
-          gap: 0.3rem;
-          padding: 0.2rem 0.5rem;
-        }
-
-        .p-autocomplete-chip {
-          padding: 0.1rem 0.4rem;
-          font-size: 0.78rem;
-        }
-
-        .p-autocomplete-input-chip input {
-          font-size: 0.82rem;
-        }
-      `,
-    },
     dialog: {
       header: {
         padding: '0.9rem 1rem 0.7rem',
@@ -92,34 +170,6 @@ export const TouhouTaggerPreset = definePreset(Aura, {
         padding: '0 1rem 1rem',
         gap: '0.5rem',
       },
-      css: `
-        .p-dialog {
-          font-size: 0.82rem;
-        }
-
-        .p-dialog .p-dialog-close-button {
-          --p-button-icon-only-width: 2rem;
-          width: 2rem;
-          height: 2rem;
-          min-width: 2rem;
-          min-height: 2rem;
-          padding: 0;
-          border-radius: 50%;
-        }
-
-        .p-dialog .p-textarea {
-          padding: 0.5rem 0.65rem;
-          font-size: 0.82rem;
-          line-height: 1.45;
-        }
-
-        .p-dialog-footer .p-button {
-          min-height: 34px;
-          padding: 0.45rem 0.7rem;
-          font-size: 0.8rem;
-          line-height: 1;
-        }
-      `,
     },
     select: {
       root: {
@@ -127,34 +177,11 @@ export const TouhouTaggerPreset = definePreset(Aura, {
           fontSize: '0.78rem',
         },
       },
-      css: `
-        .p-select-label {
-          display: flex;
-          align-items: center;
-          font-size: 0.78rem;
-          line-height: 1.2;
-        }
-
-        .p-select-overlay,
-        .p-select-option {
-          font-size: 0.78rem;
-        }
-
-        .p-select-option {
-          padding: 0.45rem 0.65rem;
-        }
-      `,
     },
     tooltip: {
       root: {
         padding: '0.35rem 0.55rem',
       },
-      css: `
-        .p-tooltip {
-          font-size: 0.75rem;
-          line-height: 1.35;
-        }
-      `,
     },
   },
 })
