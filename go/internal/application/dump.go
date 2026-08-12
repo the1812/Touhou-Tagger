@@ -84,6 +84,10 @@ func SaveCover(directory string, cover []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return SaveCoverAt(path, cover)
+}
+
+func SaveCoverAt(path string, cover []byte) (string, error) {
 	if err := atomicWrite(path, cover, 0o644); err != nil {
 		return "", fmt.Errorf("write cover %q: %w", path, err)
 	}

@@ -7,7 +7,8 @@
 }
 
 .tagging-page__content {
-  display: contents;
+  min-width: 0;
+  margin-top: -1.25rem;
 }
 
 .tagging-page--search {
@@ -22,6 +23,7 @@
 .tagging-page--search .tagging-page__content {
   display: block;
   min-height: 0;
+  margin-top: 0;
   overflow: auto;
   padding: 0 1.5rem;
 }
@@ -64,6 +66,8 @@ kbd {
 }
 
 .workspace-card {
+  min-width: 0;
+  max-width: 100%;
   padding: 1.25rem 0;
   border: 0;
   border-bottom: 1px solid var(--border-color);
@@ -251,7 +255,6 @@ kbd {
   z-index: 20;
   bottom: 0;
   display: flex;
-  min-height: 64px;
   align-items: center;
   justify-content: flex-end;
   padding: 0.7rem 1.5rem;
@@ -298,6 +301,7 @@ kbd {
 
 .plan-header {
   display: grid;
+  width: 100%;
   grid-template-columns: 188px minmax(300px, 1fr);
   gap: 1rem;
 }
@@ -344,7 +348,10 @@ kbd {
 
 .plan-items-card {
   display: grid;
+  width: 100%;
   min-height: 380px;
+  min-width: 0;
+  max-width: 100%;
   gap: 1rem;
   border-bottom: 0;
 }
@@ -398,6 +405,7 @@ kbd {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 1.2rem;
   padding: 1.5rem 0;
+  border-bottom: 0;
 }
 
 .result-card__icon {
@@ -406,8 +414,8 @@ kbd {
   height: 64px;
   place-items: center;
   border-radius: 50%;
-  background: var(--success-soft);
-  color: var(--success-color);
+  background: var(--brand-soft);
+  color: var(--brand-primary);
 }
 
 .result-card h2 {
@@ -415,26 +423,10 @@ kbd {
   font-size: 1.35rem;
 }
 
-.result-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.2rem;
-}
-
-.result-stats span {
-  padding-right: 0.75rem;
-  border-right: 1px solid var(--border-color);
+.result-duration {
+  margin: 0.65rem 0 0;
   color: var(--text-muted);
   font-size: 0.8rem;
-}
-
-.result-stats strong {
-  color: var(--text-color);
-}
-
-.result-stats span:last-child {
-  border-right: 0;
 }
 
 .tagging-page .p-button {
@@ -467,68 +459,6 @@ kbd {
   display: flex;
   gap: 0.65rem;
   margin-top: 1.2rem;
-}
-
-.album-edit-form {
-  display: grid;
-  gap: 1rem;
-}
-
-.album-edit-form label {
-  display: grid;
-  gap: 0.4rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.album-edit-form small {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.album-edit-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
-}
-
-.confirm-card {
-  display: grid;
-  width: min(500px, calc(100vw - 32px));
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 1rem;
-  padding: 1.4rem;
-  border-radius: var(--radius-lg);
-  background: var(--surface-card);
-}
-
-.confirm-card__icon {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--brand-soft);
-  color: var(--brand-primary);
-}
-
-.confirm-card h2,
-.confirm-card p {
-  margin: 0;
-}
-
-.confirm-card p {
-  margin-top: 0.5rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-.confirm-card__actions {
-  display: flex;
-  grid-column: 1 / -1;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 0.5rem;
 }
 
 @media (max-width: 1100px) {

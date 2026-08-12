@@ -1,12 +1,31 @@
 import { computed, defineComponent, type PropType } from 'vue'
-import Button from 'primevue/button'
 import Column from 'primevue/column'
 import DataTable, { type DataTableRowClickEvent } from 'primevue/datatable'
-import { Pencil } from 'lucide-vue-next'
 
 import type { PlanItemPreview } from '../../api'
 
 import './PlanTable.css'
+
+const PlanTableText = defineComponent({
+  name: 'PlanTableText',
+  props: {
+    value: {
+      type: String,
+      required: true,
+    },
+    changed: Boolean,
+  },
+  setup(props) {
+    return () => (
+      <span
+        class={['plan-table__text', { 'target-name--changed': props.changed }]}
+        v-tooltip={props.value}
+      >
+        {props.value}
+      </span>
+    )
+  },
+})
 
 export const PlanTable = defineComponent({
   name: 'PlanTable',
@@ -45,17 +64,23 @@ export const PlanTable = defineComponent({
         scrollable
         scrollHeight="flex"
         size="small"
+        tableStyle={{ width: '100%', tableLayout: 'fixed' }}
         class="plan-table"
         rowClass={rowClass}
         v-slots={{ empty: () => <div class="table-empty">没有可预览的曲目。</div> }}
         {...{ onRowClick }}
       >
-        <Column field="sourceName" header="本地文件" style={{ minWidth: '13rem' }} />
+        <Column
+          field="sourceName"
+          header="本地文件"
+          style={{ width: '20%' }}
+          v-slots={{ body: bodySlot(item => <PlanTableText value={item.sourceName} />) }}
+        />
         {hasMultipleDiscs.value && (
           <Column
             field="discNumber"
             header="碟号"
-            style={{ width: '4.5rem' }}
+            style={{ width: '4rem' }}
             v-slots={{
               body: bodySlot(item => <span class="track-index">{item.discNumber}</span>),
             }}
@@ -64,48 +89,32 @@ export const PlanTable = defineComponent({
         <Column
           field="trackNumber"
           header="轨号"
-          style={{ width: '4.5rem' }}
+          style={{ width: '4rem' }}
           v-slots={{
             body: bodySlot(item => <span class="track-index">{item.trackNumber}</span>),
           }}
         />
-        <Column field="title" header="标题" style={{ minWidth: '15rem' }} />
         <Column
-          header="艺术家"
-          style={{ minWidth: '12rem' }}
-          v-slots={{ body: bodySlot(item => item.artists.join(' / ') || '—') }}
+          field="title"
+          header="标题"
+          style={{ width: '23%' }}
+          v-slots={{ body: bodySlot(item => <PlanTableText value={item.title} />) }}
         />
         <Column
-          field="targetName"
-          header="目标文件名"
-          style={{ minWidth: '18rem' }}
+          header="艺术家"
+          style={{ width: '20%' }}
           v-slots={{
             body: bodySlot(item => (
-              <span class={{ 'target-name--changed': item.willRename }}>{item.targetName}</span>
+              <PlanTableText value={item.artists.join(' / ') || '—'} />
             )),
           }}
         />
         <Column
-          header="操作"
-          frozen
-          alignFrozen="right"
-          style={{ width: '4rem' }}
+          field="targetName"
+          header="目标文件名"
           v-slots={{
             body: bodySlot(item => (
-              <Button
-                title="编辑曲目"
-                aria-label={`编辑曲目：${item.title}`}
-                severity="secondary"
-                text
-                rounded
-                disabled={props.disabled}
-                onClick={event => {
-                  event.stopPropagation()
-                  emit('edit', item)
-                }}
-              >
-                {{ icon: () => <Pencil size={15} /> }}
-              </Button>
+              <PlanTableText value={item.targetName} changed={item.willRename} />
             )),
           }}
         />

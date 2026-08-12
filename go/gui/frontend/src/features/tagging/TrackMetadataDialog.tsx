@@ -1,16 +1,16 @@
 import { defineComponent, type PropType, reactive, watch } from 'vue'
 import Button from 'primevue/button'
-import Drawer from 'primevue/drawer'
+import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
-import { Save } from 'lucide-vue-next'
 
 import type { PlanItemPreview, TrackMetadataPatch } from '../../api'
+import { MetadataTagsInput } from './MetadataTagsInput'
 
-import './MetadataDrawer.css'
+import './MetadataDialog.css'
 
-export const MetadataDrawer = defineComponent({
-  name: 'MetadataDrawer',
+export const TrackMetadataDialog = defineComponent({
+  name: 'TrackMetadataDialog',
   props: {
     visible: {
       type: Boolean,
@@ -27,7 +27,7 @@ export const MetadataDrawer = defineComponent({
       discNumber: '',
       trackNumber: '',
       title: '',
-      artists: '',
+      artists: [] as string[],
       comments: '',
     })
 
@@ -40,7 +40,7 @@ export const MetadataDrawer = defineComponent({
         draft.discNumber = item.discNumber
         draft.trackNumber = item.trackNumber
         draft.title = item.title
-        draft.artists = item.artists.join(' / ')
+        draft.artists = [...item.artists]
         draft.comments = item.comments
       },
       { immediate: true },
@@ -55,32 +55,51 @@ export const MetadataDrawer = defineComponent({
         discNumber: draft.discNumber.trim(),
         trackNumber: draft.trackNumber.trim(),
         title: draft.title.trim(),
-        artists: draft.artists
-          .split('/')
-          .map(artist => artist.trim())
-          .filter(Boolean),
+        artists: draft.artists,
         comments: draft.comments,
       })
       emit('update:visible', false)
     }
 
     return () => (
-      <Drawer
+      <Dialog
         visible={props.visible}
         {...{ 'onUpdate:visible': (value: boolean) => emit('update:visible', value) }}
-        position="right"
-        header="编辑曲目"
-        class="metadata-drawer"
-        style={{ width: 'min(460px, 96vw)' }}
+        modal
+        header="编辑曲目信息"
+        class="metadata-dialog"
+        style={{ width: 'min(560px, calc(100vw - 2rem))' }}
       >
         {{
           default: () =>
             props.item && (
               <div class="metadata-form">
-                <div class="source-file">
+                <div class="metadata-source">
                   <span>本地文件</span>
-                  <strong>{props.item.sourceName}</strong>
+                  <strong title={props.item.sourceName}>{props.item.sourceName}</strong>
                 </div>
+
+                <label>
+                  <span>标题</span>
+                  <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
+                  {!draft.title.trim() && <small class="field-error">标题不能为空。</small>}
+                </label>
+
+                <label>
+                  <span>艺术家</span>
+                  <MetadataTagsInput
+                    modelValue={draft.artists}
+                    {...{
+                      'onUpdate:modelValue': (values: string[]) => {
+                        draft.artists = values
+                      },
+                    }}
+                    ariaLabel="艺术家"
+                  />
+                  {draft.artists.length === 0 && (
+                    <small class="field-warning">数据源未提供艺术家，将以空值继续写入。</small>
+                  )}
+                </label>
 
                 <div class="metadata-form__row">
                   <label>
@@ -94,27 +113,12 @@ export const MetadataDrawer = defineComponent({
                 </div>
 
                 <label>
-                  <span>标题</span>
-                  <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
-                  {!draft.title.trim() && <small class="field-error">标题不能为空。</small>}
-                </label>
-
-                <label>
-                  <span>艺术家</span>
-                  <InputText v-model={draft.artists} fluid />
-                  <small>多个艺术家使用 “ / ” 分隔。</small>
-                  {!draft.artists.trim() && (
-                    <small class="field-warning">数据源未提供艺术家，将以空值继续写入。</small>
-                  )}
-                </label>
-
-                <label>
                   <span>注释</span>
                   <Textarea v-model={draft.comments} rows={6} fluid />
                 </label>
 
                 {props.item.issues.length > 0 && (
-                  <div class="drawer-issues">
+                  <div class="metadata-issues">
                     <strong>当前问题</strong>
                     <ul>
                       {props.item.issues.map(issue => (
@@ -126,24 +130,18 @@ export const MetadataDrawer = defineComponent({
               </div>
             ),
           footer: () => (
-            <div class="drawer-footer">
+            <>
               <Button
                 label="取消"
                 severity="secondary"
                 text
                 onClick={() => emit('update:visible', false)}
               />
-              <Button
-                label="保存并重新检查"
-                disabled={!draft.title.trim()}
-                onClick={save}
-              >
-                {{ icon: () => <Save size={17} /> }}
-              </Button>
-            </div>
+              <Button label="保存" disabled={!draft.title.trim()} onClick={save} />
+            </>
           ),
         }}
-      </Drawer>
+      </Dialog>
     )
   },
 })

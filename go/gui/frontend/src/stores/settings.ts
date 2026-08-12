@@ -1,11 +1,15 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw, watch } from 'vue'
 
 import { getApi, type Capabilities, type Settings } from '../api'
 import { useNotificationsStore } from './notifications'
 
 const settingsEqual = (left?: Settings, right?: Settings) =>
   Boolean(left && right && JSON.stringify(left) === JSON.stringify(right))
+
+const cloneSettings = (settings: Settings) => structuredClone(toRaw(settings))
+
+const autoSaveDelay = 400
 
 export const useSettingsStore = defineStore('settings', () => {
   const saved = ref<Settings>()
@@ -15,6 +19,9 @@ export const useSettingsStore = defineStore('settings', () => {
   const saving = ref(false)
   const notifications = useNotificationsStore()
   let loadPromise: Promise<void> | undefined
+  let savePromise: Promise<boolean> | undefined
+  let saveTimer: ReturnType<typeof setTimeout> | undefined
+  let saveQueued = false
 
   const dirty = computed(() => !settingsEqual(saved.value, draft.value))
   const errors = computed<Record<string, string>>(() => {
@@ -79,8 +86,8 @@ export const useSettingsStore = defineStore('settings', () => {
           api.loadSettings(),
           api.getCapabilities(),
         ])
-        saved.value = structuredClone(nextSettings)
-        draft.value = structuredClone(nextSettings)
+        saved.value = cloneSettings(nextSettings)
+        draft.value = cloneSettings(nextSettings)
         capabilities.value = nextCapabilities
       } catch (error) {
         notifications.error('加载设置失败', error)
@@ -92,31 +99,85 @@ export const useSettingsStore = defineStore('settings', () => {
     return loadPromise
   }
 
-  const save = async () => {
-    if (!draft.value || !valid.value) {
-      return
-    }
-    saving.value = true
-    try {
-      const api = await getApi()
-      const nextSettings = await api.saveSettings(draft.value)
-      saved.value = structuredClone(nextSettings)
-      draft.value = structuredClone(nextSettings)
-      notifications.success('设置已保存', '新的设置将在后续操作中生效。')
-    } catch (error) {
-      notifications.error('保存设置失败', error)
-    } finally {
-      saving.value = false
+  const clearSaveTimer = () => {
+    if (saveTimer) {
+      clearTimeout(saveTimer)
+      saveTimer = undefined
     }
   }
 
+  const scheduleSave = () => {
+    clearSaveTimer()
+    if (!draft.value || !dirty.value || !valid.value) {
+      return
+    }
+    if (saving.value) {
+      saveQueued = true
+      return
+    }
+    saveTimer = setTimeout(() => {
+      saveTimer = undefined
+      void save()
+    }, autoSaveDelay)
+  }
+
+  const save = (): Promise<boolean> => {
+    clearSaveTimer()
+    if (!draft.value || !valid.value || !dirty.value) {
+      return Promise.resolve(!dirty.value)
+    }
+    if (savePromise) {
+      saveQueued = true
+      return savePromise
+    }
+
+    const snapshot = cloneSettings(draft.value)
+    saving.value = true
+    saveQueued = false
+    savePromise = (async () => {
+      try {
+        const api = await getApi()
+        const nextSettings = await api.saveSettings(snapshot)
+        saved.value = cloneSettings(nextSettings)
+        if (settingsEqual(draft.value, snapshot)) {
+          draft.value = cloneSettings(nextSettings)
+        }
+        return true
+      } catch (error) {
+        notifications.error('自动保存设置失败', error)
+        return false
+      } finally {
+        saving.value = false
+        savePromise = undefined
+        if (saveQueued) {
+          saveQueued = false
+          scheduleSave()
+        }
+      }
+    })()
+    return savePromise
+  }
+
+  const flush = async () => {
+    clearSaveTimer()
+    const savedCurrentDraft = await save()
+    if (!savedCurrentDraft) {
+      return false
+    }
+    if (dirty.value && valid.value) {
+      return save()
+    }
+    return !dirty.value
+  }
+
   const reset = async () => {
+    clearSaveTimer()
     saving.value = true
     try {
       const api = await getApi()
       const nextSettings = await api.resetSettings()
-      saved.value = structuredClone(nextSettings)
-      draft.value = structuredClone(nextSettings)
+      saved.value = cloneSettings(nextSettings)
+      draft.value = cloneSettings(nextSettings)
       notifications.success('已恢复默认设置', '默认设置已经保存。')
     } catch (error) {
       notifications.error('恢复默认设置失败', error)
@@ -126,10 +187,14 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   const discard = () => {
+    clearSaveTimer()
+    saveQueued = false
     if (saved.value) {
-      draft.value = structuredClone(saved.value)
+      draft.value = cloneSettings(saved.value)
     }
   }
+
+  watch(draft, scheduleSave, { deep: true })
 
   return {
     saved,
@@ -142,6 +207,7 @@ export const useSettingsStore = defineStore('settings', () => {
     valid,
     load,
     save,
+    flush,
     reset,
     discard,
   }

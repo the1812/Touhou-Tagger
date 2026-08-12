@@ -1,17 +1,18 @@
 .metadata-form {
   display: grid;
-  gap: 1.15rem;
+  gap: 0.9rem;
 }
 
 .metadata-form label {
   display: grid;
-  gap: 0.45rem;
-  font-size: 0.9rem;
+  gap: 0.35rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .metadata-form label small {
   color: var(--text-muted);
+  font-size: 0.75rem;
   font-weight: 400;
 }
 
@@ -26,36 +27,41 @@
 .metadata-form__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
+  gap: 0.75rem;
 }
 
-.source-file {
+.metadata-source {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.8rem 1rem;
-  border-radius: var(--radius-md);
-  background: var(--surface-subtle);
+  min-width: 0;
+  gap: 0.2rem;
 }
 
-.source-file span {
+.metadata-source span {
   color: var(--text-muted);
   font-size: 0.75rem;
 }
 
-.drawer-issues {
-  padding: 0.9rem 1rem;
+.metadata-source strong {
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metadata-issues {
+  padding: 0.75rem 0.85rem;
   border: 1px solid var(--warning-border);
   border-radius: var(--radius-md);
   background: var(--warning-soft);
 }
 
-.drawer-issues ul {
-  margin: 0.5rem 0 0;
-  padding-left: 1.25rem;
+.metadata-issues ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
 }
 
-.drawer-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.65rem;
+@media (max-width: 520px) {
+  .metadata-form__row {
+    grid-template-columns: 1fr;
+  }
 }

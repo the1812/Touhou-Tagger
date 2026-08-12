@@ -254,7 +254,10 @@ input.p-inputtext {
   padding-bottom: 0.35rem;
 }
 
-.p-select-label,
+.p-select-label {
+  font-size: 0.78rem;
+}
+
 .p-inputnumber-input {
   font-size: 0.82rem;
 }
@@ -264,12 +267,15 @@ input.p-inputtext {
   width: 2rem;
 }
 
+.p-button:disabled:not(.p-button-secondary):not(.p-button-text):not(.p-button-outlined) {
+  color: #fff;
+}
+
 .p-toast {
   opacity: 1;
 }
 
-.p-dialog,
-.p-drawer {
+.p-dialog {
   border-color: var(--border-color);
 }
 

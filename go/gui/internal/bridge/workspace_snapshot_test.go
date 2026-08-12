@@ -133,7 +133,7 @@ func TestPlanOutputSnapshotRejectsNewSidecarTargets(t *testing.T) {
 				TargetPath: filepath.Join(directory, "01 Track.mp3"),
 				Metadata:   domain.Metadata{Lyric: "lyrics"},
 			}}}
-			snapshot, issues := snapshotPlanOutputs(plan, config, directory, cover, true)
+			snapshot, issues := snapshotPlanOutputs(plan, config, directory, cover, true, "")
 			if len(issues) != 0 {
 				t.Fatalf("snapshotPlanOutputs() issues = %#v", issues)
 			}
@@ -155,6 +155,7 @@ func TestPlanOutputSnapshotRejectsNewSidecarTargets(t *testing.T) {
 				directory,
 				cover,
 				true,
+				"",
 				snapshot,
 			); err == nil {
 				t.Fatalf("validatePlanOutputs() accepted new %s target", kind)
@@ -175,8 +176,48 @@ func TestPlanOutputSnapshotReportsExistingTargets(t *testing.T) {
 	if err := os.WriteFile(coreapp.LRCPath(plan.Items[0].TargetPath), []byte("existing"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	_, issues := snapshotPlanOutputs(plan, config, directory, nil, false)
+	_, issues := snapshotPlanOutputs(plan, config, directory, nil, false, "")
 	if len(issues) != 1 || issues[0].Code != "lrc-target-exists" {
 		t.Fatalf("snapshotPlanOutputs() issues = %#v", issues)
+	}
+}
+
+func TestPlanOutputSnapshotAllowsSelectedCoverOverwrite(t *testing.T) {
+	cover, err := os.ReadFile(filepath.Join(
+		"..", "..", "..", "..", "fixtures", "media", "images", "cover.jpg",
+	))
+	if err != nil {
+		t.Fatal(err)
+	}
+	directory := t.TempDir()
+	coverPath := filepath.Join(directory, "cover.jpeg")
+	if err := os.WriteFile(coverPath, cover, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	snapshot, issues := snapshotPlanOutputs(
+		domain.TagPlan{},
+		domain.MetadataConfig{},
+		directory,
+		cover,
+		true,
+		coverPath,
+	)
+	if len(issues) != 0 {
+		t.Fatalf("snapshotPlanOutputs() issues = %#v", issues)
+	}
+	if len(snapshot) != 1 || !equalPath(snapshot[0].File.Path, coverPath) {
+		t.Fatalf("snapshotPlanOutputs() path = %#v, want %q", snapshot, coverPath)
+	}
+	if err := validatePlanOutputs(
+		domain.TagPlan{},
+		domain.MetadataConfig{},
+		directory,
+		cover,
+		true,
+		coverPath,
+		snapshot,
+	); err != nil {
+		t.Fatalf("validatePlanOutputs() rejected selected cover overwrite: %v", err)
 	}
 }

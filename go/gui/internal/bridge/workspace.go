@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -268,8 +267,7 @@ func (service *WorkspaceService) prepareOwnedPlan(
 		candidate:   dtoToCandidate(candidate),
 		cover:       cover,
 		coverSource: coverSource,
-		saveCover: data.Scan.CoverPath == "" &&
-			len(cover) > 0 &&
+		saveCover: len(cover) > 0 &&
 			(resolvedConfig.Cover == nil || *resolvedConfig.Cover),
 		config:   runtimeConfig,
 		snapshot: snapshot,
@@ -306,9 +304,9 @@ func (service *WorkspaceService) UpdatePlan(
 		}
 	}
 	if patch.SaveCover != nil {
-		canSaveCover := session.scan.CoverPath == "" && len(session.cover) > 0
+		canSaveCover := len(session.cover) > 0
 		if *patch.SaveCover && !canSaveCover {
-			return PlanPreview{}, fmt.Errorf("当前计划没有可另存的远程封面")
+			return PlanPreview{}, fmt.Errorf("当前计划没有可保存的封面")
 		}
 		session.saveCover = *patch.SaveCover
 	}
@@ -397,7 +395,7 @@ func (service *WorkspaceService) DiscardPlan(planID string) bool {
 	return service.plans.discard(planID)
 }
 
-func (service *WorkspaceService) RevealDirectory(ctx context.Context, directory string) error {
+func (service *WorkspaceService) RevealDirectory(_ context.Context, directory string) error {
 	info, err := os.Stat(directory)
 	if err != nil {
 		return fmt.Errorf("打开目录 %q: %w", directory, err)
@@ -405,15 +403,13 @@ func (service *WorkspaceService) RevealDirectory(ctx context.Context, directory 
 	if !info.IsDir() {
 		return fmt.Errorf("%q 不是目录", directory)
 	}
-	command := exec.CommandContext(ctx, "explorer.exe", directory)
+	command := exec.Command("explorer.exe", directory)
 	if err := command.Start(); err != nil {
 		return fmt.Errorf("打开资源管理器: %w", err)
 	}
-	go func() {
-		if err := command.Wait(); err != nil && ctx.Err() == nil {
-			log.Printf("wait for explorer: %v", err)
-		}
-	}()
+	if err := command.Process.Release(); err != nil {
+		return fmt.Errorf("释放资源管理器进程句柄: %w", err)
+	}
 	return nil
 }
 
@@ -435,7 +431,7 @@ func (service *WorkspaceService) executeCommit(
 	candidate := session.candidate
 	cover := append([]byte(nil), session.cover...)
 	directory := session.scan.Directory
-	saveCover := session.saveCover && session.scan.CoverPath == "" && len(cover) > 0
+	saveCover := session.saveCover && len(cover) > 0
 	session.mu.Unlock()
 
 	applicationService, err := service.runtime.serviceWithConfig(
@@ -462,6 +458,7 @@ func (service *WorkspaceService) executeCommit(
 		directory,
 		cover,
 		saveCover,
+		currentScan.CoverPath,
 		expectedSnapshot.Outputs,
 	); err != nil {
 		return OperationResult{}, false, err
@@ -478,8 +475,14 @@ func (service *WorkspaceService) executeCommit(
 	}
 	coversSaved := 0
 	if saveCover {
-		if _, err := coreapp.SaveCoverNew(directory, cover); err != nil {
-			return OperationResult{}, false, err
+		var saveErr error
+		if currentScan.CoverPath != "" {
+			_, saveErr = coreapp.SaveCoverAt(currentScan.CoverPath, cover)
+		} else {
+			_, saveErr = coreapp.SaveCoverNew(directory, cover)
+		}
+		if saveErr != nil {
+			return OperationResult{}, false, saveErr
 		}
 		coversSaved = 1
 	}
@@ -561,6 +564,7 @@ func (service *WorkspaceService) rebuildSession(session *planSession) {
 		session.scan.Directory,
 		session.cover,
 		session.saveCover,
+		session.scan.CoverPath,
 	)
 	session.snapshot.Outputs = outputs
 	session.issues = append(session.issues, outputIssues...)
@@ -656,7 +660,7 @@ func (service *WorkspaceService) previewLocked(session *planSession) PlanPreview
 	}
 	compressCover := session.config.CoverCompressSize > 0 &&
 		float64(len(session.cover)) > session.config.CoverCompressSize*1024*1024
-	canSaveCover := session.scan.CoverPath == "" && len(session.cover) > 0
+	canSaveCover := len(session.cover) > 0
 	issues := make([]StateIssue, 0, len(session.issues))
 	for _, issue := range session.issues {
 		if issue.ItemID == "" && issue.Code != "invalid-cover" {
@@ -866,8 +870,16 @@ func snapshotPlanOutputs(
 	directory string,
 	cover []byte,
 	saveCover bool,
+	existingCoverPath string,
 ) ([]outputSnapshot, []StateIssue) {
-	outputs, err := plannedOutputs(plan, configValue, directory, cover, saveCover)
+	outputs, err := plannedOutputs(
+		plan,
+		configValue,
+		directory,
+		cover,
+		saveCover,
+		existingCoverPath,
+	)
 	if err != nil {
 		return nil, []StateIssue{errorIssue(
 			"cover-target-invalid",
@@ -900,7 +912,7 @@ func snapshotPlanOutputs(
 				"output-target-inspection",
 				fmt.Sprintf("无法检查目标文件 %q：%v", filepath.Base(output.Path), snapshotErr),
 			))
-		} else if snapshot.Exists {
+		} else if snapshot.Exists && !isCoverOverwrite(output, existingCoverPath) {
 			issues = append(issues, outputStateIssue(
 				output,
 				output.Kind+"-target-exists",
@@ -926,14 +938,19 @@ func plannedOutputs(
 	directory string,
 	cover []byte,
 	saveCover bool,
+	existingCoverPath string,
 ) ([]coreapp.PlanOutput, error) {
 	outputs := coreapp.TagPlanOutputs(plan, configValue)
 	if !saveCover {
 		return outputs, nil
 	}
-	path, err := coreapp.CoverPath(directory, cover)
-	if err != nil {
-		return nil, err
+	path := existingCoverPath
+	if path == "" {
+		var err error
+		path, err = coreapp.CoverPath(directory, cover)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return append(outputs, coreapp.PlanOutput{
 		Kind:      coreapp.OutputCover,
@@ -981,9 +998,17 @@ func validatePlanOutputs(
 	directory string,
 	cover []byte,
 	saveCover bool,
+	existingCoverPath string,
 	expected []outputSnapshot,
 ) error {
-	outputs, err := plannedOutputs(plan, configValue, directory, cover, saveCover)
+	outputs, err := plannedOutputs(
+		plan,
+		configValue,
+		directory,
+		cover,
+		saveCover,
+		existingCoverPath,
+	)
 	if err != nil {
 		return fmt.Errorf("重新确定副产物目标: %w", err)
 	}
@@ -997,7 +1022,7 @@ func validatePlanOutputs(
 			!equalPath(output.Path, snapshot.File.Path) {
 			return fmt.Errorf("写入计划的副产物目标已变化，请重新生成预览")
 		}
-		if snapshot.File.Exists {
+		if snapshot.File.Exists && !isCoverOverwrite(output, existingCoverPath) {
 			return fmt.Errorf(
 				"%s目标文件 %q 在预览时已存在，请移走后重新生成预览",
 				outputLabel(output.Kind),
@@ -1016,8 +1041,11 @@ func validatePlanOutputs(
 			)
 		}
 	}
-	if conflicts := coreapp.InspectPlanOutputs(outputs); len(conflicts) > 0 {
-		conflict := conflicts[0]
+	for _, conflict := range coreapp.InspectPlanOutputs(outputs) {
+		if conflict.Kind == coreapp.OutputConflictExists &&
+			isCoverOverwrite(conflict.Output, existingCoverPath) {
+			continue
+		}
 		return fmt.Errorf(
 			"%s目标文件 %q 发生冲突，请重新生成预览",
 			outputLabel(conflict.Output.Kind),
@@ -1025,6 +1053,12 @@ func validatePlanOutputs(
 		)
 	}
 	return nil
+}
+
+func isCoverOverwrite(output coreapp.PlanOutput, existingCoverPath string) bool {
+	return output.Kind == coreapp.OutputCover &&
+		existingCoverPath != "" &&
+		equalPath(output.Path, existingCoverPath)
 }
 
 func snapshotPath(path string, digest bool) (fileSnapshot, error) {

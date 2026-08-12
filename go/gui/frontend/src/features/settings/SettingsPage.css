@@ -11,17 +11,13 @@
 }
 
 .settings-form {
-  display: grid;
   height: 100%;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .settings-sections {
-  min-height: 0;
-  overflow: auto;
-  padding: 0 1.5rem 1.5rem;
+  padding: 0 1.5rem;
 }
 
 .settings-section {
@@ -69,26 +65,29 @@
   grid-column: 1 / -1;
 }
 
-.output-field {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.output-field legend {
-  width: 100%;
-  margin-bottom: 0.35rem;
-}
-
-.output-field label {
+.field-label {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-weight: 400;
+  gap: 0.3rem;
+}
+
+.field-info {
+  display: inline-grid;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: help;
+}
+
+.field-info:hover,
+.field-info:focus-visible {
+  color: var(--brand-primary);
+  outline: none;
 }
 
 .switch-field {
@@ -96,10 +95,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--surface-subtle);
+  min-width: 0;
   font-size: 0.8rem;
 }
 
@@ -113,30 +109,12 @@
   font-weight: 400;
 }
 
-.settings-action-bar {
-  position: sticky;
-  z-index: 20;
-  bottom: 0;
+.settings-reset-row {
   display: flex;
-  min-height: 64px;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.7rem 1.5rem;
+  justify-content: center;
+  padding: 1rem 1.5rem 1.5rem;
   border-top: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
-  backdrop-filter: blur(16px);
-}
-
-.settings-action-bar > div {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.settings-action-bar span {
-  color: var(--text-muted);
-  font-size: 0.78rem;
 }
 
 .settings-page .p-inputtext,

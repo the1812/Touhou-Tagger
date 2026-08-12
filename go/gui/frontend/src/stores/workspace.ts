@@ -186,10 +186,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       }
       candidates.value = nextCandidates
       hasSearched.value = true
-      const exact = candidates.value.find((candidate) => candidate.exactMatch)
+      const exact =
+        candidates.value.length === 1
+          ? candidates.value[0]
+          : candidates.value.find((candidate) => candidate.exactMatch)
       selectedCandidateId.value = exact?.id ?? ''
       plan.value = undefined
       phase.value = selectedCandidateId.value ? 'matched' : 'scanned'
+      if (candidates.value.length === 1) {
+        await preparePlan()
+      }
     } catch (error) {
       if (requestVersion !== contextVersion) {
         return
@@ -419,6 +425,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     query.value = ''
     source.value = defaultSource.value
     clearAfterDirectory()
+    await selectDirectory()
   }
 
   const receiveProgress = (progress: OperationProgress) => {

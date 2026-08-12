@@ -1,17 +1,15 @@
 import { computed, defineComponent, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onBeforeRouteLeave } from 'vue-router'
-import { Form } from '@primevue/forms'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
-import RadioButton from 'primevue/radiobutton'
 import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useConfirm } from 'primevue/useconfirm'
-import { RotateCcw, Save } from 'lucide-vue-next'
+import { Info, RotateCcw } from 'lucide-vue-next'
 
 import { useSettingsStore } from '../../stores/settings'
 
@@ -27,6 +25,11 @@ export const SettingsPage = defineComponent({
     const searchableSources = computed(() =>
       capabilities.value?.sources.filter(option => option.supportsSearch),
     )
+    const lyricDestinations = [
+      { label: '不写入歌词', value: 'none' },
+      { label: '写入音频 metadata', value: 'metadata' },
+      { label: '生成独立 LRC 文件', value: 'lrc' },
+    ]
     const lyricDestination = computed({
       get: () => {
         if (!draft.value?.writeLyricsMetadata && !draft.value?.writeLrcFiles) {
@@ -45,8 +48,12 @@ export const SettingsPage = defineComponent({
 
     onMounted(() => void settingsStore.load())
 
-    onBeforeRouteLeave(() => {
+    onBeforeRouteLeave(async () => {
       if (!dirty.value) {
+        return true
+      }
+
+      if (valid.value && (await settingsStore.flush())) {
         return true
       }
 
@@ -88,10 +95,7 @@ export const SettingsPage = defineComponent({
               <Skeleton height="12rem" />
             </div>
           ) : (
-            <Form
-              class="settings-form"
-              {...{ onSubmit: () => void settingsStore.save() }}
-            >
+            <div class="settings-form">
               <div class="settings-sections">
                 <section class="settings-section">
                   <h2>常规</h2>
@@ -172,7 +176,17 @@ export const SettingsPage = defineComponent({
                   <h2>封面</h2>
                   <div class="settings-grid">
                     <label class="field">
-                      <span>压缩阈值（KB）</span>
+                      <span class="field-label">
+                        压缩阈值（KB）
+                        <button
+                          type="button"
+                          class="field-info"
+                          aria-label="压缩阈值说明"
+                          v-tooltip={{ value: '设为 0 时不启用封面压缩。' }}
+                        >
+                          <Info size={13} />
+                        </button>
+                      </span>
                       <InputNumber
                         v-model={currentDraft.coverCompressionThresholdKb}
                         min={0}
@@ -189,7 +203,17 @@ export const SettingsPage = defineComponent({
                       )}
                     </label>
                     <label class="field">
-                      <span>最大边长（像素）</span>
+                      <span class="field-label">
+                        最大边长（像素）
+                        <button
+                          type="button"
+                          class="field-info"
+                          aria-label="最大边长说明"
+                          v-tooltip={{ value: '设为 0 时不限制封面最大边长。' }}
+                        >
+                          <Info size={13} />
+                        </button>
+                      </span>
                       <InputNumber
                         v-model={currentDraft.coverMaxEdge}
                         min={0}
@@ -211,6 +235,20 @@ export const SettingsPage = defineComponent({
                   <h2>歌词</h2>
                   <div class="settings-grid">
                     <label class="field">
+                      <span>输出位置</span>
+                      <Select
+                        v-model={lyricDestination.value}
+                        options={lyricDestinations}
+                        optionLabel="label"
+                        optionValue="value"
+                        size="small"
+                        fluid
+                      />
+                      {errors.value.lyricDestination && (
+                        <small class="field-error">{errors.value.lyricDestination}</small>
+                      )}
+                    </label>
+                    <label class="field">
                       <span>歌词类型</span>
                       <Select
                         v-model={currentDraft.lyricType}
@@ -222,27 +260,6 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <fieldset class="field output-field">
-                      <legend>输出位置</legend>
-                      {[
-                        ['none', '不写入歌词'],
-                        ['metadata', '写入音频 metadata'],
-                        ['lrc', '生成独立 LRC 文件'],
-                      ].map(([value, label]) => (
-                        <label key={value}>
-                          <RadioButton
-                            v-model={lyricDestination.value}
-                            inputId={`lyrics-${value}`}
-                            value={value}
-                            size="small"
-                          />
-                          <span>{label}</span>
-                        </label>
-                      ))}
-                      {errors.value.lyricDestination && (
-                        <small class="field-error">{errors.value.lyricDestination}</small>
-                      )}
-                    </fieldset>
                     <label class="field settings-grid__wide">
                       <span>混合歌词分隔符</span>
                       <InputText
@@ -286,37 +303,20 @@ export const SettingsPage = defineComponent({
                 </section>
               </div>
 
-              <footer class="settings-action-bar">
-                <div>
-                  <strong>{dirty.value ? '有未保存的修改' : '所有设置已保存'}</strong>
-                  <span>
-                    {!valid.value ? '请修复页面中的字段错误。' : '设置由 Go 写入现有配置文件。'}
-                  </span>
-                </div>
-                <div>
-                  <Button
-                    label="恢复默认设置"
-                    type="button"
-                    size="small"
-                    severity="secondary"
-                    text
-                    disabled={saving.value}
-                    onClick={confirmReset}
-                  >
-                    {{ icon: () => <RotateCcw size={15} /> }}
-                  </Button>
-                  <Button
-                    label="保存设置"
-                    type="submit"
-                    size="small"
-                    loading={saving.value}
-                    disabled={!dirty.value || !valid.value}
-                  >
-                    {{ icon: () => <Save size={16} /> }}
-                  </Button>
-                </div>
-              </footer>
-            </Form>
+              <div class="settings-reset-row">
+                <Button
+                  label="恢复默认设置"
+                  type="button"
+                  size="small"
+                  severity="secondary"
+                  text
+                  disabled={saving.value}
+                  onClick={confirmReset}
+                >
+                  {{ icon: () => <RotateCcw size={15} /> }}
+                </Button>
+              </div>
+            </div>
           )}
 
           <ConfirmDialog group="settings-leave" />

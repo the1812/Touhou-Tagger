@@ -30,7 +30,7 @@ export const OperationPanel = defineComponent({
     const stageLabel = computed(() => {
       const labels: Record<string, string> = {
         preparing: '准备写入',
-        writing: '写入临时文件',
+        writing: '正在写入',
         committing: '提交文件',
         renaming: '重命名',
         complete: '完成',

@@ -1,14 +1,12 @@
 import { computed, defineComponent, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
-import ConfirmDialog from 'primevue/confirmdialog'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { useConfirm } from 'primevue/useconfirm'
 import {
   Check,
   ExternalLink,
@@ -26,22 +24,12 @@ import type { AlbumCandidate, PlanItemPreview, TrackMetadataPatch } from '../../
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { CoverPreview } from './CoverPreview'
-import { MetadataDrawer } from './MetadataDrawer'
+import { MetadataTagsInput } from './MetadataTagsInput'
+import { TrackMetadataDialog } from './TrackMetadataDialog'
 import { OperationPanel } from './OperationPanel'
 import { PlanTable } from './PlanTable'
 
 import './TaggingPage.css'
-
-interface ConfirmContainerSlot {
-  message: {
-    header?: string
-    message?: string
-    acceptLabel?: string
-    rejectLabel?: string
-  }
-  acceptCallback: () => void
-  rejectCallback: () => void
-}
 
 export const TaggingPage = defineComponent({
   name: 'TaggingPage',
@@ -65,16 +53,15 @@ export const TaggingPage = defineComponent({
       canPrepare,
       canCommit,
     } = storeToRefs(workspace)
-    const confirm = useConfirm()
     const selectedTrack = ref<PlanItemPreview>()
-    const trackDrawerVisible = ref(false)
+    const trackDialogVisible = ref(false)
     const albumDialogVisible = ref(false)
     const albumDraft = reactive({
       title: '',
       albumOrder: '',
-      artists: '',
+      artists: [] as string[],
       year: '',
-      genres: '',
+      genres: [] as string[],
     })
     const sourceOptions = computed(
       () =>
@@ -94,9 +81,9 @@ export const TaggingPage = defineComponent({
         }
         albumDraft.title = album.title
         albumDraft.albumOrder = album.albumOrder
-        albumDraft.artists = album.artists.join(' / ')
+        albumDraft.artists = [...album.artists]
         albumDraft.year = album.year
-        albumDraft.genres = album.genres.join(' / ')
+        albumDraft.genres = [...album.genres]
       },
       { immediate: true },
     )
@@ -113,7 +100,7 @@ export const TaggingPage = defineComponent({
         return
       }
       selectedTrack.value = item
-      trackDrawerVisible.value = true
+      trackDialogVisible.value = true
     }
     const saveTrack = (patch: TrackMetadataPatch) => {
       void workspace.updateTrack(patch)
@@ -122,15 +109,9 @@ export const TaggingPage = defineComponent({
       void workspace.updateAlbum({
         title: albumDraft.title.trim(),
         albumOrder: albumDraft.albumOrder.trim(),
-        artists: albumDraft.artists
-          .split('/')
-          .map(value => value.trim())
-          .filter(Boolean),
+        artists: albumDraft.artists,
         year: albumDraft.year.trim(),
-        genres: albumDraft.genres
-          .split('/')
-          .map(value => value.trim())
-          .filter(Boolean),
+        genres: albumDraft.genres,
       })
       albumDialogVisible.value = false
     }
@@ -138,39 +119,6 @@ export const TaggingPage = defineComponent({
       workspace.selectCandidate('local-json')
       void workspace.preparePlan('local-json')
     }
-    const confirmCommit = () => {
-      if (!plan.value) {
-        return
-      }
-      const currentPlan = plan.value
-      const { options } = currentPlan
-      const effects = [
-        `写入 ${options.writeFiles} 个音频文件`,
-        options.lrcFiles ? `生成 ${options.lrcFiles} 个 LRC 文件` : '不生成 LRC 文件',
-        currentPlan.cover.url
-          ? options.compressCover
-            ? '音频内嵌封面写入时将压缩'
-            : '将当前封面嵌入音频'
-          : '不写入音频封面',
-        options.canSaveCover
-          ? options.saveCover
-            ? '另存一份原始封面文件'
-            : '不另存独立封面文件'
-          : currentPlan.cover.source === 'local'
-            ? '沿用现有本地封面文件'
-            : '没有独立封面文件',
-      ]
-      confirm.require({
-        group: 'commit',
-        header: '确认写入计划',
-        message: `${effects.join('；')}。开始后，进入文件提交阶段将无法取消。`,
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: `写入 ${options.writeFiles} 首`,
-        rejectLabel: '返回检查',
-        accept: workspace.commit,
-      })
-    }
-
     return () => {
       const currentSummary = summary.value
       const currentPlan = plan.value
@@ -471,7 +419,9 @@ export const TaggingPage = defineComponent({
                             }}
                             disabled={isBusy.value}
                           />
-                          <strong>另存原始封面</strong>
+                          <strong>
+                            {currentSummary?.localCover.exists ? '覆盖本地封面' : '另存原始封面'}
+                          </strong>
                         </label>
                       )}
                     </div>
@@ -520,7 +470,10 @@ export const TaggingPage = defineComponent({
                     <div class="commit-bar__summary">
                       <span>
                         将写入 <strong>{currentPlan.options.writeFiles}</strong> 个文件
-                        {currentPlan.options.saveCover && '，另存原始封面'}
+                        {currentPlan.options.saveCover &&
+                          (currentSummary?.localCover.exists
+                            ? '，覆盖本地封面'
+                            : '，另存原始封面')}
                       </span>
                     </div>
                     <div class="commit-bar__action">
@@ -545,7 +498,7 @@ export const TaggingPage = defineComponent({
                           label={`写入 ${currentPlan.options.writeFiles} 首`}
                           size="large"
                           disabled={!canCommit.value}
-                          onClick={confirmCommit}
+                          onClick={() => void workspace.commit()}
                         />
                       </span>
                     </div>
@@ -564,14 +517,10 @@ export const TaggingPage = defineComponent({
                 <section class="workspace-card result-card">
                   <div class="result-card__icon"><Check size={34} /></div>
                   <div>
-                    <h2>{currentResult.message}</h2>
-                    <div class="result-stats">
-                      <span><strong>{currentResult.succeeded}</strong> 成功曲目</span>
-                      <span><strong>{currentResult.renamed}</strong> 次重命名</span>
-                      <span><strong>{currentResult.coversSaved}</strong> 张封面</span>
-                      <span><strong>{currentResult.lrcFiles}</strong> 个 LRC</span>
-                      <span><strong>{(currentResult.durationMs / 1000).toFixed(1)}s</strong> 总耗时</span>
-                    </div>
+                    <h2>已完成写入 {currentResult.succeeded} 首曲目</h2>
+                    <p class="result-duration">
+                      耗时 {(currentResult.durationMs / 1000).toFixed(1)}s
+                    </p>
                     <div class="result-actions">
                       <Button
                         label="在资源管理器中打开"
@@ -592,6 +541,7 @@ export const TaggingPage = defineComponent({
                 <div class="search-action-bar">
                   <Button
                     label="下一步"
+                    size="large"
                     disabled={!canPrepare.value}
                     loading={currentPhase === 'preparing'}
                     onClick={() => void workspace.preparePlan()}
@@ -601,11 +551,11 @@ export const TaggingPage = defineComponent({
             </>
           )}
 
-          <MetadataDrawer
-            visible={trackDrawerVisible.value}
+          <TrackMetadataDialog
+            visible={trackDialogVisible.value}
             {...{
               'onUpdate:visible': (value: boolean) => {
-                trackDrawerVisible.value = value
+                trackDialogVisible.value = value
               },
             }}
             item={selectedTrack.value}
@@ -616,16 +566,17 @@ export const TaggingPage = defineComponent({
             v-model:visible={albumDialogVisible.value}
             modal
             header="编辑专辑信息"
-            style={{ width: 'min(560px, 94vw)' }}
+            class="metadata-dialog"
+            style={{ width: 'min(560px, calc(100vw - 2rem))' }}
           >
             {{
               default: () => (
-                <div class="album-edit-form">
+                <div class="metadata-form">
                   <label>
                     <span>专辑名称</span>
                     <InputText v-model={albumDraft.title} fluid invalid={!albumDraft.title.trim()} />
                   </label>
-                  <div class="album-edit-form__row">
+                  <div class="metadata-form__row">
                     <label>
                       <span>发行编号</span>
                       <InputText v-model={albumDraft.albumOrder} fluid />
@@ -637,13 +588,27 @@ export const TaggingPage = defineComponent({
                   </div>
                   <label>
                     <span>社团</span>
-                    <InputText v-model={albumDraft.artists} fluid />
-                    <small>多个值使用 “ / ” 分隔。</small>
+                    <MetadataTagsInput
+                      modelValue={albumDraft.artists}
+                      {...{
+                        'onUpdate:modelValue': (values: string[]) => {
+                          albumDraft.artists = values
+                        },
+                      }}
+                      ariaLabel="社团"
+                    />
                   </label>
                   <label>
                     <span>风格</span>
-                    <InputText v-model={albumDraft.genres} fluid />
-                    <small>多个值使用 “ / ” 分隔。</small>
+                    <MetadataTagsInput
+                      modelValue={albumDraft.genres}
+                      {...{
+                        'onUpdate:modelValue': (values: string[]) => {
+                          albumDraft.genres = values
+                        },
+                      }}
+                      ariaLabel="风格"
+                    />
                   </label>
                 </div>
               ),
@@ -658,7 +623,7 @@ export const TaggingPage = defineComponent({
                     }}
                   />
                   <Button
-                    label="保存并重新检查"
+                    label="保存"
                     disabled={!albumDraft.title.trim()}
                     onClick={saveAlbum}
                   />
@@ -667,28 +632,6 @@ export const TaggingPage = defineComponent({
             }}
           </Dialog>
 
-          <ConfirmDialog group="commit">
-            {{
-              container: ({ message, acceptCallback, rejectCallback }: ConfirmContainerSlot) => (
-                <div class="confirm-card">
-                  <div class="confirm-card__icon"><FileAudio size={26} /></div>
-                  <div>
-                    <h2>{message.header}</h2>
-                    <p>{message.message}</p>
-                  </div>
-                  <div class="confirm-card__actions">
-                    <Button
-                      label={message.rejectLabel}
-                      severity="secondary"
-                      text
-                      onClick={rejectCallback}
-                    />
-                    <Button label={message.acceptLabel} onClick={acceptCallback} />
-                  </div>
-                </div>
-              ),
-            }}
-          </ConfirmDialog>
         </div>
       )
     }
