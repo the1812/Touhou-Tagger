@@ -20,7 +20,7 @@ export const router = createRouter({
       name: 'batch',
       component: () => import('../features/batch/BatchPage').then(({ BatchPage }) => BatchPage),
       meta: {
-        title: '批处理',
+        title: '批量写入',
       },
     },
     {

@@ -224,7 +224,7 @@ const batchJobs = (): BatchJobPreview[] => [
     relativePath: 'multiple-disc',
     inferredAlbumName: multipleDiscFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: '多个候选',
+    matchDescription: '多个搜索结果',
     audioCount: multipleDiscFixture.tracks.length,
     status: 'needs-candidate',
     issues: [
@@ -241,7 +241,7 @@ const batchJobs = (): BatchJobPreview[] => [
     relativePath: 'no-cover',
     inferredAlbumName: noCoverFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: '精确匹配 · 无封面',
+    matchDescription: '精确匹配',
     audioCount: noCoverFixture.tracks.length,
     status: 'ready',
     issues: [],
@@ -282,7 +282,7 @@ const emitSequence = (
       path: kind === 'workspace' ? activePlan.items[Math.min(current - 1, activePlan.items.length - 1)]?.sourceName : `fixture-album-${current}`,
       message:
         stage === 'committing'
-          ? '正在提交文件'
+          ? '正在保存文件'
           : stage === 'renaming'
             ? '正在重命名'
             : `正在处理 ${current} / ${total}`,
@@ -404,7 +404,7 @@ export const fixtureApi: GUIApi = {
             lrcFiles: 0,
             durationMs: 320,
             cancelled: true,
-            message: '已取消 fixture 操作，写入预览仍可继续使用。',
+            message: '已取消 fixture 操作，写入内容仍可继续使用。',
           }),
         ),
     })
@@ -452,11 +452,11 @@ export const fixtureApi: GUIApi = {
     await wait(120)
     const job = activeBatch.jobs.find((item) => item.id === jobId)
     if (!job) {
-      throw new Error('Fixture 批处理任务不存在。')
+      throw new Error('Fixture 批量写入专辑不存在。')
     }
     job.selectedCandidateId = candidateId
     job.status = 'ready'
-    job.matchDescription = '已选择候选'
+    job.matchDescription = '已选择搜索结果'
     job.issues = []
     return clone(job)
   },
@@ -465,7 +465,7 @@ export const fixtureApi: GUIApi = {
     await wait(120)
     const job = activeBatch.jobs.find((item) => item.id === jobId)
     if (!job) {
-      throw new Error('Fixture 批处理任务不存在。')
+      throw new Error('Fixture 批量写入专辑不存在。')
     }
     job.selectedCandidateId = undefined
     job.status = 'ignored'
@@ -506,7 +506,7 @@ export const fixtureApi: GUIApi = {
               lrcFiles: 0,
               durationMs: 2830,
               cancelled: false,
-              message: 'fixture 批处理演示完成，未修改任何文件。',
+              message: 'fixture 批量写入演示完成，未修改任何文件。',
               jobs: clone(activeBatch.jobs),
             }
           },
@@ -526,7 +526,7 @@ export const fixtureApi: GUIApi = {
               lrcFiles: 0,
               durationMs: 320,
               cancelled: true,
-              message: '已停止后续 fixture 批处理任务。',
+              message: '已停止写入后续 fixture 专辑。',
               jobs: clone(activeBatch.jobs),
             }
           },
@@ -538,7 +538,7 @@ export const fixtureApi: GUIApi = {
   async startBatch(operationId) {
     const pending = pendingStarts.get(operationId)
     if (!pending || pending.kind !== 'batch') {
-      throw new Error('Fixture 批处理操作不存在或已经开始。')
+      throw new Error('Fixture 批量写入操作不存在或已经开始。')
     }
     pendingStarts.delete(operationId)
     pending.start()

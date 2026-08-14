@@ -14,7 +14,7 @@ import { useNotificationsStore } from './notifications'
 
 export const useBatchStore = defineStore('batch', () => {
   const directory = ref('')
-  const depth = ref(2)
+  const depth = ref(1)
   const source = ref('thb-wiki')
   const defaultSource = ref('thb-wiki')
   const preview = ref<BatchPreview>()
@@ -49,6 +49,7 @@ export const useBatchStore = defineStore('batch', () => {
     () =>
       Boolean(
         preview.value &&
+          depth.value === preview.value.depth &&
           readyCount.value > 0 &&
           unresolvedCount.value === 0 &&
           resolvingCount.value === 0 &&
@@ -71,30 +72,7 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       await api.discardBatch(batchId)
     } catch (error) {
-      notifications.error('释放旧批处理预检失败', error)
-    }
-  }
-
-  const selectDirectory = async () => {
-    if (selecting.value || scanning.value || operation.value || resolvingCount.value > 0) {
-      return
-    }
-    selecting.value = true
-    try {
-      const api = await getApi()
-      const selected = await api.selectBatchDirectory()
-      if (selected) {
-        contextVersion += 1
-        await discardCurrentPreview()
-        if (selected !== directory.value) {
-          source.value = defaultSource.value
-        }
-        directory.value = selected
-      }
-    } catch (error) {
-      notifications.error('无法选择批处理根目录', error)
-    } finally {
-      selecting.value = false
+      notifications.error('释放旧批量扫描结果失败', error)
     }
   }
 
@@ -116,24 +94,7 @@ export const useBatchStore = defineStore('batch', () => {
     ) {
       return
     }
-    contextVersion += 1
     depth.value = value
-    discardCurrentPreview()
-  }
-
-  const changeSource = (value: string) => {
-    if (
-      value === source.value ||
-      selecting.value ||
-      scanning.value ||
-      resolvingCount.value > 0 ||
-      operation.value
-    ) {
-      return
-    }
-    contextVersion += 1
-    source.value = value
-    discardCurrentPreview()
   }
 
   const scan = async () => {
@@ -154,6 +115,7 @@ export const useBatchStore = defineStore('batch', () => {
       if (requestVersion !== contextVersion) {
         return
       }
+      source.value = defaultSource.value
       const api = await getApi()
       const nextPreview = await api.scanBatch(directory.value, depth.value, source.value)
       if (requestVersion !== contextVersion) {
@@ -164,8 +126,8 @@ export const useBatchStore = defineStore('batch', () => {
       const processFailures = preview.value.jobs.filter((job) => job.status === 'scan-failed')
       if (processFailures.length) {
         notifications.error(
-          '部分专辑预检失败',
-          `${processFailures.length} 个目录未能完成扫描或匹配，详情已保留在对应任务行。`,
+          '部分专辑扫描失败',
+          `${processFailures.length} 个目录未能完成扫描或匹配，详情已保留在对应专辑行。`,
           {
             diagnostics: processFailures
               .map(
@@ -180,9 +142,35 @@ export const useBatchStore = defineStore('batch', () => {
       if (requestVersion !== contextVersion) {
         return
       }
-      notifications.error('批处理预检失败', error)
+      notifications.error('批量扫描失败', error)
     } finally {
       scanning.value = false
+    }
+  }
+
+  const selectDirectory = async () => {
+    if (selecting.value || scanning.value || operation.value || resolvingCount.value > 0) {
+      return
+    }
+    selecting.value = true
+    let shouldScan = false
+    try {
+      const api = await getApi()
+      const selected = await api.selectBatchDirectory()
+      if (selected) {
+        contextVersion += 1
+        await discardCurrentPreview()
+        source.value = defaultSource.value
+        directory.value = selected
+        shouldScan = true
+      }
+    } catch (error) {
+      notifications.error('无法选择批量写入根目录', error)
+    } finally {
+      selecting.value = false
+    }
+    if (shouldScan) {
+      await scan()
     }
   }
 
@@ -242,14 +230,14 @@ export const useBatchStore = defineStore('batch', () => {
     updateJob(
       jobId,
       (api, batchId) => api.resolveBatchCandidate(batchId, jobId, candidateId),
-      '无法更新批处理候选',
+      '无法更新专辑搜索结果',
     )
 
   const ignoreJob = (jobId: string) =>
     updateJob(
       jobId,
       (api, batchId) => api.ignoreBatchJob(batchId, jobId),
-      '无法忽略批处理任务',
+      '无法忽略批量写入专辑',
     )
 
   const run = async (failedOnly = false) => {
@@ -276,7 +264,7 @@ export const useBatchStore = defineStore('batch', () => {
         stage: 'preparing',
         current: 0,
         total: failedOnly ? failedCount.value : readyCount.value,
-        message: '正在准备批处理',
+        message: '正在准备批量写入',
         cancellable: true,
       }
       result.value = undefined
@@ -295,7 +283,7 @@ export const useBatchStore = defineStore('batch', () => {
             cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
         }
       }
-      notifications.error('无法开始批处理', error, {
+      notifications.error('无法开始批量写入', error, {
         sticky: true,
         diagnostics: cleanupDetails || undefined,
       })
@@ -310,8 +298,30 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       await api.cancelBatch(operation.value.operationId)
     } catch (error) {
-      notifications.error('停止批处理失败', error)
+      notifications.error('停止批量写入失败', error)
     }
+  }
+
+  const reveal = async () => {
+    if (!directory.value) {
+      return
+    }
+    try {
+      const api = await getApi()
+      await api.revealDirectory(directory.value)
+    } catch (error) {
+      notifications.error('无法在资源管理器中打开目录', error)
+    }
+  }
+
+  const startOver = async () => {
+    if (selecting.value || scanning.value || resolvingCount.value > 0 || operation.value) {
+      return
+    }
+    contextVersion += 1
+    await discardCurrentPreview()
+    directory.value = ''
+    source.value = defaultSource.value
   }
 
   const receiveProgress = (progress: OperationProgress) => {
@@ -338,8 +348,8 @@ export const useBatchStore = defineStore('batch', () => {
     if (nextResult.failed > 0) {
       const failedJobs = result.value?.jobs.filter((job) => job.status === 'failed') ?? []
       notifications.error(
-        '批处理完成，但有任务失败',
-        `${nextResult.failed} 个专辑未能完成，详情已保留在任务列表中。`,
+        '批量写入完成，但有专辑失败',
+        `${nextResult.failed} 个专辑未能完成，详情已保留在专辑列表中。`,
         {
           sticky: true,
           diagnostics: failedJobs
@@ -359,7 +369,7 @@ export const useBatchStore = defineStore('batch', () => {
     }
     activeOperationId = ''
     operation.value = undefined
-    notifications.error('批处理过程失败', failure.message, {
+    notifications.error('批量写入过程失败', failure.message, {
       sticky: true,
       diagnostics: failure.details,
     })
@@ -370,7 +380,6 @@ export const useBatchStore = defineStore('batch', () => {
   return {
     directory,
     depth,
-    source,
     preview,
     selecting,
     scanning,
@@ -383,7 +392,6 @@ export const useBatchStore = defineStore('batch', () => {
     canRun,
     initializeSource,
     setDepth,
-    changeSource,
     selectDirectory,
     scan,
     resolveCandidate,
@@ -391,6 +399,8 @@ export const useBatchStore = defineStore('batch', () => {
     isResolving,
     run,
     cancel,
+    reveal,
+    startOver,
     receiveProgress,
     receiveComplete,
     receiveFailure,

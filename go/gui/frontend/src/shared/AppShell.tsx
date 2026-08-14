@@ -11,7 +11,7 @@ import { ToastHost } from './ToastHost'
 
 const navItems = [
   { to: '/tagging', label: '写入', icon: FilePenLine },
-  { to: '/batch', label: '批处理', icon: ListChecks },
+  { to: '/batch', label: '批量写入', icon: ListChecks },
   { to: '/settings', label: '设置', icon: Settings },
 ]
 
@@ -47,9 +47,14 @@ export const AppShell = defineComponent({
         }
       }
 
-      if (event.key === 'F5' && route.name === 'tagging' && workspace.directory) {
-        event.preventDefault()
-        workspace.scan()
+      if (event.key === 'F5') {
+        if (route.name === 'tagging' && workspace.directory) {
+          event.preventDefault()
+          workspace.scan()
+        } else if (route.name === 'batch' && batch.directory) {
+          event.preventDefault()
+          batch.scan()
+        }
       }
 
       if (event.ctrlKey && event.key.toLocaleLowerCase() === 'f' && route.name === 'tagging') {
@@ -92,7 +97,7 @@ export const AppShell = defineComponent({
             await workspace.scan(startupDirectory)
           }
         } catch (error) {
-          notifications.error('无法加载启动工作区', error)
+          notifications.error('无法加载启动目录', error)
         }
       }
     })

@@ -31,9 +31,20 @@
 # GUI verification
 
 - For layout and interaction work, start the Vite frontend and use `http://127.0.0.1:9245/?fixture=1`. Fixture mode must remain offline and must not modify real music files.
-- Inspect GUI behavior with the connected Chrome browser. Use targeted DOM/state reads and scoped screenshots; avoid full-page snapshots that embed large cover images.
+- For browser-based GUI inspection, explicitly select the connected Chrome plugin/extension. Chrome control belongs to Browser Use, not Computer Use. Do not use automatic browser selection or the built-in app Browser unless the user explicitly requests it.
+- If the Chrome plugin is unavailable, disabled, disconnected, or cannot control the target tab, stop browser verification and report the problem. Do not fall back to the built-in app Browser or Computer Use without explicit user approval.
+- Do not launch standalone Playwright or install it for GUI verification. Browser Use's structured page inspection API is allowed because it operates through the selected Chrome connection.
+- Use Computer Use only for native desktop applications, operating-system UI, cross-application workflows, or when the user explicitly requests it.
+- Inspect GUI behavior with targeted DOM/state reads and scoped screenshots; avoid full-page snapshots that embed large cover images.
 - Use the native Wails app when validating file dialogs, window state, generated bindings, native events, or real filesystem behavior. Do not claim native behavior is verified from fixture mode alone.
 - If the Wails `server` build tag is needed for browser-bridge validation, do not rely on a native Windows server build with the current Wails alpha. Cross-build the server target for Linux and run it through WSL, using the repository fixtures and the `THTAG_GUI_FIXTURES_ROOT` / `THTAG_GUI_FIXTURE_DIR` environment variables.
+
+# GUI debugging safety
+
+- Reuse an existing Vite, Wails, browser-bridge debug process, Chrome connection, and relevant Chrome tab when one is already running. Do not launch duplicate instances, terminate unrelated processes, or use broad process-kill commands; track and stop only the exact processes started for the current check.
+- Keep Chrome inspection scoped to the relevant DOM subtree, state, console entries, and screenshots. Do not export full-page DOM or capture large pages containing embedded `data:image` cover art because the payload can destabilize the browser route and debugging session.
+- Never pass Vue or Pinia reactive proxies directly to `structuredClone`; unwrap them with `toRaw` or construct a plain DTO first. TypeScript compilation will not catch the resulting runtime `DataCloneError`.
+- After changing stores, async operations, routing guards, loading states, or dialogs, exercise the real interaction in fixture mode and inspect fresh Chrome console entries. Include rapid repeated actions and immediate navigation when relevant; a successful frontend build alone is not sufficient runtime validation.
 
 # Validation
 

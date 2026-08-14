@@ -236,7 +236,7 @@ func (service *WorkspaceService) prepareOwnedPlan(
 		candidateExists = true
 	}
 	if !candidateExists {
-		return PlanPreview{}, fmt.Errorf("专辑候选已失效，请重新搜索")
+		return PlanPreview{}, fmt.Errorf("专辑搜索结果已失效，请重新搜索")
 	}
 	data, localCover, err := applicationService.FetchTagData(ctx, initialScan.Directory, domain.AlbumCandidate{
 		ID:     candidate.ID,
@@ -283,16 +283,16 @@ func (service *WorkspaceService) UpdatePlan(
 ) (PlanPreview, error) {
 	session, exists := service.plans.get(patch.PlanID)
 	if !exists {
-		return PlanPreview{}, fmt.Errorf("写入计划已失效，请重新生成预览")
+		return PlanPreview{}, fmt.Errorf("写入内容已失效，请重新准备")
 	}
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	if session.committing {
-		return PlanPreview{}, fmt.Errorf("写入计划正在提交，不能继续编辑")
+		return PlanPreview{}, fmt.Errorf("写入内容正在保存，不能继续编辑")
 	}
 	if patch.Revision != session.revision {
 		return PlanPreview{}, fmt.Errorf(
-			"写入计划版本已变化：当前为 %d，提交的是 %d",
+			"写入内容版本已变化：当前为 %d，保存的是 %d",
 			session.revision,
 			patch.Revision,
 		)
@@ -300,13 +300,13 @@ func (service *WorkspaceService) UpdatePlan(
 	for _, trackPatch := range patch.Tracks {
 		_, valid := trackIndex(trackPatch.ID, len(session.metadata))
 		if !valid {
-			return PlanPreview{}, fmt.Errorf("写入计划中不存在曲目 %q", trackPatch.ID)
+			return PlanPreview{}, fmt.Errorf("写入内容中不存在曲目 %q", trackPatch.ID)
 		}
 	}
 	if patch.SaveCover != nil {
 		canSaveCover := len(session.cover) > 0
 		if *patch.SaveCover && !canSaveCover {
-			return PlanPreview{}, fmt.Errorf("当前计划没有可保存的封面")
+			return PlanPreview{}, fmt.Errorf("当前写入内容没有可保存的封面")
 		}
 		session.saveCover = *patch.SaveCover
 	}
@@ -330,21 +330,21 @@ func (service *WorkspaceService) CommitPlan(
 ) (OperationStart, error) {
 	session, exists := service.plans.get(planID)
 	if !exists {
-		return OperationStart{}, fmt.Errorf("写入计划已失效，请重新生成预览")
+		return OperationStart{}, fmt.Errorf("写入内容已失效，请重新准备")
 	}
 	session.mu.Lock()
 	if session.revision != revision {
 		current := session.revision
 		session.mu.Unlock()
-		return OperationStart{}, fmt.Errorf("写入计划版本已变化：当前为 %d", current)
+		return OperationStart{}, fmt.Errorf("写入内容版本已变化：当前为 %d", current)
 	}
 	if session.committing {
 		session.mu.Unlock()
-		return OperationStart{}, fmt.Errorf("写入计划正在提交")
+		return OperationStart{}, fmt.Errorf("写入内容正在保存")
 	}
 	if !canCommit(session) {
 		session.mu.Unlock()
-		return OperationStart{}, fmt.Errorf("写入计划仍有未解决的问题")
+		return OperationStart{}, fmt.Errorf("写入内容仍有未解决的问题")
 	}
 	session.committing = true
 	session.mu.Unlock()
@@ -366,7 +366,7 @@ func (service *WorkspaceService) CommitPlan(
 			result.OperationID = operationID
 			result.Kind = "workspace"
 			result.Cancelled = true
-			result.Message = "操作已取消，未提交的临时文件已清理。"
+			result.Message = "操作已取消，未保存的临时文件已清理。"
 			return result, nil
 		}
 		if err != nil && !reusable {
@@ -422,7 +422,7 @@ func (service *WorkspaceService) executeCommit(
 	started := time.Now()
 	session, exists := service.plans.get(planID)
 	if !exists {
-		return OperationResult{}, false, fmt.Errorf("写入计划已失效")
+		return OperationResult{}, false, fmt.Errorf("写入内容已失效")
 	}
 	session.mu.Lock()
 	configValue := cloneConfig(session.config)
@@ -450,7 +450,7 @@ func (service *WorkspaceService) executeCommit(
 	}
 	plan, err := coreapp.BuildTagPlan(currentScan, metadata)
 	if err != nil {
-		return OperationResult{}, false, fmt.Errorf("重新验证写入计划: %w", err)
+		return OperationResult{}, false, fmt.Errorf("重新检查写入内容: %w", err)
 	}
 	if err := validatePlanOutputs(
 		plan,
@@ -892,7 +892,7 @@ func snapshotPlanOutputs(
 			continue
 		}
 		message := fmt.Sprintf(
-			"副产物目标文件冲突：曲目 %d 与曲目 %d 都会写入 %q。",
+			"附加文件目标冲突：曲目 %d 与曲目 %d 都会写入 %q。",
 			conflict.Other.ItemIndex+1,
 			conflict.Output.ItemIndex+1,
 			filepath.Base(conflict.Output.Path),
@@ -917,7 +917,7 @@ func snapshotPlanOutputs(
 				output,
 				output.Kind+"-target-exists",
 				fmt.Sprintf(
-					"%s目标文件 %q 已存在；请移走后重新生成预览，避免覆盖。",
+					"%s目标文件 %q 已存在；请移走后重新准备写入内容，避免覆盖。",
 					outputLabel(output.Kind),
 					filepath.Base(output.Path),
 				),
@@ -973,7 +973,7 @@ func validatePlanInputs(scan domain.AlbumScan, expected planSnapshot) error {
 			return fmt.Errorf("重新检查音频文件 %q: %w", audio.Path, err)
 		}
 		if changed {
-			return fmt.Errorf("音频文件 %q 在预览后发生了变化，请重新扫描", filepath.Base(audio.Path))
+			return fmt.Errorf("音频文件 %q 在准备写入后发生了变化，请重新扫描", filepath.Base(audio.Path))
 		}
 	}
 	if err := validateSelectedInput("本地封面", scan.CoverPath, expected.LocalCover); err != nil {
@@ -987,7 +987,7 @@ func validatePlanInputs(scan domain.AlbumScan, expected planSnapshot) error {
 		return fmt.Errorf("重新检查专辑配置 thtag.json: %w", err)
 	}
 	if changed {
-		return fmt.Errorf("专辑配置 thtag.json 在预览后出现、移除或发生变化，请重新生成预览")
+		return fmt.Errorf("专辑配置 thtag.json 在准备写入后出现、移除或发生变化，请重新准备写入内容")
 	}
 	return nil
 }
@@ -1010,32 +1010,32 @@ func validatePlanOutputs(
 		existingCoverPath,
 	)
 	if err != nil {
-		return fmt.Errorf("重新确定副产物目标: %w", err)
+		return fmt.Errorf("重新确定附加文件目标: %w", err)
 	}
 	if len(outputs) != len(expected) {
-		return fmt.Errorf("写入计划的副产物目标已变化，请重新生成预览")
+		return fmt.Errorf("写入内容的附加文件目标已变化，请重新准备")
 	}
 	for index, output := range outputs {
 		snapshot := expected[index]
 		if output.Kind != snapshot.Kind ||
 			outputItemID(output) != snapshot.ItemID ||
 			!equalPath(output.Path, snapshot.File.Path) {
-			return fmt.Errorf("写入计划的副产物目标已变化，请重新生成预览")
+			return fmt.Errorf("写入内容的附加文件目标已变化，请重新准备")
 		}
 		if snapshot.File.Exists && !isCoverOverwrite(output, existingCoverPath) {
 			return fmt.Errorf(
-				"%s目标文件 %q 在预览时已存在，请移走后重新生成预览",
+				"%s目标文件 %q 在准备写入时已存在，请移走后重新准备写入内容",
 				outputLabel(output.Kind),
 				filepath.Base(output.Path),
 			)
 		}
 		changed, snapshotErr := snapshotChanged(snapshot.File)
 		if snapshotErr != nil {
-			return fmt.Errorf("重新检查副产物目标 %q: %w", output.Path, snapshotErr)
+			return fmt.Errorf("重新检查附加文件目标 %q: %w", output.Path, snapshotErr)
 		}
 		if changed {
 			return fmt.Errorf(
-				"%s目标文件 %q 在预览后出现或发生变化，请重新生成预览",
+				"%s目标文件 %q 在准备写入后出现或发生变化，请重新准备写入内容",
 				outputLabel(output.Kind),
 				filepath.Base(output.Path),
 			)
@@ -1047,7 +1047,7 @@ func validatePlanOutputs(
 			continue
 		}
 		return fmt.Errorf(
-			"%s目标文件 %q 发生冲突，请重新生成预览",
+			"%s目标文件 %q 发生冲突，请重新准备写入内容",
 			outputLabel(conflict.Output.Kind),
 			filepath.Base(conflict.Output.Path),
 		)
@@ -1087,7 +1087,7 @@ func snapshotPath(path string, digest bool) (fileSnapshot, error) {
 		}
 		if current.Size() != snapshot.Size ||
 			current.ModTime().UnixNano() != snapshot.ModifiedUnixNano {
-			return fileSnapshot{}, fmt.Errorf("文件在生成快照时发生变化")
+			return fileSnapshot{}, fmt.Errorf("检查文件时文件发生了变化")
 		}
 		snapshot.Digest = sha256.Sum256(data)
 	}
@@ -1119,14 +1119,14 @@ func validateSelectedInput(label, currentPath string, expected fileSnapshot) err
 	if expected.Path == "" ||
 		currentPath == "" ||
 		!equalPath(currentPath, expected.Path) {
-		return fmt.Errorf("%s在预览后出现、移除或更换，请重新生成预览", label)
+		return fmt.Errorf("%s在准备写入后出现、移除或更换，请重新准备写入内容", label)
 	}
 	changed, err := snapshotChanged(expected)
 	if err != nil {
 		return fmt.Errorf("重新检查%s %q: %w", label, expected.Path, err)
 	}
 	if changed {
-		return fmt.Errorf("%s %q 在预览后发生变化，请重新生成预览", label, filepath.Base(expected.Path))
+		return fmt.Errorf("%s %q 在准备写入后发生变化，请重新准备写入内容", label, filepath.Base(expected.Path))
 	}
 	return nil
 }

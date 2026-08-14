@@ -31,7 +31,7 @@ type planInvalidatedError struct {
 }
 
 func (err *planInvalidatedError) Error() string {
-	return "文件可能已发生变化，写入计划已失效，请重新扫描：" + err.err.Error()
+	return "文件可能已发生变化，写入内容已失效，请重新扫描：" + err.err.Error()
 }
 
 func (err *planInvalidatedError) Unwrap() error {
@@ -191,11 +191,11 @@ func operationMessage(event domain.ProgressEvent) string {
 	case domain.StageFetch:
 		return "正在获取专辑元数据"
 	case domain.StagePlan:
-		return "正在生成写入计划"
+		return "正在准备写入内容"
 	case domain.StageWrite:
 		return fmt.Sprintf("正在写入 %d / %d", event.Current, event.Total)
 	case domain.StageCommit:
-		return "正在提交文件，暂时无法取消"
+		return "正在保存文件，暂时无法取消"
 	case domain.StageRename:
 		return "正在重命名文件"
 	case domain.StageComplete:

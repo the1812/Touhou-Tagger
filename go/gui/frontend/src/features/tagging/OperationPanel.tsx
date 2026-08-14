@@ -22,14 +22,11 @@ export const OperationPanel = defineComponent({
         ? Math.round((props.operation.current / props.operation.total) * 100)
         : 0,
     )
-    const cancelLabel = computed(() =>
-      props.operation.kind === 'batch' ? '停止后续任务' : '取消操作',
-    )
     const stageLabel = computed(() => {
       const labels: Record<string, string> = {
         preparing: '准备写入',
         writing: '正在写入',
-        committing: '提交文件',
+        committing: '保存文件',
         renaming: '重命名',
         complete: '完成',
       }
@@ -37,7 +34,7 @@ export const OperationPanel = defineComponent({
     })
 
     return () => (
-      <section class="grid gap-5 border-b border-surface-200 py-5 dark:border-surface-700">
+      <section class="grid gap-5 py-5">
         <div class="flex items-center justify-between gap-4">
           <div>
             <h2 class="mt-1 font-bold">{stageLabel.value}</h2>
@@ -62,7 +59,7 @@ export const OperationPanel = defineComponent({
           </span>
           {props.operation.cancellable ? (
             <Button
-              label={cancelLabel.value}
+              label="中止"
               severity="secondary"
               outlined
               onClick={() => emit('cancel')}
@@ -72,7 +69,7 @@ export const OperationPanel = defineComponent({
           ) : (
             <span class="flex items-center gap-1.5 text-color">
               <LockKeyhole size={15} />
-              正在提交，暂时无法取消
+              正在保存，暂时无法取消
             </span>
           )}
         </div>

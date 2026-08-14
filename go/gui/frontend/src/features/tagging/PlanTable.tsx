@@ -79,7 +79,7 @@ export const PlanTable = defineComponent({
         rowClass={rowClass}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
-          empty: () => <div class="p-8 text-center text-muted-color">没有可预览的曲目。</div>,
+          empty: () => <div class="p-8 text-center text-muted-color">没有可写入的曲目。</div>,
         }}
         {...{ onRowClick }}
       >

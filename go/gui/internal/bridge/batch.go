@@ -51,7 +51,7 @@ type BatchService struct {
 }
 
 func (service *BatchService) SelectBatchDirectory() (string, error) {
-	return service.workspace.selectDirectory("选择批处理根目录", batchDirectory)
+	return service.workspace.selectDirectory("选择批量写入根目录", batchDirectory)
 }
 
 func (service *BatchService) ScanBatch(
@@ -75,7 +75,7 @@ func (service *BatchService) ScanBatch(
 	}
 	root, err := filepath.Abs(directory)
 	if err != nil {
-		return BatchPreview{}, fmt.Errorf("解析批处理目录: %w", err)
+		return BatchPreview{}, fmt.Errorf("解析批量写入目录: %w", err)
 	}
 	session := &batchSession{
 		id:    newID("batch"),
@@ -130,7 +130,7 @@ func (service *BatchService) ScanBatch(
 			job.candidates = []AlbumCandidate{localCandidate}
 			job.selectedCandidateID = localCandidate.ID
 			job.source = "local-json"
-			job.matchDescription = "本地 metadata.json"
+			job.matchDescription = "精确匹配"
 			plan, prepareErr := service.workspace.prepareOwnedPlan(
 				ctx,
 				discovered.Directory,
@@ -223,7 +223,7 @@ func (service *BatchService) ScanBatch(
 				"没有找到匹配专辑，请修改专辑名称后重新扫描。",
 			))
 		default:
-			job.matchDescription = fmt.Sprintf("%d 个候选", len(candidates))
+			job.matchDescription = fmt.Sprintf("%d 个搜索结果", len(candidates))
 			job.issues = append(job.issues, warningIssue(
 				"candidate-required",
 				"写入前需要选择匹配的专辑。",
@@ -257,13 +257,13 @@ func (service *BatchService) ResolveBatchCandidate(
 	session, exists := service.sessions[batchID]
 	if !exists {
 		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理预检已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
 	if session.running {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理运行期间不能修改候选")
+		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能修改搜索结果")
 	}
 	var job *batchJob
 	for _, item := range session.jobs {
@@ -274,11 +274,11 @@ func (service *BatchService) ResolveBatchCandidate(
 	}
 	if job == nil {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理任务 %q 不存在", jobID)
+		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 	}
 	if job.resolving {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("这个任务正在解析候选，请稍候")
+		return BatchJobPreview{}, fmt.Errorf("这个专辑正在加载搜索结果，请稍候")
 	}
 	var candidate *AlbumCandidate
 	for index := range job.candidates {
@@ -290,7 +290,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	}
 	if candidate == nil {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("任务中不存在候选 %q", candidateID)
+		return BatchJobPreview{}, fmt.Errorf("专辑中不存在搜索结果 %q", candidateID)
 	}
 	token := newID("resolve")
 	job.resolving = true
@@ -311,7 +311,7 @@ func (service *BatchService) ResolveBatchCandidate(
 		if err == nil {
 			service.workspace.plans.discard(plan.PlanID)
 		}
-		return BatchJobPreview{}, fmt.Errorf("批处理预检已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -320,13 +320,13 @@ func (service *BatchService) ResolveBatchCandidate(
 		if err == nil {
 			service.workspace.plans.discard(plan.PlanID)
 		}
-		return BatchJobPreview{}, fmt.Errorf("候选解析结果已失效")
+		return BatchJobPreview{}, fmt.Errorf("搜索结果已失效")
 	}
 	job.resolving = false
 	job.resolveToken = ""
 	job.selectedCandidateID = candidate.ID
 	job.source = candidate.Source
-	job.matchDescription = "已选择候选"
+	job.matchDescription = "已选择搜索结果"
 	job.issues = job.issues[:0]
 	if err != nil {
 		job.status = "scan-failed"
@@ -352,13 +352,13 @@ func (service *BatchService) IgnoreBatchJob(
 	session, exists := service.sessions[batchID]
 	if !exists {
 		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理预检已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
 	if session.running {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理运行期间不能忽略任务")
+		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能忽略专辑")
 	}
 	var job *batchJob
 	for _, item := range session.jobs {
@@ -369,11 +369,11 @@ func (service *BatchService) IgnoreBatchJob(
 	}
 	if job == nil {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批处理任务 %q 不存在", jobID)
+		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 	}
 	if job.resolving {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("这个任务正在解析候选，请稍候")
+		return BatchJobPreview{}, fmt.Errorf("这个专辑正在加载搜索结果，请稍候")
 	}
 	planID := job.planID
 	job.planID = ""
@@ -398,17 +398,17 @@ func (service *BatchService) RunBatch(
 	session, exists := service.sessions[batchID]
 	service.mu.RUnlock()
 	if !exists {
-		return OperationStart{}, fmt.Errorf("批处理预检已失效，请重新扫描")
+		return OperationStart{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
 	session.mu.Lock()
 	if session.running {
 		session.mu.Unlock()
-		return OperationStart{}, fmt.Errorf("这个批处理正在运行")
+		return OperationStart{}, fmt.Errorf("批量写入正在运行")
 	}
 	for _, job := range session.jobs {
 		if job.resolving {
 			session.mu.Unlock()
-			return OperationStart{}, fmt.Errorf("仍有候选正在解析，请稍候")
+			return OperationStart{}, fmt.Errorf("仍有搜索结果正在加载，请稍候")
 		}
 	}
 	selected := make([]string, 0, len(session.jobs))
@@ -430,7 +430,7 @@ func (service *BatchService) RunBatch(
 	}
 	if len(selected) == 0 {
 		session.mu.Unlock()
-		return OperationStart{}, fmt.Errorf("没有可以运行的批处理任务")
+		return OperationStart{}, fmt.Errorf("没有可以写入的专辑")
 	}
 	session.running = true
 	session.mu.Unlock()
@@ -502,7 +502,7 @@ func (service *BatchService) executeBatch(
 		case <-ctx.Done():
 			service.cancelRemaining(session, selected[index:])
 			result.Cancelled = true
-			result.Message = "已完成当前安全阶段，并停止后续批处理任务。"
+			result.Message = "已完成当前安全阶段，并停止写入后续专辑。"
 			result.DurationMS = time.Since(started).Milliseconds()
 			result.Jobs = batchJobPreviews(session)
 			return result, nil
@@ -540,7 +540,7 @@ func (service *BatchService) executeBatch(
 				if errors.Is(prepareErr, context.Canceled) {
 					service.cancelRemaining(session, selected[index:])
 					result.Cancelled = true
-					result.Message = "已取消当前准备阶段，并停止后续批处理任务。"
+					result.Message = "已取消当前准备阶段，并停止写入后续专辑。"
 					result.DurationMS = time.Since(started).Milliseconds()
 					result.Jobs = batchJobPreviews(session)
 					return result, nil
@@ -563,7 +563,7 @@ func (service *BatchService) executeBatch(
 			job.revision = revision
 			session.mu.Unlock()
 			if !plan.CanCommit || !service.claimPlan(planID, revision) {
-				service.failJob(session, job, fmt.Errorf("写入计划仍有未解决的问题"))
+				service.failJob(session, job, fmt.Errorf("写入内容仍有未解决的问题"))
 				result.Failed++
 				service.emitBatchAlbumProgress(
 					operationID,
@@ -588,7 +588,7 @@ func (service *BatchService) executeBatch(
 			job.status = "cancelled"
 			session.mu.Unlock()
 			result.Cancelled = true
-			result.Message = "已完成当前安全阶段，并停止后续批处理任务。"
+			result.Message = "已完成当前安全阶段，并停止写入后续专辑。"
 			result.DurationMS = time.Since(started).Milliseconds()
 			result.Jobs = batchJobPreviews(session)
 			return result, nil
@@ -623,7 +623,7 @@ func (service *BatchService) executeBatch(
 	}
 	result.DurationMS = time.Since(started).Milliseconds()
 	result.Message = fmt.Sprintf(
-		"批处理完成：%d 个成功，%d 个失败。",
+		"批量写入完成：%d 个成功，%d 个失败。",
 		result.Succeeded,
 		result.Failed,
 	)
@@ -720,7 +720,7 @@ func (service *BatchService) lookupJob(
 	session, exists := service.sessions[batchID]
 	service.mu.RUnlock()
 	if !exists {
-		return nil, nil, fmt.Errorf("批处理预检已失效，请重新扫描")
+		return nil, nil, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
 	session.mu.Lock()
 	defer session.mu.Unlock()
@@ -729,7 +729,7 @@ func (service *BatchService) lookupJob(
 			return session, job, nil
 		}
 	}
-	return nil, nil, fmt.Errorf("批处理任务 %q 不存在", jobID)
+	return nil, nil, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 }
 
 func batchPreview(session *batchSession) BatchPreview {

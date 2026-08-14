@@ -107,7 +107,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       const api = await getApi()
       await api.discardPlan(planId)
     } catch (error) {
-      notifications.error('释放旧写入预览失败', error)
+      notifications.error('释放旧写入内容失败', error)
     }
   }
 
@@ -142,7 +142,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = 'matched'
-      notifications.error('生成写入预览失败', error)
+      notifications.error('准备写入内容失败', error)
     }
   }
 
@@ -432,7 +432,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     query.value = ''
     source.value = defaultSource.value
     clearAfterDirectory()
-    await selectDirectory()
   }
 
   const receiveProgress = (progress: OperationProgress) => {

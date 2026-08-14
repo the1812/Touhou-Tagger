@@ -20,11 +20,26 @@
 
   & .p-button {
     @apply min-h-[34px] px-3 py-2 text-[.8rem] leading-none;
+    --app-button-icon-size: 17px;
     font-weight: 650;
+  }
+
+  & .p-button > svg,
+  & .p-button > .p-button-icon,
+  & .p-button > .p-button-loading-icon {
+    @apply shrink-0;
+    width: var(--app-button-icon-size);
+    height: var(--app-button-icon-size);
+    flex-basis: var(--app-button-icon-size);
+  }
+
+  & .p-button-sm {
+    --app-button-icon-size: 15px;
   }
 
   & .p-button-lg {
     @apply min-h-9 px-3.5 py-2 text-[.86rem];
+    --app-button-icon-size: 19px;
   }
 
   & .p-button-icon-only {
@@ -135,6 +150,22 @@
   @apply rounded border border-b-2 border-surface-200 bg-surface-0 px-1.5 py-0.5 font-sans dark:border-surface-700 dark:bg-surface-900;
 }
 
+@utility page-empty-state {
+  @apply grid min-h-[calc(100vh-190px)] place-items-center content-center gap-4 text-center;
+}
+
+@utility directory-picker-button {
+  @apply h-[38px] min-h-[38px] w-48;
+}
+
+@utility workspace-section {
+  @apply min-w-0 max-w-full border-b border-surface-200 py-5 dark:border-surface-700;
+}
+
+@utility workspace-heading {
+  @apply flex items-start justify-between gap-6;
+}
+
 @utility action-bar {
   @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-surface-0/95 px-6 py-3 dark:border-surface-700 dark:bg-surface-900/95;
 }
@@ -142,30 +173,6 @@
 @utility round-icon-buttons {
   & .p-button-icon-only {
     @apply min-h-8 min-w-8 rounded-full;
-  }
-}
-
-@utility metric-strip {
-  @apply grid grid-cols-4 border-b border-surface-200 py-3 dark:border-surface-700;
-
-  & > div {
-    @apply flex items-baseline justify-between border-r border-surface-200 px-4 py-1 dark:border-surface-700;
-  }
-
-  & > div:first-child {
-    @apply pl-0;
-  }
-
-  & > div:last-child {
-    @apply border-r-0;
-  }
-
-  & span {
-    @apply text-[.8rem] text-muted-color;
-  }
-
-  & strong {
-    @apply text-[1.35rem] tabular-nums;
   }
 }
 

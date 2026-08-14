@@ -21,6 +21,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { computed, defineComponent, reactive, ref, watch } from 'vue'
 
 import type { AlbumCandidate, PlanItemPreview, TrackMetadataPatch } from '../../api'
+import { CompletionPanel } from '../../shared/CompletionPanel'
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { CoverPreview } from './CoverPreview'
@@ -29,9 +30,8 @@ import { OperationPanel } from './OperationPanel'
 import { PlanTable } from './PlanTable'
 import { TrackMetadataDialog } from './TrackMetadataDialog'
 
-const workspaceCardClass =
-  'min-w-0 max-w-full border-b border-surface-200 py-5 dark:border-surface-700'
-const cardHeadingClass = 'flex items-start justify-between gap-6'
+const workspaceCardClass = 'workspace-section'
+const cardHeadingClass = 'workspace-heading'
 const metadataFieldClass =
   'grid gap-1.5 text-[.82rem] font-semibold [&>small]:text-xs [&>small]:font-normal'
 
@@ -149,10 +149,10 @@ export const TaggingPage = defineComponent({
           ]}
         >
           {currentPhase === 'idle' || currentPhase === 'selecting' ? (
-            <section class="grid min-h-[calc(100vh-190px)] place-items-center content-center gap-4 text-center">
+            <section class="page-empty-state">
               <Button
-                class="h-[38px] min-h-[38px] w-48 [&_.p-button-icon]:size-[19px] [&_.p-button-icon]:shrink-0 [&_.p-button-loading-icon]:size-[19px] [&_.p-button-loading-icon]:shrink-0 [&>svg]:size-[19px] [&>svg]:shrink-0"
-                label="选择专辑文件夹"
+                class="directory-picker-button"
+                label="选择目录"
                 size="large"
                 loading={currentPhase === 'selecting'}
                 onClick={() => workspace.selectDirectory()}
@@ -296,7 +296,7 @@ export const TaggingPage = defineComponent({
 
                         {currentPhase === 'failed' && (
                           <Message severity="warn" closable={false}>
-                            文件状态可能已经变化，原写入预览已失效。请重新扫描当前目录后再继续。
+                            文件状态可能已经变化，原写入内容已失效。请重新扫描当前目录后再继续。
                           </Message>
                         )}
                       </>
@@ -386,7 +386,7 @@ export const TaggingPage = defineComponent({
                       ) : hasSearched.value ? (
                         <div class="mt-4 grid place-items-center gap-1.5 border-y border-surface-200 py-5 text-center text-muted-color dark:border-surface-700">
                           <Search size={30} />
-                          <strong>没有找到候选</strong>
+                          <strong>没有找到搜索结果</strong>
                         </div>
                       ) : null}
                     </section>
@@ -548,32 +548,10 @@ export const TaggingPage = defineComponent({
                 )}
 
                 {currentResult && (
-                  <section
-                    class={`${workspaceCardClass} grid grid-cols-[auto_minmax(0,1fr)] gap-5 border-b-0 py-6`}
-                  >
-                    <div class="grid size-16 place-items-center rounded-full bg-surface-100 text-primary dark:bg-primary-950">
-                      <Check size={34} />
-                    </div>
-                    <div>
-                      <h2 class="mt-1.5 text-[1.35rem] font-bold">
-                        已完成写入 {currentResult.succeeded} 首曲目
-                      </h2>
-                      <p class="mt-2.5 text-[.8rem] text-muted-color">
-                        耗时 {(currentResult.durationMs / 1000).toFixed(1)}s
-                      </p>
-                      <div class="mt-5 flex gap-3">
-                        <Button
-                          label="在资源管理器中打开"
-                          severity="secondary"
-                          outlined
-                          onClick={() => workspace.reveal()}
-                        >
-                          {{ icon: () => <ExternalLink size={17} /> }}
-                        </Button>
-                        <Button label="处理另一张专辑" onClick={() => workspace.startOver()} />
-                      </div>
-                    </div>
-                  </section>
+                  <CompletionPanel
+                    onReveal={() => workspace.reveal()}
+                    onComplete={() => workspace.startOver()}
+                  />
                 )}
               </div>
 
