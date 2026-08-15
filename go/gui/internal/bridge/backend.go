@@ -24,8 +24,9 @@ type Backend struct {
 	Batch     *BatchService
 	Settings  *SettingsService
 
-	runtime *runtimeState
 	plans   *planStore
+	catalog *candidateCatalog
+	desktop *desktopService
 	ops     *operationManager
 }
 
@@ -51,25 +52,38 @@ func NewBackend(options BackendOptions) *Backend {
 	}
 	runtime.config.Source = searchableSourceOrDefault(runtime.config.Source, runtime.sources)
 	plans := newPlanStore()
+	catalog := newCandidateCatalog()
+	desktop := newDesktopService()
+	planner := &planCoordinator{
+		runtime: runtime,
+		store:   plans,
+		catalog: catalog,
+		ops:     operations,
+	}
 	workspace := &WorkspaceService{
 		runtime:          runtime,
-		plans:            plans,
+		planner:          planner,
+		catalog:          catalog,
+		desktop:          desktop,
 		ops:              operations,
 		startupDirectory: options.StartupDirectory,
 	}
 	batch := &BatchService{
-		runtime:   runtime,
-		workspace: workspace,
-		ops:       operations,
-		sessions:  make(map[string]*batchSession),
+		runtime:  runtime,
+		planner:  planner,
+		catalog:  catalog,
+		desktop:  desktop,
+		ops:      operations,
+		sessions: make(map[string]*batchSession),
 	}
 	settings := &SettingsService{runtime: runtime}
 	return &Backend{
 		Workspace: workspace,
 		Batch:     batch,
 		Settings:  settings,
-		runtime:   runtime,
 		plans:     plans,
+		catalog:   catalog,
+		desktop:   desktop,
 		ops:       operations,
 	}
 }
@@ -78,15 +92,13 @@ func (backend *Backend) Attach(app *wails.App, window *wails.WebviewWindow) {
 	backend.ops.setEmitter(func(name string, value any) {
 		app.Event.Emit(name, value)
 	})
-	backend.Workspace.app = app
-	backend.Workspace.window = window
-	backend.Batch.app = app
-	backend.Batch.window = window
+	backend.desktop.attach(app, window)
 }
 
 func (backend *Backend) Close() {
 	backend.ops.close()
 	backend.plans.clear()
+	backend.catalog.clear()
 }
 
 func (runtime *runtimeState) service(events coreapp.EventSink) (*coreapp.Service, error) {

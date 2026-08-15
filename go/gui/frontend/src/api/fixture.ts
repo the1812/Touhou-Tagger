@@ -1,255 +1,40 @@
-import coverUrl from '../../../../../fixtures/media/images/cover.jpg?url'
-import multipleDiscFixture from '../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
-import noCoverFixture from '../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
-import singleDiscFixture from '../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
-
+import {
+  batchDirectory,
+  batchJobs,
+  capabilities,
+  candidates,
+  createPlan,
+  defaultSettings,
+  fixtureDirectory,
+  workspaceSummary,
+} from './fixtureData'
 import type {
-  AlbumCandidate,
-  AlbumMetadata,
-  BatchJobPreview,
   BatchPreview,
   BatchRunResult,
-  Capabilities,
   GUIApi,
   OperationFailure,
   OperationProgress,
   OperationResult,
-  PlanItemPreview,
   PlanPatch,
-  PlanPreview,
   ProcessError,
-  Settings,
-  WorkspaceSummary,
 } from './types'
-
-type AlbumFixture = typeof singleDiscFixture
-
-const fixtureDirectory = 'fixtures/thb-wiki/albums/single-disc'
-const batchDirectory = 'fixtures/thb-wiki/albums'
 
 const progressHandlers = new Set<(progress: OperationProgress) => void>()
 const completeHandlers = new Set<(result: OperationResult | BatchRunResult) => void>()
 const failureHandlers = new Set<(failure: OperationFailure) => void>()
 const processErrorHandlers = new Set<(error: ProcessError) => void>()
 const operationTimers = new Map<string, number>()
-const pendingStarts = new Map<
-  string,
-  { kind: 'workspace' | 'batch'; start: () => void }
->()
+const pendingStarts = new Map<string, { kind: 'workspace' | 'batch'; start: () => void }>()
 const operationCancels = new Map<string, () => void>()
 
 const clone = <T>(value: T): T => structuredClone(value)
 const wait = (duration = 80) =>
-  new Promise<void>((resolve) => {
+  new Promise<void>(resolve => {
     window.setTimeout(resolve, duration)
   })
 
-const capabilities: Capabilities = {
-  sources: [
-    { value: 'thb-wiki', label: 'THBWiki', supportsSearch: true },
-    { value: 'local-json', label: '本地 metadata.json', supportsSearch: false },
-  ],
-  commentLanguages: [
-    { value: 'zh-Hans', label: '简体中文' },
-    { value: 'ja', label: '日本語' },
-  ],
-  lyricTypes: [
-    { value: 'original', label: '原文' },
-    { value: 'translated', label: '译文' },
-    { value: 'mixed', label: '混合' },
-  ],
-}
-
-const defaultSettings: Settings = {
-  defaultSource: 'thb-wiki',
-  commentLanguage: 'zh-Hans',
-  mp3MultiValueSeparator: ' / ',
-  requestTimeoutSeconds: 20,
-  retryCount: 2,
-  coverCompressionThresholdKb: 1500,
-  coverMaxEdge: 2000,
-  lyricType: 'mixed',
-  writeLyricsMetadata: true,
-  writeLrcFiles: false,
-  preserveLyricTimeline: true,
-  mixedLyricSeparator: ' / ',
-  lyricCacheSize: 128,
-}
-
 let settings = clone(defaultSettings)
-
-const fixtureCandidate = (
-  fixture: AlbumFixture,
-  id: string,
-  exactMatch: boolean,
-): AlbumCandidate => ({
-  id,
-  title: fixture.album.album,
-  source: 'thb-wiki',
-  sourceLabel: 'THBWiki fixture',
-  albumOrder: fixture.album.albumOrder,
-  artists: fixture.album.albumArtists,
-  year: fixture.album.year,
-  exactMatch,
-  description: `${fixture.tracks.length} 首曲目 · ${fixture.album.genres.join('、')}`,
-})
-
-const candidates = [
-  fixtureCandidate(singleDiscFixture, 'fixture:single-disc', true),
-  fixtureCandidate(multipleDiscFixture as AlbumFixture, 'fixture:multiple-disc', false),
-  fixtureCandidate(noCoverFixture as AlbumFixture, 'fixture:no-cover', false),
-]
-
-const fixtureByCandidate = new Map<string, AlbumFixture>([
-  ['fixture:single-disc', singleDiscFixture],
-  ['fixture:multiple-disc', multipleDiscFixture as AlbumFixture],
-  ['fixture:no-cover', noCoverFixture as AlbumFixture],
-])
-
-const workspaceSummary: WorkspaceSummary = {
-  directory: fixtureDirectory,
-  audioCount: singleDiscFixture.tracks.length,
-  mp3Count: singleDiscFixture.tracks.length,
-  flacCount: 0,
-  localCover: {
-    exists: true,
-    valid: true,
-    fileName: 'cover.jpg',
-  },
-  hasMetadataJson: false,
-  hasAlbumConfig: false,
-  inferredAlbumName: singleDiscFixture.album.album,
-  effectiveSource: 'thb-wiki',
-  issues: [],
-}
-
-const albumMetadata = (fixture: AlbumFixture): AlbumMetadata => ({
-  title: fixture.album.album,
-  albumOrder: fixture.album.albumOrder,
-  artists: fixture.album.albumArtists,
-  year: fixture.album.year,
-  genres: fixture.album.genres,
-})
-
-const planItem = (
-  track: AlbumFixture['tracks'][number],
-  index: number,
-): PlanItemPreview => {
-  const prefix = track.discNumber === '1' ? track.trackNumber.padStart(2, '0') : `${track.discNumber}-${track.trackNumber.padStart(2, '0')}`
-  const targetName = `${prefix}. ${track.title}.mp3`
-
-  return {
-    id: `fixture-track-${index + 1}`,
-    sourceName: `track-${String(index + 1).padStart(2, '0')}.mp3`,
-    format: 'MP3',
-    discNumber: track.discNumber,
-    trackNumber: track.trackNumber,
-    title: track.title,
-    artists: track.artists,
-    comments: track.comments,
-    targetName,
-    willRename: true,
-    issues: [],
-  }
-}
-
-const createPlan = (
-  candidateId: string,
-  revision = 1,
-  album?: AlbumMetadata,
-  items?: PlanItemPreview[],
-  saveCover?: boolean,
-): PlanPreview => {
-  const fixture = fixtureByCandidate.get(candidateId) ?? singleDiscFixture
-  const candidate = candidates.find((item) => item.id === candidateId) ?? candidates[0]
-  const planItems = items ?? fixture.tracks.map(planItem)
-  const hasCover = fixture.cover
-
-  return {
-    planId: 'fixture-plan',
-    revision,
-    directory: fixtureDirectory,
-    album: album ?? albumMetadata(fixture),
-    candidate,
-    cover: hasCover
-      ? {
-          url: coverUrl,
-          source: 'thb-wiki',
-          sourceLabel: 'THBWiki 封面（离线 fixture）',
-          width: 600,
-          height: 600,
-          byteSize: 43_246,
-          compressionDescription: '低于 1500 KB 阈值，将保留原始图片',
-        }
-      : {
-          url: '',
-          source: 'none',
-          sourceLabel: '无封面',
-          width: 0,
-          height: 0,
-          byteSize: 0,
-          compressionDescription: '此专辑不会写入封面',
-        },
-    items: planItems,
-    issues: [],
-    options: {
-      writeFiles: planItems.length,
-      renameFiles: planItems.filter((item) => item.willRename).length,
-      canSaveCover: hasCover,
-      saveCover: saveCover ?? hasCover,
-      compressCover: false,
-      lrcFiles: 0,
-    },
-    canCommit: true,
-  }
-}
-
 let activePlan = createPlan('fixture:single-disc')
-
-const batchJobs = (): BatchJobPreview[] => [
-  {
-    id: 'fixture-job-single',
-    relativePath: 'single-disc',
-    inferredAlbumName: singleDiscFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '精确匹配',
-    audioCount: singleDiscFixture.tracks.length,
-    status: 'ready',
-    issues: [],
-    candidates: [candidates[0]],
-    selectedCandidateId: candidates[0].id,
-  },
-  {
-    id: 'fixture-job-multiple',
-    relativePath: 'multiple-disc',
-    inferredAlbumName: multipleDiscFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '多个搜索结果',
-    audioCount: multipleDiscFixture.tracks.length,
-    status: 'needs-candidate',
-    issues: [
-      {
-        code: 'candidate-required',
-        message: '写入前需要选择匹配的专辑。',
-        severity: 'warning',
-      },
-    ],
-    candidates: [candidates[1], candidates[0]],
-  },
-  {
-    id: 'fixture-job-no-cover',
-    relativePath: 'no-cover',
-    inferredAlbumName: noCoverFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '精确匹配',
-    audioCount: noCoverFixture.tracks.length,
-    status: 'ready',
-    issues: [],
-    candidates: [candidates[2]],
-    selectedCandidateId: candidates[2].id,
-  },
-]
-
 let activeBatch: BatchPreview = {
   batchId: 'fixture-batch',
   rootDirectory: batchDirectory,
@@ -279,7 +64,10 @@ const emitSequence = (
       stage,
       current,
       total,
-      path: kind === 'workspace' ? activePlan.items[Math.min(current - 1, activePlan.items.length - 1)]?.sourceName : `fixture-album-${current}`,
+      path:
+        kind === 'workspace'
+          ? activePlan.items[Math.min(current - 1, activePlan.items.length - 1)]?.sourceName
+          : `fixture-album-${current}`,
       message:
         stage === 'committing'
           ? '正在保存文件'
@@ -288,14 +76,14 @@ const emitSequence = (
             : `正在处理 ${current} / ${total}`,
       cancellable: stage === 'preparing' || stage === 'writing',
     }
-    progressHandlers.forEach((handler) => handler(progress))
+    progressHandlers.forEach(handler => handler(progress))
     index += 1
 
     if (index === stages.length) {
       window.clearInterval(timer)
       operationTimers.delete(operationId)
       operationCancels.delete(operationId)
-      completeHandlers.forEach((handler) => handler(onDone()))
+      completeHandlers.forEach(handler => handler(onDone()))
     }
   }, 260)
   operationTimers.set(operationId, timer)
@@ -303,7 +91,7 @@ const emitSequence = (
     window.clearInterval(timer)
     operationTimers.delete(operationId)
     operationCancels.delete(operationId)
-    completeHandlers.forEach((handler) => handler(onCancel()))
+    completeHandlers.forEach(handler => handler(onCancel()))
   })
 }
 
@@ -332,7 +120,10 @@ export const fixtureApi: GUIApi = {
     const normalized = query.trim().toLocaleLowerCase()
     return clone(
       normalized
-        ? candidates.filter((candidate) => candidate.title.toLocaleLowerCase().includes(normalized) || candidate.exactMatch)
+        ? candidates.filter(
+            candidate =>
+              candidate.title.toLocaleLowerCase().includes(normalized) || candidate.exactMatch,
+          )
         : candidates,
     )
   },
@@ -346,8 +137,8 @@ export const fixtureApi: GUIApi = {
   async updatePlan(patch: PlanPatch) {
     await wait(120)
     const album = { ...activePlan.album, ...patch.album }
-    const changedTracks = new Map(patch.tracks?.map((track) => [track.id, track]) ?? [])
-    const items = activePlan.items.map((item) => {
+    const changedTracks = new Map(patch.tracks?.map(track => [track.id, track]) ?? [])
+    const items = activePlan.items.map(item => {
       const change = changedTracks.get(item.id)
       if (!change) {
         return item
@@ -450,7 +241,7 @@ export const fixtureApi: GUIApi = {
 
   async resolveBatchCandidate(_batchId, jobId, candidateId) {
     await wait(120)
-    const job = activeBatch.jobs.find((item) => item.id === jobId)
+    const job = activeBatch.jobs.find(item => item.id === jobId)
     if (!job) {
       throw new Error('Fixture 批量写入专辑不存在。')
     }
@@ -463,7 +254,7 @@ export const fixtureApi: GUIApi = {
 
   async ignoreBatchJob(_batchId, jobId) {
     await wait(120)
-    const job = activeBatch.jobs.find((item) => item.id === jobId)
+    const job = activeBatch.jobs.find(item => item.id === jobId)
     if (!job) {
       throw new Error('Fixture 批量写入专辑不存在。')
     }
@@ -481,7 +272,7 @@ export const fixtureApi: GUIApi = {
   async runBatch(_batchId, failedOnly) {
     const operationId = `fixture-batch-${Date.now()}`
     const jobs = failedOnly
-      ? activeBatch.jobs.filter((job) => job.status === 'failed')
+      ? activeBatch.jobs.filter(job => job.status === 'failed')
       : activeBatch.jobs
     pendingStarts.set(operationId, {
       kind: 'batch',
@@ -491,15 +282,14 @@ export const fixtureApi: GUIApi = {
           'batch',
           Math.max(jobs.length, 1),
           () => {
-            activeBatch.jobs = activeBatch.jobs.map((job) => ({
+            activeBatch.jobs = activeBatch.jobs.map(job => ({
               ...job,
               status: job.status === 'ignored' ? 'ignored' : 'succeeded',
             }))
             return {
               operationId,
               kind: 'batch',
-              succeeded: activeBatch.jobs.filter((job) => job.status === 'succeeded')
-                .length,
+              succeeded: activeBatch.jobs.filter(job => job.status === 'succeeded').length,
               failed: 0,
               renamed: 25,
               coversSaved: 2,
@@ -511,10 +301,8 @@ export const fixtureApi: GUIApi = {
             }
           },
           () => {
-            activeBatch.jobs = activeBatch.jobs.map((job) =>
-              jobs.some((selected) => selected.id === job.id)
-                ? { ...job, status: 'cancelled' }
-                : job,
+            activeBatch.jobs = activeBatch.jobs.map(job =>
+              jobs.some(selected => selected.id === job.id) ? { ...job, status: 'cancelled' } : job,
             )
             return {
               operationId,

@@ -7,56 +7,56 @@ import {
   type BatchPreview,
   type BatchRunResult,
   type OperationFailure,
-  type OperationProgress,
   type OperationResult,
 } from '../api'
 import { useNotificationsStore } from './notifications'
+import { useOperationsStore } from './operations'
+import { useSettingsStore } from './settings'
 
 export const useBatchStore = defineStore('batch', () => {
   const directory = ref('')
   const depth = ref(1)
   const source = ref('thb-wiki')
-  const defaultSource = ref('thb-wiki')
   const preview = ref<BatchPreview>()
   const selecting = ref(false)
   const scanning = ref(false)
-  const operation = ref<OperationProgress>()
   const result = ref<BatchRunResult>()
   const resolvingJobIds = ref(new Set<string>())
   const notifications = useNotificationsStore()
+  const operations = useOperationsStore()
+  const settings = useSettingsStore()
   let contextVersion = 0
-  let activeOperationId = ''
   let resolveSequence = 0
   const resolveTokens = new Map<string, number>()
+  const operation = computed(() => operations.get('batch'))
+  const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
 
   const unresolvedCount = computed(
     () =>
-      preview.value?.jobs.filter((job) =>
+      preview.value?.jobs.filter(job =>
         ['needs-candidate', 'track-mismatch', 'scan-failed'].includes(job.status),
       ).length ?? 0,
   )
   const readyCount = computed(
     () =>
-      preview.value?.jobs.filter((job) =>
-        ['ready', 'local-metadata'].includes(job.status),
-      ).length ?? 0,
+      preview.value?.jobs.filter(job => ['ready', 'local-metadata'].includes(job.status)).length ??
+      0,
   )
   const failedCount = computed(
-    () => preview.value?.jobs.filter((job) => job.status === 'failed').length ?? 0,
+    () => preview.value?.jobs.filter(job => job.status === 'failed').length ?? 0,
   )
   const resolvingCount = computed(() => resolvingJobIds.value.size)
-  const canRun = computed(
-    () =>
-      Boolean(
-        preview.value &&
-          depth.value === preview.value.depth &&
-          readyCount.value > 0 &&
-          unresolvedCount.value === 0 &&
-          resolvingCount.value === 0 &&
-          !selecting.value &&
-          !scanning.value &&
-          !operation.value,
-      ),
+  const canRun = computed(() =>
+    Boolean(
+      preview.value &&
+      depth.value === preview.value.depth &&
+      readyCount.value > 0 &&
+      unresolvedCount.value === 0 &&
+      resolvingCount.value === 0 &&
+      !selecting.value &&
+      !scanning.value &&
+      !operation.value,
+    ),
   )
 
   const discardCurrentPreview = async () => {
@@ -73,13 +73,6 @@ export const useBatchStore = defineStore('batch', () => {
       await api.discardBatch(batchId)
     } catch (error) {
       notifications.error('释放旧批量扫描结果失败', error)
-    }
-  }
-
-  const initializeSource = (value: string) => {
-    defaultSource.value = value
-    if (!directory.value && !preview.value) {
-      source.value = value
     }
   }
 
@@ -115,7 +108,7 @@ export const useBatchStore = defineStore('batch', () => {
       if (requestVersion !== contextVersion) {
         return
       }
-      source.value = defaultSource.value
+      source.value = defaultSource()
       const api = await getApi()
       const nextPreview = await api.scanBatch(directory.value, depth.value, source.value)
       if (requestVersion !== contextVersion) {
@@ -123,7 +116,7 @@ export const useBatchStore = defineStore('batch', () => {
       }
       preview.value = nextPreview
       result.value = undefined
-      const processFailures = preview.value.jobs.filter((job) => job.status === 'scan-failed')
+      const processFailures = preview.value.jobs.filter(job => job.status === 'scan-failed')
       if (processFailures.length) {
         notifications.error(
           '部分专辑扫描失败',
@@ -131,8 +124,7 @@ export const useBatchStore = defineStore('batch', () => {
           {
             diagnostics: processFailures
               .map(
-                (job) =>
-                  `${job.relativePath}: ${job.issues.map((issue) => issue.message).join('；')}`,
+                job => `${job.relativePath}: ${job.issues.map(issue => issue.message).join('；')}`,
               )
               .join('\n'),
           },
@@ -160,7 +152,7 @@ export const useBatchStore = defineStore('batch', () => {
       if (selected) {
         contextVersion += 1
         await discardCurrentPreview()
-        source.value = defaultSource.value
+        source.value = defaultSource()
         directory.value = selected
         shouldScan = true
       }
@@ -176,10 +168,7 @@ export const useBatchStore = defineStore('batch', () => {
 
   const updateJob = async (
     jobId: string,
-    request: (
-      api: Awaited<ReturnType<typeof getApi>>,
-      batchId: string,
-    ) => Promise<BatchJobPreview>,
+    request: (api: Awaited<ReturnType<typeof getApi>>, batchId: string) => Promise<BatchJobPreview>,
     failureTitle: string,
   ) => {
     if (
@@ -207,15 +196,12 @@ export const useBatchStore = defineStore('batch', () => {
       ) {
         return
       }
-      const index = preview.value.jobs.findIndex((job) => job.id === jobId)
+      const index = preview.value.jobs.findIndex(job => job.id === jobId)
       if (index >= 0) {
         preview.value.jobs[index] = updated
       }
     } catch (error) {
-      if (
-        requestVersion === contextVersion &&
-        resolveTokens.get(jobId) === resolveToken
-      ) {
+      if (requestVersion === contextVersion && resolveTokens.get(jobId) === resolveToken) {
         notifications.error(failureTitle, error)
       }
     } finally {
@@ -234,11 +220,44 @@ export const useBatchStore = defineStore('batch', () => {
     )
 
   const ignoreJob = (jobId: string) =>
-    updateJob(
-      jobId,
-      (api, batchId) => api.ignoreBatchJob(batchId, jobId),
-      '无法忽略批量写入专辑',
-    )
+    updateJob(jobId, (api, batchId) => api.ignoreBatchJob(batchId, jobId), '无法忽略批量写入专辑')
+
+  function receiveComplete(nextResult: OperationResult | BatchRunResult) {
+    if (nextResult.kind !== 'batch') {
+      return
+    }
+    if ('jobs' in nextResult) {
+      result.value = nextResult
+      if (preview.value) {
+        preview.value.jobs = nextResult.jobs
+      }
+    } else {
+      result.value = { ...nextResult, jobs: preview.value?.jobs ?? [] }
+    }
+    if (nextResult.failed > 0) {
+      const failedJobs = result.value?.jobs.filter(job => job.status === 'failed') ?? []
+      notifications.error(
+        '批量写入完成，但有专辑失败',
+        `${nextResult.failed} 个专辑未能完成，详情已保留在专辑列表中。`,
+        {
+          sticky: true,
+          diagnostics: failedJobs
+            .map(job => `${job.relativePath}: ${job.issues.map(issue => issue.message).join('；')}`)
+            .join('\n'),
+        },
+      )
+    }
+  }
+
+  function receiveFailure(failure: OperationFailure) {
+    if (failure.kind !== 'batch') {
+      return
+    }
+    notifications.error('批量写入过程失败', failure.message, {
+      sticky: true,
+      diagnostics: failure.details,
+    })
+  }
 
   const run = async (failedOnly = false) => {
     if (
@@ -257,21 +276,25 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       const started = await api.runBatch(currentPreview.batchId, failedOnly)
       reservedOperationId = started.operationId
-      activeOperationId = started.operationId
-      operation.value = {
-        operationId: started.operationId,
-        kind: 'batch',
-        stage: 'preparing',
-        current: 0,
-        total: failedOnly ? failedCount.value : readyCount.value,
-        message: '正在准备批量写入',
-        cancellable: true,
-      }
+      operations.begin(
+        {
+          operationId: started.operationId,
+          kind: 'batch',
+          stage: 'preparing',
+          current: 0,
+          total: failedOnly ? failedCount.value : readyCount.value,
+          message: '正在准备批量写入',
+          cancellable: true,
+        },
+        {
+          complete: receiveComplete,
+          failure: receiveFailure,
+        },
+      )
       result.value = undefined
       await api.startBatch(started.operationId)
     } catch (error) {
-      activeOperationId = ''
-      operation.value = undefined
+      operations.release(reservedOperationId)
       let cleanupDetails = ''
       if (reservedOperationId) {
         try {
@@ -321,58 +344,7 @@ export const useBatchStore = defineStore('batch', () => {
     contextVersion += 1
     await discardCurrentPreview()
     directory.value = ''
-    source.value = defaultSource.value
-  }
-
-  const receiveProgress = (progress: OperationProgress) => {
-    if (progress.kind !== 'batch' || progress.operationId !== activeOperationId) {
-      return
-    }
-    operation.value = progress
-  }
-
-  const receiveComplete = (nextResult: OperationResult | BatchRunResult) => {
-    if (nextResult.kind !== 'batch' || nextResult.operationId !== activeOperationId) {
-      return
-    }
-    activeOperationId = ''
-    operation.value = undefined
-    if ('jobs' in nextResult) {
-      result.value = nextResult
-      if (preview.value) {
-        preview.value.jobs = nextResult.jobs
-      }
-    } else {
-      result.value = { ...nextResult, jobs: preview.value?.jobs ?? [] }
-    }
-    if (nextResult.failed > 0) {
-      const failedJobs = result.value?.jobs.filter((job) => job.status === 'failed') ?? []
-      notifications.error(
-        '批量写入完成，但有专辑失败',
-        `${nextResult.failed} 个专辑未能完成，详情已保留在专辑列表中。`,
-        {
-          sticky: true,
-          diagnostics: failedJobs
-            .map(
-              (job) =>
-                `${job.relativePath}: ${job.issues.map((issue) => issue.message).join('；')}`,
-            )
-            .join('\n'),
-        },
-      )
-    }
-  }
-
-  const receiveFailure = (failure: OperationFailure) => {
-    if (failure.kind !== 'batch' || failure.operationId !== activeOperationId) {
-      return
-    }
-    activeOperationId = ''
-    operation.value = undefined
-    notifications.error('批量写入过程失败', failure.message, {
-      sticky: true,
-      diagnostics: failure.details,
-    })
+    source.value = defaultSource()
   }
 
   const isResolving = (jobId: string) => resolvingJobIds.value.has(jobId)
@@ -390,7 +362,6 @@ export const useBatchStore = defineStore('batch', () => {
     failedCount,
     resolvingCount,
     canRun,
-    initializeSource,
     setDepth,
     selectDirectory,
     scan,
@@ -401,8 +372,5 @@ export const useBatchStore = defineStore('batch', () => {
     cancel,
     reveal,
     startOver,
-    receiveProgress,
-    receiveComplete,
-    receiveFailure,
   }
 })

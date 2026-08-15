@@ -5,14 +5,16 @@ import {
   getApi,
   type AlbumCandidate,
   type AlbumMetadataPatch,
+  type BatchRunResult,
   type OperationFailure,
-  type OperationProgress,
   type OperationResult,
   type PlanPreview,
   type TrackMetadataPatch,
   type WorkspaceSummary,
 } from '../api'
 import { useNotificationsStore } from './notifications'
+import { useOperationsStore } from './operations'
+import { useSettingsStore } from './settings'
 
 export type WorkspacePhase =
   | 'idle'
@@ -24,12 +26,8 @@ export type WorkspacePhase =
   | 'preparing'
   | 'ready'
   | 'editing'
-  | 'writing'
-  | 'committing'
-  | 'renaming'
   | 'complete'
   | 'failed'
-  | 'cancelled'
 
 export const useWorkspaceStore = defineStore('workspace', () => {
   const phase = ref<WorkspacePhase>('idle')
@@ -37,28 +35,23 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const summary = ref<WorkspaceSummary>()
   const query = ref('')
   const source = ref('thb-wiki')
-  const defaultSource = ref('thb-wiki')
   const candidates = ref<AlbumCandidate[]>([])
   const hasSearched = ref(false)
   const selectedCandidateId = ref('')
   const plan = ref<PlanPreview>()
-  const operation = ref<OperationProgress>()
   const result = ref<OperationResult>()
   const notifications = useNotificationsStore()
+  const operations = useOperationsStore()
+  const settings = useSettingsStore()
   let contextVersion = 0
-  let activeOperationId = ''
 
-  const isBusy = computed(() =>
-    [
-      'selecting',
-      'scanning',
-      'searching',
-      'preparing',
-      'editing',
-      'writing',
-      'committing',
-      'renaming',
-    ].includes(phase.value),
+  const operation = computed(() => operations.get('workspace'))
+  const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
+
+  const isBusy = computed(
+    () =>
+      ['selecting', 'scanning', 'searching', 'preparing', 'editing'].includes(phase.value) ||
+      Boolean(operation.value),
   )
   const blockingIssues = computed(() => {
     const issues = [
@@ -93,7 +86,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     hasSearched.value = false
     selectedCandidateId.value = ''
     plan.value = undefined
-    operation.value = undefined
     result.value = undefined
   }
 
@@ -108,13 +100,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       await api.discardPlan(planId)
     } catch (error) {
       notifications.error('释放旧写入内容失败', error)
-    }
-  }
-
-  const initializeSource = (value: string) => {
-    defaultSource.value = value
-    if (phase.value === 'idle' && !summary.value) {
-      source.value = value
     }
   }
 
@@ -200,7 +185,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       if (startsNewWorkspace) {
-        source.value = nextSummary.effectiveSource || defaultSource.value
+        source.value = nextSummary.effectiveSource || defaultSource()
       }
       directory.value = nextSummary.directory
       summary.value = nextSummary
@@ -355,33 +340,67 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
+  function receiveComplete(completion: OperationResult | BatchRunResult) {
+    if (completion.kind !== 'workspace') {
+      return
+    }
+    const nextResult = completion as OperationResult
+    if (nextResult.cancelled) {
+      result.value = undefined
+      phase.value = plan.value ? 'ready' : 'failed'
+      notifications.info('写入已取消', nextResult.message)
+      return
+    }
+    result.value = nextResult
+    plan.value = undefined
+    phase.value = 'complete'
+  }
+
+  function receiveFailure(failure: OperationFailure) {
+    if (failure.kind !== 'workspace') {
+      return
+    }
+    if (failure.planInvalidated) {
+      plan.value = undefined
+      phase.value = 'failed'
+    } else {
+      phase.value = plan.value ? 'ready' : 'failed'
+    }
+    notifications.error('写入过程失败', failure.message, {
+      sticky: true,
+      diagnostics: failure.details,
+    })
+  }
+
   const commit = async () => {
     if (!canCommit.value || !plan.value) {
       return
     }
     const currentPlan = plan.value
     let reservedOperationId = ''
-    phase.value = 'writing'
     result.value = undefined
     try {
       const api = await getApi()
       const started = await api.commitPlan(currentPlan.planId, currentPlan.revision)
       reservedOperationId = started.operationId
-      activeOperationId = started.operationId
-      operation.value = {
-        operationId: started.operationId,
-        kind: 'workspace',
-        stage: 'preparing',
-        current: 0,
-        total: currentPlan.items.length,
-        message: '正在准备写入',
-        cancellable: true,
-      }
+      operations.begin(
+        {
+          operationId: started.operationId,
+          kind: 'workspace',
+          stage: 'preparing',
+          current: 0,
+          total: currentPlan.items.length,
+          message: '正在准备写入',
+          cancellable: true,
+        },
+        {
+          complete: receiveComplete,
+          failure: receiveFailure,
+        },
+      )
       await api.startOperation(started.operationId)
     } catch (error) {
-      activeOperationId = ''
-      operation.value = undefined
-      phase.value = 'ready'
+      operations.release(reservedOperationId)
       let cleanupDetails = ''
       if (reservedOperationId) {
         try {
@@ -430,58 +449,23 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     directory.value = ''
     summary.value = undefined
     query.value = ''
-    source.value = defaultSource.value
+    source.value = defaultSource()
     clearAfterDirectory()
   }
 
-  const receiveProgress = (progress: OperationProgress) => {
-    if (progress.kind !== 'workspace' || progress.operationId !== activeOperationId) {
+  const loadStartupDirectory = async () => {
+    if (phase.value !== 'idle') {
       return
     }
-    operation.value = progress
-    phase.value =
-      progress.stage === 'committing'
-        ? 'committing'
-        : progress.stage === 'renaming'
-          ? 'renaming'
-          : progress.stage === 'cancelled'
-            ? 'cancelled'
-            : 'writing'
-  }
-
-  const receiveComplete = (nextResult: OperationResult) => {
-    if (nextResult.kind !== 'workspace' || nextResult.operationId !== activeOperationId) {
-      return
+    try {
+      const api = await getApi()
+      const startupDirectory = await api.getStartupDirectory()
+      if (startupDirectory) {
+        await scan(startupDirectory)
+      }
+    } catch (error) {
+      notifications.error('无法加载启动目录', error)
     }
-    activeOperationId = ''
-    operation.value = undefined
-    if (nextResult.cancelled) {
-      result.value = undefined
-      phase.value = plan.value ? 'ready' : 'failed'
-      notifications.info('写入已取消', nextResult.message)
-      return
-    }
-    result.value = nextResult
-    plan.value = undefined
-    phase.value = 'complete'
-  }
-
-  const receiveFailure = (failure: OperationFailure) => {
-    if (failure.kind !== 'workspace' || failure.operationId !== activeOperationId) {
-      return
-    }
-    activeOperationId = ''
-    operation.value = undefined
-    if (failure.planInvalidated) {
-      plan.value = undefined
-      phase.value = 'failed'
-    } else {
-      phase.value = plan.value ? 'ready' : 'failed'
-    }
-    notifications.error('写入过程失败', failure.message, {
-      sticky: true,
-      diagnostics: failure.details,
-    })
   }
 
   return {
@@ -502,7 +486,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     canPrepare,
     canCommit,
     selectDirectory,
-    initializeSource,
+    loadStartupDirectory,
     scan,
     search,
     selectCandidate,
@@ -516,8 +500,5 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     cancel,
     reveal,
     startOver,
-    receiveProgress,
-    receiveComplete,
-    receiveFailure,
   }
 })

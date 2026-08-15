@@ -3,7 +3,7 @@ import Button from 'primevue/button'
 import ProgressBar from 'primevue/progressbar'
 import { computed, defineComponent, type PropType } from 'vue'
 
-import type { OperationProgress } from '../../api'
+import type { OperationProgress } from '../api'
 
 export const OperationPanel = defineComponent({
   name: 'OperationPanel',
@@ -36,9 +36,7 @@ export const OperationPanel = defineComponent({
     return () => (
       <section class="grid gap-5 py-5">
         <div class="flex items-center justify-between gap-4">
-          <div>
-            <h2 class="mt-1 font-bold">{stageLabel.value}</h2>
-          </div>
+          <h2 class="mt-1 font-bold">{stageLabel.value}</h2>
           <strong class="text-primary tabular-nums">
             {props.operation.current} / {props.operation.total}
           </strong>
@@ -58,12 +56,7 @@ export const OperationPanel = defineComponent({
             )}
           </span>
           {props.operation.cancellable ? (
-            <Button
-              label="中止"
-              severity="secondary"
-              outlined
-              onClick={() => emit('cancel')}
-            >
+            <Button label="中止" severity="secondary" outlined onClick={() => emit('cancel')}>
               {{ icon: () => <Ban size={16} /> }}
             </Button>
           ) : (

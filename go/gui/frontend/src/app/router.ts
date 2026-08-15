@@ -1,5 +1,14 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
+import { navigationItems } from './navigation'
+
+const components = {
+  tagging: () => import('../features/tagging/TaggingPage').then(({ TaggingPage }) => TaggingPage),
+  batch: () => import('../features/batch/BatchPage').then(({ BatchPage }) => BatchPage),
+  settings: () =>
+    import('../features/settings/SettingsPage').then(({ SettingsPage }) => SettingsPage),
+}
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -7,29 +16,11 @@ export const router = createRouter({
       path: '/',
       redirect: '/tagging',
     },
-    {
-      path: '/tagging',
-      name: 'tagging',
-      component: () => import('../features/tagging/TaggingPage').then(({ TaggingPage }) => TaggingPage),
-      meta: {
-        title: '写入',
-      },
-    },
-    {
-      path: '/batch',
-      name: 'batch',
-      component: () => import('../features/batch/BatchPage').then(({ BatchPage }) => BatchPage),
-      meta: {
-        title: '批量写入',
-      },
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../features/settings/SettingsPage').then(({ SettingsPage }) => SettingsPage),
-      meta: {
-        title: '设置',
-      },
-    },
+    ...navigationItems.map(item => ({
+      path: item.path,
+      name: item.name,
+      component: components[item.name],
+      meta: { title: item.title },
+    })),
   ],
 })

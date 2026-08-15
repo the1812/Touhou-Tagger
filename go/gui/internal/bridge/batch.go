@@ -10,7 +10,6 @@ import (
 
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
-	wails "github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type batchJob struct {
@@ -40,18 +39,18 @@ type batchSession struct {
 }
 
 type BatchService struct {
-	runtime   *runtimeState
-	workspace *WorkspaceService
-	ops       *operationManager
-	app       *wails.App
-	window    *wails.WebviewWindow
+	runtime *runtimeState
+	planner *planCoordinator
+	catalog *candidateCatalog
+	desktop *desktopService
+	ops     *operationManager
 
 	mu       sync.RWMutex
 	sessions map[string]*batchSession
 }
 
 func (service *BatchService) SelectBatchDirectory() (string, error) {
-	return service.workspace.selectDirectory("选择批量写入根目录", batchDirectory)
+	return service.desktop.selectDirectory("选择批量写入根目录", batchDirectory)
 }
 
 func (service *BatchService) ScanBatch(
@@ -83,6 +82,12 @@ func (service *BatchService) ScanBatch(
 		depth: depth,
 		jobs:  make([]*batchJob, 0, len(jobs)),
 	}
+	stored := false
+	defer func() {
+		if !stored {
+			service.planner.discardOwner(session.id)
+		}
+	}()
 	for _, discovered := range jobs {
 		if err := ctx.Err(); err != nil {
 			return BatchPreview{}, err
@@ -131,7 +136,7 @@ func (service *BatchService) ScanBatch(
 			job.selectedCandidateID = localCandidate.ID
 			job.source = "local-json"
 			job.matchDescription = "精确匹配"
-			plan, prepareErr := service.workspace.prepareOwnedPlan(
+			plan, prepareErr := service.planner.prepareOwnedPlan(
 				ctx,
 				discovered.Directory,
 				localCandidate.ID,
@@ -177,11 +182,14 @@ func (service *BatchService) ScanBatch(
 			session.jobs = append(session.jobs, job)
 			continue
 		}
-		candidates, searchErr := service.workspace.SearchAlbums(
+		candidates, searchErr := service.catalog.search(
 			ctx,
+			service.runtime,
+			session.id,
 			discovered.Directory,
 			discovered.Name,
 			job.source,
+			false,
 		)
 		if searchErr != nil {
 			job.status = "scan-failed"
@@ -196,7 +204,7 @@ func (service *BatchService) ScanBatch(
 		case exact != nil:
 			job.selectedCandidateID = exact.ID
 			job.matchDescription = "精确匹配"
-			plan, prepareErr := service.workspace.prepareOwnedPlan(
+			plan, prepareErr := service.planner.prepareOwnedPlan(
 				ctx,
 				discovered.Directory,
 				exact.ID,
@@ -239,11 +247,12 @@ func (service *BatchService) ScanBatch(
 		previous.mu.Unlock()
 		if !running {
 			delete(service.sessions, id)
-			service.workspace.plans.discardOwner(owner)
+			service.planner.discardOwner(owner)
 		}
 	}
 	service.sessions[session.id] = session
 	service.mu.Unlock()
+	stored = true
 	return batchPreview(session), nil
 }
 
@@ -297,7 +306,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	job.resolveToken = token
 	directory := job.directory
 	session.mu.Unlock()
-	plan, err := service.workspace.prepareOwnedPlan(
+	plan, err := service.planner.prepareOwnedPlan(
 		ctx,
 		directory,
 		candidate.ID,
@@ -309,7 +318,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	if !currentExists || current != session {
 		service.mu.RUnlock()
 		if err == nil {
-			service.workspace.plans.discard(plan.PlanID)
+			service.planner.discard(plan.PlanID)
 		}
 		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
 	}
@@ -318,7 +327,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	defer session.mu.Unlock()
 	if session.running || !job.resolving || job.resolveToken != token {
 		if err == nil {
-			service.workspace.plans.discard(plan.PlanID)
+			service.planner.discard(plan.PlanID)
 		}
 		return BatchJobPreview{}, fmt.Errorf("搜索结果已失效")
 	}
@@ -385,7 +394,7 @@ func (service *BatchService) IgnoreBatchJob(
 	preview := batchJobPreview(session.root, job)
 	session.mu.Unlock()
 	if planID != "" {
-		service.workspace.plans.discard(planID)
+		service.planner.discard(planID)
 	}
 	return preview, nil
 }
@@ -474,7 +483,7 @@ func (service *BatchService) DiscardBatch(batchID string) {
 	}
 	service.mu.Unlock()
 	if !running {
-		service.workspace.plans.discardOwner(owner)
+		service.planner.discardOwner(owner)
 	}
 }
 
@@ -528,8 +537,8 @@ func (service *BatchService) executeBatch(
 			Path:        filepath.Base(directory),
 			Message:     fmt.Sprintf("正在处理专辑 %d / %d", index+1, len(selected)),
 		})
-		if planID == "" || !service.claimPlan(planID, revision) {
-			plan, prepareErr := service.workspace.prepareOwnedPlan(
+		if planID == "" || !service.planner.claim(planID, revision) {
+			plan, prepareErr := service.planner.prepareOwnedPlan(
 				ctx,
 				directory,
 				candidateID,
@@ -562,7 +571,7 @@ func (service *BatchService) executeBatch(
 			job.planID = planID
 			job.revision = revision
 			session.mu.Unlock()
-			if !plan.CanCommit || !service.claimPlan(planID, revision) {
+			if !plan.CanCommit || !service.planner.claim(planID, revision) {
 				service.failJob(session, job, fmt.Errorf("写入内容仍有未解决的问题"))
 				result.Failed++
 				service.emitBatchAlbumProgress(
@@ -575,13 +584,13 @@ func (service *BatchService) executeBatch(
 				continue
 			}
 		}
-		commitResult, _, commitErr := service.workspace.executeCommit(
+		commitResult, _, commitErr := service.planner.executeCommit(
 			ctx,
 			operationID,
 			planID,
 			service.batchEventSink(operationID, index, len(selected), directory),
 		)
-		service.workspace.plans.delete(planID)
+		service.planner.delete(planID)
 		if errors.Is(commitErr, context.Canceled) {
 			service.cancelRemaining(session, selected[index+1:])
 			session.mu.Lock()
@@ -677,20 +686,6 @@ func (service *BatchService) emitBatchAlbumProgress(
 		Path:        filepath.Base(directory),
 		Message:     message,
 	})
-}
-
-func (service *BatchService) claimPlan(planID string, revision int) bool {
-	session, exists := service.workspace.plans.get(planID)
-	if !exists {
-		return false
-	}
-	session.mu.Lock()
-	defer session.mu.Unlock()
-	if session.revision != revision || !canCommit(session) {
-		return false
-	}
-	session.committing = true
-	return true
 }
 
 func (service *BatchService) failJob(session *batchSession, job *batchJob, err error) {

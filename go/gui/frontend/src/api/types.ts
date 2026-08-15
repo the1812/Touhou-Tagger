@@ -243,9 +243,14 @@ export interface ProcessError {
   details?: string
 }
 
-export interface GUIApi {
+export interface SettingsApi {
   getCapabilities(): Promise<Capabilities>
-  getStartupDirectory(): Promise<string>
+  loadSettings(): Promise<Settings>
+  saveSettings(settings: Settings): Promise<Settings>
+  resetSettings(): Promise<Settings>
+}
+
+export interface WorkspaceApi {
   selectAlbumDirectory(): Promise<string>
   scanWorkspace(directory: string): Promise<WorkspaceSummary>
   searchAlbums(directory: string, query: string, source: string): Promise<AlbumCandidate[]>
@@ -255,7 +260,14 @@ export interface GUIApi {
   commitPlan(planId: string, revision: number): Promise<OperationStart>
   startOperation(operationId: string): Promise<void>
   cancelOperation(operationId: string): Promise<void>
+}
+
+export interface DesktopApi {
+  getStartupDirectory(): Promise<string>
   revealDirectory(directory: string): Promise<void>
+}
+
+export interface BatchApi {
   selectBatchDirectory(): Promise<string>
   scanBatch(directory: string, depth: number, source: string): Promise<BatchPreview>
   resolveBatchCandidate(
@@ -268,11 +280,13 @@ export interface GUIApi {
   runBatch(batchId: string, failedOnly: boolean): Promise<OperationStart>
   startBatch(operationId: string): Promise<void>
   cancelBatch(operationId: string): Promise<void>
-  loadSettings(): Promise<Settings>
-  saveSettings(settings: Settings): Promise<Settings>
-  resetSettings(): Promise<Settings>
+}
+
+export interface OperationEventsApi {
   onProgress(handler: (progress: OperationProgress) => void): () => void
   onComplete(handler: (result: OperationResult | BatchRunResult) => void): () => void
   onFailure(handler: (failure: OperationFailure) => void): () => void
   onProcessError(handler: (error: ProcessError) => void): () => void
 }
+
+export type GUIApi = SettingsApi & WorkspaceApi & DesktopApi & BatchApi & OperationEventsApi

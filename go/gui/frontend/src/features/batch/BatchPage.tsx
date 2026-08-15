@@ -1,12 +1,21 @@
-import { CircleAlert, ExternalLink, FolderOpen, Play, RefreshCw, TriangleAlert } from 'lucide-vue-next'
+import {
+  CircleAlert,
+  ExternalLink,
+  FolderOpen,
+  Play,
+  RefreshCw,
+  TriangleAlert,
+} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import { computed, defineComponent } from 'vue'
 
+import { usePageCommands } from '../../app/pageCommands'
 import { CompletionPanel } from '../../shared/CompletionPanel'
+import { OperationPanel } from '../../shared/OperationPanel'
+import { PageActionBar } from '../../shared/PageActionBar'
 import { useBatchStore } from '../../stores/batch'
-import { OperationPanel } from '../tagging/OperationPanel'
 import { BatchJobTable } from './BatchJobTable'
 
 export const BatchPage = defineComponent({
@@ -36,10 +45,7 @@ export const BatchPage = defineComponent({
     )
     const controlsDisabled = computed(
       () =>
-        selecting.value ||
-        scanning.value ||
-        resolvingCount.value > 0 ||
-        Boolean(operation.value),
+        selecting.value || scanning.value || resolvingCount.value > 0 || Boolean(operation.value),
     )
     const unresolvedHasError = computed(
       () =>
@@ -49,6 +55,16 @@ export const BatchPage = defineComponent({
             job.issues.some(issue => issue.severity === 'error'),
         ) ?? false,
     )
+    usePageCommands({
+      openDirectory: () => batch.selectDirectory(),
+      refresh: () => {
+        if (!directory.value) {
+          return false
+        }
+        batch.scan()
+        return true
+      },
+    })
 
     return () => {
       const currentDirectory = directory.value
@@ -59,7 +75,7 @@ export const BatchPage = defineComponent({
       return (
         <div
           class={[
-            'round-icon-buttons grid min-h-full content-start gap-0 pb-[4.5rem]',
+            'round-icon-buttons grid min-h-full content-start gap-0',
             { '-mt-5': currentDirectory },
           ]}
         >
@@ -148,10 +164,7 @@ export const BatchPage = defineComponent({
                         >
                           {{
                             icon: () => (
-                              <RefreshCw
-                                class={{ 'animate-spin': scanning.value }}
-                                size={17}
-                              />
+                              <RefreshCw class={{ 'animate-spin': scanning.value }} size={17} />
                             ),
                           }}
                         </Button>
@@ -178,7 +191,7 @@ export const BatchPage = defineComponent({
                   </section>
 
                   {currentPreview && !scanning.value && (
-                    <div class="action-bar fixed right-0 bottom-0 left-[216px] justify-between backdrop-blur-md">
+                    <PageActionBar>
                       <span class="shrink-0 text-[.85rem] text-muted-color">
                         共 <strong class="text-color">{currentPreview.jobs.length}</strong> 个专辑
                       </span>
@@ -211,7 +224,7 @@ export const BatchPage = defineComponent({
                           {{ icon: () => <Play size={17} /> }}
                         </Button>
                       </div>
-                    </div>
+                    </PageActionBar>
                   )}
                 </>
               )}
