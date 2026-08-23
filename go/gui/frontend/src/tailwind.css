@@ -121,16 +121,25 @@
   }
 }
 
-@utility app-nav-item {
-  @apply relative flex min-h-[42px] items-center gap-3 rounded-lg px-3 py-2.5 text-[.88rem] font-semibold text-muted-color no-underline transition-colors duration-150 hover:bg-primary-50 hover:text-color dark:hover:bg-primary-950;
+@utility app-top-tabs {
+  @apply min-w-0 flex-1 bg-transparent;
 
-  &.router-link-active {
-    @apply bg-primary-50 text-primary dark:bg-primary-950;
+  & .p-tablist,
+  & .p-tablist-content,
+  & .p-tablist-tab-list {
+    @apply bg-transparent;
   }
 
-  &.router-link-active::before {
-    @apply absolute inset-y-2.5 -left-3 w-[3px] rounded-r bg-primary;
-    content: '';
+  & .p-tablist-tab-list {
+    @apply gap-2 border-0 px-2;
+  }
+
+  & .p-tab {
+    @apply inline-flex min-h-16 items-center gap-2 px-4 py-0 text-[.88rem] font-semibold;
+  }
+
+  & .p-tablist-active-bar {
+    @apply h-[3px] rounded-t bg-primary;
   }
 }
 
@@ -143,7 +152,7 @@
 }
 
 @utility help-icon {
-  @apply inline-grid size-4 cursor-help place-items-center rounded-full border-0 bg-transparent p-0 text-muted-color outline-none hover:text-primary focus-visible:text-primary;
+  @apply inline-grid size-4 cursor-help place-items-center rounded-full border-0 bg-transparent p-0 text-muted-color outline-none focus-visible:text-primary;
 }
 
 @utility app-kbd {

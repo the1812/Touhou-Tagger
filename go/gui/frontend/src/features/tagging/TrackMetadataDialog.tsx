@@ -76,7 +76,7 @@ export const TrackMetadataDialog = defineComponent({
                   <span class="text-xs text-muted-color">{t('tagging.trackDialog.localFile')}</span>
                   <strong
                     class="overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem]"
-                    title={props.item.sourceName}
+                    v-tooltip={props.item.sourceName}
                   >
                     {props.item.sourceName}
                   </strong>

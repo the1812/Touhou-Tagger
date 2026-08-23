@@ -26,6 +26,7 @@
     }
   },
   "navigation": {
+    "primary": "主导航",
     "tagging": "写入",
     "batch": "批量写入",
     "settings": "设置"
@@ -79,7 +80,7 @@
     "settingsResetDetail": "默认设置已经保存。",
     "resetSettingsFailed": "恢复默认设置失败",
     "discardBatchFailed": "释放旧批量扫描结果失败",
-    "loadAlbumFailed": "无法加载专辑数据",
+    "loadAlbumFailed": "搜索专辑失败",
     "scanBatchFailed": "批量扫描失败",
     "selectBatchDirectoryFailed": "无法选择批量写入根目录",
     "updateBatchCandidateFailed": "无法更新专辑搜索结果",
@@ -116,6 +117,7 @@
       "reject": "取消"
     },
     "reset": {
+      "trigger": "恢复默认设置",
       "header": "恢复默认设置？",
       "message": "当前配置会立即重置为默认值。",
       "accept": "确认"
@@ -236,7 +238,7 @@
       "failed": "失败",
       "cancelled": "已取消"
     },
-    "loadingAlbum": "正在加载专辑数据",
+    "loadingAlbum": "正在搜索专辑",
     "loadFailed": "加载失败",
     "loading": "正在加载",
     "ignoredDescription": "已忽略",

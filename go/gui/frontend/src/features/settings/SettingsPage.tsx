@@ -15,10 +15,11 @@ import { useSettingsStore } from '../../stores/settings'
 import { t } from '../../i18n'
 
 const fieldClass =
-  'grid content-start gap-1.5 text-[.8rem] font-semibold text-color [&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color'
+  'grid w-full max-w-sm content-start gap-1.5 text-[.8rem] font-semibold text-color [&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color'
 const sectionClass =
   'grid gap-4 border-b border-surface-200 py-5 last:border-b-0 dark:border-surface-700 [&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold'
-const gridClass = 'grid grid-cols-2 gap-x-4 gap-y-3.5 max-[980px]:grid-cols-1'
+const gridClass = 'grid justify-items-start gap-y-3.5'
+const settingsContentClass = 'w-full max-w-[70rem]'
 
 export const SettingsPage = defineComponent({
   name: 'SettingsPage',
@@ -94,14 +95,14 @@ export const SettingsPage = defineComponent({
       return (
         <div class="-mx-6 -my-5 h-[calc(100%+2.5rem)] min-h-0">
           {loading.value || !currentDraft ? (
-            <div class="grid gap-4 px-6 py-5">
+            <div class={`${settingsContentClass} grid gap-4 px-6 py-5`}>
               <Skeleton height="10rem" />
               <Skeleton height="8rem" />
               <Skeleton height="12rem" />
             </div>
           ) : (
             <div class="h-full min-h-0 overflow-auto">
-              <div class="px-6">
+              <div class={`${settingsContentClass} px-6`}>
                 <section class={sectionClass}>
                   <h2>{t('settings.general')}</h2>
                   <div class={gridClass}>
@@ -132,20 +133,28 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                     </label>
-                    <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
-                      <span>{t('settings.mp3Separator')}</span>
+                    <label class={fieldClass}>
+                      <span class="flex items-center gap-1">
+                        {t('settings.mp3Separator')}
+                        <button
+                          type="button"
+                          class="help-icon"
+                          aria-label={t('settings.mp3SeparatorHelp')}
+                          v-tooltip={{ value: t('settings.mp3SeparatorHelp') }}
+                        >
+                          <Info size={13} />
+                        </button>
+                      </span>
                       <InputText
                         v-model={currentDraft.mp3MultiValueSeparator}
                         invalid={Boolean(errors.value.mp3MultiValueSeparator)}
                         size="small"
                         fluid
                       />
-                      {errors.value.mp3MultiValueSeparator ? (
+                      {errors.value.mp3MultiValueSeparator && (
                         <small class="text-red-700! dark:text-red-300!">
                           {errors.value.mp3MultiValueSeparator}
                         </small>
-                      ) : (
-                        <small>{t('settings.mp3SeparatorHelp')}</small>
                       )}
                     </label>
                     <label class={fieldClass}>
@@ -194,6 +203,7 @@ export const SettingsPage = defineComponent({
                         <button
                           type="button"
                           class="help-icon"
+                          aria-label={t('settings.coverThresholdHelp')}
                           v-tooltip={{ value: t('settings.coverThresholdHelp') }}
                         >
                           <Info size={13} />
@@ -219,6 +229,7 @@ export const SettingsPage = defineComponent({
                         <button
                           type="button"
                           class="help-icon"
+                          aria-label={t('settings.coverMaxEdgeHelp')}
                           v-tooltip={{ value: t('settings.coverMaxEdgeHelp') }}
                         >
                           <Info size={13} />
@@ -272,7 +283,7 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
+                    <label class={fieldClass}>
                       <span>{t('settings.mixedLyricSeparator')}</span>
                       <InputText
                         v-model={currentDraft.mixedLyricSeparator}
@@ -287,12 +298,17 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class="flex min-w-0 items-center justify-between gap-4 text-[.8rem]">
-                      <span class="grid gap-1">
-                        <strong>{t('settings.preserveTimeline')}</strong>
-                        <small class="font-normal text-muted-color">
-                          {t('settings.preserveTimelineHelp')}
-                        </small>
+                    <label class="grid w-full max-w-sm min-w-0 justify-items-start gap-1.5 text-[.8rem]">
+                      <span class="flex items-center gap-1">
+                        {t('settings.preserveTimeline')}
+                        <button
+                          type="button"
+                          class="help-icon"
+                          aria-label={t('settings.preserveTimelineHelp')}
+                          v-tooltip={{ value: t('settings.preserveTimelineHelp') }}
+                        >
+                          <Info size={13} />
+                        </button>
                       </span>
                       <ToggleSwitch
                         v-model={currentDraft.preserveLyricTimeline}
@@ -321,13 +337,15 @@ export const SettingsPage = defineComponent({
                 </section>
               </div>
 
-              <div class="flex items-center justify-center border-t border-surface-200 px-6 pb-6 pt-4 dark:border-surface-700">
+              <div
+                class={`${settingsContentClass} flex items-center justify-start border-t border-surface-200 px-6 py-4 dark:border-surface-700`}
+              >
                 <Button
-                  label={t('settings.reset.accept')}
+                  label={t('settings.reset.trigger')}
                   type="button"
                   size="small"
                   severity="secondary"
-                  text
+                  outlined
                   disabled={saving.value}
                   onClick={confirmReset}
                 >

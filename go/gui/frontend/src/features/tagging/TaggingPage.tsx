@@ -92,14 +92,15 @@ export const TaggingPage = defineComponent({
                           </h2>
                           <p
                             class="mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem] text-muted-color"
-                            title={currentSummary.directory}
+                            v-tooltip={currentSummary.directory}
                           >
                             {currentSummary.directory}
                           </p>
                         </div>
                         <div class="flex items-center gap-1.5">
                           <Button
-                            title={t('common.revealDirectory')}
+                            aria-label={t('common.revealDirectory')}
+                            v-tooltip={t('common.revealDirectory')}
                             severity="secondary"
                             text
                             rounded
@@ -108,7 +109,8 @@ export const TaggingPage = defineComponent({
                             {{ icon: () => <ExternalLink size={17} /> }}
                           </Button>
                           <Button
-                            title={t('tagging.rescan')}
+                            aria-label={t('tagging.rescan')}
+                            v-tooltip={t('tagging.rescan')}
                             severity="secondary"
                             text
                             rounded

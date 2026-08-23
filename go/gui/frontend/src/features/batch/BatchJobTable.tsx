@@ -91,14 +91,7 @@ export const BatchJobTable = defineComponent({
     ]
     const matchCell = (job: BatchJobPreview) => {
       if (!props.editable) {
-        return (
-          <BatchTableTooltip
-            value={job.matchDescription}
-            contentClass="block overflow-hidden text-ellipsis whitespace-nowrap"
-          >
-            {job.matchDescription}
-          </BatchTableTooltip>
-        )
+        return <span class="block overflow-hidden text-ellipsis whitespace-nowrap">{job.matchDescription}</span>
       }
       if (job.status === 'loading') {
         return <span class="text-muted-color">{t('batch.loadingAlbum')}</span>
@@ -106,12 +99,9 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'scan-failed') {
         return (
           <div class="flex items-center justify-between gap-2">
-            <BatchTableTooltip
-              value={job.issues.map(issue => issue.message).join('；') || job.matchDescription}
-              contentClass="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-red-600 dark:text-red-300"
-            >
+            <span class="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-red-600 dark:text-red-300">
               {job.matchDescription}
-            </BatchTableTooltip>
+            </span>
             <Button
               label={t('common.retry')}
               size="small"
@@ -157,14 +147,7 @@ export const BatchJobTable = defineComponent({
           />
         )
       }
-      return (
-        <BatchTableTooltip
-          value={job.matchDescription}
-          contentClass="block overflow-hidden text-ellipsis whitespace-nowrap"
-        >
-          {job.matchDescription}
-        </BatchTableTooltip>
-      )
+      return <span class="block overflow-hidden text-ellipsis whitespace-nowrap">{job.matchDescription}</span>
     }
     return () => (
       <DataTable

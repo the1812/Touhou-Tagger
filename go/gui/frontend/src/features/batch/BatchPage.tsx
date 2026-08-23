@@ -91,14 +91,15 @@ export const BatchPage = defineComponent({
                     <h2 class="mt-1 text-[1.18rem] font-bold">{directoryLabel.value}</h2>
                     <p
                       class="mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem] text-muted-color"
-                      title={currentDirectory}
+                      v-tooltip={currentDirectory}
                     >
                       {currentDirectory}
                     </p>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <Button
-                      title={t('common.revealDirectory')}
+                      aria-label={t('common.revealDirectory')}
+                      v-tooltip={t('common.revealDirectory')}
                       severity="secondary"
                       text
                       rounded
