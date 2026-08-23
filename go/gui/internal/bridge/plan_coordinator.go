@@ -114,10 +114,6 @@ func (service *planCoordinator) prepareOwnedPlan(
 		cover = append([]byte(nil), data.Metadata[0].CoverImage...)
 		coverSource = candidate.Source
 	}
-	snapshot, err := snapshotPlanInputs(data.Scan)
-	if err != nil {
-		return PlanPreview{}, err
-	}
 	session := &planSession{
 		id:          newID("plan"),
 		owner:       owner,
@@ -129,8 +125,7 @@ func (service *planCoordinator) prepareOwnedPlan(
 		coverSource: coverSource,
 		saveCover: len(cover) > 0 &&
 			(resolvedConfig.Cover == nil || *resolvedConfig.Cover),
-		config:   runtimeConfig,
-		snapshot: snapshot,
+		config: runtimeConfig,
 	}
 	service.rebuildSession(session)
 	service.store.put(session)
@@ -254,10 +249,10 @@ func (service *planCoordinator) executeCommit(
 	session.mu.Lock()
 	configValue := cloneConfig(session.config)
 	metadata := cloneMetadata(session.metadata)
-	expectedSnapshot := clonePlanSnapshot(session.snapshot)
 	candidate := session.candidate
 	cover := append([]byte(nil), session.cover...)
-	directory := session.scan.Directory
+	scan := session.scan
+	directory := scan.Directory
 	saveCover := session.saveCover && len(cover) > 0
 	session.mu.Unlock()
 
@@ -268,27 +263,9 @@ func (service *planCoordinator) executeCommit(
 	if err != nil {
 		return OperationResult{}, true, err
 	}
-	currentScan, err := applicationService.ScanAlbum(ctx, directory)
+	plan, err := coreapp.BuildTagPlan(scan, metadata)
 	if err != nil {
-		return OperationResult{}, true, err
-	}
-	if err := validatePlanInputs(currentScan, expectedSnapshot); err != nil {
-		return OperationResult{}, false, err
-	}
-	plan, err := coreapp.BuildTagPlan(currentScan, metadata)
-	if err != nil {
-		return OperationResult{}, false, fmt.Errorf("重新检查写入内容: %w", err)
-	}
-	if err := validatePlanOutputs(
-		plan,
-		configValue,
-		directory,
-		cover,
-		saveCover,
-		currentScan.CoverPath,
-		expectedSnapshot.Outputs,
-	); err != nil {
-		return OperationResult{}, false, err
+		return OperationResult{}, false, fmt.Errorf("准备写入内容: %w", err)
 	}
 	renamed := 0
 	for _, item := range plan.Items {
@@ -303,8 +280,8 @@ func (service *planCoordinator) executeCommit(
 	coversSaved := 0
 	if saveCover {
 		var saveErr error
-		if currentScan.CoverPath != "" {
-			_, saveErr = coreapp.SaveCoverAt(currentScan.CoverPath, cover)
+		if scan.CoverPath != "" {
+			_, saveErr = coreapp.SaveCoverAt(scan.CoverPath, cover)
 		} else {
 			_, saveErr = coreapp.SaveCoverNew(directory, cover)
 		}
@@ -385,7 +362,7 @@ func (service *planCoordinator) rebuildSession(session *planSession) {
 			))
 		}
 	}
-	outputs, outputIssues := snapshotPlanOutputs(
+	outputIssues := inspectPlanOutputs(
 		session.plan,
 		session.config,
 		session.scan.Directory,
@@ -393,7 +370,6 @@ func (service *planCoordinator) rebuildSession(session *planSession) {
 		session.saveCover,
 		session.scan.CoverPath,
 	)
-	session.snapshot.Outputs = outputs
 	session.issues = append(session.issues, outputIssues...)
 	for index, metadata := range session.metadata {
 		itemID := trackID(index)

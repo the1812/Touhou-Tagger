@@ -71,10 +71,10 @@ const emitSequence = (
           : activeBatch.jobs[Math.min(current - 1, activeBatch.jobs.length - 1)]?.relativePath,
       message:
         stage === 'committing'
-          ? t('fixture.saving')
+          ? '正在保存文件'
           : stage === 'renaming'
-            ? t('fixture.renaming')
-            : t('fixture.processing', { current, total }),
+            ? '正在重命名'
+            : `正在处理 ${current} / ${total}`,
       cancellable: stage === 'preparing' || stage === 'writing',
     }
     progressHandlers.forEach(handler => handler(progress))
@@ -184,7 +184,7 @@ export const fixtureApi: GUIApi = {
             lrcFiles: activePlan.options.lrcFiles,
             durationMs: 1840,
             cancelled: false,
-            message: t('fixture.writeComplete'),
+            message: '写入完成。',
           }),
           () => ({
             operationId,
@@ -196,7 +196,7 @@ export const fixtureApi: GUIApi = {
             lrcFiles: 0,
             durationMs: 320,
             cancelled: true,
-            message: t('fixture.writeCancelled'),
+            message: '已取消写入。',
           }),
         ),
     })
@@ -206,7 +206,7 @@ export const fixtureApi: GUIApi = {
   async startOperation(operationId) {
     const pending = pendingStarts.get(operationId)
     if (!pending || pending.kind !== 'workspace') {
-      throw new Error(t('fixture.operationUnavailable'))
+      throw new Error('写入操作不存在或已经开始。')
     }
     pendingStarts.delete(operationId)
     pending.start()
@@ -256,7 +256,7 @@ export const fixtureApi: GUIApi = {
     const loaded = batchJobs().find(job => job.id === jobId)
     const index = activeBatch.jobs.findIndex(job => job.id === jobId)
     if (!loaded || index < 0) {
-      throw new Error(t('fixture.batchAlbumUnavailable'))
+      throw new Error('批量写入专辑不存在。')
     }
     activeBatch.jobs[index] = loaded
     return clone(loaded)
@@ -266,11 +266,11 @@ export const fixtureApi: GUIApi = {
     await wait(120)
     const job = activeBatch.jobs.find(item => item.id === jobId)
     if (!job) {
-      throw new Error(t('fixture.batchAlbumUnavailable'))
+      throw new Error('批量写入专辑不存在。')
     }
     job.selectedCandidateId = candidateId
     job.status = 'ready'
-    job.matchDescription = t('fixture.candidateSelected')
+    job.matchDescription = '已选择搜索结果'
     job.issues = []
     return clone(job)
   },
@@ -279,11 +279,11 @@ export const fixtureApi: GUIApi = {
     await wait(120)
     const job = activeBatch.jobs.find(item => item.id === jobId)
     if (!job) {
-      throw new Error(t('fixture.batchAlbumUnavailable'))
+      throw new Error('批量写入专辑不存在。')
     }
     job.selectedCandidateId = undefined
     job.status = 'ignored'
-    job.matchDescription = t('fixture.ignored')
+    job.matchDescription = '已由用户忽略'
     job.issues = []
     return clone(job)
   },
@@ -319,7 +319,7 @@ export const fixtureApi: GUIApi = {
               lrcFiles: 0,
               durationMs: 2830,
               cancelled: false,
-              message: t('fixture.batchComplete'),
+              message: '批量写入完成。',
               jobs: clone(activeBatch.jobs),
             }
           },
@@ -337,7 +337,7 @@ export const fixtureApi: GUIApi = {
               lrcFiles: 0,
               durationMs: 320,
               cancelled: true,
-              message: t('fixture.batchCancelled'),
+              message: '已停止写入后续专辑。',
               jobs: clone(activeBatch.jobs),
             }
           },
@@ -349,7 +349,7 @@ export const fixtureApi: GUIApi = {
   async startBatch(operationId) {
     const pending = pendingStarts.get(operationId)
     if (!pending || pending.kind !== 'batch') {
-      throw new Error(t('fixture.batchOperationUnavailable'))
+      throw new Error('批量写入操作不存在或已经开始。')
     }
     pendingStarts.delete(operationId)
     pending.start()

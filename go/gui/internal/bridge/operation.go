@@ -169,7 +169,7 @@ func (manager *operationManager) progress(operationID string, event domain.Progr
 func operationMessageID(stage domain.EventStage) string {
 	switch stage {
 	case domain.StageScan:
-		return "scan"
+		return ""
 	case domain.StageSearch:
 		return "search"
 	case domain.StageFetch:
@@ -209,7 +209,7 @@ func operationStage(stage domain.EventStage) string {
 func operationMessage(event domain.ProgressEvent) string {
 	switch event.Stage {
 	case domain.StageScan:
-		return "正在重新验证专辑目录"
+		return event.Message
 	case domain.StageSearch:
 		return "正在搜索专辑"
 	case domain.StageFetch:

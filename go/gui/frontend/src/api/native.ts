@@ -49,7 +49,6 @@ const issueMessage = (code: string) => {
     'track-mismatch': 'backend.issue.trackMismatch',
     'target-exists': 'backend.issue.targetExists',
     'target-conflict': 'backend.issue.targetConflict',
-    'input-changed': 'backend.issue.inputChanged',
   }
   return t(keys[code] ?? 'backend.issue.generic')
 }
@@ -74,7 +73,6 @@ const optionLabel = (value: string, fallback: string) => {
 
 const progressMessage = (progress: OperationProgress) => {
   const messageKeys: Record<string, string> = {
-    scan: 'backend.progress.validating',
     search: 'backend.progress.searching',
     fetch: 'backend.progress.fetching',
     plan: 'backend.progress.preparing',

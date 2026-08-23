@@ -22,7 +22,7 @@ export const batchDirectory = 'D:/Music/Touhou'
 export const capabilities: Capabilities = {
   sources: [
     { value: 'thb-wiki', label: 'THBWiki', supportsSearch: true },
-    { value: 'local-json', label: t('data.localMetadata'), supportsSearch: false },
+    { value: 'local-json', label: '本地 metadata.json', supportsSearch: false },
   ],
   commentLanguages: [
     { value: 'zh-Hans', label: t('data.simplifiedChinese') },
@@ -64,10 +64,7 @@ const fixtureCandidate = (
   artists: fixture.album.albumArtists,
   year: fixture.album.year,
   exactMatch,
-  description: t('data.trackCountDescription', {
-    count: fixture.tracks.length,
-    genres: fixture.album.genres.join('、'),
-  }),
+  description: `${fixture.tracks.length} 首曲目 · ${fixture.album.genres.join('、')}`,
 })
 
 export const candidates = [
@@ -151,11 +148,11 @@ export const createPlan = (
       ? {
           url: coverUrl,
           source: 'thb-wiki',
-          sourceLabel: t('data.thbWikiCover'),
+          sourceLabel: 'THBWiki 封面',
           width: 600,
           height: 600,
           byteSize: 43_246,
-          compressionDescription: t('data.belowThreshold'),
+          compressionDescription: '低于 1500 KB 阈值，将保留原始图片',
         }
       : {
           url: '',
@@ -186,7 +183,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     relativePath: singleDiscFixture.album.album,
     inferredAlbumName: singleDiscFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: t('data.exactMatch'),
+    matchDescription: '精确匹配',
     audioCount: singleDiscFixture.tracks.length,
     status: 'ready',
     issues: [],
@@ -198,7 +195,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     relativePath: multipleDiscFixture.album.album,
     inferredAlbumName: multipleDiscFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: t('data.multipleResults'),
+    matchDescription: '多个搜索结果',
     audioCount: multipleDiscFixture.tracks.length,
     status: 'needs-candidate',
     issues: [
@@ -215,7 +212,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     relativePath: noCoverFixture.album.album,
     inferredAlbumName: noCoverFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: t('data.exactMatch'),
+    matchDescription: '精确匹配',
     audioCount: noCoverFixture.tracks.length,
     status: 'ready',
     issues: [],

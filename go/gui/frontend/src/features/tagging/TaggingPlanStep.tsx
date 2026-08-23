@@ -142,9 +142,9 @@ export const TaggingPlanStep = defineComponent({
               <span
                 class="inline-flex"
                 v-tooltip={{
-                  value: blockingIssues.value.length
-                    ? t('tagging.plan.blockingIssues', { count: blockingIssues.value.length })
-                    : t('tagging.plan.ready'),
+                  value: t('tagging.plan.blockingIssues', {
+                    count: blockingIssues.value.length,
+                  }),
                   disabled: blockingIssues.value.length === 0,
                 }}
               >

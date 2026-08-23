@@ -9,29 +9,6 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
-type fileSnapshot struct {
-	Path             string
-	Exists           bool
-	Size             int64
-	ModifiedUnixNano int64
-	Digest           [32]byte
-	HasDigest        bool
-}
-
-type outputSnapshot struct {
-	Kind   string
-	ItemID string
-	File   fileSnapshot
-}
-
-type planSnapshot struct {
-	AudioFiles  []fileSnapshot
-	LocalCover  fileSnapshot
-	Metadata    fileSnapshot
-	AlbumConfig fileSnapshot
-	Outputs     []outputSnapshot
-}
-
 type planSession struct {
 	mu          sync.Mutex
 	id          string
@@ -45,7 +22,6 @@ type planSession struct {
 	coverSource string
 	saveCover   bool
 	config      domain.MetadataConfig
-	snapshot    planSnapshot
 	issues      []StateIssue
 	committing  bool
 }

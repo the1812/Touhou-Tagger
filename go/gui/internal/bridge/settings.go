@@ -78,14 +78,6 @@ func (service *SettingsService) configFromSettings(settings Settings) (domain.Me
 	if settings.CoverCompressionThresholdKB < 0 || settings.CoverMaxEdge < 0 {
 		return domain.MetadataConfig{}, fmt.Errorf("封面压缩阈值和最大边长不能为负数")
 	}
-	if settings.CoverCompressionThresholdKB != 0 &&
-		(settings.CoverCompressionThresholdKB < 64 || settings.CoverCompressionThresholdKB > 102400) {
-		return domain.MetadataConfig{}, fmt.Errorf("封面压缩阈值必须为 0 或在 64 到 102400 KB 之间")
-	}
-	if settings.CoverMaxEdge != 0 &&
-		(settings.CoverMaxEdge < 256 || settings.CoverMaxEdge > 8192) {
-		return domain.MetadataConfig{}, fmt.Errorf("封面最大边长必须为 0 或在 256 到 8192 像素之间")
-	}
 	lyricType := domain.LyricType(settings.LyricType)
 	if lyricType != domain.LyricOriginal && lyricType != domain.LyricTranslated && lyricType != domain.LyricMixed {
 		return domain.MetadataConfig{}, fmt.Errorf("不支持的歌词类型 %q", settings.LyricType)

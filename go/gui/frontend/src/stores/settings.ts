@@ -40,14 +40,11 @@ export const useSettingsStore = defineStore('settings', () => {
     if (value.retryCount < 1 || value.retryCount > 10) {
       next.retryCount = t('validation.retryCountRange')
     }
-    if (
-      value.coverCompressionThresholdKb !== 0 &&
-      (value.coverCompressionThresholdKb < 64 || value.coverCompressionThresholdKb > 102400)
-    ) {
-      next.coverCompressionThresholdKb = t('validation.coverThresholdRange')
+    if (value.coverCompressionThresholdKb < 0) {
+      next.coverCompressionThresholdKb = t('validation.coverThresholdNonNegative')
     }
-    if ((value.coverMaxEdge !== 0 && value.coverMaxEdge < 256) || value.coverMaxEdge > 8192) {
-      next.coverMaxEdge = t('validation.coverMaxEdgeRange')
+    if (value.coverMaxEdge < 0) {
+      next.coverMaxEdge = t('validation.coverMaxEdgeNonNegative')
     }
     if (value.writeLyricsMetadata && value.writeLrcFiles) {
       next.lyricDestination = t('validation.lyricDestinationConflict')

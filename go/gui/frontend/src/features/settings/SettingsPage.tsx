@@ -202,7 +202,6 @@ export const SettingsPage = defineComponent({
                       <InputNumber
                         v-model={currentDraft.coverCompressionThresholdKb}
                         min={0}
-                        max={102400}
                         showButtons
                         size="small"
                         fluid
@@ -228,8 +227,6 @@ export const SettingsPage = defineComponent({
                       <InputNumber
                         v-model={currentDraft.coverMaxEdge}
                         min={0}
-                        max={8192}
-                        step={128}
                         showButtons
                         size="small"
                         fluid
