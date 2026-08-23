@@ -1,11 +1,4 @@
-import {
-  CircleAlert,
-  ExternalLink,
-  FolderOpen,
-  Play,
-  RefreshCw,
-  TriangleAlert,
-} from 'lucide-vue-next'
+import { ExternalLink, FolderOpen, Play, RefreshCw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
@@ -30,7 +23,6 @@ export const BatchPage = defineComponent({
       scanning,
       operation,
       result,
-      unresolvedCount,
       failedCount,
       resolvingCount,
       canRun,
@@ -47,13 +39,8 @@ export const BatchPage = defineComponent({
       () =>
         selecting.value || scanning.value || resolvingCount.value > 0 || Boolean(operation.value),
     )
-    const unresolvedHasError = computed(
-      () =>
-        preview.value?.jobs.some(
-          job =>
-            ['track-mismatch', 'scan-failed', 'failed'].includes(job.status) ||
-            job.issues.some(issue => issue.severity === 'error'),
-        ) ?? false,
+    const tableDisabled = computed(
+      () => selecting.value || scanning.value || Boolean(operation.value),
     )
     usePageCommands({
       openDirectory: () => batch.selectDirectory(),
@@ -83,7 +70,7 @@ export const BatchPage = defineComponent({
             <section class="page-empty-state">
               <Button
                 class="directory-picker-button"
-                label="选择目录"
+                label={'选择目录'}
                 size="large"
                 loading={selecting.value}
                 onClick={() => batch.selectDirectory()}
@@ -109,7 +96,7 @@ export const BatchPage = defineComponent({
                   </div>
                   <div class="flex items-center gap-1.5">
                     <Button
-                      title="在资源管理器中打开"
+                      title={'在资源管理器中打开'}
                       severity="secondary"
                       text
                       rounded
@@ -118,7 +105,7 @@ export const BatchPage = defineComponent({
                       {{ icon: () => <ExternalLink size={17} /> }}
                     </Button>
                     <Button
-                      label="更换目录"
+                      label={'更换目录'}
                       severity="secondary"
                       outlined
                       loading={selecting.value}
@@ -135,10 +122,10 @@ export const BatchPage = defineComponent({
                 <>
                   <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0 py-4">
                     <div class="workspace-heading items-center">
-                      <h2 class="mt-1 text-[1.18rem] font-bold">专辑扫描</h2>
+                      <h2 class="mt-1 text-[1.18rem] font-bold">{'专辑扫描'}</h2>
                       <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 text-[.78rem] font-semibold">
-                          <span class="whitespace-nowrap">目录层级</span>
+                          <span class="whitespace-nowrap">{'目录层级'}</span>
                           <InputNumber
                             class="w-28"
                             modelValue={depth.value}
@@ -156,7 +143,7 @@ export const BatchPage = defineComponent({
                         </label>
                         <Button
                           class="w-[6.75rem]"
-                          label="重新扫描"
+                          label={'重新扫描'}
                           severity="secondary"
                           outlined
                           disabled={controlsDisabled.value}
@@ -171,21 +158,22 @@ export const BatchPage = defineComponent({
                       </div>
                     </div>
 
-                    {scanning.value ? (
+                    {scanning.value && !currentPreview ? (
                       <div class="grid min-h-64 place-items-center content-center gap-4 text-center">
                         <div class="size-[46px] animate-spin rounded-full border-[3px] border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary" />
-                        <h3 class="m-0 text-[.95rem] font-bold">正在扫描专辑目录</h3>
+                        <h3 class="m-0 text-[.95rem] font-bold">{'正在扫描专辑目录'}</h3>
                       </div>
                     ) : (
                       <BatchJobTable
                         jobs={currentPreview?.jobs ?? []}
                         editable
-                        disabled={controlsDisabled.value}
+                        disabled={tableDisabled.value}
                         resolving={batch.isResolving}
                         onResolve={(jobId, candidateId) =>
                           batch.resolveCandidate(jobId, candidateId)
                         }
                         onIgnore={jobId => batch.ignoreJob(jobId)}
+                        onRetry={jobId => batch.loadJob(jobId)}
                       />
                     )}
                   </section>
@@ -193,31 +181,11 @@ export const BatchPage = defineComponent({
                   {currentPreview && !scanning.value && (
                     <PageActionBar>
                       <span class="shrink-0 text-[.85rem] text-muted-color">
-                        共 <strong class="text-color">{currentPreview.jobs.length}</strong> 个专辑
+                        <>共 <strong class="text-color">{currentPreview.jobs.length}</strong> 个专辑</>
                       </span>
-                      <div class="flex min-w-0 items-center gap-5">
-                        {unresolvedCount.value > 0 && (
-                          <span
-                            class={[
-                              'flex min-w-0 items-center gap-1.5 text-[.75rem] text-amber-700 dark:text-amber-300',
-                              {
-                                'text-red-700 dark:text-red-300': unresolvedHasError.value,
-                              },
-                            ]}
-                          >
-                            {unresolvedHasError.value ? (
-                              <CircleAlert class="shrink-0" size={15} />
-                            ) : (
-                              <TriangleAlert class="shrink-0" size={15} />
-                            )}
-                            <span class="overflow-hidden text-ellipsis whitespace-nowrap">
-                              有 {unresolvedCount.value}{' '}
-                              个专辑尚未解决，请选择搜索结果或忽略无法匹配的专辑。
-                            </span>
-                          </span>
-                        )}
+                      <div class="flex min-w-0 items-center">
                         <Button
-                          label="开始处理"
+                          label={'开始处理'}
                           disabled={!canRun.value}
                           onClick={() => batch.run(false)}
                         >
@@ -246,7 +214,7 @@ export const BatchPage = defineComponent({
                   {failedJobs.value.length > 0 && (
                     <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0 py-4">
                       <div class="workspace-heading">
-                        <h2 class="mt-1 text-[1.18rem] font-bold">失败项目</h2>
+                        <h2 class="mt-1 text-[1.18rem] font-bold">{'失败项目'}</h2>
                       </div>
                       <BatchJobTable
                         jobs={failedJobs.value}

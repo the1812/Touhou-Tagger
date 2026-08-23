@@ -98,6 +98,10 @@ export const nativeApi: GUIApi = {
     normalizeBatch(
       (await BatchService.ScanBatch(directory, depth, source)) as BatchPreview,
     ),
+  loadBatchJob: async (batchId, jobId) =>
+    normalizeBatchJob(
+      (await BatchService.LoadBatchJob(batchId, jobId)) as BatchJobPreview,
+    ),
   resolveBatchCandidate: async (batchId, jobId, candidateId) => {
     const job = (await BatchService.ResolveBatchCandidate(
       batchId,

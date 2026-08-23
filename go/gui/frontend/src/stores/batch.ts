@@ -14,6 +14,7 @@ import { useOperationsStore } from './operations'
 import { useSettingsStore } from './settings'
 
 export const useBatchStore = defineStore('batch', () => {
+  const loadConcurrency = 4
   const directory = ref('')
   const depth = ref(1)
   const source = ref('thb-wiki')
@@ -34,7 +35,7 @@ export const useBatchStore = defineStore('batch', () => {
   const unresolvedCount = computed(
     () =>
       preview.value?.jobs.filter(job =>
-        ['needs-candidate', 'track-mismatch', 'scan-failed'].includes(job.status),
+        ['loading', 'needs-candidate', 'track-mismatch', 'scan-failed'].includes(job.status),
       ).length ?? 0,
   )
   const readyCount = computed(
@@ -90,6 +91,98 @@ export const useBatchStore = defineStore('batch', () => {
     depth.value = value
   }
 
+  const updateJob = async (
+    jobId: string,
+    request: (api: Awaited<ReturnType<typeof getApi>>, batchId: string) => Promise<BatchJobPreview>,
+    failureTitle: string,
+    notifyFailure = true,
+  ) => {
+    if (
+      !preview.value ||
+      selecting.value ||
+      scanning.value ||
+      operation.value ||
+      resolvingJobIds.value.has(jobId)
+    ) {
+      return
+    }
+    const requestVersion = contextVersion
+    const { batchId } = preview.value
+    resolveSequence += 1
+    const resolveToken = resolveSequence
+    resolveTokens.set(jobId, resolveToken)
+    resolvingJobIds.value.add(jobId)
+    try {
+      const api = await getApi()
+      const updated = await request(api, batchId)
+      if (
+        requestVersion !== contextVersion ||
+        preview.value?.batchId !== batchId ||
+        resolveTokens.get(jobId) !== resolveToken
+      ) {
+        return
+      }
+      const index = preview.value.jobs.findIndex(job => job.id === jobId)
+      if (index >= 0) {
+        preview.value.jobs[index] = updated
+      }
+    } catch (error) {
+      if (requestVersion === contextVersion && resolveTokens.get(jobId) === resolveToken) {
+        const job = preview.value?.jobs.find(item => item.id === jobId)
+        if (job) {
+          const message = error instanceof Error ? error.message : String(error)
+          job.status = 'scan-failed'
+          job.matchDescription = '加载失败'
+          job.issues = [{ code: 'load-failed', message, severity: 'error' }]
+        }
+        if (notifyFailure) {
+          notifications.error(failureTitle, error)
+        }
+      }
+    } finally {
+      if (resolveTokens.get(jobId) === resolveToken) {
+        resolveTokens.delete(jobId)
+        resolvingJobIds.value.delete(jobId)
+      }
+    }
+  }
+
+  const loadJob = async (jobId: string, notifyFailure = true) => {
+    const job = preview.value?.jobs.find(item => item.id === jobId)
+    if (
+      !job ||
+      selecting.value ||
+      scanning.value ||
+      operation.value ||
+      resolvingJobIds.value.has(jobId)
+    ) {
+      return
+    }
+    job.status = 'loading'
+    job.matchDescription = '正在加载'
+    job.issues = []
+    await updateJob(
+      jobId,
+      (api, batchId) => api.loadBatchJob(batchId, jobId),
+      '无法加载专辑数据',
+      notifyFailure,
+    )
+  }
+
+  async function loadJobs(jobIds: string[]) {
+    let nextIndex = 0
+    const worker = async () => {
+      while (nextIndex < jobIds.length) {
+        const jobId = jobIds[nextIndex]
+        nextIndex += 1
+        await loadJob(jobId, false)
+      }
+    }
+    await Promise.all(
+      Array.from({ length: Math.min(loadConcurrency, jobIds.length) }, () => worker()),
+    )
+  }
+
   const scan = async () => {
     if (
       !directory.value ||
@@ -116,20 +209,8 @@ export const useBatchStore = defineStore('batch', () => {
       }
       preview.value = nextPreview
       result.value = undefined
-      const processFailures = preview.value.jobs.filter(job => job.status === 'scan-failed')
-      if (processFailures.length) {
-        notifications.error(
-          '部分专辑扫描失败',
-          `${processFailures.length} 个目录未能完成扫描或匹配，详情已保留在对应专辑行。`,
-          {
-            diagnostics: processFailures
-              .map(
-                job => `${job.relativePath}: ${job.issues.map(issue => issue.message).join('；')}`,
-              )
-              .join('\n'),
-          },
-        )
-      }
+      scanning.value = false
+      loadJobs(nextPreview.jobs.filter(job => job.status === 'loading').map(job => job.id))
     } catch (error) {
       if (requestVersion !== contextVersion) {
         return
@@ -166,52 +247,6 @@ export const useBatchStore = defineStore('batch', () => {
     }
   }
 
-  const updateJob = async (
-    jobId: string,
-    request: (api: Awaited<ReturnType<typeof getApi>>, batchId: string) => Promise<BatchJobPreview>,
-    failureTitle: string,
-  ) => {
-    if (
-      !preview.value ||
-      selecting.value ||
-      scanning.value ||
-      operation.value ||
-      resolvingCount.value > 0
-    ) {
-      return
-    }
-    const requestVersion = contextVersion
-    const { batchId } = preview.value
-    resolveSequence += 1
-    const resolveToken = resolveSequence
-    resolveTokens.set(jobId, resolveToken)
-    resolvingJobIds.value.add(jobId)
-    try {
-      const api = await getApi()
-      const updated = await request(api, batchId)
-      if (
-        requestVersion !== contextVersion ||
-        preview.value?.batchId !== batchId ||
-        resolveTokens.get(jobId) !== resolveToken
-      ) {
-        return
-      }
-      const index = preview.value.jobs.findIndex(job => job.id === jobId)
-      if (index >= 0) {
-        preview.value.jobs[index] = updated
-      }
-    } catch (error) {
-      if (requestVersion === contextVersion && resolveTokens.get(jobId) === resolveToken) {
-        notifications.error(failureTitle, error)
-      }
-    } finally {
-      if (resolveTokens.get(jobId) === resolveToken) {
-        resolveTokens.delete(jobId)
-        resolvingJobIds.value.delete(jobId)
-      }
-    }
-  }
-
   const resolveCandidate = (jobId: string, candidateId: string) =>
     updateJob(
       jobId,
@@ -220,7 +255,11 @@ export const useBatchStore = defineStore('batch', () => {
     )
 
   const ignoreJob = (jobId: string) =>
-    updateJob(jobId, (api, batchId) => api.ignoreBatchJob(batchId, jobId), '无法忽略批量写入专辑')
+    updateJob(
+      jobId,
+      (api, batchId) => api.ignoreBatchJob(batchId, jobId),
+      '无法忽略批量写入专辑',
+    )
 
   function receiveComplete(nextResult: OperationResult | BatchRunResult) {
     if (nextResult.kind !== 'batch') {
@@ -238,7 +277,7 @@ export const useBatchStore = defineStore('batch', () => {
       const failedJobs = result.value?.jobs.filter(job => job.status === 'failed') ?? []
       notifications.error(
         '批量写入完成，但有专辑失败',
-        `${nextResult.failed} 个专辑未能完成，详情已保留在专辑列表中。`,
+        `${nextResult.failed} 个专辑失败，详情已保留在专辑列表中。`,
         {
           sticky: true,
           diagnostics: failedJobs
@@ -253,7 +292,7 @@ export const useBatchStore = defineStore('batch', () => {
     if (failure.kind !== 'batch') {
       return
     }
-    notifications.error('批量写入过程失败', failure.message, {
+    notifications.error('批量写入失败', failure.message, {
       sticky: true,
       diagnostics: failure.details,
     })
@@ -365,6 +404,7 @@ export const useBatchStore = defineStore('batch', () => {
     setDepth,
     selectDirectory,
     scan,
+    loadJob,
     resolveCandidate,
     ignoreJob,
     isResolving,

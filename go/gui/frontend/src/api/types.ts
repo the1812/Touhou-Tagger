@@ -186,6 +186,7 @@ export interface OperationFailure {
 }
 
 export type BatchJobStatus =
+  | 'loading'
   | 'ready'
   | 'needs-candidate'
   | 'local-metadata'
@@ -270,6 +271,7 @@ export interface DesktopApi {
 export interface BatchApi {
   selectBatchDirectory(): Promise<string>
   scanBatch(directory: string, depth: number, source: string): Promise<BatchPreview>
+  loadBatchJob(batchId: string, jobId: string): Promise<BatchJobPreview>
   resolveBatchCandidate(
     batchId: string,
     jobId: string,

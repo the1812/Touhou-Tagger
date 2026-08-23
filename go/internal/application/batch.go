@@ -61,7 +61,11 @@ func (service *Service) ScanBatch(
 			})
 			continue
 		}
-		jobs = append(jobs, domain.BatchJob{Directory: albumDirectory, Name: name})
+		jobs = append(jobs, domain.BatchJob{
+			Directory:  albumDirectory,
+			Name:       name,
+			AudioCount: len(scan.AudioFiles),
+		})
 	}
 	return jobs, nil
 }

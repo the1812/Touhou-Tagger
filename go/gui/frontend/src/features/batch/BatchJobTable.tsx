@@ -14,6 +14,7 @@ const statusInfo = (status: BatchJobStatus) => {
     BatchJobStatus,
     { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }
   > = {
+    loading: { label: '加载中', severity: 'info' },
     ready: { label: '可写入', severity: 'success' },
     'needs-candidate': { label: '需要选择', severity: 'warn' },
     'local-metadata': { label: '本地元数据', severity: 'info' },
@@ -73,6 +74,7 @@ export const BatchJobTable = defineComponent({
   emits: {
     resolve: (jobId: string, candidateId: string) => Boolean(jobId && candidateId),
     ignore: (jobId: string) => Boolean(jobId),
+    retry: (jobId: string) => Boolean(jobId),
   },
   setup(props, { emit }) {
     const bodySlot =
@@ -97,12 +99,36 @@ export const BatchJobTable = defineComponent({
           </BatchTableTooltip>
         )
       }
+      if (job.status === 'loading') {
+        return <span class="text-muted-color">{'正在加载专辑数据'}</span>
+      }
+      if (job.status === 'scan-failed') {
+        return (
+          <div class="flex items-center justify-between gap-2">
+            <BatchTableTooltip
+              value={job.issues.map(issue => issue.message).join('；') || job.matchDescription}
+              contentClass="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-red-600 dark:text-red-300"
+            >
+              {job.matchDescription}
+            </BatchTableTooltip>
+            <Button
+              label={'重试'}
+              size="small"
+              severity="danger"
+              text
+              loading={props.resolving(job.id)}
+              disabled={props.disabled}
+              onClick={() => emit('retry', job.id)}
+            />
+          </div>
+        )
+      }
       if (job.status === 'needs-candidate' && job.candidates.length === 0) {
         return (
           <div class="flex items-center justify-between gap-2">
-            <span class="text-muted-color">未找到搜索结果</span>
+            <span class="text-muted-color">{'未找到搜索结果'}</span>
             <Button
-              label="忽略"
+              label={'忽略'}
               size="small"
               severity="secondary"
               text
@@ -123,7 +149,7 @@ export const BatchJobTable = defineComponent({
             options={candidateOptions(job)}
             optionLabel="label"
             optionValue="value"
-            placeholder="选择专辑"
+            placeholder={'选择专辑'}
             fluid
             loading={props.resolving(job.id)}
             disabled={props.disabled}
@@ -154,14 +180,14 @@ export const BatchJobTable = defineComponent({
         v-slots={{
           empty: () => (
             <div class="p-8 text-center text-muted-color">
-              无匹配目录，请尝试调整目录层级
+              {'无匹配目录，请尝试调整目录层级'}
             </div>
           ),
         }}
       >
         <Column
           field="relativePath"
-          header="专辑目录"
+          header={'专辑目录'}
           frozen
           headerClass={`${cellClass} w-[24%]`}
           bodyClass={`${cellClass} w-[24%]`}
@@ -178,24 +204,24 @@ export const BatchJobTable = defineComponent({
         />
         <Column
           field="inferredAlbumName"
-          header="专辑名称"
+          header={'专辑名称'}
           headerClass={`${cellClass} w-[24%]`}
           bodyClass={`${cellClass} w-[24%]`}
         />
         <Column
-          header="匹配结果"
+          header={'匹配结果'}
           headerClass={`${cellClass} w-[34%]`}
           bodyClass={`${cellClass} w-[34%]`}
           v-slots={{ body: bodySlot(matchCell) }}
         />
         <Column
           field="audioCount"
-          header="曲目"
+          header={'曲目'}
           headerClass={`${cellClass} w-16`}
           bodyClass={`${cellClass} w-16 tabular-nums`}
         />
         <Column
-          header="状态"
+          header={'状态'}
           headerClass={`${cellClass} w-28`}
           bodyClass={`${cellClass} w-28`}
           v-slots={{

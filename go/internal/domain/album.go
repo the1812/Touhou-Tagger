@@ -36,6 +36,7 @@ type TagPlan struct {
 type BatchJob struct {
 	Directory    string
 	Name         string
+	AudioCount   int
 	PreflightErr error
 	Ignored      bool
 }

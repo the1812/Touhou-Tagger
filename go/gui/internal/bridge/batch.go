@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
@@ -39,11 +40,12 @@ type batchSession struct {
 }
 
 type BatchService struct {
-	runtime *runtimeState
-	planner *planCoordinator
-	catalog *candidateCatalog
-	desktop *desktopService
-	ops     *operationManager
+	runtime   *runtimeState
+	planner   *planCoordinator
+	catalog   *candidateCatalog
+	desktop   *desktopService
+	ops       *operationManager
+	loadSlots chan struct{}
 
 	mu       sync.RWMutex
 	sessions map[string]*batchSession
@@ -59,11 +61,9 @@ func (service *BatchService) ScanBatch(
 	depth int,
 	sourceName string,
 ) (BatchPreview, error) {
-	baseConfig := service.runtime.getConfig()
-	if sourceName != "" {
-		baseConfig.Source = sourceName
+	if sourceName == "" {
+		sourceName = service.runtime.getConfig().Source
 	}
-	sourceName = baseConfig.Source
 	applicationService, err := service.runtime.service(nil)
 	if err != nil {
 		return BatchPreview{}, err
@@ -82,22 +82,15 @@ func (service *BatchService) ScanBatch(
 		depth: depth,
 		jobs:  make([]*batchJob, 0, len(jobs)),
 	}
-	stored := false
-	defer func() {
-		if !stored {
-			service.planner.discardOwner(session.id)
-		}
-	}()
 	for _, discovered := range jobs {
-		if err := ctx.Err(); err != nil {
-			return BatchPreview{}, err
-		}
 		job := &batchJob{
 			id:                newID("job"),
 			directory:         discovered.Directory,
 			inferredAlbumName: discovered.Name,
 			source:            sourceName,
-			status:            "needs-candidate",
+			audioCount:        discovered.AudioCount,
+			status:            "loading",
+			matchDescription:  "正在加载",
 			issues:            []StateIssue{},
 			candidates:        []AlbumCandidate{},
 		}
@@ -111,131 +104,6 @@ func (service *BatchService) ScanBatch(
 			job.status = "scan-failed"
 			job.matchDescription = "扫描失败"
 			job.issues = append(job.issues, errorIssue("scan-failed", discovered.PreflightErr.Error()))
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		scan, scanErr := applicationService.ScanAlbum(ctx, discovered.Directory)
-		if scanErr != nil {
-			job.status = "scan-failed"
-			job.matchDescription = "扫描失败"
-			job.issues = append(job.issues, errorIssue("scan-failed", scanErr.Error()))
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		job.audioCount = len(scan.AudioFiles)
-		if scan.MetadataPath != "" {
-			localCandidate := AlbumCandidate{
-				ID:          "local-json",
-				Title:       discovered.Name,
-				Source:      "local-json",
-				SourceLabel: sourceLabel("local-json"),
-				Artists:     []string{},
-				ExactMatch:  true,
-			}
-			job.candidates = []AlbumCandidate{localCandidate}
-			job.selectedCandidateID = localCandidate.ID
-			job.source = "local-json"
-			job.matchDescription = "精确匹配"
-			plan, prepareErr := service.planner.prepareOwnedPlan(
-				ctx,
-				discovered.Directory,
-				localCandidate.ID,
-				localCandidate.Source,
-				session.id,
-			)
-			if prepareErr != nil {
-				job.status = "scan-failed"
-				job.issues = append(job.issues, errorIssue("prepare-failed", prepareErr.Error()))
-			} else {
-				job.planID = plan.PlanID
-				job.revision = plan.Revision
-				job.issues = append(job.issues, plan.Issues...)
-				if plan.CanCommit {
-					job.status = "local-metadata"
-				} else {
-					job.status = "track-mismatch"
-				}
-			}
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		resolvedConfig, resolveErr := config.ResolveAlbum(
-			discovered.Directory,
-			baseConfig,
-			baseConfig.LyricEnabled,
-		)
-		if resolveErr != nil {
-			job.status = "scan-failed"
-			job.matchDescription = "配置解析失败"
-			job.issues = append(job.issues, errorIssue("config-failed", resolveErr.Error()))
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		job.source = resolvedConfig.Metadata.Source
-		if !service.runtime.searchableSource(job.source) {
-			job.status = "scan-failed"
-			job.matchDescription = "配置解析失败"
-			job.issues = append(job.issues, errorIssue(
-				"config-failed",
-				fmt.Sprintf("数据源 %q 不支持专辑搜索", job.source),
-			))
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		candidates, searchErr := service.catalog.search(
-			ctx,
-			service.runtime,
-			session.id,
-			discovered.Directory,
-			discovered.Name,
-			job.source,
-			false,
-		)
-		if searchErr != nil {
-			job.status = "scan-failed"
-			job.matchDescription = "搜索失败"
-			job.issues = append(job.issues, errorIssue("search-failed", searchErr.Error()))
-			session.jobs = append(session.jobs, job)
-			continue
-		}
-		job.candidates = candidates
-		exact := exactCandidate(candidates)
-		switch {
-		case exact != nil:
-			job.selectedCandidateID = exact.ID
-			job.matchDescription = "精确匹配"
-			plan, prepareErr := service.planner.prepareOwnedPlan(
-				ctx,
-				discovered.Directory,
-				exact.ID,
-				exact.Source,
-				session.id,
-			)
-			if prepareErr != nil {
-				job.status = "scan-failed"
-				job.issues = append(job.issues, errorIssue("prepare-failed", prepareErr.Error()))
-			} else {
-				job.planID = plan.PlanID
-				job.revision = plan.Revision
-				job.issues = append(job.issues, plan.Issues...)
-				if plan.CanCommit {
-					job.status = "ready"
-				} else {
-					job.status = "track-mismatch"
-				}
-			}
-		case len(candidates) == 0:
-			job.matchDescription = "没有匹配结果"
-			job.issues = append(job.issues, warningIssue(
-				"candidate-required",
-				"没有找到匹配专辑，请修改专辑名称后重新扫描。",
-			))
-		default:
-			job.matchDescription = fmt.Sprintf("%d 个搜索结果", len(candidates))
-			job.issues = append(job.issues, warningIssue(
-				"candidate-required",
-				"写入前需要选择匹配的专辑。",
-			))
 		}
 		session.jobs = append(session.jobs, job)
 	}
@@ -252,8 +120,212 @@ func (service *BatchService) ScanBatch(
 	}
 	service.sessions[session.id] = session
 	service.mu.Unlock()
-	stored = true
 	return batchPreview(session), nil
+}
+
+func (service *BatchService) LoadBatchJob(
+	ctx context.Context,
+	batchID string,
+	jobID string,
+) (BatchJobPreview, error) {
+	select {
+	case service.loadSlots <- struct{}{}:
+		defer func() { <-service.loadSlots }()
+	case <-ctx.Done():
+		return BatchJobPreview{}, ctx.Err()
+	}
+	service.mu.RLock()
+	session, exists := service.sessions[batchID]
+	if !exists {
+		service.mu.RUnlock()
+		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+	}
+	session.mu.Lock()
+	service.mu.RUnlock()
+	if session.running {
+		session.mu.Unlock()
+		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能重新加载专辑")
+	}
+	var job *batchJob
+	for _, item := range session.jobs {
+		if item.id == jobID {
+			job = item
+			break
+		}
+	}
+	if job == nil {
+		session.mu.Unlock()
+		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
+	}
+	if job.resolving || job.status == "ignored" {
+		session.mu.Unlock()
+		return BatchJobPreview{}, fmt.Errorf("这个专辑当前不能重新加载")
+	}
+	token := newID("load")
+	previousPlanID := job.planID
+	job.resolving = true
+	job.resolveToken = token
+	job.status = "loading"
+	job.matchDescription = "正在加载"
+	job.issues = []StateIssue{}
+	job.candidates = []AlbumCandidate{}
+	job.selectedCandidateID = ""
+	job.planID = ""
+	job.revision = 0
+	working := &batchJob{
+		id: job.id, directory: job.directory, inferredAlbumName: job.inferredAlbumName,
+		source: job.source, audioCount: job.audioCount, status: "loading",
+		matchDescription: "正在加载", issues: []StateIssue{}, candidates: []AlbumCandidate{},
+	}
+	session.mu.Unlock()
+	if previousPlanID != "" {
+		service.planner.discard(previousPlanID)
+	}
+
+	service.loadBatchJob(ctx, session, working)
+
+	service.mu.RLock()
+	current, currentExists := service.sessions[batchID]
+	if !currentExists || current != session {
+		service.mu.RUnlock()
+		if working.planID != "" {
+			service.planner.discard(working.planID)
+		}
+		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+	}
+	session.mu.Lock()
+	service.mu.RUnlock()
+	defer session.mu.Unlock()
+	if session.running || !job.resolving || job.resolveToken != token {
+		if working.planID != "" {
+			service.planner.discard(working.planID)
+		}
+		return BatchJobPreview{}, fmt.Errorf("专辑加载结果已失效")
+	}
+	working.resolving = false
+	working.resolveToken = ""
+	*job = *working
+	return batchJobPreview(session.root, job), nil
+}
+
+func (service *BatchService) loadBatchJob(
+	ctx context.Context,
+	session *batchSession,
+	job *batchJob,
+) {
+	applicationService, err := service.runtime.service(nil)
+	if err != nil {
+		job.status = "scan-failed"
+		job.matchDescription = "扫描失败"
+		job.issues = append(job.issues, errorIssue("scan-failed", err.Error()))
+		return
+	}
+	scan, err := applicationService.ScanAlbum(ctx, job.directory)
+	if err != nil {
+		job.status = "scan-failed"
+		job.matchDescription = "扫描失败"
+		job.issues = append(job.issues, errorIssue("scan-failed", err.Error()))
+		return
+	}
+	job.audioCount = len(scan.AudioFiles)
+	if job.audioCount == 0 {
+		job.status = "ignored"
+		job.matchDescription = "无音频，已忽略"
+		return
+	}
+	job.inferredAlbumName, err = application.DefaultAlbumName(job.directory)
+	if err != nil {
+		job.status = "scan-failed"
+		job.matchDescription = "配置解析失败"
+		job.issues = append(job.issues, errorIssue("config-failed", err.Error()))
+		return
+	}
+	if scan.MetadataPath != "" {
+		localCandidate := AlbumCandidate{
+			ID:          "local-json",
+			Title:       job.inferredAlbumName,
+			Source:      "local-json",
+			SourceLabel: sourceLabel("local-json"),
+			Artists:     []string{},
+			ExactMatch:  true,
+		}
+		job.candidates = []AlbumCandidate{localCandidate}
+		job.selectedCandidateID = localCandidate.ID
+		job.source = localCandidate.Source
+		job.matchDescription = "精确匹配"
+		service.prepareBatchJob(ctx, session, job, localCandidate, "local-metadata")
+		return
+	}
+	baseConfig := service.runtime.getConfig()
+	baseConfig.Source = job.source
+	resolvedConfig, err := config.ResolveAlbum(job.directory, baseConfig, baseConfig.LyricEnabled)
+	if err != nil {
+		job.status = "scan-failed"
+		job.matchDescription = "配置解析失败"
+		job.issues = append(job.issues, errorIssue("config-failed", err.Error()))
+		return
+	}
+	job.source = resolvedConfig.Metadata.Source
+	if !service.runtime.searchableSource(job.source) {
+		job.status = "scan-failed"
+		job.matchDescription = "配置解析失败"
+		job.issues = append(job.issues, errorIssue("config-failed", fmt.Sprintf("数据源 %q 不支持专辑搜索", job.source)))
+		return
+	}
+	candidates, err := service.catalog.search(
+		ctx,
+		service.runtime,
+		session.id,
+		job.directory,
+		job.inferredAlbumName,
+		job.source,
+		false,
+	)
+	if err != nil {
+		job.status = "scan-failed"
+		job.matchDescription = "搜索失败"
+		job.issues = append(job.issues, errorIssue("search-failed", err.Error()))
+		return
+	}
+	job.candidates = candidates
+	exact := exactCandidate(candidates)
+	switch {
+	case exact != nil:
+		job.selectedCandidateID = exact.ID
+		job.matchDescription = "精确匹配"
+		service.prepareBatchJob(ctx, session, job, *exact, "ready")
+	case len(candidates) == 0:
+		job.status = "needs-candidate"
+		job.matchDescription = "没有匹配结果"
+		job.issues = append(job.issues, warningIssue("candidate-required", "没有找到匹配专辑，请忽略无法匹配的专辑。"))
+	default:
+		job.status = "needs-candidate"
+		job.matchDescription = fmt.Sprintf("%d 个搜索结果", len(candidates))
+		job.issues = append(job.issues, warningIssue("candidate-required", "写入前需要选择匹配的专辑。"))
+	}
+}
+
+func (service *BatchService) prepareBatchJob(
+	ctx context.Context,
+	session *batchSession,
+	job *batchJob,
+	candidate AlbumCandidate,
+	readyStatus string,
+) {
+	plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, session.id)
+	if err != nil {
+		job.status = "scan-failed"
+		job.issues = append(job.issues, errorIssue("prepare-failed", err.Error()))
+		return
+	}
+	job.planID = plan.PlanID
+	job.revision = plan.Revision
+	job.issues = append(job.issues, plan.Issues...)
+	if plan.CanCommit {
+		job.status = readyStatus
+	} else {
+		job.status = "track-mismatch"
+	}
 }
 
 func (service *BatchService) ResolveBatchCandidate(
@@ -415,9 +487,9 @@ func (service *BatchService) RunBatch(
 		return OperationStart{}, fmt.Errorf("批量写入正在运行")
 	}
 	for _, job := range session.jobs {
-		if job.resolving {
+		if job.resolving || job.status == "loading" {
 			session.mu.Unlock()
-			return OperationStart{}, fmt.Errorf("仍有搜索结果正在加载，请稍候")
+			return OperationStart{}, fmt.Errorf("仍有专辑数据正在加载，请稍候")
 		}
 	}
 	selected := make([]string, 0, len(session.jobs))

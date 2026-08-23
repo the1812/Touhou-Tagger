@@ -69,12 +69,13 @@ func NewBackend(options BackendOptions) *Backend {
 		startupDirectory: options.StartupDirectory,
 	}
 	batch := &BatchService{
-		runtime:  runtime,
-		planner:  planner,
-		catalog:  catalog,
-		desktop:  desktop,
-		ops:      operations,
-		sessions: make(map[string]*batchSession),
+		runtime:   runtime,
+		planner:   planner,
+		catalog:   catalog,
+		desktop:   desktop,
+		ops:       operations,
+		loadSlots: make(chan struct{}, 4),
+		sessions:  make(map[string]*batchSession),
 	}
 	settings := &SettingsService{runtime: runtime}
 	return &Backend{
