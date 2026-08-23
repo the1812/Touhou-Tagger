@@ -4,6 +4,7 @@ import InputText from 'primevue/inputtext'
 import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { AlbumMetadata } from '../../api'
+import { t } from '../../i18n'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
 const fieldClass =
@@ -61,28 +62,28 @@ export const AlbumMetadataDialog = defineComponent({
           'onUpdate:visible': (value: boolean) => emit('update:visible', value),
         }}
         modal
-        header="编辑专辑信息"
+        header={t('tagging.albumDialog.header')}
         class="w-[min(560px,calc(100vw-2rem))]"
       >
         {{
           default: () => (
             <div class="grid gap-3.5">
               <label class={fieldClass}>
-                <span>专辑名称</span>
+                <span>{t('tagging.albumDialog.title')}</span>
                 <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
               </label>
               <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
                 <label class={fieldClass}>
-                  <span>发行编号</span>
+                  <span>{t('tagging.albumDialog.catalogNumber')}</span>
                   <InputText v-model={draft.albumOrder} fluid />
                 </label>
                 <label class={fieldClass}>
-                  <span>年份</span>
+                  <span>{t('tagging.albumDialog.year')}</span>
                   <InputText v-model={draft.year} fluid />
                 </label>
               </div>
               <label class={fieldClass}>
-                <span>社团</span>
+                <span>{t('tagging.albumDialog.circles')}</span>
                 <MetadataTagsInput
                   modelValue={draft.artists}
                   {...{
@@ -93,7 +94,7 @@ export const AlbumMetadataDialog = defineComponent({
                 />
               </label>
               <label class={fieldClass}>
-                <span>风格</span>
+                <span>{t('tagging.albumDialog.genres')}</span>
                 <MetadataTagsInput
                   modelValue={draft.genres}
                   {...{
@@ -108,12 +109,12 @@ export const AlbumMetadataDialog = defineComponent({
           footer: () => (
             <>
               <Button
-                label="取消"
+                label={t('common.cancel')}
                 severity="secondary"
                 text
                 onClick={() => emit('update:visible', false)}
               />
-              <Button label="保存" disabled={!draft.title.trim()} onClick={save} />
+              <Button label={t('common.save')} disabled={!draft.title.trim()} onClick={save} />
             </>
           ),
         }}

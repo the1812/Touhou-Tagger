@@ -153,6 +153,7 @@ func (manager *operationManager) progress(operationID string, event domain.Progr
 		Current:     event.Current,
 		Total:       event.Total,
 		Message:     operationMessage(event),
+		MessageID:   operationMessageID(event.Stage),
 		Cancellable: item.cancellable,
 	}
 	if event.Path != "" {
@@ -162,6 +163,29 @@ func (manager *operationManager) progress(operationID string, event domain.Progr
 	manager.mu.Unlock()
 	if emitter != nil {
 		emitter(operationProgressEvent, progress)
+	}
+}
+
+func operationMessageID(stage domain.EventStage) string {
+	switch stage {
+	case domain.StageScan:
+		return "scan"
+	case domain.StageSearch:
+		return "search"
+	case domain.StageFetch:
+		return "fetch"
+	case domain.StagePlan:
+		return "plan"
+	case domain.StageWrite:
+		return "write"
+	case domain.StageCommit:
+		return "commit"
+	case domain.StageRename:
+		return "rename"
+	case domain.StageComplete:
+		return "complete"
+	default:
+		return ""
 	}
 }
 

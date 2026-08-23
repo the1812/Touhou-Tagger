@@ -20,7 +20,7 @@ export const router = createRouter({
       path: item.path,
       name: item.name,
       component: components[item.name],
-      meta: { title: item.title },
+      meta: { titleKey: item.titleKey },
     })),
   ],
 })

@@ -1,6 +1,7 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 
 import { getApi, isFixtureMode } from '../api'
+import { t } from '../i18n'
 import { useNotificationsStore } from '../stores/notifications'
 import { useOperationsStore } from '../stores/operations'
 import { useSettingsStore } from '../stores/settings'
@@ -20,7 +21,7 @@ export const useAppRuntime = () => {
       api.onComplete(operations.receiveComplete),
       api.onFailure(operations.receiveFailure),
       api.onProcessError(error => {
-        notifications.error('操作未完全完成', error.message, {
+        notifications.error(t('operation.incomplete'), error.message, {
           diagnostics: error.details,
         })
       }),

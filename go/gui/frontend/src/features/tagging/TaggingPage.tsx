@@ -14,6 +14,7 @@ import Skeleton from 'primevue/skeleton'
 import { defineComponent } from 'vue'
 
 import { usePageCommands } from '../../app/pageCommands'
+import { t } from '../../i18n'
 import { CompletionPanel } from '../../shared/CompletionPanel'
 import { OperationPanel } from '../../shared/OperationPanel'
 import { useWorkspaceStore } from '../../stores/workspace'
@@ -57,7 +58,7 @@ export const TaggingPage = defineComponent({
             <section class="page-empty-state">
               <Button
                 class="directory-picker-button"
-                label="选择目录"
+                label={t('common.selectDirectory')}
                 size="large"
                 loading={currentPhase === 'selecting'}
                 onClick={() => workspace.selectDirectory()}
@@ -87,7 +88,7 @@ export const TaggingPage = defineComponent({
                       <div class="workspace-heading">
                         <div>
                           <h2 class="mt-1 text-[1.18rem] font-bold">
-                            {currentSummary.inferredAlbumName || '未命名专辑'}
+                            {currentSummary.inferredAlbumName || t('tagging.unnamedAlbum')}
                           </h2>
                           <p
                             class="mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem] text-muted-color"
@@ -98,7 +99,7 @@ export const TaggingPage = defineComponent({
                         </div>
                         <div class="flex items-center gap-1.5">
                           <Button
-                            title="在资源管理器中打开"
+                            title={t('common.revealDirectory')}
                             severity="secondary"
                             text
                             rounded
@@ -107,7 +108,7 @@ export const TaggingPage = defineComponent({
                             {{ icon: () => <ExternalLink size={17} /> }}
                           </Button>
                           <Button
-                            title="重新扫描 (F5)"
+                            title={t('tagging.rescan')}
                             severity="secondary"
                             text
                             rounded
@@ -117,7 +118,7 @@ export const TaggingPage = defineComponent({
                             {{ icon: () => <RefreshCw size={17} /> }}
                           </Button>
                           <Button
-                            label="更换目录"
+                            label={t('common.changeDirectory')}
                             severity="secondary"
                             outlined
                             disabled={isBusy.value}
@@ -131,7 +132,11 @@ export const TaggingPage = defineComponent({
                       <div class="mt-3 flex w-max max-w-full items-center gap-0.5">
                         <div
                           class="status-icon w-auto gap-1.5 py-0 pl-1 pr-2 text-primary [&>strong]:text-[.82rem] [&>strong]:tabular-nums"
-                          v-tooltip={`${currentSummary.audioCount} 首音频（${currentSummary.mp3Count} MP3 · ${currentSummary.flacCount} FLAC）`}
+                          v-tooltip={t('tagging.audioSummary', {
+                            count: currentSummary.audioCount,
+                            mp3: currentSummary.mp3Count,
+                            flac: currentSummary.flacCount,
+                          })}
                         >
                           <FileAudio size={19} />
                           <strong>{currentSummary.audioCount}</strong>
@@ -144,8 +149,11 @@ export const TaggingPage = defineComponent({
                           v-tooltip={
                             currentSummary.localCover.issue?.message ||
                             (currentSummary.localCover.exists
-                              ? `本地封面：${currentSummary.localCover.fileName || '已找到'}`
-                              : '没有本地封面，可使用数据源封面')
+                              ? t('tagging.localCoverFound', {
+                                  name:
+                                    currentSummary.localCover.fileName || t('tagging.found'),
+                                })
+                              : t('tagging.noLocalCover'))
                           }
                         >
                           <ImageIcon size={19} />
@@ -157,8 +165,8 @@ export const TaggingPage = defineComponent({
                           ]}
                           v-tooltip={
                             currentSummary.hasMetadataJson
-                              ? '已有 metadata.json，将跳过在线搜索'
-                              : '没有 metadata.json，需要匹配元数据'
+                              ? t('tagging.hasMetadata')
+                              : t('tagging.noMetadata')
                           }
                         >
                           <FileJson size={19} />
@@ -170,8 +178,8 @@ export const TaggingPage = defineComponent({
                           ]}
                           v-tooltip={
                             currentSummary.hasAlbumConfig
-                              ? '已有 thtag.json，将应用专辑级配置'
-                              : '没有 thtag.json，使用全局设置'
+                              ? t('tagging.hasAlbumConfig')
+                              : t('tagging.noAlbumConfig')
                           }
                         >
                           <FileCog size={19} />
@@ -192,7 +200,7 @@ export const TaggingPage = defineComponent({
 
                       {currentPhase === 'failed' && (
                         <Message severity="warn" closable={false}>
-                          文件状态可能已经变化，原写入内容已失效。请重新扫描当前目录后再继续。
+                          {t('tagging.planInvalidated')}
                         </Message>
                       )}
                     </>

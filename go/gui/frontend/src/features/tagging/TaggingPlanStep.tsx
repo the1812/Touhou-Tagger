@@ -4,8 +4,10 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { defineComponent, ref } from 'vue'
+import { Translation } from 'vue-i18n'
 
 import type { PlanItemPreview } from '../../api'
+import { t } from '../../i18n'
 import { PageActionBar } from '../../shared/PageActionBar'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { AlbumMetadataDialog } from './AlbumMetadataDialog'
@@ -52,7 +54,9 @@ export const TaggingPlanStep = defineComponent({
                     disabled={isBusy.value}
                   />
                   <strong>
-                    {summary.value?.localCover.exists ? '覆盖本地封面' : '另存原始封面'}
+                    {summary.value?.localCover.exists
+                      ? t('tagging.plan.overwriteCover')
+                      : t('tagging.plan.saveOriginalCover')}
                   </strong>
                 </label>
               )}
@@ -61,7 +65,7 @@ export const TaggingPlanStep = defineComponent({
               <div class="workspace-heading">
                 <h2 class="mt-1 text-[1.18rem] font-bold">{currentPlan.album.title}</h2>
                 <Button
-                  label="编辑专辑信息"
+                  label={t('tagging.plan.editAlbum')}
                   severity="secondary"
                   outlined
                   disabled={isBusy.value}
@@ -74,23 +78,23 @@ export const TaggingPlanStep = defineComponent({
               </div>
               <div class="grid gap-2 [&>span]:grid [&>span]:grid-cols-[4rem_minmax(0,1fr)] [&>span]:text-sm [&>span]:text-muted-color [&_strong]:text-color">
                 <span>
-                  <strong>社团</strong>
+                  <strong>{t('tagging.plan.circles')}</strong>
                   {currentPlan.album.artists.join(' / ') || '—'}
                 </span>
                 <span>
-                  <strong>年份</strong>
+                  <strong>{t('tagging.plan.year')}</strong>
                   {currentPlan.album.year || '—'}
                 </span>
                 <span>
-                  <strong>编号</strong>
+                  <strong>{t('tagging.plan.catalogNumber')}</strong>
                   {currentPlan.album.albumOrder || '—'}
                 </span>
                 <span>
-                  <strong>风格</strong>
+                  <strong>{t('tagging.plan.genres')}</strong>
                   {currentPlan.album.genres.join(' / ') || '—'}
                 </span>
                 <span>
-                  <strong>来源</strong>
+                  <strong>{t('tagging.plan.source')}</strong>
                   {currentPlan.candidate.sourceLabel}
                 </span>
               </div>
@@ -98,7 +102,9 @@ export const TaggingPlanStep = defineComponent({
           </section>
 
           <section class="workspace-section grid min-h-[380px] w-full gap-4 border-b-0">
-            <h2 class="m-0 text-base font-bold">{currentPlan.items.length} 首曲目</h2>
+            <h2 class="m-0 text-base font-bold">
+              {t('tagging.plan.trackCount', { count: currentPlan.items.length })}
+            </h2>
             {currentPlan.issues.map(issue => (
               <Message
                 key={issue.code}
@@ -113,13 +119,21 @@ export const TaggingPlanStep = defineComponent({
 
           <PageActionBar>
             <span class="text-[.85rem] text-muted-color [&_strong]:text-color">
-              将写入 <strong>{currentPlan.options.writeFiles}</strong> 个文件
+              <Translation
+                keypath="tagging.plan.writeFiles"
+                scope="global"
+                v-slots={{
+                  count: () => <strong>{currentPlan.options.writeFiles}</strong>,
+                }}
+              />
               {currentPlan.options.saveCover &&
-                (summary.value?.localCover.exists ? '，覆盖本地封面' : '，另存原始封面')}
+                (summary.value?.localCover.exists
+                  ? t('tagging.plan.overwriteCoverSuffix')
+                  : t('tagging.plan.saveOriginalCoverSuffix'))}
             </span>
             <div class="flex items-center gap-4">
               <Button
-                label="上一步"
+                label={t('common.previous')}
                 severity="secondary"
                 text
                 disabled={isBusy.value}
@@ -129,13 +143,15 @@ export const TaggingPlanStep = defineComponent({
                 class="inline-flex"
                 v-tooltip={{
                   value: blockingIssues.value.length
-                    ? `${blockingIssues.value.length} 个阻塞问题需要修复`
-                    : '可以开始写入',
+                    ? t('tagging.plan.blockingIssues', { count: blockingIssues.value.length })
+                    : t('tagging.plan.ready'),
                   disabled: blockingIssues.value.length === 0,
                 }}
               >
                 <Button
-                  label={`写入 ${currentPlan.options.writeFiles} 首`}
+                  label={t('tagging.plan.writeTracks', {
+                    count: currentPlan.options.writeFiles,
+                  })}
                   size="large"
                   disabled={!canCommit.value}
                   onClick={() => workspace.commit()}

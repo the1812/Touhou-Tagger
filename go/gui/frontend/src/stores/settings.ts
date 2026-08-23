@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, toRaw, watch } from 'vue'
 
 import { getApi, type Capabilities, type Settings } from '../api'
+import { t } from '../i18n'
 import { useNotificationsStore } from './notifications'
 
 const settingsEqual = (left?: Settings, right?: Settings) =>
@@ -31,31 +32,31 @@ export const useSettingsStore = defineStore('settings', () => {
     }
     const next: Record<string, string> = {}
     if (!value.mp3MultiValueSeparator.trim()) {
-      next.mp3MultiValueSeparator = '分隔符不能为空。'
+      next.mp3MultiValueSeparator = t('validation.separatorRequired')
     }
     if (value.requestTimeoutSeconds < 1 || value.requestTimeoutSeconds > 300) {
-      next.requestTimeoutSeconds = '请求超时必须在 1 到 300 秒之间。'
+      next.requestTimeoutSeconds = t('validation.requestTimeoutRange')
     }
     if (value.retryCount < 1 || value.retryCount > 10) {
-      next.retryCount = '重试次数必须在 1 到 10 之间。'
+      next.retryCount = t('validation.retryCountRange')
     }
     if (
       value.coverCompressionThresholdKb !== 0 &&
       (value.coverCompressionThresholdKb < 64 || value.coverCompressionThresholdKb > 102400)
     ) {
-      next.coverCompressionThresholdKb = '输入 0 可禁用压缩，否则阈值必须在 64 到 102400 KB 之间。'
+      next.coverCompressionThresholdKb = t('validation.coverThresholdRange')
     }
     if ((value.coverMaxEdge !== 0 && value.coverMaxEdge < 256) || value.coverMaxEdge > 8192) {
-      next.coverMaxEdge = '输入 0 可禁用缩放，否则边长必须在 256 到 8192 像素之间。'
+      next.coverMaxEdge = t('validation.coverMaxEdgeRange')
     }
     if (value.writeLyricsMetadata && value.writeLrcFiles) {
-      next.lyricDestination = '歌词只能写入 metadata 或 LRC 其中一处。'
+      next.lyricDestination = t('validation.lyricDestinationConflict')
     }
     if (!value.mixedLyricSeparator.trim()) {
-      next.mixedLyricSeparator = '混合歌词分隔符不能为空。'
+      next.mixedLyricSeparator = t('validation.mixedLyricSeparatorRequired')
     }
     if (value.lyricCacheSize < 1 || value.lyricCacheSize > 10000) {
-      next.lyricCacheSize = '缓存数量必须在 1 到 10000 之间。'
+      next.lyricCacheSize = t('validation.lyricCacheSizeRange')
     }
     if (
       capabilities.value &&
@@ -63,7 +64,7 @@ export const useSettingsStore = defineStore('settings', () => {
         source => source.supportsSearch && source.value === value.defaultSource,
       )
     ) {
-      next.defaultSource = '请选择支持搜索的数据源。'
+      next.defaultSource = t('validation.searchableSourceRequired')
     }
     return next
   })
@@ -85,7 +86,7 @@ export const useSettingsStore = defineStore('settings', () => {
         draft.value = cloneSettings(nextSettings)
         capabilities.value = nextCapabilities
       } catch (error) {
-        notifications.error('加载设置失败', error)
+        notifications.error(t('notifications.loadSettingsFailed'), error)
       } finally {
         loading.value = false
         loadPromise = undefined
@@ -124,7 +125,7 @@ export const useSettingsStore = defineStore('settings', () => {
         }
         return true
       } catch (error) {
-        notifications.error('自动保存设置失败', error)
+        notifications.error(t('notifications.autoSaveSettingsFailed'), error)
         return false
       } finally {
         saving.value = false
@@ -176,9 +177,12 @@ export const useSettingsStore = defineStore('settings', () => {
       const nextSettings = await api.resetSettings()
       saved.value = cloneSettings(nextSettings)
       draft.value = cloneSettings(nextSettings)
-      notifications.success('已恢复默认设置', '默认设置已经保存。')
+      notifications.success(
+        t('notifications.settingsReset'),
+        t('notifications.settingsResetDetail'),
+      )
     } catch (error) {
-      notifications.error('恢复默认设置失败', error)
+      notifications.error(t('notifications.resetSettingsFailed'), error)
     } finally {
       saving.value = false
     }

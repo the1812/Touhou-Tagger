@@ -12,6 +12,7 @@ import {
   type TrackMetadataPatch,
   type WorkspaceSummary,
 } from '../api'
+import { t } from '../i18n'
 import { useNotificationsStore } from './notifications'
 import { useOperationsStore } from './operations'
 import { useSettingsStore } from './settings'
@@ -99,7 +100,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       const api = await getApi()
       await api.discardPlan(planId)
     } catch (error) {
-      notifications.error('释放旧写入内容失败', error)
+      notifications.error(t('notifications.discardPlanFailed'), error)
     }
   }
 
@@ -127,7 +128,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = 'matched'
-      notifications.error('准备写入内容失败', error)
+      notifications.error(t('notifications.preparePlanFailed'), error)
     }
   }
 
@@ -165,7 +166,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = candidates.value.length ? 'matched' : 'scanned'
-      notifications.error('搜索专辑失败', error)
+      notifications.error(t('notifications.searchAlbumsFailed'), error)
     }
   }
 
@@ -200,7 +201,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = summary.value ? 'scanned' : 'idle'
-      notifications.error('扫描专辑失败', error)
+      notifications.error(t('notifications.scanAlbumFailed'), error)
     }
   }
 
@@ -212,7 +213,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     phase.value = 'selecting'
     try {
       const api = await getApi()
-      const selected = await api.selectAlbumDirectory()
+      const selected = await api.selectAlbumDirectory(t('tagging.selectDirectoryDialog'))
       if (!selected) {
         phase.value = previousPhase
         return
@@ -221,7 +222,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       await scan(selected)
     } catch (error) {
       phase.value = previousPhase
-      notifications.error('无法选择专辑文件夹', error)
+      notifications.error(t('notifications.selectAlbumDirectoryFailed'), error)
     }
   }
 
@@ -280,7 +281,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = 'ready'
-      notifications.error('更新专辑信息失败', error)
+      notifications.error(t('notifications.updateAlbumFailed'), error)
     }
   }
 
@@ -308,7 +309,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = 'ready'
-      notifications.error('更新曲目信息失败', error)
+      notifications.error(t('notifications.updateTrackFailed'), error)
     }
   }
 
@@ -336,7 +337,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return
       }
       phase.value = 'ready'
-      notifications.error('更新封面保存选项失败', error)
+      notifications.error(t('notifications.updateCoverOptionFailed'), error)
     }
   }
 
@@ -348,7 +349,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     if (nextResult.cancelled) {
       result.value = undefined
       phase.value = plan.value ? 'ready' : 'failed'
-      notifications.info('写入已取消', nextResult.message)
+      notifications.info(t('notifications.writeCancelled'), nextResult.message)
       return
     }
     result.value = nextResult
@@ -366,7 +367,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     } else {
       phase.value = plan.value ? 'ready' : 'failed'
     }
-    notifications.error('写入过程失败', failure.message, {
+    notifications.error(t('notifications.writeFailed'), failure.message, {
       sticky: true,
       diagnostics: failure.details,
     })
@@ -390,7 +391,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
           stage: 'preparing',
           current: 0,
           total: currentPlan.items.length,
-          message: '正在准备写入',
+          message: t('notifications.preparingWrite'),
           cancellable: true,
         },
         {
@@ -411,7 +412,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
             cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
         }
       }
-      notifications.error('无法开始写入', error, {
+      notifications.error(t('notifications.startWriteFailed'), error, {
         sticky: true,
         diagnostics: cleanupDetails || undefined,
       })
@@ -426,7 +427,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       const api = await getApi()
       await api.cancelOperation(operation.value.operationId)
     } catch (error) {
-      notifications.error('取消写入失败', error)
+      notifications.error(t('notifications.cancelWriteFailed'), error)
     }
   }
 
@@ -438,7 +439,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       const api = await getApi()
       await api.revealDirectory(directory.value)
     } catch (error) {
-      notifications.error('无法在资源管理器中打开目录', error)
+      notifications.error(t('notifications.revealDirectoryFailed'), error)
     }
   }
 
@@ -464,7 +465,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         await scan(startupDirectory)
       }
     } catch (error) {
-      notifications.error('无法加载启动目录', error)
+      notifications.error(t('notifications.loadStartupDirectoryFailed'), error)
     }
   }
 

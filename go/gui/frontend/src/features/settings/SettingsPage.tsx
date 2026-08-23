@@ -12,6 +12,7 @@ import { computed, defineComponent, onMounted } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useSettingsStore } from '../../stores/settings'
+import { t } from '../../i18n'
 
 const fieldClass =
   'grid content-start gap-1.5 text-[.8rem] font-semibold text-color [&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color'
@@ -30,9 +31,9 @@ export const SettingsPage = defineComponent({
       capabilities.value?.sources.filter(option => option.supportsSearch),
     )
     const lyricDestinations = [
-      { label: '不写入歌词', value: 'none' },
-      { label: '写入音频 metadata', value: 'metadata' },
-      { label: '生成独立 LRC 文件', value: 'lrc' },
+      { label: t('settings.lyricDestination.none'), value: 'none' },
+      { label: t('settings.lyricDestination.metadata'), value: 'metadata' },
+      { label: t('settings.lyricDestination.lrc'), value: 'lrc' },
     ]
     const lyricDestination = computed({
       get: () => {
@@ -64,10 +65,10 @@ export const SettingsPage = defineComponent({
       return new Promise<boolean>(resolve => {
         confirm.require({
           group: 'settings-leave',
-          header: '放弃未保存的设置？',
-          message: '离开此页面将丢弃当前修改。',
-          acceptLabel: '放弃并离开',
-          rejectLabel: '继续编辑',
+          header: t('settings.discardChanges.header'),
+          message: t('settings.discardChanges.message'),
+          acceptLabel: t('settings.discardChanges.accept'),
+          rejectLabel: t('settings.discardChanges.reject'),
           accept: () => {
             settingsStore.discard()
             resolve(true)
@@ -80,10 +81,10 @@ export const SettingsPage = defineComponent({
     const confirmReset = () => {
       confirm.require({
         group: 'settings-reset',
-        header: '恢复默认设置？',
-        message: '当前配置会被默认值替换并立即保存。',
-        acceptLabel: '恢复默认设置',
-        rejectLabel: '取消',
+        header: t('settings.reset.header'),
+        message: t('settings.reset.message'),
+        acceptLabel: t('settings.reset.accept'),
+        rejectLabel: t('common.cancel'),
         accept: settingsStore.reset,
       })
     }
@@ -102,10 +103,10 @@ export const SettingsPage = defineComponent({
             <div class="h-full min-h-0 overflow-auto">
               <div class="px-6">
                 <section class={sectionClass}>
-                  <h2>常规</h2>
+                  <h2>{t('settings.general')}</h2>
                   <div class={gridClass}>
                     <label class={fieldClass}>
-                      <span>默认数据源</span>
+                      <span>{t('settings.defaultSource')}</span>
                       <Select
                         v-model={currentDraft.defaultSource}
                         options={searchableSources.value}
@@ -121,7 +122,7 @@ export const SettingsPage = defineComponent({
                       )}
                     </label>
                     <label class={fieldClass}>
-                      <span>注释语言</span>
+                      <span>{t('settings.commentLanguage')}</span>
                       <Select
                         v-model={currentDraft.commentLanguage}
                         options={capabilities.value?.commentLanguages}
@@ -132,7 +133,7 @@ export const SettingsPage = defineComponent({
                       />
                     </label>
                     <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
-                      <span>MP3 多值分隔符</span>
+                      <span>{t('settings.mp3Separator')}</span>
                       <InputText
                         v-model={currentDraft.mp3MultiValueSeparator}
                         invalid={Boolean(errors.value.mp3MultiValueSeparator)}
@@ -144,11 +145,11 @@ export const SettingsPage = defineComponent({
                           {errors.value.mp3MultiValueSeparator}
                         </small>
                       ) : (
-                        <small>用于把多个艺术家、风格等值写入一个 MP3 文本字段。</small>
+                        <small>{t('settings.mp3SeparatorHelp')}</small>
                       )}
                     </label>
                     <label class={fieldClass}>
-                      <span>请求超时（秒）</span>
+                      <span>{t('settings.requestTimeout')}</span>
                       <InputNumber
                         v-model={currentDraft.requestTimeoutSeconds}
                         min={1}
@@ -165,7 +166,7 @@ export const SettingsPage = defineComponent({
                       )}
                     </label>
                     <label class={fieldClass}>
-                      <span>重试次数</span>
+                      <span>{t('settings.retryCount')}</span>
                       <InputNumber
                         v-model={currentDraft.retryCount}
                         min={1}
@@ -185,15 +186,15 @@ export const SettingsPage = defineComponent({
                 </section>
 
                 <section class={sectionClass}>
-                  <h2>封面</h2>
+                  <h2>{t('settings.cover')}</h2>
                   <div class={gridClass}>
                     <label class={fieldClass}>
                       <span class="flex items-center gap-1">
-                        压缩阈值（KB）
+                        {t('settings.coverThreshold')}
                         <button
                           type="button"
                           class="help-icon"
-                          v-tooltip={{ value: '设为 0 时不启用封面压缩。' }}
+                          v-tooltip={{ value: t('settings.coverThresholdHelp') }}
                         >
                           <Info size={13} />
                         </button>
@@ -215,11 +216,11 @@ export const SettingsPage = defineComponent({
                     </label>
                     <label class={fieldClass}>
                       <span class="flex items-center gap-1">
-                        最大边长（像素）
+                        {t('settings.coverMaxEdge')}
                         <button
                           type="button"
                           class="help-icon"
-                          v-tooltip={{ value: '设为 0 时不限制封面最大边长。' }}
+                          v-tooltip={{ value: t('settings.coverMaxEdgeHelp') }}
                         >
                           <Info size={13} />
                         </button>
@@ -244,10 +245,10 @@ export const SettingsPage = defineComponent({
                 </section>
 
                 <section class={sectionClass}>
-                  <h2>歌词</h2>
+                  <h2>{t('settings.lyrics')}</h2>
                   <div class={gridClass}>
                     <label class={fieldClass}>
-                      <span>输出位置</span>
+                      <span>{t('settings.outputDestination')}</span>
                       <Select
                         v-model={lyricDestination.value}
                         options={lyricDestinations}
@@ -263,7 +264,7 @@ export const SettingsPage = defineComponent({
                       )}
                     </label>
                     <label class={fieldClass}>
-                      <span>歌词类型</span>
+                      <span>{t('settings.lyricType')}</span>
                       <Select
                         v-model={currentDraft.lyricType}
                         options={capabilities.value?.lyricTypes}
@@ -275,7 +276,7 @@ export const SettingsPage = defineComponent({
                       />
                     </label>
                     <label class={`${fieldClass} col-span-full max-[980px]:col-auto`}>
-                      <span>混合歌词分隔符</span>
+                      <span>{t('settings.mixedLyricSeparator')}</span>
                       <InputText
                         v-model={currentDraft.mixedLyricSeparator}
                         size="small"
@@ -291,9 +292,9 @@ export const SettingsPage = defineComponent({
                     </label>
                     <label class="flex min-w-0 items-center justify-between gap-4 text-[.8rem]">
                       <span class="grid gap-1">
-                        <strong>保留歌词时间轴</strong>
+                        <strong>{t('settings.preserveTimeline')}</strong>
                         <small class="font-normal text-muted-color">
-                          保留现有时间标记，供 metadata 或 LRC 输出使用。
+                          {t('settings.preserveTimelineHelp')}
                         </small>
                       </span>
                       <ToggleSwitch
@@ -302,7 +303,7 @@ export const SettingsPage = defineComponent({
                       />
                     </label>
                     <label class={fieldClass}>
-                      <span>歌词缓存数量</span>
+                      <span>{t('settings.lyricCacheSize')}</span>
                       <InputNumber
                         v-model={currentDraft.lyricCacheSize}
                         min={1}
@@ -325,7 +326,7 @@ export const SettingsPage = defineComponent({
 
               <div class="flex items-center justify-center border-t border-surface-200 px-6 pb-6 pt-4 dark:border-surface-700">
                 <Button
-                  label="恢复默认设置"
+                  label={t('settings.reset.accept')}
                   type="button"
                   size="small"
                   severity="secondary"

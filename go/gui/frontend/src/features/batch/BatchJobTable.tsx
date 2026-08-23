@@ -6,6 +6,7 @@ import Tag from 'primevue/tag'
 import { defineComponent, type PropType } from 'vue'
 
 import type { BatchJobPreview, BatchJobStatus } from '../../api'
+import { t } from '../../i18n'
 
 const cellClass = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[.78rem]'
 
@@ -14,18 +15,18 @@ const statusInfo = (status: BatchJobStatus) => {
     BatchJobStatus,
     { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }
   > = {
-    loading: { label: '加载中', severity: 'info' },
-    ready: { label: '可写入', severity: 'success' },
-    'needs-candidate': { label: '需要选择', severity: 'warn' },
-    'local-metadata': { label: '本地元数据', severity: 'info' },
-    'track-mismatch': { label: '曲目数不匹配', severity: 'danger' },
-    'scan-failed': { label: '扫描失败', severity: 'danger' },
-    ignored: { label: '已忽略', severity: 'secondary' },
-    queued: { label: '等待中', severity: 'secondary' },
-    running: { label: '处理中', severity: 'info' },
-    succeeded: { label: '完成', severity: 'success' },
-    failed: { label: '失败', severity: 'danger' },
-    cancelled: { label: '已取消', severity: 'secondary' },
+    loading: { label: t('batch.status.loading'), severity: 'info' },
+    ready: { label: t('batch.status.ready'), severity: 'success' },
+    'needs-candidate': { label: t('batch.status.needsCandidate'), severity: 'warn' },
+    'local-metadata': { label: t('batch.status.localMetadata'), severity: 'info' },
+    'track-mismatch': { label: t('batch.status.trackMismatch'), severity: 'danger' },
+    'scan-failed': { label: t('batch.status.scanFailed'), severity: 'danger' },
+    ignored: { label: t('batch.status.ignored'), severity: 'secondary' },
+    queued: { label: t('batch.status.queued'), severity: 'secondary' },
+    running: { label: t('batch.status.running'), severity: 'info' },
+    succeeded: { label: t('batch.status.succeeded'), severity: 'success' },
+    failed: { label: t('batch.status.failed'), severity: 'danger' },
+    cancelled: { label: t('batch.status.cancelled'), severity: 'secondary' },
   }
   return map[status]
 }
@@ -100,7 +101,7 @@ export const BatchJobTable = defineComponent({
         )
       }
       if (job.status === 'loading') {
-        return <span class="text-muted-color">{'正在加载专辑数据'}</span>
+        return <span class="text-muted-color">{t('batch.loadingAlbum')}</span>
       }
       if (job.status === 'scan-failed') {
         return (
@@ -112,7 +113,7 @@ export const BatchJobTable = defineComponent({
               {job.matchDescription}
             </BatchTableTooltip>
             <Button
-              label={'重试'}
+              label={t('common.retry')}
               size="small"
               severity="danger"
               text
@@ -126,9 +127,9 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'needs-candidate' && job.candidates.length === 0) {
         return (
           <div class="flex items-center justify-between gap-2">
-            <span class="text-muted-color">{'未找到搜索结果'}</span>
+            <span class="text-muted-color">{t('batch.noSearchResults')}</span>
             <Button
-              label={'忽略'}
+              label={t('batch.ignore')}
               size="small"
               severity="secondary"
               text
@@ -149,7 +150,7 @@ export const BatchJobTable = defineComponent({
             options={candidateOptions(job)}
             optionLabel="label"
             optionValue="value"
-            placeholder={'选择专辑'}
+            placeholder={t('batch.selectAlbum')}
             fluid
             loading={props.resolving(job.id)}
             disabled={props.disabled}
@@ -180,14 +181,14 @@ export const BatchJobTable = defineComponent({
         v-slots={{
           empty: () => (
             <div class="p-8 text-center text-muted-color">
-              {'无匹配目录，请尝试调整目录层级'}
+              {t('batch.empty')}
             </div>
           ),
         }}
       >
         <Column
           field="relativePath"
-          header={'专辑目录'}
+          header={t('batch.columns.directory')}
           frozen
           headerClass={`${cellClass} w-[24%]`}
           bodyClass={`${cellClass} w-[24%]`}
@@ -204,24 +205,24 @@ export const BatchJobTable = defineComponent({
         />
         <Column
           field="inferredAlbumName"
-          header={'专辑名称'}
+          header={t('batch.columns.album')}
           headerClass={`${cellClass} w-[24%]`}
           bodyClass={`${cellClass} w-[24%]`}
         />
         <Column
-          header={'匹配结果'}
+          header={t('batch.columns.match')}
           headerClass={`${cellClass} w-[34%]`}
           bodyClass={`${cellClass} w-[34%]`}
           v-slots={{ body: bodySlot(matchCell) }}
         />
         <Column
           field="audioCount"
-          header={'曲目'}
+          header={t('batch.columns.tracks')}
           headerClass={`${cellClass} w-16`}
           bodyClass={`${cellClass} w-16 tabular-nums`}
         />
         <Column
-          header={'状态'}
+          header={t('batch.columns.status')}
           headerClass={`${cellClass} w-28`}
           bodyClass={`${cellClass} w-28`}
           v-slots={{

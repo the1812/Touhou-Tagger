@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+import { t } from '../i18n'
+
 export interface ProcessNotification {
   id: number
   severity: 'success' | 'info' | 'error'
@@ -22,10 +24,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
   ) => {
     const detail =
       errorValue instanceof Error
-        ? errorValue.message
+        ? t('common.operationFailed')
         : typeof errorValue === 'string'
           ? errorValue
-          : '发生了未预期的错误。'
+          : t('common.unknownError')
     const key = `${summary}:${detail}`
     const now = Date.now()
 

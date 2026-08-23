@@ -4,6 +4,7 @@ import Message from 'primevue/message'
 import { computed, defineComponent, type PropType, ref } from 'vue'
 
 import type { CoverPreview as CoverPreviewData } from '../../api'
+import { t } from '../../i18n'
 
 const coverFrameClass =
   'relative grid size-[188px] place-items-center overflow-hidden rounded-xl border border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800 max-[720px]:w-[min(188px,100%)]'
@@ -21,11 +22,11 @@ export const CoverPreview = defineComponent({
     const dimensions = computed(() =>
       props.cover.width && props.cover.height
         ? `${props.cover.width} × ${props.cover.height}`
-        : '尺寸未知',
+        : t('tagging.cover.unknownDimensions'),
     )
     const fileSize = computed(() => {
       if (!props.cover.byteSize) {
-        return '大小未知'
+        return t('tagging.cover.unknownSize')
       }
       if (props.cover.byteSize < 1024 * 1024) {
         return `${Math.round(props.cover.byteSize / 1024)} KB`
@@ -47,16 +48,16 @@ export const CoverPreview = defineComponent({
               <img
                 class="size-full object-contain"
                 src={props.cover.url}
-                alt={`${props.cover.sourceLabel}预览`}
+                alt={t('tagging.cover.previewAlt', { source: props.cover.sourceLabel })}
               />
               <span class="image-hover-label">
-                <Maximize2 size={16} /> 查看大图
+                <Maximize2 size={16} /> {t('tagging.cover.viewFull')}
               </span>
             </button>
           ) : (
             <div class={`${coverFrameClass} content-center gap-2 p-5 text-center`}>
               <ImageIcon size={38} stroke-width={1.5} />
-              <strong class="text-color">没有封面</strong>
+              <strong class="text-color">{t('tagging.cover.noCover')}</strong>
             </div>
           )}
 
@@ -76,13 +77,13 @@ export const CoverPreview = defineComponent({
         <Dialog
           v-model:visible={expanded.value}
           modal
-          header="封面预览"
+          header={t('tagging.cover.previewHeader')}
           class="w-[min(760px,90vw)]"
         >
           <img
             class="block max-h-[70vh] w-full object-contain"
             src={props.cover.url}
-            alt={`${props.cover.sourceLabel}大图`}
+            alt={t('tagging.cover.fullAlt', { source: props.cover.sourceLabel })}
           />
         </Dialog>
       </>

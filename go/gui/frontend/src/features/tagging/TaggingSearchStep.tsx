@@ -7,6 +7,7 @@ import Skeleton from 'primevue/skeleton'
 import { computed, defineComponent } from 'vue'
 
 import { PageActionBar } from '../../shared/PageActionBar'
+import { t } from '../../i18n'
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
 
@@ -63,10 +64,10 @@ export const TaggingSearchStep = defineComponent({
           <section class="workspace-section flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               <FileJson class="text-primary" size={30} />
-              <h2 class="m-0 font-bold">使用本地 metadata.json</h2>
+              <h2 class="m-0 font-bold">{t('tagging.localMetadata')}</h2>
             </div>
             <Button
-              label="预览本地元数据"
+              label={t('tagging.previewLocalMetadata')}
               loading={phase.value === 'preparing'}
               onClick={prepareLocalMetadata}
             />
@@ -78,7 +79,7 @@ export const TaggingSearchStep = defineComponent({
         <>
           <section class="workspace-section border-b-0">
             <div class="workspace-heading">
-              <h2 class="mt-1 text-[1.18rem] font-bold">搜索专辑</h2>
+              <h2 class="mt-1 text-[1.18rem] font-bold">{t('tagging.searchAlbum')}</h2>
             </div>
             <form
               class="mt-4 grid grid-cols-[12rem_minmax(12rem,1fr)_auto] gap-3"
@@ -97,13 +98,13 @@ export const TaggingSearchStep = defineComponent({
               <InputText
                 id="album-search"
                 v-model={query.value}
-                placeholder="输入专辑名称"
+                placeholder={t('tagging.albumQueryPlaceholder')}
                 autocomplete="off"
                 fluid
                 disabled={isBusy.value}
               />
               <Button
-                label="搜索"
+                label={t('common.search')}
                 type="submit"
                 loading={phase.value === 'searching'}
                 disabled={!canSearch.value}
@@ -148,7 +149,7 @@ export const TaggingSearchStep = defineComponent({
             ) : hasSearched.value ? (
               <div class="mt-4 grid place-items-center gap-1.5 border-y border-surface-200 py-5 text-center text-muted-color dark:border-surface-700">
                 <Search size={30} />
-                <strong>没有找到搜索结果</strong>
+                <strong>{t('tagging.noSearchResults')}</strong>
               </div>
             ) : null}
           </section>
@@ -156,7 +157,7 @@ export const TaggingSearchStep = defineComponent({
           {candidates.value.length > 0 && (
             <PageActionBar end>
               <Button
-                label="下一步"
+                label={t('common.next')}
                 size="large"
                 disabled={!canPrepare.value}
                 loading={phase.value === 'preparing'}

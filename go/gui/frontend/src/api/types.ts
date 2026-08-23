@@ -157,6 +157,7 @@ export interface OperationProgress {
   total: number
   path?: string
   message: string
+  messageId?: string
   cancellable: boolean
 }
 
@@ -252,7 +253,7 @@ export interface SettingsApi {
 }
 
 export interface WorkspaceApi {
-  selectAlbumDirectory(): Promise<string>
+  selectAlbumDirectory(title: string): Promise<string>
   scanWorkspace(directory: string): Promise<WorkspaceSummary>
   searchAlbums(directory: string, query: string, source: string): Promise<AlbumCandidate[]>
   preparePlan(directory: string, candidateId: string, source: string): Promise<PlanPreview>
@@ -269,7 +270,7 @@ export interface DesktopApi {
 }
 
 export interface BatchApi {
-  selectBatchDirectory(): Promise<string>
+  selectBatchDirectory(title: string): Promise<string>
   scanBatch(directory: string, depth: number, source: string): Promise<BatchPreview>
   loadBatchJob(batchId: string, jobId: string): Promise<BatchJobPreview>
   resolveBatchCandidate(

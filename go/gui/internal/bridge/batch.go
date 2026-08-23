@@ -51,8 +51,8 @@ type BatchService struct {
 	sessions map[string]*batchSession
 }
 
-func (service *BatchService) SelectBatchDirectory() (string, error) {
-	return service.desktop.selectDirectory("选择批量写入根目录", batchDirectory)
+func (service *BatchService) SelectBatchDirectory(title string) (string, error) {
+	return service.desktop.selectDirectory(title, batchDirectory)
 }
 
 func (service *BatchService) ScanBatch(

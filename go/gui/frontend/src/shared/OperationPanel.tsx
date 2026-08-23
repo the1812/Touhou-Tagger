@@ -4,6 +4,7 @@ import ProgressBar from 'primevue/progressbar'
 import { computed, defineComponent, type PropType } from 'vue'
 
 import type { OperationProgress } from '../api'
+import { t } from '../i18n'
 
 export const OperationPanel = defineComponent({
   name: 'OperationPanel',
@@ -24,11 +25,11 @@ export const OperationPanel = defineComponent({
     )
     const stageLabel = computed(() => {
       const labels: Record<string, string> = {
-        preparing: '准备写入',
-        writing: '正在写入',
-        committing: '保存文件',
-        renaming: '重命名',
-        complete: '完成',
+        preparing: t('operation.preparing'),
+        writing: t('operation.writing'),
+        committing: t('operation.committing'),
+        renaming: t('operation.renaming'),
+        complete: t('operation.complete'),
       }
       return labels[props.operation.stage] ?? props.operation.message
     })
@@ -56,13 +57,13 @@ export const OperationPanel = defineComponent({
             )}
           </span>
           {props.operation.cancellable ? (
-            <Button label="中止" severity="secondary" outlined onClick={() => emit('cancel')}>
+            <Button label={t('operation.cancel')} severity="secondary" outlined onClick={() => emit('cancel')}>
               {{ icon: () => <Ban size={16} /> }}
             </Button>
           ) : (
             <span class="flex items-center gap-1.5 text-color">
               <LockKeyhole size={15} />
-              正在保存，暂时无法取消
+              {t('operation.committingNotCancellable')}
             </span>
           )}
         </div>

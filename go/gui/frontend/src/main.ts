@@ -8,14 +8,17 @@ import { createApp } from 'vue'
 import { App } from './App'
 import { router } from './app/router'
 import { TouhouTaggerPreset } from './app/theme'
+import { i18n, zhCN } from './i18n'
 
 import './tailwind.css'
 
 createApp(App)
   .use(createPinia())
+  .use(i18n)
   .use(router)
   .use(PrimeVue, {
     ripple: true,
+    locale: zhCN.primevue,
     theme: {
       preset: TouhouTaggerPreset,
       options: {

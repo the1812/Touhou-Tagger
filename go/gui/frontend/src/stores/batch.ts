@@ -9,6 +9,7 @@ import {
   type OperationFailure,
   type OperationResult,
 } from '../api'
+import { t } from '../i18n'
 import { useNotificationsStore } from './notifications'
 import { useOperationsStore } from './operations'
 import { useSettingsStore } from './settings'
@@ -73,7 +74,7 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       await api.discardBatch(batchId)
     } catch (error) {
-      notifications.error('释放旧批量扫描结果失败', error)
+      notifications.error(t('notifications.discardBatchFailed'), error)
     }
   }
 
@@ -132,7 +133,7 @@ export const useBatchStore = defineStore('batch', () => {
         if (job) {
           const message = error instanceof Error ? error.message : String(error)
           job.status = 'scan-failed'
-          job.matchDescription = '加载失败'
+          job.matchDescription = t('batch.loadFailed')
           job.issues = [{ code: 'load-failed', message, severity: 'error' }]
         }
         if (notifyFailure) {
@@ -159,12 +160,12 @@ export const useBatchStore = defineStore('batch', () => {
       return
     }
     job.status = 'loading'
-    job.matchDescription = '正在加载'
+    job.matchDescription = t('batch.loading')
     job.issues = []
     await updateJob(
       jobId,
       (api, batchId) => api.loadBatchJob(batchId, jobId),
-      '无法加载专辑数据',
+      t('notifications.loadAlbumFailed'),
       notifyFailure,
     )
   }
@@ -215,7 +216,7 @@ export const useBatchStore = defineStore('batch', () => {
       if (requestVersion !== contextVersion) {
         return
       }
-      notifications.error('批量扫描失败', error)
+      notifications.error(t('notifications.scanBatchFailed'), error)
     } finally {
       scanning.value = false
     }
@@ -229,7 +230,7 @@ export const useBatchStore = defineStore('batch', () => {
     let shouldScan = false
     try {
       const api = await getApi()
-      const selected = await api.selectBatchDirectory()
+      const selected = await api.selectBatchDirectory(t('batch.selectDirectoryDialog'))
       if (selected) {
         contextVersion += 1
         await discardCurrentPreview()
@@ -238,7 +239,7 @@ export const useBatchStore = defineStore('batch', () => {
         shouldScan = true
       }
     } catch (error) {
-      notifications.error('无法选择批量写入根目录', error)
+      notifications.error(t('notifications.selectBatchDirectoryFailed'), error)
     } finally {
       selecting.value = false
     }
@@ -251,14 +252,14 @@ export const useBatchStore = defineStore('batch', () => {
     updateJob(
       jobId,
       (api, batchId) => api.resolveBatchCandidate(batchId, jobId, candidateId),
-      '无法更新专辑搜索结果',
+      t('notifications.updateBatchCandidateFailed'),
     )
 
   const ignoreJob = (jobId: string) =>
     updateJob(
       jobId,
       (api, batchId) => api.ignoreBatchJob(batchId, jobId),
-      '无法忽略批量写入专辑',
+      t('notifications.ignoreBatchAlbumFailed'),
     )
 
   function receiveComplete(nextResult: OperationResult | BatchRunResult) {
@@ -276,8 +277,8 @@ export const useBatchStore = defineStore('batch', () => {
     if (nextResult.failed > 0) {
       const failedJobs = result.value?.jobs.filter(job => job.status === 'failed') ?? []
       notifications.error(
-        '批量写入完成，但有专辑失败',
-        `${nextResult.failed} 个专辑失败，详情已保留在专辑列表中。`,
+        t('notifications.batchCompletedWithFailures'),
+        t('notifications.batchCompletedWithFailuresDetail', { count: nextResult.failed }),
         {
           sticky: true,
           diagnostics: failedJobs
@@ -292,7 +293,7 @@ export const useBatchStore = defineStore('batch', () => {
     if (failure.kind !== 'batch') {
       return
     }
-    notifications.error('批量写入失败', failure.message, {
+    notifications.error(t('notifications.batchWriteFailed'), failure.message, {
       sticky: true,
       diagnostics: failure.details,
     })
@@ -322,7 +323,7 @@ export const useBatchStore = defineStore('batch', () => {
           stage: 'preparing',
           current: 0,
           total: failedOnly ? failedCount.value : readyCount.value,
-          message: '正在准备批量写入',
+          message: t('notifications.preparingBatchWrite'),
           cancellable: true,
         },
         {
@@ -345,7 +346,7 @@ export const useBatchStore = defineStore('batch', () => {
             cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
         }
       }
-      notifications.error('无法开始批量写入', error, {
+      notifications.error(t('notifications.startBatchFailed'), error, {
         sticky: true,
         diagnostics: cleanupDetails || undefined,
       })
@@ -360,7 +361,7 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       await api.cancelBatch(operation.value.operationId)
     } catch (error) {
-      notifications.error('停止批量写入失败', error)
+      notifications.error(t('notifications.cancelBatchFailed'), error)
     }
   }
 
@@ -372,7 +373,7 @@ export const useBatchStore = defineStore('batch', () => {
       const api = await getApi()
       await api.revealDirectory(directory.value)
     } catch (error) {
-      notifications.error('无法在资源管理器中打开目录', error)
+      notifications.error(t('notifications.revealDirectoryFailed'), error)
     }
   }
 

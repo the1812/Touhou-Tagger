@@ -3,8 +3,10 @@ import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import { computed, defineComponent } from 'vue'
+import { Translation } from 'vue-i18n'
 
 import { usePageCommands } from '../../app/pageCommands'
+import { t } from '../../i18n'
 import { CompletionPanel } from '../../shared/CompletionPanel'
 import { OperationPanel } from '../../shared/OperationPanel'
 import { PageActionBar } from '../../shared/PageActionBar'
@@ -30,7 +32,7 @@ export const BatchPage = defineComponent({
 
     const directoryLabel = computed(() => {
       const parts = directory.value.split(/[\\/]/).filter(Boolean)
-      return parts[parts.length - 1] || '批量写入目录'
+      return parts[parts.length - 1] || t('batch.directoryFallback')
     })
     const failedJobs = computed(
       () => preview.value?.jobs.filter(job => job.status === 'failed') ?? [],
@@ -70,7 +72,7 @@ export const BatchPage = defineComponent({
             <section class="page-empty-state">
               <Button
                 class="directory-picker-button"
-                label={'选择目录'}
+                label={t('common.selectDirectory')}
                 size="large"
                 loading={selecting.value}
                 onClick={() => batch.selectDirectory()}
@@ -96,7 +98,7 @@ export const BatchPage = defineComponent({
                   </div>
                   <div class="flex items-center gap-1.5">
                     <Button
-                      title={'在资源管理器中打开'}
+                      title={t('common.revealDirectory')}
                       severity="secondary"
                       text
                       rounded
@@ -105,7 +107,7 @@ export const BatchPage = defineComponent({
                       {{ icon: () => <ExternalLink size={17} /> }}
                     </Button>
                     <Button
-                      label={'更换目录'}
+                      label={t('common.changeDirectory')}
                       severity="secondary"
                       outlined
                       loading={selecting.value}
@@ -122,10 +124,10 @@ export const BatchPage = defineComponent({
                 <>
                   <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0 py-4">
                     <div class="workspace-heading items-center">
-                      <h2 class="mt-1 text-[1.18rem] font-bold">{'专辑扫描'}</h2>
+                      <h2 class="mt-1 text-[1.18rem] font-bold">{t('batch.scanHeading')}</h2>
                       <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 text-[.78rem] font-semibold">
-                          <span class="whitespace-nowrap">{'目录层级'}</span>
+                          <span class="whitespace-nowrap">{t('batch.depth')}</span>
                           <InputNumber
                             class="w-28"
                             modelValue={depth.value}
@@ -143,7 +145,7 @@ export const BatchPage = defineComponent({
                         </label>
                         <Button
                           class="w-[6.75rem]"
-                          label={'重新扫描'}
+                          label={t('batch.rescan')}
                           severity="secondary"
                           outlined
                           disabled={controlsDisabled.value}
@@ -161,7 +163,7 @@ export const BatchPage = defineComponent({
                     {scanning.value && !currentPreview ? (
                       <div class="grid min-h-64 place-items-center content-center gap-4 text-center">
                         <div class="size-[46px] animate-spin rounded-full border-[3px] border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary" />
-                        <h3 class="m-0 text-[.95rem] font-bold">{'正在扫描专辑目录'}</h3>
+                        <h3 class="m-0 text-[.95rem] font-bold">{t('batch.scanning')}</h3>
                       </div>
                     ) : (
                       <BatchJobTable
@@ -181,11 +183,19 @@ export const BatchPage = defineComponent({
                   {currentPreview && !scanning.value && (
                     <PageActionBar>
                       <span class="shrink-0 text-[.85rem] text-muted-color">
-                        <>共 <strong class="text-color">{currentPreview.jobs.length}</strong> 个专辑</>
+                        <Translation
+                          keypath="batch.albumCount"
+                          scope="global"
+                          v-slots={{
+                            count: () => (
+                              <strong class="text-color">{currentPreview.jobs.length}</strong>
+                            ),
+                          }}
+                        />
                       </span>
                       <div class="flex min-w-0 items-center">
                         <Button
-                          label={'开始处理'}
+                          label={t('batch.start')}
                           disabled={!canRun.value}
                           onClick={() => batch.run(false)}
                         >
@@ -214,7 +224,7 @@ export const BatchPage = defineComponent({
                   {failedJobs.value.length > 0 && (
                     <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0 py-4">
                       <div class="workspace-heading">
-                        <h2 class="mt-1 text-[1.18rem] font-bold">{'失败项目'}</h2>
+                        <h2 class="mt-1 text-[1.18rem] font-bold">{t('batch.failedItems')}</h2>
                       </div>
                       <BatchJobTable
                         jobs={failedJobs.value}

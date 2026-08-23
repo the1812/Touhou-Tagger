@@ -3,6 +3,7 @@ import DataTable, { type DataTableRowClickEvent } from 'primevue/datatable'
 import { computed, defineComponent, type PropType } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
+import { t } from '../../i18n'
 
 const cellClass = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[.78rem]'
 
@@ -79,13 +80,13 @@ export const PlanTable = defineComponent({
         rowClass={rowClass}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
-          empty: () => <div class="p-8 text-center text-muted-color">没有可写入的曲目。</div>,
+          empty: () => <div class="p-8 text-center text-muted-color">{t('tagging.table.empty')}</div>,
         }}
         {...{ onRowClick }}
       >
         <Column
           field="sourceName"
-          header="本地文件"
+          header={t('tagging.table.localFile')}
           headerClass={`${cellClass} w-[20%]`}
           bodyClass={`${cellClass} w-[20%]`}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.sourceName} />) }}
@@ -93,7 +94,7 @@ export const PlanTable = defineComponent({
         {hasMultipleDiscs.value && (
           <Column
             field="discNumber"
-            header="碟号"
+            header={t('tagging.table.discNumber')}
             headerClass={`${cellClass} w-16`}
             bodyClass={`${cellClass} w-16`}
             v-slots={{
@@ -105,7 +106,7 @@ export const PlanTable = defineComponent({
         )}
         <Column
           field="trackNumber"
-          header="轨号"
+          header={t('tagging.table.trackNumber')}
           headerClass={`${cellClass} w-16`}
           bodyClass={`${cellClass} w-16`}
           v-slots={{
@@ -116,13 +117,13 @@ export const PlanTable = defineComponent({
         />
         <Column
           field="title"
-          header="标题"
+          header={t('tagging.table.title')}
           headerClass={`${cellClass} w-[23%]`}
           bodyClass={`${cellClass} w-[23%]`}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.title} />) }}
         />
         <Column
-          header="艺术家"
+          header={t('tagging.table.artists')}
           headerClass={`${cellClass} w-[20%]`}
           bodyClass={`${cellClass} w-[20%]`}
           v-slots={{
@@ -131,7 +132,7 @@ export const PlanTable = defineComponent({
         />
         <Column
           field="targetName"
-          header="目标文件名"
+          header={t('tagging.table.targetFileName')}
           headerClass={cellClass}
           bodyClass={cellClass}
           v-slots={{

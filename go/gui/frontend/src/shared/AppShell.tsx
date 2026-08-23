@@ -2,9 +2,9 @@ import { storeToRefs } from 'pinia'
 import { computed, defineComponent, onBeforeUnmount, onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
-import { isFixtureMode } from '../api'
 import { navigationItems } from '../app/navigation'
 import { usePageCommandRegistry } from '../app/pageCommands'
+import { t } from '../i18n'
 import { useOperationsStore } from '../stores/operations'
 import { ToastHost } from './ToastHost'
 
@@ -15,7 +15,9 @@ export const AppShell = defineComponent({
     const commands = usePageCommandRegistry()
     const operations = useOperationsStore()
     const { current: currentOperation } = storeToRefs(operations)
-    const pageTitle = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : ''))
+    const pageTitle = computed(() =>
+      typeof route.meta.titleKey === 'string' ? t(route.meta.titleKey) : '',
+    )
 
     const onKeydown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key.toLocaleLowerCase() === 'o' && commands.run('openDirectory')) {
@@ -49,18 +51,11 @@ export const AppShell = defineComponent({
                 return (
                   <RouterLink key={item.path} to={item.path} class="app-nav-item">
                     <Icon size={19} />
-                    <span>{item.title}</span>
+                    <span>{t(item.titleKey)}</span>
                   </RouterLink>
                 )
               })}
             </nav>
-
-            {isFixtureMode && (
-              <div class="status-chip mx-1 mt-auto gap-2 rounded-lg px-2.5 py-2 text-[.68rem]">
-                <span class="size-[7px] rounded-full bg-primary shadow-[0_0_0_4px_color-mix(in_srgb,var(--p-primary-color)_13%,transparent)]" />
-                离线 Fixture 模式
-              </div>
-            )}
           </aside>
 
           <section class="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">

@@ -2,6 +2,7 @@ import coverUrl from '../../../../../fixtures/media/images/cover.jpg?url'
 import multipleDiscFixture from '../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
 import noCoverFixture from '../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
 import singleDiscFixture from '../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
+import { t } from '../i18n'
 import type {
   AlbumCandidate,
   AlbumMetadata,
@@ -15,22 +16,22 @@ import type {
 
 type AlbumFixture = typeof singleDiscFixture
 
-export const fixtureDirectory = 'fixtures/thb-wiki/albums/single-disc'
-export const batchDirectory = 'fixtures/thb-wiki/albums'
+export const fixtureDirectory = 'D:/Music/Touhou/Album'
+export const batchDirectory = 'D:/Music/Touhou'
 
 export const capabilities: Capabilities = {
   sources: [
     { value: 'thb-wiki', label: 'THBWiki', supportsSearch: true },
-    { value: 'local-json', label: '本地 metadata.json', supportsSearch: false },
+    { value: 'local-json', label: t('data.localMetadata'), supportsSearch: false },
   ],
   commentLanguages: [
-    { value: 'zh-Hans', label: '简体中文' },
-    { value: 'ja', label: '日本語' },
+    { value: 'zh-Hans', label: t('data.simplifiedChinese') },
+    { value: 'ja', label: t('data.japanese') },
   ],
   lyricTypes: [
-    { value: 'original', label: '原文' },
-    { value: 'translated', label: '译文' },
-    { value: 'mixed', label: '混合' },
+    { value: 'original', label: t('data.original') },
+    { value: 'translated', label: t('data.translated') },
+    { value: 'mixed', label: t('data.mixed') },
   ],
 }
 
@@ -58,12 +59,15 @@ const fixtureCandidate = (
   id,
   title: fixture.album.album,
   source: 'thb-wiki',
-  sourceLabel: 'THBWiki fixture',
+  sourceLabel: 'THBWiki',
   albumOrder: fixture.album.albumOrder,
   artists: fixture.album.albumArtists,
   year: fixture.album.year,
   exactMatch,
-  description: `${fixture.tracks.length} 首曲目 · ${fixture.album.genres.join('、')}`,
+  description: t('data.trackCountDescription', {
+    count: fixture.tracks.length,
+    genres: fixture.album.genres.join('、'),
+  }),
 })
 
 export const candidates = [
@@ -112,7 +116,7 @@ const planItem = (track: AlbumFixture['tracks'][number], index: number): PlanIte
 
   return {
     id: `fixture-track-${index + 1}`,
-    sourceName: `track-${String(index + 1).padStart(2, '0')}.mp3`,
+    sourceName: `${prefix} ${track.title}.mp3`,
     format: 'MP3',
     discNumber: track.discNumber,
     trackNumber: track.trackNumber,
@@ -147,20 +151,20 @@ export const createPlan = (
       ? {
           url: coverUrl,
           source: 'thb-wiki',
-          sourceLabel: 'THBWiki 封面（离线 fixture）',
+          sourceLabel: t('data.thbWikiCover'),
           width: 600,
           height: 600,
           byteSize: 43_246,
-          compressionDescription: '低于 1500 KB 阈值，将保留原始图片',
+          compressionDescription: t('data.belowThreshold'),
         }
       : {
           url: '',
           source: 'none',
-          sourceLabel: '无封面',
+          sourceLabel: t('data.noCover'),
           width: 0,
           height: 0,
           byteSize: 0,
-          compressionDescription: '此专辑不会写入封面',
+          compressionDescription: t('data.noCoverWrite'),
         },
     items: planItems,
     issues: [],
@@ -179,10 +183,10 @@ export const createPlan = (
 export const batchJobs = (): BatchJobPreview[] => [
   {
     id: 'fixture-job-single',
-    relativePath: 'single-disc',
+    relativePath: singleDiscFixture.album.album,
     inferredAlbumName: singleDiscFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: '精确匹配',
+    matchDescription: t('data.exactMatch'),
     audioCount: singleDiscFixture.tracks.length,
     status: 'ready',
     issues: [],
@@ -191,16 +195,16 @@ export const batchJobs = (): BatchJobPreview[] => [
   },
   {
     id: 'fixture-job-multiple',
-    relativePath: 'multiple-disc',
+    relativePath: multipleDiscFixture.album.album,
     inferredAlbumName: multipleDiscFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: '多个搜索结果',
+    matchDescription: t('data.multipleResults'),
     audioCount: multipleDiscFixture.tracks.length,
     status: 'needs-candidate',
     issues: [
       {
         code: 'candidate-required',
-        message: '写入前需要选择匹配的专辑。',
+        message: t('data.candidateRequired'),
         severity: 'warning',
       },
     ],
@@ -208,10 +212,10 @@ export const batchJobs = (): BatchJobPreview[] => [
   },
   {
     id: 'fixture-job-no-cover',
-    relativePath: 'no-cover',
+    relativePath: noCoverFixture.album.album,
     inferredAlbumName: noCoverFixture.album.album,
     source: 'thb-wiki',
-    matchDescription: '精确匹配',
+    matchDescription: t('data.exactMatch'),
     audioCount: noCoverFixture.tracks.length,
     status: 'ready',
     issues: [],

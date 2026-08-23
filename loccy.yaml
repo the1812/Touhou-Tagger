@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://loccy.dev/schemas/config.schema.json
+
+modules:
+  gui:
+    framework: vue-i18n
+    translations:
+      glob: 'go/gui/frontend/src/i18n/locales/*.json'
+      layout: '{locale}.json'
+      noUntranslatedKeys: true
+    usages:
+      include: ['go/gui/frontend/src/**/*.{ts,tsx}']
+      noUnresolvedKeys: true
+      noUnusedKeys: false

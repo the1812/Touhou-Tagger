@@ -6,6 +6,7 @@ import { useToast } from 'primevue/usetoast'
 import { defineComponent, watch } from 'vue'
 
 import { type ProcessNotification, useNotificationsStore } from '../stores/notifications'
+import { t } from '../i18n'
 
 interface ToastSlotMessage extends ToastMessageOptions {
   data?: ProcessNotification
@@ -41,7 +42,7 @@ export const ToastHost = defineComponent({
       try {
         await navigator.clipboard.writeText(details)
       } catch (error) {
-        notifications.error('复制详情失败', error)
+        notifications.error(t('common.copyDetailsFailed'), error)
       }
     }
 
@@ -64,7 +65,7 @@ export const ToastHost = defineComponent({
                   <span class="text-muted-color leading-[1.45]">{message.detail}</span>
                   {diagnostics && (
                     <Button
-                      label="复制详情"
+                      label={t('common.copyDetails')}
                       size="small"
                       severity="secondary"
                       text

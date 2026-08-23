@@ -148,6 +148,7 @@ type OperationProgress struct {
 	Total       int    `json:"total"`
 	Path        string `json:"path,omitempty"`
 	Message     string `json:"message"`
+	MessageID   string `json:"messageId,omitempty"`
 	Cancellable bool   `json:"cancellable"`
 }
 

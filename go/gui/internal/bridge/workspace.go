@@ -35,8 +35,8 @@ func (service *WorkspaceService) GetStartupDirectory() (string, error) {
 	return service.startupDirectory, nil
 }
 
-func (service *WorkspaceService) SelectAlbumDirectory() (string, error) {
-	return service.desktop.selectDirectory("选择专辑文件夹", albumDirectory)
+func (service *WorkspaceService) SelectAlbumDirectory(title string) (string, error) {
+	return service.desktop.selectDirectory(title, albumDirectory)
 }
 
 func (service *WorkspaceService) ScanWorkspace(
