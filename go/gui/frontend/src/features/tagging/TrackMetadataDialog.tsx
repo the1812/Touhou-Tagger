@@ -8,9 +8,6 @@ import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
-const fieldClass =
-  'grid gap-1.5 text-[.82rem] font-semibold [&>small]:text-xs [&>small]:font-normal'
-
 export const TrackMetadataDialog = defineComponent({
   name: 'TrackMetadataDialog',
   props: {
@@ -75,14 +72,19 @@ export const TrackMetadataDialog = defineComponent({
                 <div class="grid min-w-0 gap-1">
                   <span class="text-xs text-muted-color">{t('tagging.trackDialog.localFile')}</span>
                   <strong
-                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem]"
+                    class="overflow-hidden text-ellipsis whitespace-nowrap text-app-control"
                     v-tooltip={props.item.sourceName}
                   >
                     {props.item.sourceName}
                   </strong>
                 </div>
 
-                <label class={fieldClass}>
+                <label
+                  class={[
+                    'grid gap-1.5 text-app-control font-semibold',
+                    '[&>small]:text-xs [&>small]:font-normal',
+                  ]}
+                >
                   <span>{t('tagging.trackDialog.title')}</span>
                   <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
                   {!draft.title.trim() && (
@@ -90,7 +92,12 @@ export const TrackMetadataDialog = defineComponent({
                   )}
                 </label>
 
-                <label class={fieldClass}>
+                <label
+                  class={[
+                    'grid gap-1.5 text-app-control font-semibold',
+                    '[&>small]:text-xs [&>small]:font-normal',
+                  ]}
+                >
                   <span>{t('tagging.trackDialog.artists')}</span>
                   <MetadataTagsInput
                     modelValue={draft.artists}
@@ -108,23 +115,43 @@ export const TrackMetadataDialog = defineComponent({
                 </label>
 
                 <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
-                  <label class={fieldClass}>
+                  <label
+                    class={[
+                      'grid gap-1.5 text-app-control font-semibold',
+                      '[&>small]:text-xs [&>small]:font-normal',
+                    ]}
+                  >
                     <span>{t('tagging.trackDialog.discNumber')}</span>
                     <InputText v-model={draft.discNumber} fluid />
                   </label>
-                  <label class={fieldClass}>
+                  <label
+                    class={[
+                      'grid gap-1.5 text-app-control font-semibold',
+                      '[&>small]:text-xs [&>small]:font-normal',
+                    ]}
+                  >
                     <span>{t('tagging.trackDialog.trackNumber')}</span>
                     <InputText v-model={draft.trackNumber} fluid />
                   </label>
                 </div>
 
-                <label class={fieldClass}>
+                <label
+                  class={[
+                    'grid gap-1.5 text-app-control font-semibold',
+                    '[&>small]:text-xs [&>small]:font-normal',
+                  ]}
+                >
                   <span>{t('tagging.trackDialog.comments')}</span>
                   <Textarea v-model={draft.comments} rows={6} fluid />
                 </label>
 
                 {props.item.issues.length > 0 && (
-                  <div class="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 dark:border-amber-700 dark:bg-amber-950/50">
+                  <div
+                    class={[
+                      'rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3',
+                      'dark:border-amber-700 dark:bg-amber-950/50',
+                    ]}
+                  >
                     <strong>{t('tagging.trackDialog.issues')}</strong>
                     <ul class="mb-0 mt-1.5 pl-4">
                       {props.item.issues.map(issue => (

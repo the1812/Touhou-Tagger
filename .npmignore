@@ -8,6 +8,7 @@ src/
 *.png
 .gitattributes
 tsconfig.json
+pnpm-workspace.yaml
 /fixtures/
 /go/
 /test/

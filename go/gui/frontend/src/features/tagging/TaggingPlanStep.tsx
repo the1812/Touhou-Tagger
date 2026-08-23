@@ -41,8 +41,13 @@ export const TaggingPlanStep = defineComponent({
 
       return (
         <>
-          <section class="workspace-section grid w-full grid-cols-[188px_minmax(300px,1fr)] gap-4 max-[1100px]:grid-cols-1">
-            <div class="grid w-[188px] content-start gap-3">
+          <section
+            class={[
+              'workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4',
+              'max-[1100px]:grid-cols-1',
+            ]}
+          >
+            <div class="grid w-app-cover content-start gap-3">
               <CoverPreview cover={currentPlan.cover} />
               {currentPlan.options.canSaveCover && (
                 <label class="flex items-center justify-center gap-3 [&>strong]:text-sm">
@@ -63,7 +68,7 @@ export const TaggingPlanStep = defineComponent({
             </div>
             <div class="grid content-start gap-4">
               <div class="workspace-heading">
-                <h2 class="mt-1 text-[1.18rem] font-bold">{currentPlan.album.title}</h2>
+                <h2 class="mt-1 text-app-heading font-bold">{currentPlan.album.title}</h2>
                 <Button
                   label={t('tagging.plan.editAlbum')}
                   severity="secondary"
@@ -76,7 +81,12 @@ export const TaggingPlanStep = defineComponent({
                   {{ icon: () => <Pencil size={16} /> }}
                 </Button>
               </div>
-              <div class="grid gap-2 [&>span]:grid [&>span]:grid-cols-[4rem_minmax(0,1fr)] [&>span]:text-sm [&>span]:text-muted-color [&_strong]:text-color">
+              <div
+                class={[
+                  'grid gap-2 [&>span]:grid [&>span]:grid-cols-[4rem_minmax(0,1fr)]',
+                  '[&>span]:text-sm [&>span]:text-muted-color [&_strong]:text-color',
+                ]}
+              >
                 <span>
                   <strong>{t('tagging.plan.circles')}</strong>
                   {currentPlan.album.artists.join(' / ') || '—'}

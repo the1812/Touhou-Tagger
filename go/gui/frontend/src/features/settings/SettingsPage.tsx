@@ -11,15 +11,8 @@ import { useConfirm } from 'primevue/useconfirm'
 import { computed, defineComponent, onMounted } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
-import { useSettingsStore } from '../../stores/settings'
 import { t } from '../../i18n'
-
-const fieldClass =
-  'grid w-full max-w-sm content-start gap-1.5 text-[.8rem] font-semibold text-color [&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color'
-const sectionClass =
-  'grid gap-4 border-b border-surface-200 py-5 last:border-b-0 dark:border-surface-700 [&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold'
-const gridClass = 'grid justify-items-start gap-y-3.5'
-const settingsContentClass = 'w-full max-w-[70rem]'
+import { useSettingsStore } from '../../stores/settings'
 
 export const SettingsPage = defineComponent({
   name: 'SettingsPage',
@@ -93,20 +86,36 @@ export const SettingsPage = defineComponent({
     return () => {
       const currentDraft = draft.value
       return (
-        <div class="-mx-6 -my-5 h-[calc(100%+2.5rem)] min-h-0">
+        <div class="h-full min-h-0">
           {loading.value || !currentDraft ? (
-            <div class={`${settingsContentClass} grid gap-4 px-6 py-5`}>
+            <div
+              class={[
+                'grid h-full w-full max-w-app-settings gap-4',
+                'px-app-page-x py-app-page-y',
+              ]}
+            >
               <Skeleton height="10rem" />
               <Skeleton height="8rem" />
               <Skeleton height="12rem" />
             </div>
           ) : (
             <div class="h-full min-h-0 overflow-auto">
-              <div class={`${settingsContentClass} px-6`}>
-                <section class={sectionClass}>
+              <div class="w-full max-w-app-settings px-app-page-x">
+                <section
+                  class={[
+                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
+                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
+                  ]}
+                >
                   <h2>{t('settings.general')}</h2>
-                  <div class={gridClass}>
-                    <label class={fieldClass}>
+                  <div class="grid justify-items-start gap-y-3.5">
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.defaultSource')}</span>
                       <Select
                         v-model={currentDraft.defaultSource}
@@ -122,7 +131,13 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.commentLanguage')}</span>
                       <Select
                         v-model={currentDraft.commentLanguage}
@@ -133,7 +148,13 @@ export const SettingsPage = defineComponent({
                         fluid
                       />
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span class="flex items-center gap-1">
                         {t('settings.mp3Separator')}
                         <button
@@ -157,7 +178,13 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.requestTimeout')}</span>
                       <InputNumber
                         v-model={currentDraft.requestTimeoutSeconds}
@@ -174,7 +201,13 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.retryCount')}</span>
                       <InputNumber
                         v-model={currentDraft.retryCount}
@@ -194,10 +227,21 @@ export const SettingsPage = defineComponent({
                   </div>
                 </section>
 
-                <section class={sectionClass}>
+                <section
+                  class={[
+                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
+                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
+                  ]}
+                >
                   <h2>{t('settings.cover')}</h2>
-                  <div class={gridClass}>
-                    <label class={fieldClass}>
+                  <div class="grid justify-items-start gap-y-3.5">
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span class="flex items-center gap-1">
                         {t('settings.coverThreshold')}
                         <button
@@ -223,7 +267,13 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span class="flex items-center gap-1">
                         {t('settings.coverMaxEdge')}
                         <button
@@ -252,10 +302,21 @@ export const SettingsPage = defineComponent({
                   </div>
                 </section>
 
-                <section class={sectionClass}>
+                <section
+                  class={[
+                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
+                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
+                  ]}
+                >
                   <h2>{t('settings.lyrics')}</h2>
-                  <div class={gridClass}>
-                    <label class={fieldClass}>
+                  <div class="grid justify-items-start gap-y-3.5">
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.outputDestination')}</span>
                       <Select
                         v-model={lyricDestination.value}
@@ -271,7 +332,13 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.lyricType')}</span>
                       <Select
                         v-model={currentDraft.lyricType}
@@ -283,7 +350,13 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.mixedLyricSeparator')}</span>
                       <InputText
                         v-model={currentDraft.mixedLyricSeparator}
@@ -298,7 +371,12 @@ export const SettingsPage = defineComponent({
                         </small>
                       )}
                     </label>
-                    <label class="grid w-full max-w-sm min-w-0 justify-items-start gap-1.5 text-[.8rem]">
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field min-w-0 justify-items-start gap-1.5',
+                        'text-app-caption',
+                      ]}
+                    >
                       <span class="flex items-center gap-1">
                         {t('settings.preserveTimeline')}
                         <button
@@ -315,7 +393,13 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                       />
                     </label>
-                    <label class={fieldClass}>
+                    <label
+                      class={[
+                        'grid w-full max-w-app-field content-start gap-1.5',
+                        'text-app-caption font-semibold text-color',
+                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
+                      ]}
+                    >
                       <span>{t('settings.lyricCacheSize')}</span>
                       <InputNumber
                         v-model={currentDraft.lyricCacheSize}
@@ -338,7 +422,10 @@ export const SettingsPage = defineComponent({
               </div>
 
               <div
-                class={`${settingsContentClass} flex items-center justify-start border-t border-surface-200 px-6 py-4 dark:border-surface-700`}
+                class={[
+                  'flex w-full max-w-app-settings items-center justify-start border-t py-4',
+                  'border-surface-200 px-app-page-x dark:border-surface-700',
+                ]}
               >
                 <Button
                   label={t('settings.reset.trigger')}

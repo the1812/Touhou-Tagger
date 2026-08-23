@@ -27,11 +27,11 @@ export const MetadataTagsInput = defineComponent({
         typeahead={false}
         fluid
         size="small"
-        class="text-[.82rem]"
+        class="text-app-control"
         pt={{
           inputMultiple: { class: 'min-h-[34px] gap-1 px-2 py-1' },
-          pcChip: { root: { class: 'px-1.5 py-0.5 text-[.78rem]' } },
-          inputChip: { class: '[&_input]:text-[.82rem]' },
+          pcChip: { root: { class: 'px-1.5 py-0.5 text-app-caption' } },
+          inputChip: { class: '[&_input]:text-app-control' },
         }}
       >
         {{

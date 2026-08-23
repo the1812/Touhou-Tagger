@@ -65,7 +65,7 @@ export const TaggingPage = defineComponent({
               >
                 {{ icon: () => <FolderOpen size={19} /> }}
               </Button>
-              <span class="text-[.78rem] text-surface-500 dark:text-surface-400">
+              <span class="text-app-caption text-surface-500 dark:text-surface-400">
                 <kbd class="app-kbd">Ctrl</kbd> + <kbd class="app-kbd">O</kbd>
               </span>
             </section>
@@ -87,11 +87,14 @@ export const TaggingPage = defineComponent({
                     <>
                       <div class="workspace-heading">
                         <div>
-                          <h2 class="mt-1 text-[1.18rem] font-bold">
+                          <h2 class="mt-1 text-app-heading font-bold">
                             {currentSummary.inferredAlbumName || t('tagging.unnamedAlbum')}
                           </h2>
                           <p
-                            class="mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem] text-muted-color"
+                            class={[
+                              'mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap',
+                              'text-app-control text-muted-color',
+                            ]}
                             v-tooltip={currentSummary.directory}
                           >
                             {currentSummary.directory}
@@ -133,7 +136,10 @@ export const TaggingPage = defineComponent({
 
                       <div class="mt-3 flex w-max max-w-full items-center gap-0.5">
                         <div
-                          class="status-icon w-auto gap-1.5 py-0 pl-1 pr-2 text-primary [&>strong]:text-[.82rem] [&>strong]:tabular-nums"
+                          class={[
+                            'status-icon w-auto gap-1.5 py-0 pl-1 pr-2 text-primary',
+                            '[&>strong]:text-app-control [&>strong]:tabular-nums',
+                          ]}
                           v-tooltip={t('tagging.audioSummary', {
                             count: currentSummary.audioCount,
                             mp3: currentSummary.mp3Count,

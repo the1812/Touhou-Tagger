@@ -4,8 +4,7 @@ import { computed, defineComponent, type PropType } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
-
-const cellClass = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[.78rem]'
+import { cx } from '../../shared/classNames'
 
 const PlanTableText = defineComponent({
   name: 'PlanTableText',
@@ -53,7 +52,7 @@ export const PlanTable = defineComponent({
     const rowClass = (item: PlanItemPreview) => {
       const hasError = item.issues.some(issue => issue.severity === 'error')
       const hasWarning = item.issues.length > 0 && !hasError
-      return [
+      return cx(
         'h-[42px]',
         props.disabled
           ? 'cursor-default'
@@ -61,7 +60,7 @@ export const PlanTable = defineComponent({
         hasError && 'bg-red-50 hover:bg-red-50 dark:bg-red-950/50 dark:hover:bg-red-950/50',
         hasWarning &&
           'bg-amber-50 hover:bg-amber-50 dark:bg-amber-950/50 dark:hover:bg-amber-950/50',
-      ]
+      )
     }
     const bodySlot =
       (render: (item: PlanItemPreview) => unknown) =>
@@ -76,7 +75,11 @@ export const PlanTable = defineComponent({
         scrollHeight="flex"
         size="small"
         tableClass="w-full min-w-0 max-w-full table-fixed"
-        class="min-h-60 w-full min-w-0 max-w-full [--p-datatable-body-cell-sm-padding:.375rem_1rem] [--p-datatable-header-cell-sm-padding:.375rem_1rem]"
+        class={[
+          'min-h-60 w-full min-w-0 max-w-full',
+          '[--p-datatable-body-cell-sm-padding:.375rem_1rem]',
+          '[--p-datatable-header-cell-sm-padding:.375rem_1rem]',
+        ]}
         rowClass={rowClass}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
@@ -87,16 +90,28 @@ export const PlanTable = defineComponent({
         <Column
           field="sourceName"
           header={t('tagging.table.localFile')}
-          headerClass={`${cellClass} w-[20%]`}
-          bodyClass={`${cellClass} w-[20%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[20%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[20%]',
+          ].join(' ')}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.sourceName} />) }}
         />
         {hasMultipleDiscs.value && (
           <Column
             field="discNumber"
             header={t('tagging.table.discNumber')}
-            headerClass={`${cellClass} w-16`}
-            bodyClass={`${cellClass} w-16`}
+            headerClass={[
+              'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+              'w-16',
+            ].join(' ')}
+            bodyClass={[
+              'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+              'w-16',
+            ].join(' ')}
             v-slots={{
               body: bodySlot(item => (
                 <span class="text-muted-color tabular-nums">{item.discNumber}</span>
@@ -107,8 +122,14 @@ export const PlanTable = defineComponent({
         <Column
           field="trackNumber"
           header={t('tagging.table.trackNumber')}
-          headerClass={`${cellClass} w-16`}
-          bodyClass={`${cellClass} w-16`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-16',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-16',
+          ].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <span class="text-muted-color tabular-nums">{item.trackNumber}</span>
@@ -118,14 +139,26 @@ export const PlanTable = defineComponent({
         <Column
           field="title"
           header={t('tagging.table.title')}
-          headerClass={`${cellClass} w-[23%]`}
-          bodyClass={`${cellClass} w-[23%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[23%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[23%]',
+          ].join(' ')}
           v-slots={{ body: bodySlot(item => <PlanTableText value={item.title} />) }}
         />
         <Column
           header={t('tagging.table.artists')}
-          headerClass={`${cellClass} w-[20%]`}
-          bodyClass={`${cellClass} w-[20%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[20%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[20%]',
+          ].join(' ')}
           v-slots={{
             body: bodySlot(item => <PlanTableText value={item.artists.join(' / ') || '—'} />),
           }}
@@ -133,8 +166,8 @@ export const PlanTable = defineComponent({
         <Column
           field="targetName"
           header={t('tagging.table.targetFileName')}
-          headerClass={cellClass}
-          bodyClass={cellClass}
+          headerClass="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption"
+          bodyClass="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption"
           v-slots={{
             body: bodySlot(item => (
               <PlanTableText value={item.targetName} changed={item.willRename} />

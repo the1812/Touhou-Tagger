@@ -1,8 +1,26 @@
 @import 'tailwindcss';
 @import 'tailwindcss-primeui';
 
+@theme {
+  --color-app-canvas: #f6f5f9;
+  --color-app-canvas-dark: #17161d;
+  --color-app-hover-dark: #29243a;
+  --spacing-app-header: 4rem;
+  --spacing-app-page-x: 1.5rem;
+  --spacing-app-page-y: 1.25rem;
+  --spacing-app-section-y: 1.25rem;
+  --spacing-app-control: 2.125rem;
+  --spacing-app-cover: 11.75rem;
+  --spacing-app-window-min: 50rem;
+  --container-app-field: 24rem;
+  --container-app-settings: 70rem;
+  --text-app-heading: 1.18rem;
+  --text-app-control: 0.82rem;
+  --text-app-caption: 0.78rem;
+}
+
 @utility app-root {
-  @apply min-h-screen min-w-[800px] bg-[#f6f5f9] text-color antialiased selection:bg-primary-400/35 dark:bg-[#17161d];
+  @apply min-h-screen min-w-app-window-min bg-app-canvas text-color antialiased selection:bg-primary-400/35 dark:bg-app-canvas-dark;
   color-scheme: light dark;
   font-family: system-ui, sans-serif;
   font-synthesis: none;
@@ -10,7 +28,7 @@
 }
 
 @utility app-body {
-  @apply m-0 min-h-screen min-w-[800px] overflow-hidden bg-[#f6f5f9] dark:bg-[#17161d];
+  @apply m-0 min-h-screen min-w-app-window-min overflow-hidden bg-app-canvas dark:bg-app-canvas-dark;
 }
 
 @utility primevue-defaults {
@@ -19,7 +37,7 @@
   }
 
   & .p-button {
-    @apply min-h-[34px] px-3 py-2 text-[.8rem] leading-none;
+    @apply min-h-app-control px-3 py-2 text-app-caption leading-none;
     --app-button-icon-size: 17px;
     font-weight: 650;
   }
@@ -49,7 +67,7 @@
   & input.p-inputtext,
   & .p-select,
   & .p-inputnumber {
-    @apply h-[34px] min-h-[34px] text-[.82rem];
+    @apply h-app-control min-h-app-control text-app-control;
   }
 
   & .p-select-label,
@@ -58,11 +76,11 @@
   }
 
   & .p-select-label {
-    @apply flex items-center text-[.78rem] leading-[1.2];
+    @apply flex items-center text-app-caption leading-[1.2];
   }
 
   & .p-inputnumber-input {
-    @apply text-[.82rem];
+    @apply text-app-control;
   }
 
   & .p-select-dropdown,
@@ -72,7 +90,7 @@
 
   & .p-select-overlay,
   & .p-select-option {
-    @apply text-[.78rem];
+    @apply text-app-caption;
   }
 
   & .p-select-option {
@@ -84,7 +102,7 @@
   }
 
   & .p-dialog {
-    @apply border-surface-200 text-[.82rem] dark:border-surface-700;
+    @apply border-surface-200 text-app-control dark:border-surface-700;
   }
 
   & .p-dialog-close-button {
@@ -92,7 +110,7 @@
   }
 
   & .p-dialog .p-textarea {
-    @apply px-2.5 py-2 text-[.82rem] leading-[1.45];
+    @apply px-2.5 py-2 text-app-control leading-[1.45];
   }
 
   & .p-tooltip {
@@ -135,7 +153,7 @@
   }
 
   & .p-tab {
-    @apply inline-flex min-h-16 items-center gap-2 px-4 py-0 text-[.88rem] font-semibold;
+    @apply inline-flex min-h-app-header items-center gap-2 px-4 py-0 text-[.88rem] font-semibold;
   }
 
   & .p-tablist-active-bar {
@@ -160,7 +178,7 @@
 }
 
 @utility page-empty-state {
-  @apply grid min-h-[calc(100vh-190px)] place-items-center content-center gap-4 text-center;
+  @apply grid min-h-[calc(100vh-var(--spacing-app-header)-2*var(--spacing-app-page-y))] place-items-center content-center gap-4 text-center;
 }
 
 @utility directory-picker-button {
@@ -168,7 +186,7 @@
 }
 
 @utility workspace-section {
-  @apply min-w-0 max-w-full border-b border-surface-200 py-5 dark:border-surface-700;
+  @apply min-w-0 max-w-full border-b border-surface-200 py-app-section-y dark:border-surface-700;
 }
 
 @utility workspace-heading {
@@ -176,7 +194,7 @@
 }
 
 @utility action-bar {
-  @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-surface-0/95 px-6 py-3 dark:border-surface-700 dark:bg-surface-900/95;
+  @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-surface-0/95 px-app-page-x py-3 dark:border-surface-700 dark:bg-surface-900/95;
 }
 
 @utility round-icon-buttons {
@@ -186,10 +204,10 @@
 }
 
 @utility candidate-option {
-  @apply grid min-h-[3.25rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 disabled:cursor-default dark:border-surface-700 dark:hover:bg-[#29243a];
+  @apply grid min-h-[3.25rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 disabled:cursor-default dark:border-surface-700 dark:hover:bg-app-hover-dark;
 
   &[data-selected='true'] {
-    @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-[#29243a];
+    @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-app-hover-dark;
   }
 }
 

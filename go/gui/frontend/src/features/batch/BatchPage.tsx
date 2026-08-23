@@ -79,7 +79,7 @@ export const BatchPage = defineComponent({
               >
                 {{ icon: () => <FolderOpen size={19} /> }}
               </Button>
-              <span class="text-[.78rem] text-surface-500 dark:text-surface-400">
+              <span class="text-app-caption text-surface-500 dark:text-surface-400">
                 <kbd class="app-kbd">Ctrl</kbd> + <kbd class="app-kbd">O</kbd>
               </span>
             </section>
@@ -88,9 +88,12 @@ export const BatchPage = defineComponent({
               <section class="workspace-section">
                 <div class="workspace-heading">
                   <div class="min-w-0">
-                    <h2 class="mt-1 text-[1.18rem] font-bold">{directoryLabel.value}</h2>
+                    <h2 class="mt-1 text-app-heading font-bold">{directoryLabel.value}</h2>
                     <p
-                      class="mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap text-[.82rem] text-muted-color"
+                      class={[
+                        'mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap',
+                        'text-app-control text-muted-color',
+                      ]}
                       v-tooltip={currentDirectory}
                     >
                       {currentDirectory}
@@ -123,11 +126,11 @@ export const BatchPage = defineComponent({
 
               {!currentOperation && !currentResult && (
                 <>
-                  <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0 py-4">
+                  <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0">
                     <div class="workspace-heading items-center">
-                      <h2 class="mt-1 text-[1.18rem] font-bold">{t('batch.scanHeading')}</h2>
+                      <h2 class="mt-1 text-app-heading font-bold">{t('batch.scanHeading')}</h2>
                       <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-2 text-[.78rem] font-semibold">
+                        <label class="flex items-center gap-2 text-app-caption font-semibold">
                           <span class="whitespace-nowrap">{t('batch.depth')}</span>
                           <InputNumber
                             class="w-28"
@@ -163,7 +166,12 @@ export const BatchPage = defineComponent({
 
                     {scanning.value && !currentPreview ? (
                       <div class="grid min-h-64 place-items-center content-center gap-4 text-center">
-                        <div class="size-[46px] animate-spin rounded-full border-[3px] border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary" />
+                        <div
+                          class={[
+                            'size-[46px] animate-spin rounded-full border-[3px]',
+                            'border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary',
+                          ]}
+                        />
                         <h3 class="m-0 text-[.95rem] font-bold">{t('batch.scanning')}</h3>
                       </div>
                     ) : (
@@ -223,9 +231,9 @@ export const BatchPage = defineComponent({
                   />
 
                   {failedJobs.value.length > 0 && (
-                    <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0 py-4">
+                    <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0">
                       <div class="workspace-heading">
-                        <h2 class="mt-1 text-[1.18rem] font-bold">{t('batch.failedItems')}</h2>
+                        <h2 class="mt-1 text-app-heading font-bold">{t('batch.failedItems')}</h2>
                       </div>
                       <BatchJobTable
                         jobs={failedJobs.value}

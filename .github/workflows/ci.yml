@@ -14,26 +14,31 @@ jobs:
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v7.0.0
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
-      - uses: oven-sh/setup-bun@v2.2.0
-        with:
-          bun-version-file: .bun-version
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-      - run: bun run test
-      - run: bun run lint
-      - run: bun run format:check
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run test
+      - run: pnpm run lint
+      - run: pnpm run format:check
       - name: Verify npm package boundaries
         shell: pwsh
         run: |
-          $archive = Join-Path $env:RUNNER_TEMP 'touhou-tagger.tgz'
-          bun pm pack --filename $archive --ignore-scripts --quiet
+          pnpm pack --pack-destination $env:RUNNER_TEMP
           if ($LASTEXITCODE -ne 0) {
-            throw 'bun pm pack failed.'
+            throw 'pnpm pack failed.'
           }
-          $entries = @(tar -tf $archive)
+          $archive = Get-ChildItem -LiteralPath $env:RUNNER_TEMP -Filter 'touhou-tagger-*.tgz' |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+          if (-not $archive) {
+            throw 'pnpm pack did not create an archive.'
+          }
+          $entries = @(tar -tf $archive.FullName)
           if ($LASTEXITCODE -ne 0) {
             throw 'Unable to inspect the npm package.'
           }
@@ -69,13 +74,16 @@ jobs:
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v7.0.0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: go/gui/frontend/pnpm-lock.yaml
       - uses: actions/setup-go@v6.5.0
         with:
           go-version-file: go/go.mod
           cache-dependency-path: go/go.sum
-      - uses: oven-sh/setup-bun@v2.2.0
-        with:
-          bun-version-file: .bun-version
       - name: Install Wails CLI
         shell: pwsh
         run: |
@@ -86,7 +94,7 @@ jobs:
           Join-Path (go env GOPATH) bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Install frontend dependencies
         working-directory: go/gui/frontend
-        run: bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build Windows amd64 GUI
         working-directory: go/gui
         run: wails3 build GOOS=windows GOARCH=amd64

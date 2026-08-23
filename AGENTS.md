@@ -1,7 +1,7 @@
 # Repository context
 
-- This repository ships the existing Node/Bun package and the Go CLI/GUI as parallel products. Do not treat the Go implementation as permission to remove or silently diverge from the Node implementation.
-- Use Bun for every JavaScript workspace in this repository. Do not use npm or pnpm. Keep the root and `go/gui/frontend` lockfiles independent.
+- This repository ships the existing Node package and the Go CLI/GUI as parallel products. Do not treat the Go implementation as permission to remove or silently diverge from the Node implementation.
+- Use pnpm for every JavaScript workspace in this repository. Do not use npm. Keep the root and `go/gui/frontend` lockfiles independent.
 - Use PowerShell syntax for local commands on Windows and prefer `/` in generated paths.
 
 # Shared behavior and fixtures
@@ -49,8 +49,8 @@
 # Validation
 
 - Run only the checks relevant to the changed surface, but do not stop at compilation.
-- Root Node package: `bun run build`, `bun run test`, `bun run lint`, and `bun run format:check`.
+- Root Node package: `pnpm run build`, `pnpm run test`, `pnpm run lint`, and `pnpm run format:check`.
 - Go module, from `go/`: `go test ./...`, `golangci-lint run --config .golangci.yml`, and `go build -trimpath -o ./bin/thtag.exe ./cmd/thtag`.
-- GUI frontend, from `go/gui/frontend/`: `bun run build`.
+- GUI frontend, from `go/gui/frontend/`: `pnpm run build`.
 - Full Windows GUI, from `go/gui/`: `& './.task/bin/wails3.exe' task build`; verify `go/bin/TouhouTagger.exe` exists and launch it when native behavior changed.
 - WASM changes: rebuild through `go/wasm-src/build.ps1`, then validate behavior with `go build ./cmd/thtag` and `go test ./internal/imagecodec/...`. Do not use generated WASM hash equality as the sole acceptance criterion.

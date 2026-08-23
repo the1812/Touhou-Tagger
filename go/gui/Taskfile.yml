@@ -23,11 +23,11 @@ tasks:
     dir: frontend
     sources:
       - package.json
-      - bun.lock
+      - pnpm-lock.yaml
     generates:
       - node_modules/**/*
     cmds:
-      - bun install --frozen-lockfile
+      - pnpm install --frozen-lockfile
 
   generate:bindings:
     deps:
@@ -66,7 +66,7 @@ tasks:
       - generate:bindings
     dir: frontend
     cmds:
-      - bun run {{if eq .DEV "true"}}build:dev{{else}}build{{end}}
+      - pnpm run {{if eq .DEV "true"}}build:dev{{else}}build{{end}}
 
   build:
     deps:
@@ -92,7 +92,7 @@ tasks:
       - install:frontend
     dir: frontend
     cmds:
-      - bun run dev -- --port {{.VITE_PORT}} --strictPort
+      - pnpm run dev -- --port {{.VITE_PORT}} --strictPort
 
   run:
     cmds:

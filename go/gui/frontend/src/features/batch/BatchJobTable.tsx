@@ -7,8 +7,7 @@ import { defineComponent, type PropType } from 'vue'
 
 import type { BatchJobPreview, BatchJobStatus } from '../../api'
 import { t } from '../../i18n'
-
-const cellClass = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[.78rem]'
+import { cx } from '../../shared/classNames'
 
 const statusInfo = (status: BatchJobStatus) => {
   const map: Record<
@@ -82,13 +81,14 @@ export const BatchJobTable = defineComponent({
       (render: (job: BatchJobPreview) => unknown) =>
       ({ data }: { data: BatchJobPreview }) =>
         render(data)
-    const rowClass = (job: BatchJobPreview) => [
-      'h-[46px]',
-      ['track-mismatch', 'scan-failed', 'failed'].includes(job.status) &&
-        'bg-red-50/60 dark:bg-red-950/30',
-      job.status === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
-      job.status === 'ignored' && 'text-muted-color',
-    ]
+    const rowClass = (job: BatchJobPreview) =>
+      cx(
+        'h-[46px]',
+        ['track-mismatch', 'scan-failed', 'failed'].includes(job.status) &&
+          'bg-red-50/60 dark:bg-red-950/30',
+        job.status === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
+        job.status === 'ignored' && 'text-muted-color',
+      )
     const matchCell = (job: BatchJobPreview) => {
       if (!props.editable) {
         return <span class="block overflow-hidden text-ellipsis whitespace-nowrap">{job.matchDescription}</span>
@@ -157,7 +157,11 @@ export const BatchJobTable = defineComponent({
         scrollHeight="flex"
         size="small"
         tableClass="w-full min-w-[720px] table-fixed"
-        class="min-h-60 w-full min-w-0 max-w-full [--p-datatable-body-cell-sm-padding:.375rem_1rem] [--p-datatable-header-cell-sm-padding:.375rem_1rem]"
+        class={[
+          'min-h-60 w-full min-w-0 max-w-full',
+          '[--p-datatable-body-cell-sm-padding:.375rem_1rem]',
+          '[--p-datatable-header-cell-sm-padding:.375rem_1rem]',
+        ]}
         rowClass={rowClass}
         virtualScrollerOptions={props.jobs.length > 100 ? { itemSize: 46 } : undefined}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
@@ -173,8 +177,14 @@ export const BatchJobTable = defineComponent({
           field="relativePath"
           header={t('batch.columns.directory')}
           frozen
-          headerClass={`${cellClass} w-[24%]`}
-          bodyClass={`${cellClass} w-[24%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[24%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[24%]',
+          ].join(' ')}
           v-slots={{
             body: bodySlot(job => (
               <BatchTableTooltip
@@ -189,25 +199,49 @@ export const BatchJobTable = defineComponent({
         <Column
           field="inferredAlbumName"
           header={t('batch.columns.album')}
-          headerClass={`${cellClass} w-[24%]`}
-          bodyClass={`${cellClass} w-[24%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[24%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[24%]',
+          ].join(' ')}
         />
         <Column
           header={t('batch.columns.match')}
-          headerClass={`${cellClass} w-[34%]`}
-          bodyClass={`${cellClass} w-[34%]`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[34%]',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-[34%]',
+          ].join(' ')}
           v-slots={{ body: bodySlot(matchCell) }}
         />
         <Column
           field="audioCount"
           header={t('batch.columns.tracks')}
-          headerClass={`${cellClass} w-16`}
-          bodyClass={`${cellClass} w-16 tabular-nums`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-16',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-16 tabular-nums',
+          ].join(' ')}
         />
         <Column
           header={t('batch.columns.status')}
-          headerClass={`${cellClass} w-28`}
-          bodyClass={`${cellClass} w-28`}
+          headerClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-28',
+          ].join(' ')}
+          bodyClass={[
+            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'w-28',
+          ].join(' ')}
           v-slots={{
             body: bodySlot(job => {
               const status = statusInfo(job.status)

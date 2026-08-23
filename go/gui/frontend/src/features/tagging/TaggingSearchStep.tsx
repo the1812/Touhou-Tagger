@@ -79,7 +79,7 @@ export const TaggingSearchStep = defineComponent({
         <>
           <section class="workspace-section border-b-0">
             <div class="workspace-heading">
-              <h2 class="mt-1 text-[1.18rem] font-bold">{t('tagging.searchAlbum')}</h2>
+              <h2 class="mt-1 text-app-heading font-bold">{t('tagging.searchAlbum')}</h2>
             </div>
             <form
               class="mt-4 grid grid-cols-[12rem_minmax(12rem,1fr)_auto] gap-3"
@@ -147,7 +147,12 @@ export const TaggingSearchStep = defineComponent({
                 ))}
               </div>
             ) : hasSearched.value ? (
-              <div class="mt-4 grid place-items-center gap-1.5 border-y border-surface-200 py-5 text-center text-muted-color dark:border-surface-700">
+              <div
+                class={[
+                  'mt-4 grid place-items-center gap-1.5 border-y py-app-section-y text-center',
+                  'border-surface-200 text-muted-color dark:border-surface-700',
+                ]}
+              >
                 <Search size={30} />
                 <strong>{t('tagging.noSearchResults')}</strong>
               </div>

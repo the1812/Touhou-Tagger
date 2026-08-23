@@ -6,9 +6,6 @@ import { computed, defineComponent, type PropType, ref } from 'vue'
 import type { CoverPreview as CoverPreviewData } from '../../api'
 import { t } from '../../i18n'
 
-const coverFrameClass =
-  'relative grid size-[188px] place-items-center overflow-hidden rounded-xl border border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800 max-[720px]:w-[min(188px,100%)]'
-
 export const CoverPreview = defineComponent({
   name: 'CoverPreview',
   props: {
@@ -36,11 +33,16 @@ export const CoverPreview = defineComponent({
 
     return () => (
       <>
-        <section class="grid w-[188px] min-w-0 gap-2">
+        <section class="grid w-app-cover min-w-0 gap-2">
           {props.cover.url ? (
             <button
               type="button"
-              class={`${coverFrameClass} group cursor-zoom-in p-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary`}
+              class={[
+                'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
+                'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
+                'group cursor-zoom-in p-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary',
+                'max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
+              ]}
               onClick={() => {
                 expanded.value = true
               }}
@@ -55,14 +57,20 @@ export const CoverPreview = defineComponent({
               </span>
             </button>
           ) : (
-            <div class={`${coverFrameClass} content-center gap-2 p-5 text-center`}>
+            <div
+              class={[
+                'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
+                'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
+                'content-center gap-2 p-5 text-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
+              ]}
+            >
               <ImageIcon size={38} stroke-width={1.5} />
               <strong class="text-color">{t('tagging.cover.noCover')}</strong>
             </div>
           )}
 
           <div class="grid min-w-0 gap-2">
-            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-[.78rem] text-muted-color">
+            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-app-caption text-muted-color">
               <span>{dimensions.value}</span>
               <span>{fileSize.value}</span>
             </div>

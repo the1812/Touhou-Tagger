@@ -11,6 +11,7 @@ import { usePageCommandRegistry } from '../app/pageCommands'
 import { t } from '../i18n'
 import { useOperationsStore } from '../stores/operations'
 import { ToastHost } from './ToastHost'
+import { cx } from './classNames'
 
 export const AppShell = defineComponent({
   name: 'AppShell',
@@ -65,7 +66,12 @@ export const AppShell = defineComponent({
     return () => (
       <>
         <div class="grid h-screen min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-          <header class="flex min-h-16 items-center gap-4 border-b border-surface-200 bg-surface-0/90 pr-4 dark:border-surface-700 dark:bg-surface-900/90">
+          <header
+            class={[
+              'flex min-h-app-header items-center gap-4 border-b pr-app-page-x',
+              'border-surface-200 bg-surface-0/90 dark:border-surface-700 dark:bg-surface-900/90',
+            ]}
+          >
             <nav class="min-w-0 flex-1" aria-label={t('navigation.primary')}>
               <Tabs
                 value={selectedTab.value}
@@ -87,7 +93,12 @@ export const AppShell = defineComponent({
             </nav>
             <div class="flex shrink-0 items-center gap-3">
               {currentOperation.value && (
-                <div class="status-chip max-w-80 gap-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-2.5 py-2 text-xs">
+                <div
+                  class={[
+                    'status-chip max-w-80 gap-2 overflow-hidden text-ellipsis whitespace-nowrap',
+                    'rounded-full px-2.5 py-2 text-xs',
+                  ]}
+                >
                   <span class="size-[7px] shrink-0 animate-pulse rounded-full bg-primary" />
                   {currentOperation.value.message}
                 </div>
@@ -106,7 +117,14 @@ export const AppShell = defineComponent({
             </div>
           </header>
 
-          <main class="app-scrollbar min-h-0 min-w-0 overflow-auto px-6 py-5">
+          <main
+            class={cx(
+              'app-scrollbar min-h-0 min-w-0',
+              route.name === 'settings'
+                ? 'overflow-hidden p-0'
+                : 'overflow-auto px-app-page-x py-app-page-y',
+            )}
+          >
             <RouterView />
           </main>
           <div id="page-action-bar" class="empty:hidden" />

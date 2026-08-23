@@ -1,0 +1,5 @@
+packages: []
+
+patchedDependencies:
+  node-id3@0.2.3: patches/node-id3@0.2.3.patch
+  '@squoosh/lib@0.5.3': patches/@squoosh__lib@0.5.3.patch
