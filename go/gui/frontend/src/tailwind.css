@@ -2,8 +2,12 @@
 @import 'tailwindcss-primeui';
 
 @theme {
-  --color-app-canvas: #f6f5f9;
-  --color-app-canvas-dark: #17161d;
+  --color-app-header: color-mix(in srgb, var(--p-surface-0) 90%, transparent);
+  --color-app-header-dark: color-mix(in srgb, var(--p-surface-900) 90%, transparent);
+  --color-app-content: #f6f5f9;
+  --color-app-content-dark: #17161d;
+  --color-app-footer: color-mix(in srgb, var(--p-surface-0) 95%, transparent);
+  --color-app-footer-dark: color-mix(in srgb, var(--p-surface-900) 95%, transparent);
   --color-app-hover-dark: #29243a;
   --spacing-app-header: 4rem;
   --spacing-app-page-x: 1.5rem;
@@ -13,6 +17,7 @@
   --spacing-app-cover: 11.75rem;
   --spacing-app-window-min: 50rem;
   --container-app-field: 24rem;
+  --container-app-dialog-min: 28rem;
   --container-app-settings: 70rem;
   --text-app-heading: 1.18rem;
   --text-app-control: 0.82rem;
@@ -20,7 +25,7 @@
 }
 
 @utility app-root {
-  @apply min-h-screen min-w-app-window-min bg-app-canvas text-color antialiased selection:bg-primary-400/35 dark:bg-app-canvas-dark;
+  @apply min-h-screen min-w-app-window-min bg-app-content text-color antialiased selection:bg-primary-400/35 dark:bg-app-content-dark;
   color-scheme: light dark;
   font-family: system-ui, sans-serif;
   font-synthesis: none;
@@ -28,7 +33,7 @@
 }
 
 @utility app-body {
-  @apply m-0 min-h-screen min-w-app-window-min overflow-hidden bg-app-canvas dark:bg-app-canvas-dark;
+  @apply m-0 min-h-screen min-w-app-window-min overflow-hidden bg-app-content dark:bg-app-content-dark;
 }
 
 @utility primevue-defaults {
@@ -102,7 +107,7 @@
   }
 
   & .p-dialog {
-    @apply border-surface-200 text-app-control dark:border-surface-700;
+    @apply min-w-[min(var(--container-app-dialog-min),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] border-surface-200 text-app-control dark:border-surface-700;
   }
 
   & .p-dialog-close-button {
@@ -193,8 +198,22 @@
   @apply flex items-start justify-between gap-6;
 }
 
+@utility compact-data-table {
+  @apply min-h-60 w-full min-w-0 max-w-full;
+  --p-datatable-body-cell-sm-padding: 0.375rem 1rem;
+  --p-datatable-header-cell-sm-padding: 0.375rem 1rem;
+
+  &[data-fit-content='true'] {
+    @apply min-h-0;
+  }
+}
+
+@utility compact-table-cell {
+  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption;
+}
+
 @utility action-bar {
-  @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-surface-0/95 px-app-page-x py-3 dark:border-surface-700 dark:bg-surface-900/95;
+  @apply z-20 flex items-center gap-4 border-t border-surface-200 bg-app-footer px-app-page-x py-3 dark:border-surface-700 dark:bg-app-footer-dark;
 }
 
 @utility round-icon-buttons {

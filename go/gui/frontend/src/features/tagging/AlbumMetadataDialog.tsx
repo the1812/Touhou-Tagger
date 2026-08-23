@@ -5,6 +5,7 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { AlbumMetadata } from '../../api'
 import { t } from '../../i18n'
+import { FormField } from '../../shared/FormField'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
 export const AlbumMetadataDialog = defineComponent({
@@ -65,41 +66,21 @@ export const AlbumMetadataDialog = defineComponent({
         {{
           default: () => (
             <div class="grid gap-3.5">
-              <label
-                class={[
-                  'grid gap-1.5 text-app-control font-semibold',
-                  '[&>small]:text-xs [&>small]:font-normal',
-                ]}
-              >
+              <FormField>
                 <span>{t('tagging.albumDialog.title')}</span>
                 <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
-              </label>
+              </FormField>
               <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
-                <label
-                  class={[
-                    'grid gap-1.5 text-app-control font-semibold',
-                    '[&>small]:text-xs [&>small]:font-normal',
-                  ]}
-                >
+                <FormField>
                   <span>{t('tagging.albumDialog.catalogNumber')}</span>
                   <InputText v-model={draft.albumOrder} fluid />
-                </label>
-                <label
-                  class={[
-                    'grid gap-1.5 text-app-control font-semibold',
-                    '[&>small]:text-xs [&>small]:font-normal',
-                  ]}
-                >
+                </FormField>
+                <FormField>
                   <span>{t('tagging.albumDialog.year')}</span>
                   <InputText v-model={draft.year} fluid />
-                </label>
+                </FormField>
               </div>
-              <label
-                class={[
-                  'grid gap-1.5 text-app-control font-semibold',
-                  '[&>small]:text-xs [&>small]:font-normal',
-                ]}
-              >
+              <FormField>
                 <span>{t('tagging.albumDialog.circles')}</span>
                 <MetadataTagsInput
                   modelValue={draft.artists}
@@ -109,13 +90,8 @@ export const AlbumMetadataDialog = defineComponent({
                     },
                   }}
                 />
-              </label>
-              <label
-                class={[
-                  'grid gap-1.5 text-app-control font-semibold',
-                  '[&>small]:text-xs [&>small]:font-normal',
-                ]}
-              >
+              </FormField>
+              <FormField>
                 <span>{t('tagging.albumDialog.genres')}</span>
                 <MetadataTagsInput
                   modelValue={draft.genres}
@@ -125,7 +101,7 @@ export const AlbumMetadataDialog = defineComponent({
                     },
                   }}
                 />
-              </label>
+              </FormField>
             </div>
           ),
           footer: () => (

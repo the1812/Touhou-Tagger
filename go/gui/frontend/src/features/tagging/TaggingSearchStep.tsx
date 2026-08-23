@@ -1,4 +1,4 @@
-import { Check, FileJson, Search } from 'lucide-vue-next'
+import { Check, Search } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -7,6 +7,8 @@ import Skeleton from 'primevue/skeleton'
 import { computed, defineComponent } from 'vue'
 
 import { PageActionBar } from '../../shared/PageActionBar'
+import { TruncatedText } from '../../shared/TruncatedText'
+import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { t } from '../../i18n'
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
@@ -42,15 +44,11 @@ export const TaggingSearchStep = defineComponent({
       set: (value: string) => workspace.changeSource(value),
     })
 
-    const prepareLocalMetadata = () => {
-      workspace.selectCandidate('local-json')
-      workspace.preparePlan('local-json')
-    }
-
     return () => {
       const currentSummary = summary.value
       if (
         !currentSummary ||
+        currentSummary.hasMetadataJson ||
         phase.value === 'failed' ||
         plan.value ||
         operation.value ||
@@ -59,27 +57,11 @@ export const TaggingSearchStep = defineComponent({
         return null
       }
 
-      if (currentSummary.hasMetadataJson) {
-        return (
-          <section class="workspace-section flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-              <FileJson class="text-primary" size={30} />
-              <h2 class="m-0 font-bold">{t('tagging.localMetadata')}</h2>
-            </div>
-            <Button
-              label={t('tagging.previewLocalMetadata')}
-              loading={phase.value === 'preparing'}
-              onClick={prepareLocalMetadata}
-            />
-          </section>
-        )
-      }
-
       return (
         <>
           <section class="workspace-section border-b-0">
             <div class="workspace-heading">
-              <h2 class="mt-1 text-app-heading font-bold">{t('tagging.searchAlbum')}</h2>
+              <WorkspaceTitle>{t('tagging.searchAlbum')}</WorkspaceTitle>
             </div>
             <form
               class="mt-4 grid grid-cols-[12rem_minmax(12rem,1fr)_auto] gap-3"
@@ -140,9 +122,9 @@ export const TaggingSearchStep = defineComponent({
                     >
                       {selectedCandidateId.value === candidate.id && <Check size={15} />}
                     </span>
-                    <strong class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">
+                    <TruncatedText as="strong" class="text-sm">
                       {candidate.title}
-                    </strong>
+                    </TruncatedText>
                   </button>
                 ))}
               </div>

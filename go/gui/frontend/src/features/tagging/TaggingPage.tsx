@@ -16,7 +16,10 @@ import { defineComponent } from 'vue'
 import { usePageCommands } from '../../app/pageCommands'
 import { t } from '../../i18n'
 import { CompletionPanel } from '../../shared/CompletionPanel'
+import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
 import { OperationPanel } from '../../shared/OperationPanel'
+import { TruncatedText } from '../../shared/TruncatedText'
+import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { TaggingPlanStep } from './TaggingPlanStep'
 import { TaggingSearchStep } from './TaggingSearchStep'
@@ -55,20 +58,10 @@ export const TaggingPage = defineComponent({
       return (
         <div class="round-icon-buttons grid min-h-full content-start gap-0">
           {currentPhase === 'idle' || currentPhase === 'selecting' ? (
-            <section class="page-empty-state">
-              <Button
-                class="directory-picker-button"
-                label={t('common.selectDirectory')}
-                size="large"
-                loading={currentPhase === 'selecting'}
-                onClick={() => workspace.selectDirectory()}
-              >
-                {{ icon: () => <FolderOpen size={19} /> }}
-              </Button>
-              <span class="text-app-caption text-surface-500 dark:text-surface-400">
-                <kbd class="app-kbd">Ctrl</kbd> + <kbd class="app-kbd">O</kbd>
-              </span>
-            </section>
+            <DirectoryPickerEmptyState
+              loading={currentPhase === 'selecting'}
+              onSelect={() => workspace.selectDirectory()}
+            />
           ) : (
             <div class="min-w-0 -mt-5">
               <section class="workspace-section">
@@ -87,18 +80,19 @@ export const TaggingPage = defineComponent({
                     <>
                       <div class="workspace-heading">
                         <div>
-                          <h2 class="mt-1 text-app-heading font-bold">
+                          <WorkspaceTitle>
                             {currentSummary.inferredAlbumName || t('tagging.unnamedAlbum')}
-                          </h2>
-                          <p
+                          </WorkspaceTitle>
+                          <TruncatedText
+                            as="p"
+                            tooltip={currentSummary.directory}
                             class={[
-                              'mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap',
+                              'mt-1.5 max-w-[min(760px,65vw)]',
                               'text-app-control text-muted-color',
                             ]}
-                            v-tooltip={currentSummary.directory}
                           >
                             {currentSummary.directory}
-                          </p>
+                          </TruncatedText>
                         </div>
                         <div class="flex items-center gap-1.5">
                           <Button

@@ -8,6 +8,7 @@ import { defineComponent, type PropType } from 'vue'
 import type { BatchJobPreview, BatchJobStatus } from '../../api'
 import { t } from '../../i18n'
 import { cx } from '../../shared/classNames'
+import { TruncatedText } from '../../shared/TruncatedText'
 
 const statusInfo = (status: BatchJobStatus) => {
   const map: Record<
@@ -35,27 +36,6 @@ const candidateOptions = (job: BatchJobPreview) =>
     value: candidate.id,
     label: `${candidate.title} · ${candidate.artists.join(' / ')}`,
   }))
-
-const BatchTableTooltip = defineComponent({
-  name: 'BatchTableTooltip',
-  props: {
-    value: {
-      type: String,
-      required: true,
-    },
-    contentClass: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props, { slots }) {
-    return () => (
-      <span class={props.contentClass} v-tooltip={props.value}>
-        {slots.default?.()}
-      </span>
-    )
-  },
-})
 
 export const BatchJobTable = defineComponent({
   name: 'BatchJobTable',
@@ -91,7 +71,7 @@ export const BatchJobTable = defineComponent({
       )
     const matchCell = (job: BatchJobPreview) => {
       if (!props.editable) {
-        return <span class="block overflow-hidden text-ellipsis whitespace-nowrap">{job.matchDescription}</span>
+        return <TruncatedText class="block">{job.matchDescription}</TruncatedText>
       }
       if (job.status === 'loading') {
         return <span class="text-muted-color">{t('batch.loadingAlbum')}</span>
@@ -99,9 +79,9 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'scan-failed') {
         return (
           <div class="flex items-center justify-between gap-2">
-            <span class="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-red-600 dark:text-red-300">
+            <TruncatedText class="block text-red-600 dark:text-red-300">
               {job.matchDescription}
-            </span>
+            </TruncatedText>
             <Button
               label={t('common.retry')}
               size="small"
@@ -147,7 +127,7 @@ export const BatchJobTable = defineComponent({
           />
         )
       }
-      return <span class="block overflow-hidden text-ellipsis whitespace-nowrap">{job.matchDescription}</span>
+      return <TruncatedText class="block">{job.matchDescription}</TruncatedText>
     }
     return () => (
       <DataTable
@@ -157,11 +137,7 @@ export const BatchJobTable = defineComponent({
         scrollHeight="flex"
         size="small"
         tableClass="w-full min-w-[720px] table-fixed"
-        class={[
-          'min-h-60 w-full min-w-0 max-w-full',
-          '[--p-datatable-body-cell-sm-padding:.375rem_1rem]',
-          '[--p-datatable-header-cell-sm-padding:.375rem_1rem]',
-        ]}
+        class="compact-data-table"
         rowClass={rowClass}
         virtualScrollerOptions={props.jobs.length > 100 ? { itemSize: 46 } : undefined}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
@@ -178,21 +154,18 @@ export const BatchJobTable = defineComponent({
           header={t('batch.columns.directory')}
           frozen
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[24%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[24%]',
           ].join(' ')}
           v-slots={{
             body: bodySlot(job => (
-              <BatchTableTooltip
-                value={job.relativePath}
-                contentClass="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-              >
+              <TruncatedText class="block" tooltip={job.relativePath}>
                 {job.relativePath}
-              </BatchTableTooltip>
+              </TruncatedText>
             )),
           }}
         />
@@ -200,22 +173,22 @@ export const BatchJobTable = defineComponent({
           field="inferredAlbumName"
           header={t('batch.columns.album')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[24%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[24%]',
           ].join(' ')}
         />
         <Column
           header={t('batch.columns.match')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[34%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[34%]',
           ].join(' ')}
           v-slots={{ body: bodySlot(matchCell) }}
@@ -224,22 +197,22 @@ export const BatchJobTable = defineComponent({
           field="audioCount"
           header={t('batch.columns.tracks')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-16',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-16 tabular-nums',
           ].join(' ')}
         />
         <Column
           header={t('batch.columns.status')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-28',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-28',
           ].join(' ')}
           v-slots={{
@@ -254,9 +227,9 @@ export const BatchJobTable = defineComponent({
               )
               const issueText = job.issues.map(issue => issue.message).join('；')
               return issueText ? (
-                <BatchTableTooltip value={issueText} contentClass="inline-flex">
+                <TruncatedText class="inline-flex" tooltip={issueText}>
                   {tag}
-                </BatchTableTooltip>
+                </TruncatedText>
               ) : (
                 tag
               )

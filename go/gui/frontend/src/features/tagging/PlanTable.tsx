@@ -5,30 +5,7 @@ import { computed, defineComponent, type PropType } from 'vue'
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
 import { cx } from '../../shared/classNames'
-
-const PlanTableText = defineComponent({
-  name: 'PlanTableText',
-  props: {
-    value: {
-      type: String,
-      required: true,
-    },
-    changed: Boolean,
-  },
-  setup(props) {
-    return () => (
-      <span
-        class={[
-          'block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap',
-          { 'font-semibold text-primary': props.changed },
-        ]}
-        v-tooltip={props.value}
-      >
-        {props.value}
-      </span>
-    )
-  },
-})
+import { TruncatedText } from '../../shared/TruncatedText'
 
 export const PlanTable = defineComponent({
   name: 'PlanTable',
@@ -75,11 +52,8 @@ export const PlanTable = defineComponent({
         scrollHeight="flex"
         size="small"
         tableClass="w-full min-w-0 max-w-full table-fixed"
-        class={[
-          'min-h-60 w-full min-w-0 max-w-full',
-          '[--p-datatable-body-cell-sm-padding:.375rem_1rem]',
-          '[--p-datatable-header-cell-sm-padding:.375rem_1rem]',
-        ]}
+        class="compact-data-table"
+        data-fit-content="true"
         rowClass={rowClass}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
@@ -91,25 +65,31 @@ export const PlanTable = defineComponent({
           field="sourceName"
           header={t('tagging.table.localFile')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[20%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[20%]',
           ].join(' ')}
-          v-slots={{ body: bodySlot(item => <PlanTableText value={item.sourceName} />) }}
+          v-slots={{
+            body: bodySlot(item => (
+              <TruncatedText class="block" tooltip={item.sourceName}>
+                {item.sourceName}
+              </TruncatedText>
+            )),
+          }}
         />
         {hasMultipleDiscs.value && (
           <Column
             field="discNumber"
             header={t('tagging.table.discNumber')}
             headerClass={[
-              'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+              'compact-table-cell',
               'w-16',
             ].join(' ')}
             bodyClass={[
-              'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+              'compact-table-cell',
               'w-16',
             ].join(' ')}
             v-slots={{
@@ -123,11 +103,11 @@ export const PlanTable = defineComponent({
           field="trackNumber"
           header={t('tagging.table.trackNumber')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-16',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-16',
           ].join(' ')}
           v-slots={{
@@ -140,37 +120,55 @@ export const PlanTable = defineComponent({
           field="title"
           header={t('tagging.table.title')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[23%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[23%]',
           ].join(' ')}
-          v-slots={{ body: bodySlot(item => <PlanTableText value={item.title} />) }}
+          v-slots={{
+            body: bodySlot(item => (
+              <TruncatedText class="block" tooltip={item.title}>
+                {item.title}
+              </TruncatedText>
+            )),
+          }}
         />
         <Column
           header={t('tagging.table.artists')}
           headerClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[20%]',
           ].join(' ')}
           bodyClass={[
-            'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption',
+            'compact-table-cell',
             'w-[20%]',
           ].join(' ')}
           v-slots={{
-            body: bodySlot(item => <PlanTableText value={item.artists.join(' / ') || '—'} />),
+            body: bodySlot(item => {
+              const artists = item.artists.join(' / ') || '—'
+              return (
+                <TruncatedText class="block" tooltip={artists}>
+                  {artists}
+                </TruncatedText>
+              )
+            }),
           }}
         />
         <Column
           field="targetName"
           header={t('tagging.table.targetFileName')}
-          headerClass="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption"
-          bodyClass="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption"
+          headerClass="compact-table-cell"
+          bodyClass="compact-table-cell"
           v-slots={{
             body: bodySlot(item => (
-              <PlanTableText value={item.targetName} changed={item.willRename} />
+              <TruncatedText
+                class={['block', { 'font-semibold text-primary': item.willRename }]}
+                tooltip={item.targetName}
+              >
+                {item.targetName}
+              </TruncatedText>
             )),
           }}
         />

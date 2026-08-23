@@ -1,4 +1,4 @@
-import { Info, RotateCcw } from 'lucide-vue-next'
+import { RotateCcw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
@@ -12,6 +12,8 @@ import { computed, defineComponent, onMounted } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { t } from '../../i18n'
+import { FieldLabel, FormField } from '../../shared/FormField'
+import { FormSection } from '../../shared/FormSection'
 import { useSettingsStore } from '../../stores/settings'
 
 export const SettingsPage = defineComponent({
@@ -63,6 +65,7 @@ export const SettingsPage = defineComponent({
           message: t('settings.discardChanges.message'),
           acceptLabel: t('settings.discardChanges.accept'),
           rejectLabel: t('settings.discardChanges.reject'),
+          rejectProps: { severity: 'secondary', text: true },
           accept: () => {
             settingsStore.discard()
             resolve(true)
@@ -79,6 +82,7 @@ export const SettingsPage = defineComponent({
         message: t('settings.reset.message'),
         acceptLabel: t('settings.reset.accept'),
         rejectLabel: t('common.cancel'),
+        rejectProps: { severity: 'secondary', text: true },
         accept: settingsStore.reset,
       })
     }
@@ -101,22 +105,12 @@ export const SettingsPage = defineComponent({
           ) : (
             <div class="h-full min-h-0 overflow-auto">
               <div class="w-full max-w-app-settings px-app-page-x">
-                <section
-                  class={[
-                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
-                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
-                  ]}
-                >
-                  <h2>{t('settings.general')}</h2>
+                <FormSection title={t('settings.general')}>
                   <div class="grid justify-items-start gap-y-3.5">
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.defaultSource')}</span>
+                    <FormField variant="settings" error={errors.value.defaultSource}>
+                      <FieldLabel help={t('settings.defaultSourceHelp')}>
+                        {t('settings.defaultSource')}
+                      </FieldLabel>
                       <Select
                         v-model={currentDraft.defaultSource}
                         options={searchableSources.value}
@@ -125,20 +119,11 @@ export const SettingsPage = defineComponent({
                         size="small"
                         fluid
                       />
-                      {errors.value.defaultSource && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.defaultSource}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.commentLanguage')}</span>
+                    </FormField>
+                    <FormField variant="settings">
+                      <FieldLabel help={t('settings.commentLanguageHelp')}>
+                        {t('settings.commentLanguage')}
+                      </FieldLabel>
                       <Select
                         v-model={currentDraft.commentLanguage}
                         options={capabilities.value?.commentLanguages}
@@ -147,45 +132,22 @@ export const SettingsPage = defineComponent({
                         size="small"
                         fluid
                       />
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span class="flex items-center gap-1">
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.mp3MultiValueSeparator}>
+                      <FieldLabel help={t('settings.mp3SeparatorHelp')}>
                         {t('settings.mp3Separator')}
-                        <button
-                          type="button"
-                          class="help-icon"
-                          aria-label={t('settings.mp3SeparatorHelp')}
-                          v-tooltip={{ value: t('settings.mp3SeparatorHelp') }}
-                        >
-                          <Info size={13} />
-                        </button>
-                      </span>
+                      </FieldLabel>
                       <InputText
                         v-model={currentDraft.mp3MultiValueSeparator}
                         invalid={Boolean(errors.value.mp3MultiValueSeparator)}
                         size="small"
                         fluid
                       />
-                      {errors.value.mp3MultiValueSeparator && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.mp3MultiValueSeparator}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.requestTimeout')}</span>
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.requestTimeoutSeconds}>
+                      <FieldLabel help={t('settings.requestTimeoutHelp')}>
+                        {t('settings.requestTimeout')}
+                      </FieldLabel>
                       <InputNumber
                         v-model={currentDraft.requestTimeoutSeconds}
                         min={1}
@@ -195,20 +157,11 @@ export const SettingsPage = defineComponent({
                         fluid
                         invalid={Boolean(errors.value.requestTimeoutSeconds)}
                       />
-                      {errors.value.requestTimeoutSeconds && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.requestTimeoutSeconds}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.retryCount')}</span>
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.retryCount}>
+                      <FieldLabel help={t('settings.retryCountHelp')}>
+                        {t('settings.retryCount')}
+                      </FieldLabel>
                       <InputNumber
                         v-model={currentDraft.retryCount}
                         min={1}
@@ -218,41 +171,19 @@ export const SettingsPage = defineComponent({
                         fluid
                         invalid={Boolean(errors.value.retryCount)}
                       />
-                      {errors.value.retryCount && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.retryCount}
-                        </small>
-                      )}
-                    </label>
+                    </FormField>
                   </div>
-                </section>
+                </FormSection>
 
-                <section
-                  class={[
-                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
-                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
-                  ]}
-                >
-                  <h2>{t('settings.cover')}</h2>
+                <FormSection title={t('settings.cover')}>
                   <div class="grid justify-items-start gap-y-3.5">
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
+                    <FormField
+                      variant="settings"
+                      error={errors.value.coverCompressionThresholdKb}
                     >
-                      <span class="flex items-center gap-1">
+                      <FieldLabel help={t('settings.coverThresholdHelp')}>
                         {t('settings.coverThreshold')}
-                        <button
-                          type="button"
-                          class="help-icon"
-                          aria-label={t('settings.coverThresholdHelp')}
-                          v-tooltip={{ value: t('settings.coverThresholdHelp') }}
-                        >
-                          <Info size={13} />
-                        </button>
-                      </span>
+                      </FieldLabel>
                       <InputNumber
                         v-model={currentDraft.coverCompressionThresholdKb}
                         min={0}
@@ -261,30 +192,11 @@ export const SettingsPage = defineComponent({
                         fluid
                         invalid={Boolean(errors.value.coverCompressionThresholdKb)}
                       />
-                      {errors.value.coverCompressionThresholdKb && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.coverCompressionThresholdKb}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span class="flex items-center gap-1">
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.coverMaxEdge}>
+                      <FieldLabel help={t('settings.coverMaxEdgeHelp')}>
                         {t('settings.coverMaxEdge')}
-                        <button
-                          type="button"
-                          class="help-icon"
-                          aria-label={t('settings.coverMaxEdgeHelp')}
-                          v-tooltip={{ value: t('settings.coverMaxEdgeHelp') }}
-                        >
-                          <Info size={13} />
-                        </button>
-                      </span>
+                      </FieldLabel>
                       <InputNumber
                         v-model={currentDraft.coverMaxEdge}
                         min={0}
@@ -293,31 +205,16 @@ export const SettingsPage = defineComponent({
                         fluid
                         invalid={Boolean(errors.value.coverMaxEdge)}
                       />
-                      {errors.value.coverMaxEdge && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.coverMaxEdge}
-                        </small>
-                      )}
-                    </label>
+                    </FormField>
                   </div>
-                </section>
+                </FormSection>
 
-                <section
-                  class={[
-                    'grid gap-4 border-b border-surface-200 py-app-section-y last:border-b-0 dark:border-surface-700',
-                    '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
-                  ]}
-                >
-                  <h2>{t('settings.lyrics')}</h2>
+                <FormSection title={t('settings.lyrics')}>
                   <div class="grid justify-items-start gap-y-3.5">
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.outputDestination')}</span>
+                    <FormField variant="settings" error={errors.value.lyricDestination}>
+                      <FieldLabel help={t('settings.outputDestinationHelp')}>
+                        {t('settings.outputDestination')}
+                      </FieldLabel>
                       <Select
                         v-model={lyricDestination.value}
                         options={lyricDestinations}
@@ -326,20 +223,11 @@ export const SettingsPage = defineComponent({
                         size="small"
                         fluid
                       />
-                      {errors.value.lyricDestination && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.lyricDestination}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.lyricType')}</span>
+                    </FormField>
+                    <FormField variant="settings">
+                      <FieldLabel help={t('settings.lyricTypeHelp')}>
+                        {t('settings.lyricType')}
+                      </FieldLabel>
                       <Select
                         v-model={currentDraft.lyricType}
                         options={capabilities.value?.lyricTypes}
@@ -349,15 +237,11 @@ export const SettingsPage = defineComponent({
                         fluid
                         disabled={lyricDestination.value === 'none'}
                       />
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.mixedLyricSeparator')}</span>
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.mixedLyricSeparator}>
+                      <FieldLabel help={t('settings.mixedLyricSeparatorHelp')}>
+                        {t('settings.mixedLyricSeparator')}
+                      </FieldLabel>
                       <InputText
                         v-model={currentDraft.mixedLyricSeparator}
                         size="small"
@@ -365,42 +249,24 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                         invalid={Boolean(errors.value.mixedLyricSeparator)}
                       />
-                      {errors.value.mixedLyricSeparator && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.mixedLyricSeparator}
-                        </small>
-                      )}
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field min-w-0 justify-items-start gap-1.5',
-                        'text-app-caption',
-                      ]}
+                    </FormField>
+                    <FormField
+                      variant="settings"
+                      emphasis={false}
+                      class="min-w-0 justify-items-start"
                     >
-                      <span class="flex items-center gap-1">
+                      <FieldLabel help={t('settings.preserveTimelineHelp')}>
                         {t('settings.preserveTimeline')}
-                        <button
-                          type="button"
-                          class="help-icon"
-                          aria-label={t('settings.preserveTimelineHelp')}
-                          v-tooltip={{ value: t('settings.preserveTimelineHelp') }}
-                        >
-                          <Info size={13} />
-                        </button>
-                      </span>
+                      </FieldLabel>
                       <ToggleSwitch
                         v-model={currentDraft.preserveLyricTimeline}
                         disabled={lyricDestination.value === 'none'}
                       />
-                    </label>
-                    <label
-                      class={[
-                        'grid w-full max-w-app-field content-start gap-1.5',
-                        'text-app-caption font-semibold text-color',
-                        '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
-                      ]}
-                    >
-                      <span>{t('settings.lyricCacheSize')}</span>
+                    </FormField>
+                    <FormField variant="settings" error={errors.value.lyricCacheSize}>
+                      <FieldLabel help={t('settings.lyricCacheSizeHelp')}>
+                        {t('settings.lyricCacheSize')}
+                      </FieldLabel>
                       <InputNumber
                         v-model={currentDraft.lyricCacheSize}
                         min={1}
@@ -411,19 +277,14 @@ export const SettingsPage = defineComponent({
                         disabled={lyricDestination.value === 'none'}
                         invalid={Boolean(errors.value.lyricCacheSize)}
                       />
-                      {errors.value.lyricCacheSize && (
-                        <small class="text-red-700! dark:text-red-300!">
-                          {errors.value.lyricCacheSize}
-                        </small>
-                      )}
-                    </label>
+                    </FormField>
                   </div>
-                </section>
+                </FormSection>
               </div>
 
               <div
                 class={[
-                  'flex w-full max-w-app-settings items-center justify-start border-t py-4',
+                  'flex w-full items-center justify-start border-t py-4',
                   'border-surface-200 px-app-page-x dark:border-surface-700',
                 ]}
               >

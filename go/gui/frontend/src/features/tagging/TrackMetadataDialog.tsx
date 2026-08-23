@@ -6,6 +6,8 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
+import { FormField } from '../../shared/FormField'
+import { TruncatedText } from '../../shared/TruncatedText'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
 export const TrackMetadataDialog = defineComponent({
@@ -69,35 +71,23 @@ export const TrackMetadataDialog = defineComponent({
           default: () =>
             props.item && (
               <div class="grid gap-3.5">
-                <div class="grid min-w-0 gap-1">
-                  <span class="text-xs text-muted-color">{t('tagging.trackDialog.localFile')}</span>
-                  <strong
-                    class="overflow-hidden text-ellipsis whitespace-nowrap text-app-control"
-                    v-tooltip={props.item.sourceName}
-                  >
+                <div class="grid min-w-0 gap-1.5 text-app-control">
+                  <span class="font-semibold text-color">
+                    {t('tagging.trackDialog.localFile')}
+                  </span>
+                  <TruncatedText class="font-normal text-color" tooltip={props.item.sourceName}>
                     {props.item.sourceName}
-                  </strong>
+                  </TruncatedText>
                 </div>
 
-                <label
-                  class={[
-                    'grid gap-1.5 text-app-control font-semibold',
-                    '[&>small]:text-xs [&>small]:font-normal',
-                  ]}
+                <FormField
+                  error={!draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
                 >
                   <span>{t('tagging.trackDialog.title')}</span>
                   <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
-                  {!draft.title.trim() && (
-                    <small class="text-red-700 dark:text-red-300">{t('validation.trackTitleRequired')}</small>
-                  )}
-                </label>
+                </FormField>
 
-                <label
-                  class={[
-                    'grid gap-1.5 text-app-control font-semibold',
-                    '[&>small]:text-xs [&>small]:font-normal',
-                  ]}
-                >
+                <FormField>
                   <span>{t('tagging.trackDialog.artists')}</span>
                   <MetadataTagsInput
                     modelValue={draft.artists}
@@ -112,38 +102,23 @@ export const TrackMetadataDialog = defineComponent({
                       {t('tagging.trackDialog.missingArtists')}
                     </small>
                   )}
-                </label>
+                </FormField>
 
                 <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
-                  <label
-                    class={[
-                      'grid gap-1.5 text-app-control font-semibold',
-                      '[&>small]:text-xs [&>small]:font-normal',
-                    ]}
-                  >
-                    <span>{t('tagging.trackDialog.discNumber')}</span>
-                    <InputText v-model={draft.discNumber} fluid />
-                  </label>
-                  <label
-                    class={[
-                      'grid gap-1.5 text-app-control font-semibold',
-                      '[&>small]:text-xs [&>small]:font-normal',
-                    ]}
-                  >
+                  <FormField>
                     <span>{t('tagging.trackDialog.trackNumber')}</span>
                     <InputText v-model={draft.trackNumber} fluid />
-                  </label>
+                  </FormField>
+                  <FormField>
+                    <span>{t('tagging.trackDialog.discNumber')}</span>
+                    <InputText v-model={draft.discNumber} fluid />
+                  </FormField>
                 </div>
 
-                <label
-                  class={[
-                    'grid gap-1.5 text-app-control font-semibold',
-                    '[&>small]:text-xs [&>small]:font-normal',
-                  ]}
-                >
+                <FormField>
                   <span>{t('tagging.trackDialog.comments')}</span>
                   <Textarea v-model={draft.comments} rows={6} fluid />
-                </label>
+                </FormField>
 
                 {props.item.issues.length > 0 && (
                   <div

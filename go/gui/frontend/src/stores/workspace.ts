@@ -193,9 +193,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       query.value = nextSummary.inferredAlbumName
       clearAfterDirectory()
       phase.value = 'scanned'
-      if (!nextSummary.hasMetadataJson) {
-        await search()
+      if (nextSummary.hasMetadataJson) {
+        selectedCandidateId.value = 'local-json'
+        phase.value = 'matched'
+        await preparePlan('local-json')
+        return
       }
+      await search()
     } catch (error) {
       if (requestVersion !== contextVersion) {
         return

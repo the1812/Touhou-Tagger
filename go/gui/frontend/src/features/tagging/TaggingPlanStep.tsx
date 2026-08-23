@@ -9,6 +9,7 @@ import { Translation } from 'vue-i18n'
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
 import { PageActionBar } from '../../shared/PageActionBar'
+import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { AlbumMetadataDialog } from './AlbumMetadataDialog'
 import { CoverPreview } from './CoverPreview'
@@ -68,7 +69,7 @@ export const TaggingPlanStep = defineComponent({
             </div>
             <div class="grid content-start gap-4">
               <div class="workspace-heading">
-                <h2 class="mt-1 text-app-heading font-bold">{currentPlan.album.title}</h2>
+                <WorkspaceTitle>{currentPlan.album.title}</WorkspaceTitle>
                 <Button
                   label={t('tagging.plan.editAlbum')}
                   severity="secondary"
@@ -111,7 +112,7 @@ export const TaggingPlanStep = defineComponent({
             </div>
           </section>
 
-          <section class="workspace-section grid min-h-[380px] w-full gap-4 border-b-0">
+          <section class="workspace-section grid w-full content-start gap-4 border-b-0">
             <h2 class="m-0 text-base font-bold">
               {t('tagging.plan.trackCount', { count: currentPlan.items.length })}
             </h2>
@@ -142,13 +143,15 @@ export const TaggingPlanStep = defineComponent({
                   : t('tagging.plan.saveOriginalCoverSuffix'))}
             </span>
             <div class="flex items-center gap-4">
-              <Button
-                label={t('common.previous')}
-                severity="secondary"
-                text
-                disabled={isBusy.value}
-                onClick={() => workspace.backToSearch()}
-              />
+              {!summary.value?.hasMetadataJson && (
+                <Button
+                  label={t('common.previous')}
+                  severity="secondary"
+                  text
+                  disabled={isBusy.value}
+                  onClick={() => workspace.backToSearch()}
+                />
+              )}
               <span
                 class="inline-flex"
                 v-tooltip={{
@@ -159,9 +162,7 @@ export const TaggingPlanStep = defineComponent({
                 }}
               >
                 <Button
-                  label={t('tagging.plan.writeTracks', {
-                    count: currentPlan.options.writeFiles,
-                  })}
+                  label={t('common.confirm')}
                   size="large"
                   disabled={!canCommit.value}
                   onClick={() => workspace.commit()}

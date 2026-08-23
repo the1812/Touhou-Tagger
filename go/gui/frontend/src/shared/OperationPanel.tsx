@@ -5,6 +5,7 @@ import { computed, defineComponent, type PropType } from 'vue'
 
 import type { OperationProgress } from '../api'
 import { t } from '../i18n'
+import { TruncatedText } from './TruncatedText'
 
 export const OperationPanel = defineComponent({
   name: 'OperationPanel',
@@ -46,14 +47,14 @@ export const OperationPanel = defineComponent({
         <div class="flex items-center justify-between gap-4 text-sm text-muted-color">
           <span class="grid min-w-0 gap-1">
             {props.operation.path && (
-              <strong class="overflow-hidden text-ellipsis whitespace-nowrap text-color">
+              <TruncatedText as="strong" class="text-color">
                 {props.operation.path}
-              </strong>
+              </TruncatedText>
             )}
             {props.operation.message !== props.operation.path && (
-              <small class="overflow-hidden text-ellipsis whitespace-nowrap">
+              <TruncatedText as="small">
                 {props.operation.message}
-              </small>
+              </TruncatedText>
             )}
           </span>
           {props.operation.cancellable ? (

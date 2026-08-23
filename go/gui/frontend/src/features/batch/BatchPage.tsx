@@ -8,8 +8,11 @@ import { Translation } from 'vue-i18n'
 import { usePageCommands } from '../../app/pageCommands'
 import { t } from '../../i18n'
 import { CompletionPanel } from '../../shared/CompletionPanel'
+import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
 import { OperationPanel } from '../../shared/OperationPanel'
 import { PageActionBar } from '../../shared/PageActionBar'
+import { TruncatedText } from '../../shared/TruncatedText'
+import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useBatchStore } from '../../stores/batch'
 import { BatchJobTable } from './BatchJobTable'
 
@@ -69,35 +72,26 @@ export const BatchPage = defineComponent({
           ]}
         >
           {!currentDirectory ? (
-            <section class="page-empty-state">
-              <Button
-                class="directory-picker-button"
-                label={t('common.selectDirectory')}
-                size="large"
-                loading={selecting.value}
-                onClick={() => batch.selectDirectory()}
-              >
-                {{ icon: () => <FolderOpen size={19} /> }}
-              </Button>
-              <span class="text-app-caption text-surface-500 dark:text-surface-400">
-                <kbd class="app-kbd">Ctrl</kbd> + <kbd class="app-kbd">O</kbd>
-              </span>
-            </section>
+            <DirectoryPickerEmptyState
+              loading={selecting.value}
+              onSelect={() => batch.selectDirectory()}
+            />
           ) : (
             <>
               <section class="workspace-section">
                 <div class="workspace-heading">
                   <div class="min-w-0">
-                    <h2 class="mt-1 text-app-heading font-bold">{directoryLabel.value}</h2>
-                    <p
+                    <WorkspaceTitle>{directoryLabel.value}</WorkspaceTitle>
+                    <TruncatedText
+                      as="p"
+                      tooltip={currentDirectory}
                       class={[
-                        'mt-1.5 max-w-[min(760px,65vw)] overflow-hidden text-ellipsis whitespace-nowrap',
+                        'mt-1.5 max-w-[min(760px,65vw)]',
                         'text-app-control text-muted-color',
                       ]}
-                      v-tooltip={currentDirectory}
                     >
                       {currentDirectory}
-                    </p>
+                    </TruncatedText>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <Button
@@ -128,7 +122,7 @@ export const BatchPage = defineComponent({
                 <>
                   <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0">
                     <div class="workspace-heading items-center">
-                      <h2 class="mt-1 text-app-heading font-bold">{t('batch.scanHeading')}</h2>
+                      <WorkspaceTitle>{t('batch.scanHeading')}</WorkspaceTitle>
                       <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 text-app-caption font-semibold">
                           <span class="whitespace-nowrap">{t('batch.depth')}</span>
@@ -233,7 +227,7 @@ export const BatchPage = defineComponent({
                   {failedJobs.value.length > 0 && (
                     <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0">
                       <div class="workspace-heading">
-                        <h2 class="mt-1 text-app-heading font-bold">{t('batch.failedItems')}</h2>
+                        <WorkspaceTitle>{t('batch.failedItems')}</WorkspaceTitle>
                       </div>
                       <BatchJobTable
                         jobs={failedJobs.value}

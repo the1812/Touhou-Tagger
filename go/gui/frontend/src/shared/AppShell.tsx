@@ -69,7 +69,7 @@ export const AppShell = defineComponent({
           <header
             class={[
               'flex min-h-app-header items-center gap-4 border-b pr-app-page-x',
-              'border-surface-200 bg-surface-0/90 dark:border-surface-700 dark:bg-surface-900/90',
+              'border-surface-200 bg-app-header dark:border-surface-700 dark:bg-app-header-dark',
             ]}
           >
             <nav class="min-w-0 flex-1" aria-label={t('navigation.primary')}>
@@ -120,6 +120,7 @@ export const AppShell = defineComponent({
           <main
             class={cx(
               'app-scrollbar min-h-0 min-w-0',
+              'bg-app-content dark:bg-app-content-dark',
               route.name === 'settings'
                 ? 'overflow-hidden p-0'
                 : 'overflow-auto px-app-page-x py-app-page-y',

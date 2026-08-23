@@ -1,4 +1,4 @@
-import { Check, Copy, Info, TriangleAlert } from 'lucide-vue-next'
+import { Check, Copy, Info, TriangleAlert, X } from 'lucide-vue-next'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import type { ToastMessageOptions } from 'primevue/toast'
@@ -49,19 +49,43 @@ export const ToastHost = defineComponent({
     return () => (
       <Toast group="process" position="top-right">
         {{
-          message: ({ message }: { message: ToastSlotMessage }) => {
+          container: ({
+            message,
+            closeCallback,
+          }: {
+            message: ToastSlotMessage
+            closeCallback: () => void
+          }) => {
             const diagnostics = message.data?.diagnostics
             return (
-              <div class="flex w-[min(360px,calc(100vw-48px))] items-start gap-3">
+              <div
+                class={[
+                  'grid w-full grid-cols-[20px_minmax(0,1fr)_20px]',
+                  'items-start gap-x-3 gap-y-1 p-3.5',
+                ]}
+              >
                 {message.severity === 'success' ? (
-                  <Check size={20} />
+                  <Check class="self-center" size={20} />
                 ) : message.severity === 'info' ? (
-                  <Info size={20} />
+                  <Info class="self-center" size={20} />
                 ) : (
-                  <TriangleAlert size={20} />
+                  <TriangleAlert class="self-center" size={20} />
                 )}
-                <div class="grid min-w-0 gap-1">
-                  <strong>{message.summary}</strong>
+                <strong class="min-w-0 self-center text-lg leading-6">
+                  {message.summary}
+                </strong>
+                <button
+                  type="button"
+                  aria-label={t('primevue.aria.close')}
+                  class={[
+                    'grid size-5 cursor-pointer place-items-center self-center rounded text-current opacity-70',
+                    'transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2',
+                  ]}
+                  onClick={closeCallback}
+                >
+                  <X size={20} />
+                </button>
+                <div class="col-start-2 col-end-4 grid min-w-0 gap-1">
                   <span class="text-muted-color leading-[1.45]">{message.detail}</span>
                   {diagnostics && (
                     <Button
