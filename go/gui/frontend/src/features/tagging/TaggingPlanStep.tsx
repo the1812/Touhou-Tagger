@@ -42,7 +42,7 @@ export const TaggingPlanStep = defineComponent({
 
       return (
         <>
-          <section
+          <div
             class={[
               'workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4',
               'max-[1100px]:grid-cols-1',
@@ -51,7 +51,7 @@ export const TaggingPlanStep = defineComponent({
             <div class="grid w-app-cover content-start gap-3">
               <CoverPreview cover={currentPlan.cover} />
               {currentPlan.options.canSaveCover && (
-                <label class="flex items-center justify-center gap-3 [&>strong]:text-sm">
+                <div class="flex items-center justify-center gap-3">
                   <ToggleSwitch
                     modelValue={currentPlan.options.saveCover}
                     {...{
@@ -59,12 +59,12 @@ export const TaggingPlanStep = defineComponent({
                     }}
                     disabled={isBusy.value}
                   />
-                  <strong>
+                  <div class="text-sm font-bold">
                     {summary.value?.localCover.exists
                       ? t('tagging.plan.overwriteCover')
                       : t('tagging.plan.saveOriginalCover')}
-                  </strong>
-                </label>
+                  </div>
+                </div>
               )}
             </div>
             <div class="grid content-start gap-4">
@@ -84,38 +84,38 @@ export const TaggingPlanStep = defineComponent({
               </div>
               <div
                 class={[
-                  'grid gap-2 [&>span]:grid [&>span]:grid-cols-[4rem_minmax(0,1fr)]',
-                  '[&>span]:text-sm [&>span]:text-muted-color [&_strong]:text-color',
+                  'grid gap-2 [&>.metadata-row]:grid [&>.metadata-row]:grid-cols-[4rem_minmax(0,1fr)]',
+                  '[&>.metadata-row]:text-sm [&>.metadata-row]:text-muted-color',
                 ]}
               >
-                <span>
-                  <strong>{t('tagging.plan.circles')}</strong>
+                <div class="metadata-row">
+                  <div class="font-bold text-color">{t('tagging.plan.circles')}</div>
                   {currentPlan.album.artists.join(' / ') || '—'}
-                </span>
-                <span>
-                  <strong>{t('tagging.plan.year')}</strong>
+                </div>
+                <div class="metadata-row">
+                  <div class="font-bold text-color">{t('tagging.plan.year')}</div>
                   {currentPlan.album.year || '—'}
-                </span>
-                <span>
-                  <strong>{t('tagging.plan.catalogNumber')}</strong>
+                </div>
+                <div class="metadata-row">
+                  <div class="font-bold text-color">{t('tagging.plan.catalogNumber')}</div>
                   {currentPlan.album.albumOrder || '—'}
-                </span>
-                <span>
-                  <strong>{t('tagging.plan.genres')}</strong>
+                </div>
+                <div class="metadata-row">
+                  <div class="font-bold text-color">{t('tagging.plan.genres')}</div>
                   {currentPlan.album.genres.join(' / ') || '—'}
-                </span>
-                <span>
-                  <strong>{t('tagging.plan.source')}</strong>
+                </div>
+                <div class="metadata-row">
+                  <div class="font-bold text-color">{t('tagging.plan.source')}</div>
                   {currentPlan.candidate.sourceLabel}
-                </span>
+                </div>
               </div>
             </div>
-          </section>
+          </div>
 
-          <section class="workspace-section grid w-full content-start gap-4 border-b-0">
-            <h2 class="m-0 text-base font-bold">
+          <div class="workspace-section grid w-full content-start gap-4 border-b-0">
+            <div class="text-base font-bold">
               {t('tagging.plan.trackCount', { count: currentPlan.items.length })}
-            </h2>
+            </div>
             {currentPlan.issues.map(issue => (
               <Message
                 key={issue.code}
@@ -126,22 +126,26 @@ export const TaggingPlanStep = defineComponent({
               </Message>
             ))}
             <PlanTable items={currentPlan.items} disabled={isBusy.value} onEdit={openTrack} />
-          </section>
+          </div>
 
           <PageActionBar>
-            <span class="text-[.85rem] text-muted-color [&_strong]:text-color">
+            <div class="text-[.85rem] text-muted-color">
               <Translation
                 keypath="tagging.plan.writeFiles"
                 scope="global"
                 v-slots={{
-                  count: () => <strong>{currentPlan.options.writeFiles}</strong>,
+                  count: () => (
+                    <div class="inline font-bold text-color">
+                      {currentPlan.options.writeFiles}
+                    </div>
+                  ),
                 }}
               />
               {currentPlan.options.saveCover &&
                 (summary.value?.localCover.exists
                   ? t('tagging.plan.overwriteCoverSuffix')
                   : t('tagging.plan.saveOriginalCoverSuffix'))}
-            </span>
+            </div>
             <div class="flex items-center gap-4">
               {!summary.value?.hasMetadataJson && (
                 <Button
@@ -152,7 +156,7 @@ export const TaggingPlanStep = defineComponent({
                   onClick={() => workspace.backToSearch()}
                 />
               )}
-              <span
+              <div
                 class="inline-flex"
                 v-tooltip={{
                   value: t('tagging.plan.blockingIssues', {
@@ -167,7 +171,7 @@ export const TaggingPlanStep = defineComponent({
                   disabled={!canCommit.value}
                   onClick={() => workspace.commit()}
                 />
-              </span>
+              </div>
             </div>
           </PageActionBar>
 

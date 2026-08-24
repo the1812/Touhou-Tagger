@@ -8,17 +8,18 @@ export const FormSection = defineComponent({
   },
   setup(props, { attrs, slots }) {
     return () => (
-      <section
+      <div
         {...attrs}
         class={[
           'grid gap-4 py-app-section-y',
-          '[&>h2]:m-0 [&>h2]:text-base [&>h2]:font-bold',
           attrs.class,
         ]}
       >
-        {(slots.title || props.title) && <h2>{slots.title?.() ?? props.title}</h2>}
+        {(slots.title || props.title) && (
+          <div class="text-base font-bold">{slots.title?.() ?? props.title}</div>
+        )}
         {slots.default?.()}
-      </section>
+      </div>
     )
   },
 })

@@ -1,4 +1,5 @@
 import { Info } from 'lucide-vue-next'
+import Button from 'primevue/button'
 import { defineComponent, type PropType } from 'vue'
 
 export const FormField = defineComponent({
@@ -25,16 +26,22 @@ export const FormField = defineComponent({
           props.variant === 'settings'
             ? [
                 'w-full max-w-app-field content-start text-app-caption text-color',
-                '[&>small]:font-normal [&>small]:leading-[1.4] [&>small]:text-muted-color',
               ]
-            : 'text-app-control [&>small]:text-xs [&>small]:font-normal',
+            : 'text-app-control',
           attrs.class,
         ]}
       >
         {slots.default?.()}
         {props.error &&
           (slots.error?.({ error: props.error }) ?? (
-            <small class="text-red-700! dark:text-red-300!">{props.error}</small>
+            <div
+              class={[
+                'font-normal text-red-700! dark:text-red-300!',
+                props.variant === 'settings' ? 'leading-[1.4]' : 'text-xs',
+              ]}
+            >
+              {props.error}
+            </div>
           ))}
       </label>
     )
@@ -49,20 +56,19 @@ export const FieldLabel = defineComponent({
   },
   setup(props, { attrs, slots }) {
     return () => (
-      <span {...attrs} class={['flex items-center gap-1', attrs.class]}>
+      <div {...attrs} class={['flex items-center gap-1', attrs.class]}>
         {slots.default?.()}
         {props.help && (
-          <span
-            role="button"
-            tabindex="0"
+          <Button
+            unstyled
+            type="button"
             class="help-icon"
-            aria-label={props.help}
             v-tooltip={{ value: props.help }}
           >
             <Info size={13} />
-          </span>
+          </Button>
         )}
-      </span>
+      </div>
     )
   },
 })

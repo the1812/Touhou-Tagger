@@ -1,5 +1,7 @@
 import { Image as ImageIcon, Maximize2 } from 'lucide-vue-next'
+import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import Image from 'primevue/image'
 import Message from 'primevue/message'
 import { computed, defineComponent, type PropType, ref } from 'vue'
 
@@ -33,9 +35,10 @@ export const CoverPreview = defineComponent({
 
     return () => (
       <>
-        <section class="grid w-app-cover min-w-0 gap-2">
+        <div class="grid w-app-cover min-w-0 gap-2">
           {props.cover.url ? (
-            <button
+            <Button
+              unstyled
               type="button"
               class={[
                 'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
@@ -47,15 +50,15 @@ export const CoverPreview = defineComponent({
                 expanded.value = true
               }}
             >
-              <img
-                class="size-full object-contain"
+              <Image
+                class="size-full"
+                imageClass="size-full object-contain"
                 src={props.cover.url}
-                alt={t('tagging.cover.previewAlt', { source: props.cover.sourceLabel })}
               />
-              <span class="image-hover-label">
+              <div class="image-hover-label">
                 <Maximize2 size={16} /> {t('tagging.cover.viewFull')}
-              </span>
-            </button>
+              </div>
+            </Button>
           ) : (
             <div
               class={[
@@ -65,14 +68,14 @@ export const CoverPreview = defineComponent({
               ]}
             >
               <ImageIcon size={38} stroke-width={1.5} />
-              <strong class="text-color">{t('tagging.cover.noCover')}</strong>
+              <div class="font-bold text-color">{t('tagging.cover.noCover')}</div>
             </div>
           )}
 
           <div class="grid min-w-0 gap-2">
             <div class="flex items-center justify-center gap-3 whitespace-nowrap text-app-caption text-muted-color">
-              <span>{dimensions.value}</span>
-              <span>{fileSize.value}</span>
+              <div>{dimensions.value}</div>
+              <div>{fileSize.value}</div>
             </div>
             {props.cover.issue && (
               <Message severity="error" closable={false}>
@@ -80,7 +83,7 @@ export const CoverPreview = defineComponent({
               </Message>
             )}
           </div>
-        </section>
+        </div>
 
         <Dialog
           v-model:visible={expanded.value}
@@ -88,10 +91,10 @@ export const CoverPreview = defineComponent({
           header={t('tagging.cover.previewHeader')}
           class="w-[min(760px,90vw)]"
         >
-          <img
-            class="block max-h-[70vh] w-full object-contain"
+          <Image
+            class="block w-full"
+            imageClass="block max-h-[70vh] w-full object-contain"
             src={props.cover.url}
-            alt={t('tagging.cover.fullAlt', { source: props.cover.sourceLabel })}
           />
         </Dialog>
       </>

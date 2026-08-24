@@ -71,12 +71,12 @@ export const ToastHost = defineComponent({
                 ) : (
                   <TriangleAlert class="self-center" size={20} />
                 )}
-                <strong class="min-w-0 self-center text-lg leading-6">
+                <div class="min-w-0 self-center text-lg font-bold leading-6">
                   {message.summary}
-                </strong>
-                <button
+                </div>
+                <Button
+                  unstyled
                   type="button"
-                  aria-label={t('primevue.aria.close')}
                   class={[
                     'grid size-5 cursor-pointer place-items-center self-center rounded text-current opacity-70',
                     'transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2',
@@ -84,9 +84,9 @@ export const ToastHost = defineComponent({
                   onClick={closeCallback}
                 >
                   <X size={20} />
-                </button>
+                </Button>
                 <div class="col-start-2 col-end-4 grid min-w-0 gap-1">
-                  <span class="text-muted-color leading-[1.45]">{message.detail}</span>
+                  <div class="text-muted-color leading-[1.45]">{message.detail}</div>
                   {diagnostics && (
                     <Button
                       label={t('common.copyDetails')}

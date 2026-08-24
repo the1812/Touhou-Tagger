@@ -94,7 +94,7 @@ export const PlanTable = defineComponent({
             ].join(' ')}
             v-slots={{
               body: bodySlot(item => (
-                <span class="text-muted-color tabular-nums">{item.discNumber}</span>
+                <div class="text-muted-color tabular-nums">{item.discNumber}</div>
               )),
             }}
           />
@@ -112,7 +112,7 @@ export const PlanTable = defineComponent({
           ].join(' ')}
           v-slots={{
             body: bodySlot(item => (
-              <span class="text-muted-color tabular-nums">{item.trackNumber}</span>
+              <div class="text-muted-color tabular-nums">{item.trackNumber}</div>
             )),
           }}
         />

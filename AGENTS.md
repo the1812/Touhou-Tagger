@@ -27,6 +27,8 @@
 - Keep business rules in Go. The frontend owns presentation, interaction state, and explicit DTO adaptation only.
 - Prefer a compact desktop-tool layout: avoid card-heavy page framing, redundant descriptions, and oversized controls. Apply visual changes consistently across tagging, batch, settings, dialogs, empty states, and loading states.
 - Loading must not introduce layout shifts, duplicate cover placeholders, or transient controls that cannot be used. Derive UI state from the active operation instead of maintaining parallel flags.
+- Do not add hand-written accessibility markers in GUI markup. Remove manual `aria-*`, `role`, and `tabindex` attributes, and do not override accessibility attributes generated internally by UI-library components.
+- Hand-written TSX may use only native `div` elements, except that shared form-field components may use `label` to preserve native control focus behavior. Use shared components or PrimeVue components for controls and media; do not use other semantic native elements. When repeated styling previously depended on a semantic element's browser defaults, extract a shared component with explicit classes and preserve attribute passthrough.
 
 # GUI verification
 

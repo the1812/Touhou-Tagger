@@ -78,12 +78,11 @@ export const BatchPage = defineComponent({
             />
           ) : (
             <>
-              <section class="workspace-section">
+              <div class="workspace-section">
                 <div class="workspace-heading">
                   <div class="min-w-0">
                     <WorkspaceTitle>{directoryLabel.value}</WorkspaceTitle>
                     <TruncatedText
-                      as="p"
                       tooltip={currentDirectory}
                       class={[
                         'mt-1.5 max-w-[min(760px,65vw)]',
@@ -95,7 +94,6 @@ export const BatchPage = defineComponent({
                   </div>
                   <div class="flex items-center gap-1.5">
                     <Button
-                      aria-label={t('common.revealDirectory')}
                       v-tooltip={t('common.revealDirectory')}
                       severity="secondary"
                       text
@@ -116,16 +114,16 @@ export const BatchPage = defineComponent({
                     </Button>
                   </div>
                 </div>
-              </section>
+              </div>
 
               {!currentOperation && !currentResult && (
                 <>
-                  <section class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0">
+                  <div class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0">
                     <div class="workspace-heading items-center">
                       <WorkspaceTitle>{t('batch.scanHeading')}</WorkspaceTitle>
                       <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-2 text-app-caption font-semibold">
-                          <span class="whitespace-nowrap">{t('batch.depth')}</span>
+                        <div class="flex items-center gap-2 text-app-caption font-semibold">
+                          <div class="whitespace-nowrap">{t('batch.depth')}</div>
                           <InputNumber
                             class="w-28"
                             modelValue={depth.value}
@@ -140,7 +138,7 @@ export const BatchPage = defineComponent({
                             fluid
                             disabled={controlsDisabled.value}
                           />
-                        </label>
+                        </div>
                         <Button
                           class="w-[6.75rem]"
                           label={t('batch.rescan')}
@@ -166,7 +164,7 @@ export const BatchPage = defineComponent({
                             'border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary',
                           ]}
                         />
-                        <h3 class="m-0 text-[.95rem] font-bold">{t('batch.scanning')}</h3>
+                        <div class="text-[.95rem] font-bold">{t('batch.scanning')}</div>
                       </div>
                     ) : (
                       <BatchJobTable
@@ -181,21 +179,23 @@ export const BatchPage = defineComponent({
                         onRetry={jobId => batch.loadJob(jobId)}
                       />
                     )}
-                  </section>
+                  </div>
 
                   {currentPreview && !scanning.value && (
                     <PageActionBar>
-                      <span class="shrink-0 text-[.85rem] text-muted-color">
+                      <div class="shrink-0 text-[.85rem] text-muted-color">
                         <Translation
                           keypath="batch.albumCount"
                           scope="global"
                           v-slots={{
                             count: () => (
-                              <strong class="text-color">{currentPreview.jobs.length}</strong>
+                              <div class="inline font-bold text-color">
+                                {currentPreview.jobs.length}
+                              </div>
                             ),
                           }}
                         />
-                      </span>
+                      </div>
                       <div class="flex min-w-0 items-center">
                         <Button
                           label={t('batch.start')}
@@ -225,7 +225,7 @@ export const BatchPage = defineComponent({
                   />
 
                   {failedJobs.value.length > 0 && (
-                    <section class="workspace-section grid min-h-64 content-start gap-3 border-b-0">
+                    <div class="workspace-section grid min-h-64 content-start gap-3 border-b-0">
                       <div class="workspace-heading">
                         <WorkspaceTitle>{t('batch.failedItems')}</WorkspaceTitle>
                       </div>
@@ -234,7 +234,7 @@ export const BatchPage = defineComponent({
                         disabled
                         resolving={batch.isResolving}
                       />
-                    </section>
+                    </div>
                   )}
                 </>
               )}

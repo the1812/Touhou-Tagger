@@ -66,13 +66,13 @@ export const AppShell = defineComponent({
     return () => (
       <>
         <div class="grid h-screen min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-          <header
+          <div
             class={[
               'flex min-h-app-header items-center gap-4 border-b pr-app-page-x',
               'border-surface-200 bg-app-header dark:border-surface-700 dark:bg-app-header-dark',
             ]}
           >
-            <nav class="min-w-0 flex-1" aria-label={t('navigation.primary')}>
+            <div class="min-w-0 flex-1">
               <Tabs
                 value={selectedTab.value}
                 class="app-top-tabs"
@@ -84,13 +84,13 @@ export const AppShell = defineComponent({
                     return (
                       <Tab key={item.path} value={item.path}>
                         <Icon size={17} />
-                        <span>{t(item.titleKey)}</span>
+                        <div>{t(item.titleKey)}</div>
                       </Tab>
                     )
                   })}
                 </TabList>
               </Tabs>
-            </nav>
+            </div>
             <div class="flex shrink-0 items-center gap-3">
               {currentOperation.value && (
                 <div
@@ -99,13 +99,12 @@ export const AppShell = defineComponent({
                     'rounded-full px-2.5 py-2 text-xs',
                   ]}
                 >
-                  <span class="size-[7px] shrink-0 animate-pulse rounded-full bg-primary" />
+                  <div class="size-[7px] shrink-0 animate-pulse rounded-full bg-primary" />
                   {currentOperation.value.message}
                 </div>
               )}
               <RouterLink
                 to={settingsNavigationItem.path}
-                aria-label={t(settingsNavigationItem.titleKey)}
                 class={[
                   'grid size-9 place-items-center rounded-lg text-muted-color transition-colors hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:hover:bg-primary-950',
                   { 'bg-primary-50 text-primary dark:bg-primary-950': route.name === 'settings' },
@@ -115,9 +114,9 @@ export const AppShell = defineComponent({
                 <Settings size={19} />
               </RouterLink>
             </div>
-          </header>
+          </div>
 
-          <main
+          <div
             class={cx(
               'app-scrollbar min-h-0 min-w-0',
               'bg-app-content dark:bg-app-content-dark',
@@ -127,7 +126,7 @@ export const AppShell = defineComponent({
             )}
           >
             <RouterView />
-          </main>
+          </div>
           <div id="page-action-bar" class="empty:hidden" />
         </div>
         <ToastHost />

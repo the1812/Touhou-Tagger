@@ -36,39 +36,39 @@ export const OperationPanel = defineComponent({
     })
 
     return () => (
-      <section class="grid gap-5 py-app-section-y">
+      <div class="grid gap-5 py-app-section-y">
         <div class="flex items-center justify-between gap-4">
-          <h2 class="mt-1 font-bold">{stageLabel.value}</h2>
-          <strong class="text-primary tabular-nums">
+          <div class="mt-1 font-bold">{stageLabel.value}</div>
+          <div class="font-bold text-primary tabular-nums">
             {props.operation.current} / {props.operation.total}
-          </strong>
+          </div>
         </div>
         <ProgressBar value={progress.value} />
         <div class="flex items-center justify-between gap-4 text-sm text-muted-color">
-          <span class="grid min-w-0 gap-1">
+          <div class="grid min-w-0 gap-1">
             {props.operation.path && (
-              <TruncatedText as="strong" class="text-color">
+              <TruncatedText class="font-bold text-color">
                 {props.operation.path}
               </TruncatedText>
             )}
             {props.operation.message !== props.operation.path && (
-              <TruncatedText as="small">
+              <TruncatedText class="text-xs">
                 {props.operation.message}
               </TruncatedText>
             )}
-          </span>
+          </div>
           {props.operation.cancellable ? (
             <Button label={t('operation.cancel')} severity="secondary" outlined onClick={() => emit('cancel')}>
               {{ icon: () => <Ban size={16} /> }}
             </Button>
           ) : (
-            <span class="flex items-center gap-1.5 text-color">
+            <div class="flex items-center gap-1.5 text-color">
               <LockKeyhole size={15} />
               {t('operation.committingNotCancellable')}
-            </span>
+            </div>
           )}
         </div>
-      </section>
+      </div>
     )
   },
 })

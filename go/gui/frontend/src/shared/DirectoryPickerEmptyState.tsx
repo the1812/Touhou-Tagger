@@ -16,7 +16,7 @@ export const DirectoryPickerEmptyState = defineComponent({
   },
   setup(props, { attrs, emit, slots }) {
     return () => (
-      <section {...attrs} class={['page-empty-state', attrs.class]}>
+      <div {...attrs} class={['page-empty-state', attrs.class]}>
         {slots.default?.() ?? (
           <>
             <Button
@@ -28,12 +28,12 @@ export const DirectoryPickerEmptyState = defineComponent({
             >
               {{ icon: () => <FolderOpen size={19} /> }}
             </Button>
-            <span class="text-app-caption text-surface-500 dark:text-surface-400">
-              <kbd class="app-kbd">Ctrl</kbd> + <kbd class="app-kbd">O</kbd>
-            </span>
+            <div class="flex items-center gap-1 text-app-caption text-surface-500 dark:text-surface-400">
+              <div class="app-kbd">Ctrl</div> + <div class="app-kbd">O</div>
+            </div>
           </>
         )}
-      </section>
+      </div>
     )
   },
 })

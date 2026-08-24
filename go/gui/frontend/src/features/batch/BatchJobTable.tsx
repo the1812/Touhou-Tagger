@@ -74,7 +74,7 @@ export const BatchJobTable = defineComponent({
         return <TruncatedText class="block">{job.matchDescription}</TruncatedText>
       }
       if (job.status === 'loading') {
-        return <span class="text-muted-color">{t('batch.loadingAlbum')}</span>
+        return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
       }
       if (job.status === 'scan-failed') {
         return (
@@ -97,7 +97,7 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'needs-candidate' && job.candidates.length === 0) {
         return (
           <div class="flex items-center justify-between gap-2">
-            <span class="text-muted-color">{t('batch.noSearchResults')}</span>
+            <div class="text-muted-color">{t('batch.noSearchResults')}</div>
             <Button
               label={t('batch.ignore')}
               size="small"

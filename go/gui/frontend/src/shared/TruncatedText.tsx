@@ -9,10 +9,6 @@ export const TruncatedText = defineComponent({
   name: 'TruncatedText',
   inheritAttrs: false,
   props: {
-    as: {
-      type: String,
-      default: 'span',
-    },
     tooltip: String,
   },
   setup(props, { attrs, slots }) {
@@ -20,7 +16,7 @@ export const TruncatedText = defineComponent({
 
     return () => {
       const node = h(
-        props.as,
+        'div',
         {
           ...attrs,
           class: ['min-w-0 overflow-hidden text-ellipsis whitespace-nowrap', attrs.class],

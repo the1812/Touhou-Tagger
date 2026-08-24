@@ -67,21 +67,21 @@ export const AlbumMetadataDialog = defineComponent({
           default: () => (
             <div class="grid gap-3.5">
               <FormField>
-                <span>{t('tagging.albumDialog.title')}</span>
+                <div>{t('tagging.albumDialog.title')}</div>
                 <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
               </FormField>
               <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
                 <FormField>
-                  <span>{t('tagging.albumDialog.catalogNumber')}</span>
+                  <div>{t('tagging.albumDialog.catalogNumber')}</div>
                   <InputText v-model={draft.albumOrder} fluid />
                 </FormField>
                 <FormField>
-                  <span>{t('tagging.albumDialog.year')}</span>
+                  <div>{t('tagging.albumDialog.year')}</div>
                   <InputText v-model={draft.year} fluid />
                 </FormField>
               </div>
               <FormField>
-                <span>{t('tagging.albumDialog.circles')}</span>
+                <div>{t('tagging.albumDialog.circles')}</div>
                 <MetadataTagsInput
                   modelValue={draft.artists}
                   {...{
@@ -92,7 +92,7 @@ export const AlbumMetadataDialog = defineComponent({
                 />
               </FormField>
               <FormField>
-                <span>{t('tagging.albumDialog.genres')}</span>
+                <div>{t('tagging.albumDialog.genres')}</div>
                 <MetadataTagsInput
                   modelValue={draft.genres}
                   {...{

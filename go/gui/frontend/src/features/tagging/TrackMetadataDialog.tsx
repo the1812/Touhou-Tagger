@@ -72,9 +72,9 @@ export const TrackMetadataDialog = defineComponent({
             props.item && (
               <div class="grid gap-3.5">
                 <div class="grid min-w-0 gap-1.5 text-app-control">
-                  <span class="font-semibold text-color">
+                  <div class="font-semibold text-color">
                     {t('tagging.trackDialog.localFile')}
-                  </span>
+                  </div>
                   <TruncatedText class="font-normal text-color" tooltip={props.item.sourceName}>
                     {props.item.sourceName}
                   </TruncatedText>
@@ -83,12 +83,12 @@ export const TrackMetadataDialog = defineComponent({
                 <FormField
                   error={!draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
                 >
-                  <span>{t('tagging.trackDialog.title')}</span>
+                  <div>{t('tagging.trackDialog.title')}</div>
                   <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
                 </FormField>
 
                 <FormField>
-                  <span>{t('tagging.trackDialog.artists')}</span>
+                  <div>{t('tagging.trackDialog.artists')}</div>
                   <MetadataTagsInput
                     modelValue={draft.artists}
                     {...{
@@ -98,25 +98,25 @@ export const TrackMetadataDialog = defineComponent({
                     }}
                   />
                   {draft.artists.length === 0 && (
-                    <small class="text-amber-700 dark:text-amber-300">
+                    <div class="text-xs font-normal text-amber-700 dark:text-amber-300">
                       {t('tagging.trackDialog.missingArtists')}
-                    </small>
+                    </div>
                   )}
                 </FormField>
 
                 <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
                   <FormField>
-                    <span>{t('tagging.trackDialog.trackNumber')}</span>
+                    <div>{t('tagging.trackDialog.trackNumber')}</div>
                     <InputText v-model={draft.trackNumber} fluid />
                   </FormField>
                   <FormField>
-                    <span>{t('tagging.trackDialog.discNumber')}</span>
+                    <div>{t('tagging.trackDialog.discNumber')}</div>
                     <InputText v-model={draft.discNumber} fluid />
                   </FormField>
                 </div>
 
                 <FormField>
-                  <span>{t('tagging.trackDialog.comments')}</span>
+                  <div>{t('tagging.trackDialog.comments')}</div>
                   <Textarea v-model={draft.comments} rows={6} fluid />
                 </FormField>
 
@@ -127,12 +127,17 @@ export const TrackMetadataDialog = defineComponent({
                       'dark:border-amber-700 dark:bg-amber-950/50',
                     ]}
                   >
-                    <strong>{t('tagging.trackDialog.issues')}</strong>
-                    <ul class="mb-0 mt-1.5 pl-4">
+                    <div class="font-bold">{t('tagging.trackDialog.issues')}</div>
+                    <div class="mt-1.5 grid gap-1 pl-4">
                       {props.item.issues.map(issue => (
-                        <li key={issue.code}>{issue.message}</li>
+                        <div
+                          key={issue.code}
+                          class="before:mr-2 before:content-['•']"
+                        >
+                          {issue.message}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
               </div>

@@ -59,15 +59,17 @@ export const TaggingSearchStep = defineComponent({
 
       return (
         <>
-          <section class="workspace-section border-b-0">
+          <div class="workspace-section border-b-0">
             <div class="workspace-heading">
               <WorkspaceTitle>{t('tagging.searchAlbum')}</WorkspaceTitle>
             </div>
-            <form
+            <div
               class="mt-4 grid grid-cols-[12rem_minmax(12rem,1fr)_auto] gap-3"
-              onSubmit={event => {
-                event.preventDefault()
-                workspace.search()
+              onKeydown={(event: KeyboardEvent) => {
+                if (event.key === 'Enter' && !event.isComposing) {
+                  event.preventDefault()
+                  workspace.search()
+                }
               }}
             >
               <Select
@@ -87,13 +89,14 @@ export const TaggingSearchStep = defineComponent({
               />
               <Button
                 label={t('common.search')}
-                type="submit"
+                type="button"
                 loading={phase.value === 'searching'}
                 disabled={!canSearch.value}
+                onClick={() => workspace.search()}
               >
                 {{ icon: () => <Search size={17} /> }}
               </Button>
-            </form>
+            </div>
 
             {phase.value === 'searching' ? (
               <div class="mt-4 grid gap-2">
@@ -104,7 +107,8 @@ export const TaggingSearchStep = defineComponent({
             ) : candidates.value.length ? (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
                 {candidates.value.map(candidate => (
-                  <button
+                  <Button
+                    unstyled
                     key={candidate.id}
                     type="button"
                     class="candidate-option"
@@ -112,7 +116,7 @@ export const TaggingSearchStep = defineComponent({
                     disabled={isBusy.value}
                     onClick={() => workspace.selectCandidate(candidate.id)}
                   >
-                    <span
+                    <div
                       class={[
                         'grid size-5 place-items-center rounded-full border border-surface-300 text-white dark:border-surface-600',
                         {
@@ -121,11 +125,11 @@ export const TaggingSearchStep = defineComponent({
                       ]}
                     >
                       {selectedCandidateId.value === candidate.id && <Check size={15} />}
-                    </span>
-                    <TruncatedText as="strong" class="text-sm">
+                    </div>
+                    <TruncatedText class="text-sm font-bold">
                       {candidate.title}
                     </TruncatedText>
-                  </button>
+                  </Button>
                 ))}
               </div>
             ) : hasSearched.value ? (
@@ -136,10 +140,10 @@ export const TaggingSearchStep = defineComponent({
                 ]}
               >
                 <Search size={30} />
-                <strong>{t('tagging.noSearchResults')}</strong>
+                <div class="font-bold">{t('tagging.noSearchResults')}</div>
               </div>
             ) : null}
-          </section>
+          </div>
 
           {candidates.value.length > 0 && (
             <PageActionBar end>

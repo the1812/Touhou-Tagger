@@ -64,7 +64,7 @@ export const TaggingPage = defineComponent({
             />
           ) : (
             <div class="min-w-0 -mt-5">
-              <section class="workspace-section">
+              <div class="workspace-section">
                 {currentPhase === 'scanning' ? (
                   <div class="grid gap-3">
                     <Skeleton width="55%" height="1.4rem" />
@@ -84,7 +84,6 @@ export const TaggingPage = defineComponent({
                             {currentSummary.inferredAlbumName || t('tagging.unnamedAlbum')}
                           </WorkspaceTitle>
                           <TruncatedText
-                            as="p"
                             tooltip={currentSummary.directory}
                             class={[
                               'mt-1.5 max-w-[min(760px,65vw)]',
@@ -96,7 +95,6 @@ export const TaggingPage = defineComponent({
                         </div>
                         <div class="flex items-center gap-1.5">
                           <Button
-                            aria-label={t('common.revealDirectory')}
                             v-tooltip={t('common.revealDirectory')}
                             severity="secondary"
                             text
@@ -106,7 +104,6 @@ export const TaggingPage = defineComponent({
                             {{ icon: () => <ExternalLink size={17} /> }}
                           </Button>
                           <Button
-                            aria-label={t('tagging.rescan')}
                             v-tooltip={t('tagging.rescan')}
                             severity="secondary"
                             text
@@ -132,7 +129,7 @@ export const TaggingPage = defineComponent({
                         <div
                           class={[
                             'status-icon w-auto gap-1.5 py-0 pl-1 pr-2 text-primary',
-                            '[&>strong]:text-app-control [&>strong]:tabular-nums',
+                            '[&>.audio-count]:text-app-control [&>.audio-count]:tabular-nums',
                           ]}
                           v-tooltip={t('tagging.audioSummary', {
                             count: currentSummary.audioCount,
@@ -141,7 +138,7 @@ export const TaggingPage = defineComponent({
                           })}
                         >
                           <FileAudio size={19} />
-                          <strong>{currentSummary.audioCount}</strong>
+                          <div class="audio-count font-bold">{currentSummary.audioCount}</div>
                         </div>
                         <div
                           class={[
@@ -208,7 +205,7 @@ export const TaggingPage = defineComponent({
                     </>
                   )
                 )}
-              </section>
+              </div>
 
               <TaggingSearchStep />
               <TaggingPlanStep />

@@ -17,7 +17,7 @@ export const CompletionPanel = defineComponent({
   },
   setup(props, { emit }) {
     return () => (
-      <section class="workspace-section flex items-center gap-5 border-b-0 py-6">
+      <div class="workspace-section flex items-center gap-5 border-b-0 py-6">
         <div
           class={[
             'grid size-16 place-items-center rounded-full bg-surface-100 text-primary dark:bg-primary-950',
@@ -50,7 +50,7 @@ export const CompletionPanel = defineComponent({
           )}
           <Button label={t('common.complete')} onClick={() => emit('complete')} />
         </div>
-      </section>
+      </div>
     )
   },
 })
