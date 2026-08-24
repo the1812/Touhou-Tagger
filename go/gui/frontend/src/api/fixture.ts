@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import {
   batchDirectory,
   batchJobs,
@@ -8,7 +9,6 @@ import {
   fixtureDirectory,
   workspaceSummary,
 } from './fixtureData'
-import { t } from '../i18n'
 import type {
   BatchPreview,
   BatchRunResult,

@@ -1,9 +1,4 @@
-import {
-  defineComponent,
-  h,
-  resolveDirective,
-  withDirectives,
-} from 'vue'
+import { defineComponent, h, resolveDirective, withDirectives } from 'vue'
 
 export const TruncatedText = defineComponent({
   name: 'TruncatedText',

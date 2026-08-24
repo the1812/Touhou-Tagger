@@ -57,21 +57,17 @@ export const PlanTable = defineComponent({
         rowClass={rowClass}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
-          empty: () => <div class="p-8 text-center text-muted-color">{t('tagging.table.empty')}</div>,
+          empty: () => (
+            <div class="p-8 text-center text-muted-color">{t('tagging.table.empty')}</div>
+          ),
         }}
         {...{ onRowClick }}
       >
         <Column
           field="sourceName"
           header={t('tagging.table.localFile')}
-          headerClass={[
-            'compact-table-cell',
-            'w-[20%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[20%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[20%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[20%]'].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <TruncatedText class="block" tooltip={item.sourceName}>
@@ -84,14 +80,8 @@ export const PlanTable = defineComponent({
           <Column
             field="discNumber"
             header={t('tagging.table.discNumber')}
-            headerClass={[
-              'compact-table-cell',
-              'w-18',
-            ].join(' ')}
-            bodyClass={[
-              'compact-table-cell',
-              'w-18',
-            ].join(' ')}
+            headerClass={['compact-table-cell', 'w-18'].join(' ')}
+            bodyClass={['compact-table-cell', 'w-18'].join(' ')}
             v-slots={{
               body: bodySlot(item => (
                 <div class="text-muted-color tabular-nums">{item.discNumber}</div>
@@ -102,14 +92,8 @@ export const PlanTable = defineComponent({
         <Column
           field="trackNumber"
           header={t('tagging.table.trackNumber')}
-          headerClass={[
-            'compact-table-cell',
-            'w-18',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-18',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-18'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-18'].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <div class="text-muted-color tabular-nums">{item.trackNumber}</div>
@@ -119,14 +103,8 @@ export const PlanTable = defineComponent({
         <Column
           field="title"
           header={t('tagging.table.title')}
-          headerClass={[
-            'compact-table-cell',
-            'w-[23%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[23%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[23%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[23%]'].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <TruncatedText class="block" tooltip={item.title}>
@@ -137,14 +115,8 @@ export const PlanTable = defineComponent({
         />
         <Column
           header={t('tagging.table.artists')}
-          headerClass={[
-            'compact-table-cell',
-            'w-[20%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[20%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[20%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[20%]'].join(' ')}
           v-slots={{
             body: bodySlot(item => {
               const artists = item.artists.join(' / ') || '—'

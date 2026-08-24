@@ -11,12 +11,7 @@ const withDefaultPosition = (binding: DirectiveBinding): DirectiveBinding =>
 export const Tooltip: ObjectDirective = {
   ...PrimeVueTooltip,
   beforeMount(element, binding, vnode, previousVnode) {
-    PrimeVueTooltip.beforeMount?.(
-      element,
-      withDefaultPosition(binding),
-      vnode,
-      previousVnode,
-    )
+    PrimeVueTooltip.beforeMount?.(element, withDefaultPosition(binding), vnode, previousVnode)
   },
   updated(element, binding, vnode, previousVnode) {
     PrimeVueTooltip.updated?.(element, withDefaultPosition(binding), vnode, previousVnode)

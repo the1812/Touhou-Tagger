@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
+  "plugins": ["vue"],
+  "env": {
+    "browser": true
+  },
+  "ignorePatterns": ["bindings/", "embed/"]
+}

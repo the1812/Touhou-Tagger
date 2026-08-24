@@ -5,6 +5,7 @@ import {
   SettingsService,
   WorkspaceService,
 } from '../../bindings/github.com/the1812/Touhou-Tagger/go/gui/internal/bridge/index.js'
+import { t } from '../i18n'
 import type {
   AlbumCandidate,
   BatchJobPreview,
@@ -22,7 +23,6 @@ import type {
   Settings,
   WorkspaceSummary,
 } from './types'
-import { t } from '../i18n'
 
 const sourceLabel = (source: string) => {
   const keys: Record<string, string> = {
@@ -101,9 +101,7 @@ const progressMessage = (progress: OperationProgress) => {
     complete: 'backend.progress.complete',
   }
   const key = keys[progress.stage]
-  return key
-    ? t(key, { current: progress.current, total: progress.total })
-    : progress.message
+  return key ? t(key, { current: progress.current, total: progress.total }) : progress.message
 }
 
 const normalizeProgress = (progress: OperationProgress): OperationProgress => ({
@@ -149,7 +147,7 @@ const normalizePlan = (plan: PlanPreview): PlanPreview => ({
       plan.cover.source === 'none' ? t('data.noCoverWrite') : t('data.coverReady'),
     issue: plan.cover.issue ? normalizeIssue(plan.cover.issue) : undefined,
   },
-  items: (plan.items ?? []).map((item) => ({
+  items: (plan.items ?? []).map(item => ({
     ...item,
     artists: item.artists ?? [],
     issues: (item.issues ?? []).map(normalizeIssue),
@@ -208,7 +206,7 @@ export const nativeApi: GUIApi = {
   },
   getStartupDirectory: () => WorkspaceService.GetStartupDirectory(),
   selectAlbumDirectory: title => WorkspaceService.SelectAlbumDirectory(title),
-  scanWorkspace: async (directory) => {
+  scanWorkspace: async directory => {
     const summary = (await WorkspaceService.ScanWorkspace(directory)) as WorkspaceSummary
     return {
       ...summary,
@@ -236,20 +234,16 @@ export const nativeApi: GUIApi = {
   },
   commitPlan: async (planId, revision) =>
     (await WorkspaceService.CommitPlan(planId, revision)) as OperationStart,
-  startOperation: (operationId) => WorkspaceService.StartOperation(operationId),
+  startOperation: operationId => WorkspaceService.StartOperation(operationId),
   async cancelOperation(operationId) {
     await WorkspaceService.CancelOperation(operationId)
   },
-  revealDirectory: (directory) => WorkspaceService.RevealDirectory(directory),
+  revealDirectory: directory => WorkspaceService.RevealDirectory(directory),
   selectBatchDirectory: title => BatchService.SelectBatchDirectory(title),
   scanBatch: async (directory, depth, source) =>
-    normalizeBatch(
-      (await BatchService.ScanBatch(directory, depth, source)) as BatchPreview,
-    ),
+    normalizeBatch((await BatchService.ScanBatch(directory, depth, source)) as BatchPreview),
   loadBatchJob: async (batchId, jobId) =>
-    normalizeBatchJob(
-      (await BatchService.LoadBatchJob(batchId, jobId)) as BatchJobPreview,
-    ),
+    normalizeBatchJob((await BatchService.LoadBatchJob(batchId, jobId)) as BatchJobPreview),
   resolveBatchCandidate: async (batchId, jobId, candidateId) => {
     const job = (await BatchService.ResolveBatchCandidate(
       batchId,
@@ -259,37 +253,32 @@ export const nativeApi: GUIApi = {
     return normalizeBatchJob(job)
   },
   ignoreBatchJob: async (batchId, jobId) =>
-    normalizeBatchJob(
-      (await BatchService.IgnoreBatchJob(batchId, jobId)) as BatchJobPreview,
-    ),
-  discardBatch: (batchId) => BatchService.DiscardBatch(batchId),
+    normalizeBatchJob((await BatchService.IgnoreBatchJob(batchId, jobId)) as BatchJobPreview),
+  discardBatch: batchId => BatchService.DiscardBatch(batchId),
   runBatch: async (batchId, failedOnly) =>
     (await BatchService.RunBatch(batchId, failedOnly)) as OperationStart,
-  startBatch: (operationId) => BatchService.StartBatch(operationId),
+  startBatch: operationId => BatchService.StartBatch(operationId),
   async cancelBatch(operationId) {
     await BatchService.CancelBatch(operationId)
   },
   loadSettings: async () => (await SettingsService.LoadSettings()) as Settings,
-  saveSettings: async (settings) =>
-    (await SettingsService.SaveSettings(settings)) as Settings,
+  saveSettings: async settings => (await SettingsService.SaveSettings(settings)) as Settings,
   resetSettings: async () => (await SettingsService.ResetSettings()) as Settings,
   onProgress(handler) {
-    return Events.On('gui:operation-progress', (event) =>
+    return Events.On('gui:operation-progress', event =>
       handler(normalizeProgress(event.data as OperationProgress)),
     )
   },
   onComplete(handler) {
-    return Events.On('gui:operation-complete', (event) => {
+    return Events.On('gui:operation-complete', event => {
       const result = normalizeResult(event.data as OperationResult | BatchRunResult)
       handler(
-        'jobs' in result
-          ? { ...result, jobs: (result.jobs ?? []).map(normalizeBatchJob) }
-          : result,
+        'jobs' in result ? { ...result, jobs: (result.jobs ?? []).map(normalizeBatchJob) } : result,
       )
     })
   },
   onFailure(handler) {
-    return Events.On('gui:operation-failed', (event) =>
+    return Events.On('gui:operation-failed', event =>
       handler({
         ...(event.data as OperationFailure),
         message: t('common.operationFailed'),
@@ -298,7 +287,7 @@ export const nativeApi: GUIApi = {
     )
   },
   onProcessError(handler) {
-    return Events.On('gui:process-error', (event) => {
+    return Events.On('gui:process-error', event => {
       const error = event.data as ProcessError
       handler({
         message: t('common.operationFailed'),

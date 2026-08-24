@@ -151,8 +151,7 @@ export const TaggingPage = defineComponent({
                             currentSummary.localCover.issue?.message ||
                             (currentSummary.localCover.exists
                               ? t('tagging.localCoverFound', {
-                                  name:
-                                    currentSummary.localCover.fileName || t('tagging.found'),
+                                  name: currentSummary.localCover.fileName || t('tagging.found'),
                                 })
                               : t('tagging.noLocalCover'))
                           }

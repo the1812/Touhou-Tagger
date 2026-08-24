@@ -22,8 +22,7 @@ export const CompletionPanel = defineComponent({
           class={[
             'grid size-16 place-items-center rounded-full bg-surface-100 text-primary dark:bg-primary-950',
             {
-              'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300':
-                props.warning,
+              'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300': props.warning,
             },
           ]}
         >

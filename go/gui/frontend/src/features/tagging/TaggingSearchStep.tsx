@@ -6,10 +6,10 @@ import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import { computed, defineComponent } from 'vue'
 
+import { t } from '../../i18n'
 import { PageActionBar } from '../../shared/PageActionBar'
 import { TruncatedText } from '../../shared/TruncatedText'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
-import { t } from '../../i18n'
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
 
@@ -126,9 +126,7 @@ export const TaggingSearchStep = defineComponent({
                     >
                       {selectedCandidateId.value === candidate.id && <Check size={15} />}
                     </div>
-                    <TruncatedText class="text-sm font-bold">
-                      {candidate.title}
-                    </TruncatedText>
+                    <TruncatedText class="text-sm font-bold">{candidate.title}</TruncatedText>
                   </Button>
                 ))}
               </div>

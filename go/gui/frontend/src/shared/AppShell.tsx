@@ -12,8 +12,8 @@ import { usePageCommandRegistry } from '../app/pageCommands'
 import { useThemeMode, type ThemeMode } from '../app/themeMode'
 import { t } from '../i18n'
 import { useOperationsStore } from '../stores/operations'
-import { ToastHost } from './ToastHost'
 import { cx } from './classNames'
+import { ToastHost } from './ToastHost'
 
 export const AppShell = defineComponent({
   name: 'AppShell',

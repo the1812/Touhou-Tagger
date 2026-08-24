@@ -142,25 +142,15 @@ export const BatchJobTable = defineComponent({
         virtualScrollerOptions={props.jobs.length > 100 ? { itemSize: 46 } : undefined}
         pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
-          empty: () => (
-            <div class="p-8 text-center text-muted-color">
-              {t('batch.empty')}
-            </div>
-          ),
+          empty: () => <div class="p-8 text-center text-muted-color">{t('batch.empty')}</div>,
         }}
       >
         <Column
           field="relativePath"
           header={t('batch.columns.directory')}
           frozen
-          headerClass={[
-            'compact-table-cell',
-            'w-[24%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[24%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[24%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[24%]'].join(' ')}
           v-slots={{
             body: bodySlot(job => (
               <TruncatedText class="block" tooltip={job.relativePath}>
@@ -172,49 +162,25 @@ export const BatchJobTable = defineComponent({
         <Column
           field="inferredAlbumName"
           header={t('batch.columns.album')}
-          headerClass={[
-            'compact-table-cell',
-            'w-[24%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[24%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[24%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[24%]'].join(' ')}
         />
         <Column
           header={t('batch.columns.match')}
-          headerClass={[
-            'compact-table-cell',
-            'w-[34%]',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-[34%]',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-[34%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[34%]'].join(' ')}
           v-slots={{ body: bodySlot(matchCell) }}
         />
         <Column
           field="audioCount"
           header={t('batch.columns.tracks')}
-          headerClass={[
-            'compact-table-cell',
-            'w-16',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-16 tabular-nums',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-16'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-16 tabular-nums'].join(' ')}
         />
         <Column
           header={t('batch.columns.status')}
-          headerClass={[
-            'compact-table-cell',
-            'w-28',
-          ].join(' ')}
-          bodyClass={[
-            'compact-table-cell',
-            'w-28',
-          ].join(' ')}
+          headerClass={['compact-table-cell', 'w-28'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-28'].join(' ')}
           v-slots={{
             body: bodySlot(job => {
               const status = statusInfo(job.status)

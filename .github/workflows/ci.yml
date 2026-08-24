@@ -95,6 +95,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: go/gui/frontend
         run: pnpm install --frozen-lockfile
+      - name: Check frontend formatting
+        working-directory: go/gui/frontend
+        run: pnpm run format:check
       - name: Build Windows amd64 GUI
         working-directory: go/gui
         run: wails3 build GOOS=windows GOARCH=amd64

@@ -47,18 +47,19 @@ export const OperationPanel = defineComponent({
         <div class="flex items-center justify-between gap-4 text-sm text-muted-color">
           <div class="grid min-w-0 gap-1">
             {props.operation.path && (
-              <TruncatedText class="font-bold text-color">
-                {props.operation.path}
-              </TruncatedText>
+              <TruncatedText class="font-bold text-color">{props.operation.path}</TruncatedText>
             )}
             {props.operation.message !== props.operation.path && (
-              <TruncatedText class="text-xs">
-                {props.operation.message}
-              </TruncatedText>
+              <TruncatedText class="text-xs">{props.operation.message}</TruncatedText>
             )}
           </div>
           {props.operation.cancellable ? (
-            <Button label={t('operation.cancel')} severity="secondary" outlined onClick={() => emit('cancel')}>
+            <Button
+              label={t('operation.cancel')}
+              severity="secondary"
+              outlined
+              onClick={() => emit('cancel')}
+            >
               {{ icon: () => <Ban size={16} /> }}
             </Button>
           ) : (

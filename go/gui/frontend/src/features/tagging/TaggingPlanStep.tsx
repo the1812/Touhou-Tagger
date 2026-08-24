@@ -135,9 +135,7 @@ export const TaggingPlanStep = defineComponent({
                 scope="global"
                 v-slots={{
                   count: () => (
-                    <div class="inline font-bold text-color">
-                      {currentPlan.options.writeFiles}
-                    </div>
+                    <div class="inline font-bold text-color">{currentPlan.options.writeFiles}</div>
                   ),
                 }}
               />

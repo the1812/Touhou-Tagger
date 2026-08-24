@@ -5,8 +5,8 @@ import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import { defineComponent, watch } from 'vue'
 
-import { type ProcessNotification, useNotificationsStore } from '../stores/notifications'
 import { t } from '../i18n'
+import { type ProcessNotification, useNotificationsStore } from '../stores/notifications'
 
 interface ToastSlotMessage extends ToastMessageOptions {
   data?: ProcessNotification
@@ -71,9 +71,7 @@ export const ToastHost = defineComponent({
                 ) : (
                   <TriangleAlert class="self-center" size={20} />
                 )}
-                <div class="min-w-0 self-center text-lg font-bold leading-6">
-                  {message.summary}
-                </div>
+                <div class="min-w-0 self-center text-lg font-bold leading-6">{message.summary}</div>
                 <Button
                   unstyled
                   type="button"

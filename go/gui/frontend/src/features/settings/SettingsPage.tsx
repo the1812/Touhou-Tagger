@@ -93,10 +93,7 @@ export const SettingsPage = defineComponent({
         <div class="h-full min-h-0">
           {loading.value || !currentDraft ? (
             <div
-              class={[
-                'grid h-full w-full max-w-app-settings gap-4',
-                'px-app-page-x py-app-page-y',
-              ]}
+              class={['grid h-full w-full max-w-app-settings gap-4', 'px-app-page-x py-app-page-y']}
             >
               <Skeleton height="10rem" />
               <Skeleton height="8rem" />
@@ -177,10 +174,7 @@ export const SettingsPage = defineComponent({
 
                 <FormSection title={t('settings.cover')}>
                   <div class="grid justify-items-start gap-y-3.5">
-                    <FormField
-                      variant="settings"
-                      error={errors.value.coverCompressionThresholdKb}
-                    >
+                    <FormField variant="settings" error={errors.value.coverCompressionThresholdKb}>
                       <FieldLabel help={t('settings.coverThresholdHelp')}>
                         {t('settings.coverThreshold')}
                       </FieldLabel>

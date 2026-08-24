@@ -5,8 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:dev": "tsc --noEmit && vite build --minify false --mode development",
-    "build": "tsc --noEmit && vite build --mode production"
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "check": "oxlint --type-aware --type-check",
+    "build:dev": "pnpm run check && vite build --minify false --mode development",
+    "build": "pnpm run check && vite build --mode production"
   },
   "dependencies": {
     "@primeuix/themes": "2.0.3",
@@ -23,6 +28,9 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-vue-jsx": "5.1.5",
+    "oxfmt": "0.54.0",
+    "oxlint": "1.69.0",
+    "oxlint-tsgolint": "0.23.0",
     "tailwindcss": "4.3.3",
     "tailwindcss-primeui": "0.6.1",
     "typescript": "6.0.3",

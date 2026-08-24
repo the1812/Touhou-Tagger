@@ -72,9 +72,7 @@ export const TrackMetadataDialog = defineComponent({
             props.item && (
               <div class="grid gap-3.5">
                 <div class="grid min-w-0 gap-1.5 text-app-control">
-                  <div class="font-semibold text-color">
-                    {t('tagging.trackDialog.localFile')}
-                  </div>
+                  <div class="font-semibold text-color">{t('tagging.trackDialog.localFile')}</div>
                   <TruncatedText class="font-normal text-color" tooltip={props.item.sourceName}>
                     {props.item.sourceName}
                   </TruncatedText>
@@ -130,10 +128,7 @@ export const TrackMetadataDialog = defineComponent({
                     <div class="font-bold">{t('tagging.trackDialog.issues')}</div>
                     <div class="mt-1.5 grid gap-1 pl-4">
                       {props.item.issues.map(issue => (
-                        <div
-                          key={issue.code}
-                          class="before:mr-2 before:content-['•']"
-                        >
+                        <div key={issue.code} class="before:mr-2 before:content-['•']">
                           {issue.message}
                         </div>
                       ))}
