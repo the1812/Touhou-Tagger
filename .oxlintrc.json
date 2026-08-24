@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "import", "node"],
-  "ignorePatterns": ["dist/", "node_modules/", "test-files/", "patches/"],
+  "ignorePatterns": ["dist/", "node_modules/", "test-files/", "patches/", "go/"],
   "categories": {
     "correctness": "error"
   },

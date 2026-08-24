@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
+    "@types/node": "25.9.3",
     "@vitejs/plugin-vue-jsx": "5.1.5",
     "oxfmt": "0.54.0",
     "oxlint": "1.69.0",
