@@ -34,8 +34,8 @@
     "format:check": "oxfmt . --check",
     "build": "tsc",
     "build:go": "pnpm run build:go-cli && pnpm run build:go-gui",
-    "build:go-cli": "node -e \"require('node:fs').mkdirSync('go/bin', { recursive: true })\" && cd go && go build -trimpath -o ./bin/thtag.exe ./cmd/thtag",
-    "build:go-gui": "cd go/gui && go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.117 task build"
+    "build:go-cli": "cd go && go build -trimpath -o ./bin/thtag.exe ./cmd/thtag",
+    "build:go-gui": "cd go/gui && go tool wails3 task build"
   },
   "dependencies": {
     "@squoosh/lib": "0.5.3",

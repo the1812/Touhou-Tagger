@@ -8,10 +8,10 @@
       "FileVersion": "2.3.0",
       "ProductVersion": "2.3.0",
       "CompanyName": "Grant Howard",
-      "FileDescription": "Touhou Project music metadata tagger",
+      "FileDescription": "Touhou Tagger Desktop",
       "LegalCopyright": "Copyright Grant Howard",
-      "ProductName": "Touhou Tagger",
-      "Comments": "Touhou Tagger desktop application"
+      "ProductName": "Touhou Tagger Desktop",
+      "Comments": "Touhou Tagger Desktop"
     }
   }
 }

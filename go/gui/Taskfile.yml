@@ -5,20 +5,8 @@ vars:
   BIN_DIR: ../bin
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
   GOARCH: '{{.GOARCH | default "amd64"}}'
-  WAILS_VERSION: v3.0.0-alpha2.117
-  WAILS_CLI: "{{.TASKFILE_DIR}}/.task/bin/wails3.exe"
 
 tasks:
-  install:wails:
-    sources:
-      - Taskfile.yml
-    generates:
-      - .task/bin/wails3.exe
-    cmds:
-      - go install github.com/wailsapp/wails/v3/cmd/wails3@{{.WAILS_VERSION}}
-    env:
-      GOBIN: "{{.TASKFILE_DIR}}/.task/bin"
-
   install:frontend:
     dir: frontend
     sources:
@@ -30,8 +18,6 @@ tasks:
       - pnpm install --frozen-lockfile
 
   generate:bindings:
-    deps:
-      - install:wails
     sources:
       - "*.go"
       - "internal/bridge/**/*.go"
@@ -40,11 +26,9 @@ tasks:
     generates:
       - frontend/bindings/**/*
     cmds:
-      - '"{{.WAILS_CLI}}" generate bindings -clean=true -ts -i'
+      - go tool wails3 generate bindings -clean=true -ts -i
 
   generate:syso:
-    deps:
-      - install:wails
     sources:
       - ../../assets/logo.ico
       - build/windows/wails.exe.manifest
@@ -53,7 +37,7 @@ tasks:
       - resource_windows_{{.GOARCH}}.syso
     cmds:
       - >-
-        "{{.WAILS_CLI}}" generate syso
+        go tool wails3 generate syso
         -icon ../../assets/logo.ico
         -manifest build/windows/wails.exe.manifest
         -info build/windows/info.json
@@ -73,9 +57,6 @@ tasks:
       - build:frontend
       - generate:syso
     cmds:
-      - >-
-        powershell.exe -NoProfile -NonInteractive -Command
-        "New-Item -ItemType Directory -Force -Path '{{.BIN_DIR}}' | Out-Null"
       - >-
         go build
         {{if ne .DEV "true"}}-tags production -trimpath -ldflags="-w -s -H windowsgui"{{else}}-gcflags=all="-l"{{end}}
@@ -99,7 +80,5 @@ tasks:
       - '"{{.BIN_DIR}}/{{.APP_NAME}}.exe"'
 
   dev:
-    deps:
-      - install:wails
     cmds:
-      - '"{{.WAILS_CLI}}" dev -config ./build/config.yml -port {{.VITE_PORT}}'
+      - go tool wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}

@@ -2,11 +2,11 @@ version: "3"
 
 info:
   companyName: "Grant Howard"
-  productName: "Touhou Tagger"
+  productName: "Touhou Tagger Desktop"
   productIdentifier: "io.github.the1812.touhou-tagger"
-  description: "Touhou Project music metadata tagger"
+  description: "Touhou Tagger Desktop"
   copyright: "Copyright Grant Howard"
-  comments: "Touhou Tagger desktop application"
+  comments: "Touhou Tagger Desktop"
   version: "2.3.0"
 
 dev_mode:
@@ -25,9 +25,9 @@ dev_mode:
       - "*.go"
     git_ignore: true
   executes:
-    - cmd: .task/bin/wails3.exe build DEV=true
+    - cmd: go tool wails3 build DEV=true
       type: blocking
-    - cmd: .task/bin/wails3.exe task dev:frontend
+    - cmd: go tool wails3 task dev:frontend
       type: background
-    - cmd: .task/bin/wails3.exe task run
+    - cmd: go tool wails3 task run
       type: primary
