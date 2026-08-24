@@ -63,7 +63,7 @@ export const FieldLabel = defineComponent({
             unstyled
             type="button"
             class="help-icon"
-            v-tooltip={{ value: props.help }}
+            v-tooltip={props.help}
           >
             <Info size={13} />
           </Button>

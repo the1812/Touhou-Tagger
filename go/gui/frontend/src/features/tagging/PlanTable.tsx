@@ -86,11 +86,11 @@ export const PlanTable = defineComponent({
             header={t('tagging.table.discNumber')}
             headerClass={[
               'compact-table-cell',
-              'w-16',
+              'w-18',
             ].join(' ')}
             bodyClass={[
               'compact-table-cell',
-              'w-16',
+              'w-18',
             ].join(' ')}
             v-slots={{
               body: bodySlot(item => (
@@ -104,11 +104,11 @@ export const PlanTable = defineComponent({
           header={t('tagging.table.trackNumber')}
           headerClass={[
             'compact-table-cell',
-            'w-16',
+            'w-18',
           ].join(' ')}
           bodyClass={[
             'compact-table-cell',
-            'w-16',
+            'w-18',
           ].join(' ')}
           v-slots={{
             body: bodySlot(item => (

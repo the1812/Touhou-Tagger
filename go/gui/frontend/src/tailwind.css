@@ -1,14 +1,16 @@
 @import 'tailwindcss';
 @import 'tailwindcss-primeui';
 
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
 @theme {
-  --color-app-header: color-mix(in srgb, var(--p-surface-0) 90%, transparent);
-  --color-app-header-dark: color-mix(in srgb, var(--p-surface-900) 90%, transparent);
+  --color-app-header: var(--p-surface-0);
+  --color-app-header-dark: var(--p-surface-900);
   --color-app-content: #f6f5f9;
-  --color-app-content-dark: #17161d;
-  --color-app-footer: color-mix(in srgb, var(--p-surface-0) 95%, transparent);
-  --color-app-footer-dark: color-mix(in srgb, var(--p-surface-900) 95%, transparent);
-  --color-app-hover-dark: #29243a;
+  --color-app-content-dark: #0d0c11;
+  --color-app-footer: var(--p-surface-0);
+  --color-app-footer-dark: var(--p-surface-900);
+  --color-app-hover-dark: #211e29;
   --spacing-app-header: 4rem;
   --spacing-app-page-x: 1.5rem;
   --spacing-app-page-y: 1.25rem;
@@ -26,10 +28,14 @@
 
 @utility app-root {
   @apply min-h-screen min-w-app-window-min bg-app-content text-color antialiased selection:bg-primary-400/35 dark:bg-app-content-dark;
-  color-scheme: light dark;
+  color-scheme: light;
   font-family: system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+.app-root.app-dark {
+  color-scheme: dark;
 }
 
 @utility app-body {
@@ -122,25 +128,20 @@
     @apply text-xs leading-[1.35];
   }
 
+  & .app-theme-tooltip .p-tooltip-text {
+    @apply whitespace-nowrap;
+  }
+
   & .p-datatable-table-container {
     scrollbar-width: thin;
   }
 }
 
 @utility app-scrollbar {
-  scrollbar-color: var(--p-surface-400) transparent;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 
   &::-webkit-scrollbar {
-    @apply size-2;
-  }
-
-  &::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    @apply rounded-full border-2 border-transparent bg-surface-400 bg-clip-padding;
+    display: none;
   }
 }
 

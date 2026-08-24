@@ -1,5 +1,6 @@
-import { Settings } from 'lucide-vue-next'
+import { Monitor, Moon, Settings, Sun } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
+import Button from 'primevue/button'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
 import Tabs from 'primevue/tabs'
@@ -8,6 +9,7 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { settingsNavigationItem, workspaceNavigationItems } from '../app/navigation'
 import { usePageCommandRegistry } from '../app/pageCommands'
+import { useThemeMode, type ThemeMode } from '../app/themeMode'
 import { t } from '../i18n'
 import { useOperationsStore } from '../stores/operations'
 import { ToastHost } from './ToastHost'
@@ -21,7 +23,13 @@ export const AppShell = defineComponent({
     const commands = usePageCommandRegistry()
     const operations = useOperationsStore()
     const { current: currentOperation } = storeToRefs(operations)
+    const { themeMode, nextThemeMode, cycleThemeMode } = useThemeMode()
     const selectedTab = ref('')
+    const themeIcons: Record<ThemeMode, typeof Monitor> = {
+      system: Monitor,
+      light: Sun,
+      dark: Moon,
+    }
     const syncSelectedTab = () => {
       selectedTab.value = workspaceNavigationItems.some(item => item.path === route.path)
         ? route.path
@@ -103,13 +111,36 @@ export const AppShell = defineComponent({
                   {currentOperation.value.message}
                 </div>
               )}
+              <Button
+                text
+                class={[
+                  'size-9! min-h-0! rounded-lg! p-0! text-muted-color! transition-colors',
+                  'hover:bg-primary-50! focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-primary! dark:hover:bg-primary-950!',
+                ]}
+                onClick={cycleThemeMode}
+                v-tooltip={[
+                  {
+                    value: t('theme.switchTo', { mode: t(`theme.${nextThemeMode.value}`) }),
+                    class: 'app-theme-tooltip',
+                  },
+                  undefined,
+                  ['bottom'],
+                ]}
+              >
+                {{
+                  icon: () => {
+                    const ThemeIcon = themeIcons[themeMode.value]
+                    return <ThemeIcon size={19} />
+                  },
+                }}
+              </Button>
               <RouterLink
                 to={settingsNavigationItem.path}
                 class={[
                   'grid size-9 place-items-center rounded-lg text-muted-color transition-colors hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:hover:bg-primary-950',
                   { 'bg-primary-50 text-primary dark:bg-primary-950': route.name === 'settings' },
                 ]}
-                v-tooltip={{ value: t(settingsNavigationItem.titleKey), position: 'bottom' }}
+                v-tooltip={[t(settingsNavigationItem.titleKey), undefined, ['bottom']]}
               >
                 <Settings size={19} />
               </RouterLink>

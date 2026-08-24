@@ -103,7 +103,7 @@ export const SettingsPage = defineComponent({
               <Skeleton height="12rem" />
             </div>
           ) : (
-            <div class="h-full min-h-0 overflow-auto">
+            <div class="app-scrollbar h-full min-h-0 overflow-auto">
               <div class="w-full max-w-app-settings px-app-page-x">
                 <FormSection title={t('settings.general')}>
                   <div class="grid justify-items-start gap-y-3.5">

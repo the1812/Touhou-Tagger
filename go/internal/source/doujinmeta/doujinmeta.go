@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -20,19 +21,19 @@ type Source struct {
 }
 
 type searchItem struct {
-	ID        string       `json:"id"`
-	Name      string       `json:"name"`
-	CoverURL  string       `json:"coverUrl"`
-	DetailURL string       `json:"detailUrl"`
-	Matches   [][2]float64 `json:"matches"`
+	ID    int64  `json:"id"`
+	Album string `json:"album"`
 }
 
 type albumDetail struct {
-	Name        string            `json:"name"`
-	CoverURL    string            `json:"coverUrl"`
-	Metadata    []domain.Metadata `json:"metadata"`
-	MetadataURL string            `json:"metadataUrl"`
-	RawURL      string            `json:"rawUrl"`
+	Album        string            `json:"album"`
+	AlbumOrder   string            `json:"albumOrder"`
+	AlbumArtists []string          `json:"albumArtists"`
+	Genres       []string          `json:"genres"`
+	Year         string            `json:"year"`
+	ExtraData    map[string]any    `json:"extraData"`
+	CoverURL     string            `json:"coverUrl"`
+	Tracks       []domain.Metadata `json:"tracks"`
 }
 
 func New(client *http.Client, base string) (*Source, error) {
@@ -47,7 +48,10 @@ func (sourceClient *Source) Search(
 	ctx context.Context,
 	query string,
 ) ([]domain.AlbumCandidate, error) {
-	endpoint := sourceClient.resolveResource("/api/albums/search/", query)
+	endpoint := sourceClient.baseURL.ResolveReference(&url.URL{
+		Path:     "/api/albums/search/",
+		RawQuery: url.Values{"keyword": []string{query}}.Encode(),
+	}).String()
 	var result []searchItem
 	if err := sourceClient.getJSON(ctx, endpoint, &result); err != nil {
 		return nil, fmt.Errorf("search Doujin Meta: %w", err)
@@ -58,8 +62,8 @@ func (sourceClient *Source) Search(
 	candidates := make([]domain.AlbumCandidate, len(result))
 	for index, item := range result {
 		candidates[index] = domain.AlbumCandidate{
-			ID:     item.Name,
-			Name:   item.Name,
+			ID:     strconv.FormatInt(item.ID, 10),
+			Name:   item.Album,
 			Source: "doujin-meta",
 		}
 	}
@@ -71,26 +75,34 @@ func (sourceClient *Source) Fetch(
 	id string,
 	cover []byte,
 ) ([]domain.Metadata, error) {
-	endpoint := sourceClient.resolveResource("/api/albums/detail/", id)
+	endpoint := sourceClient.resolveResource("/api/albums/", id)
 	var detail albumDetail
 	if err := sourceClient.getJSON(ctx, endpoint, &detail); err != nil {
 		return nil, fmt.Errorf("fetch Doujin Meta album %q: %w", id, err)
 	}
+	if len(detail.Tracks) > 0 {
+		detail.Tracks[0].Album = detail.Album
+		detail.Tracks[0].AlbumOrder = detail.AlbumOrder
+		detail.Tracks[0].AlbumArtists = detail.AlbumArtists
+		detail.Tracks[0].Genres = detail.Genres
+		detail.Tracks[0].Year = detail.Year
+		detail.Tracks[0].ExtraData = detail.ExtraData
+	}
 	if len(cover) == 0 && detail.CoverURL != "" {
 		coverURL, err := sourceClient.baseURL.Parse(detail.CoverURL)
 		if err != nil {
-			return domain.ExpandMetadata(detail.Metadata, nil), &source.PartialFetchError{
+			return domain.ExpandMetadata(detail.Tracks, nil), &source.PartialFetchError{
 				Err: fmt.Errorf("resolve Doujin Meta cover URL: %w", err),
 			}
 		}
 		cover, err = sourceClient.getBytes(ctx, coverURL.String())
 		if err != nil {
-			return domain.ExpandMetadata(detail.Metadata, nil), &source.PartialFetchError{
+			return domain.ExpandMetadata(detail.Tracks, nil), &source.PartialFetchError{
 				Err: fmt.Errorf("fetch Doujin Meta cover: %w", err),
 			}
 		}
 	}
-	return domain.ExpandMetadata(detail.Metadata, cover), nil
+	return domain.ExpandMetadata(detail.Tracks, cover), nil
 }
 
 func (sourceClient *Source) resolveResource(prefix, value string) string {

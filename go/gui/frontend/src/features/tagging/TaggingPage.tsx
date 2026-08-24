@@ -93,26 +93,28 @@ export const TaggingPage = defineComponent({
                             {currentSummary.directory}
                           </TruncatedText>
                         </div>
-                        <div class="flex items-center gap-1.5">
-                          <Button
-                            v-tooltip={t('common.revealDirectory')}
-                            severity="secondary"
-                            text
-                            rounded
-                            onClick={() => workspace.reveal()}
-                          >
-                            {{ icon: () => <ExternalLink size={17} /> }}
-                          </Button>
-                          <Button
-                            v-tooltip={t('tagging.rescan')}
-                            severity="secondary"
-                            text
-                            rounded
-                            disabled={isBusy.value}
-                            onClick={() => workspace.scan()}
-                          >
-                            {{ icon: () => <RefreshCw size={17} /> }}
-                          </Button>
+                        <div class="flex items-center gap-4">
+                          <div class="flex items-center gap-1.5">
+                            <Button
+                              v-tooltip={t('common.revealDirectory')}
+                              severity="secondary"
+                              text
+                              rounded
+                              onClick={() => workspace.reveal()}
+                            >
+                              {{ icon: () => <ExternalLink size={17} /> }}
+                            </Button>
+                            <Button
+                              v-tooltip={t('tagging.rescan')}
+                              severity="secondary"
+                              text
+                              rounded
+                              disabled={isBusy.value}
+                              onClick={() => workspace.scan()}
+                            >
+                              {{ icon: () => <RefreshCw size={17} /> }}
+                            </Button>
+                          </div>
                           <Button
                             label={t('common.changeDirectory')}
                             severity="secondary"

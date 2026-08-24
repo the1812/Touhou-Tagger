@@ -31,6 +31,12 @@
     "batch": "批量写入",
     "settings": "设置"
   },
+  "theme": {
+    "system": "跟随系统",
+    "light": "亮色主题",
+    "dark": "暗色主题",
+    "switchTo": "切换至{mode}"
+  },
   "common": {
     "selectDirectory": "选择目录",
     "changeDirectory": "更换目录",
@@ -228,7 +234,7 @@
     "rescan": "重新扫描",
     "scanning": "正在扫描专辑目录",
     "albumCount": "共 {count} 个专辑",
-    "start": "开始处理",
+    "start": "开始",
     "failedItems": "失败项目",
     "status": {
       "loading": "加载中",
@@ -266,7 +272,7 @@
   "data": {
     "sources": {
       "thbWiki": "THBWiki",
-      "doujinMeta": "DoujinMeta",
+      "doujinMeta": "Doujin Meta",
       "localJson": "本地 metadata.json"
     },
     "simplifiedChinese": "简体中文",
