@@ -59,7 +59,7 @@ export const TaggingPlanStep = defineComponent({
                     }}
                     disabled={isBusy.value}
                   />
-                  <div class="text-sm font-bold">
+                  <div class="text-base font-bold">
                     {summary.value?.localCover.exists
                       ? t('tagging.plan.overwriteCover')
                       : t('tagging.plan.saveOriginalCover')}
@@ -69,7 +69,7 @@ export const TaggingPlanStep = defineComponent({
             </div>
             <div class="grid content-start gap-4">
               <div class="workspace-heading">
-                <WorkspaceTitle>{currentPlan.album.title}</WorkspaceTitle>
+                <WorkspaceTitle class="text-xl">{currentPlan.album.title}</WorkspaceTitle>
                 <Button
                   label={t('tagging.plan.editAlbum')}
                   severity="secondary"
@@ -79,13 +79,13 @@ export const TaggingPlanStep = defineComponent({
                     albumDialogVisible.value = true
                   }}
                 >
-                  {{ icon: () => <Pencil size={16} /> }}
+                  {{ icon: () => <Pencil /> }}
                 </Button>
               </div>
               <div
                 class={[
                   'grid gap-2 [&>.metadata-row]:grid [&>.metadata-row]:grid-cols-[4rem_minmax(0,1fr)]',
-                  '[&>.metadata-row]:text-sm [&>.metadata-row]:text-muted-color',
+                  '[&>.metadata-row]:text-base [&>.metadata-row]:text-muted-color',
                 ]}
               >
                 <div class="metadata-row">
@@ -113,9 +113,6 @@ export const TaggingPlanStep = defineComponent({
           </div>
 
           <div class="workspace-section grid w-full content-start gap-4 border-b-0">
-            <div class="text-base font-bold">
-              {t('tagging.plan.trackCount', { count: currentPlan.items.length })}
-            </div>
             {currentPlan.issues.map(issue => (
               <Message
                 key={issue.code}
@@ -129,7 +126,7 @@ export const TaggingPlanStep = defineComponent({
           </div>
 
           <PageActionBar>
-            <div class="text-[.85rem] text-muted-color">
+            <div class="text-sm text-muted-color">
               <Translation
                 keypath="tagging.plan.writeFiles"
                 scope="global"
@@ -144,7 +141,7 @@ export const TaggingPlanStep = defineComponent({
                   ? t('tagging.plan.overwriteCoverSuffix')
                   : t('tagging.plan.saveOriginalCoverSuffix'))}
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
               {!summary.value?.hasMetadataJson && (
                 <Button
                   label={t('common.previous')}
@@ -165,7 +162,6 @@ export const TaggingPlanStep = defineComponent({
               >
                 <Button
                   label={t('common.confirm')}
-                  size="large"
                   disabled={!canCommit.value}
                   onClick={() => workspace.commit()}
                 />

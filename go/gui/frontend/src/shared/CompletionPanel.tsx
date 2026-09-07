@@ -26,7 +26,7 @@ export const CompletionPanel = defineComponent({
             },
           ]}
         >
-          {props.warning ? <TriangleAlert size={34} /> : <Check size={34} />}
+          {props.warning ? <TriangleAlert class="size-[34px]" /> : <Check class="size-[34px]" />}
         </div>
         <div class="flex flex-wrap gap-3">
           <Button
@@ -35,7 +35,7 @@ export const CompletionPanel = defineComponent({
             outlined
             onClick={() => emit('reveal')}
           >
-            {{ icon: () => <ExternalLink size={17} /> }}
+            {{ icon: () => <ExternalLink /> }}
           </Button>
           {props.retryable && (
             <Button
@@ -44,7 +44,7 @@ export const CompletionPanel = defineComponent({
               outlined
               onClick={() => emit('retry')}
             >
-              {{ icon: () => <RotateCcw size={17} /> }}
+              {{ icon: () => <RotateCcw /> }}
             </Button>
           )}
           <Button label={t('common.complete')} onClick={() => emit('complete')} />

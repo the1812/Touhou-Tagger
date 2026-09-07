@@ -94,7 +94,7 @@ export const TaggingSearchStep = defineComponent({
                 disabled={!canSearch.value}
                 onClick={() => workspace.search()}
               >
-                {{ icon: () => <Search size={17} /> }}
+                {{ icon: () => <Search /> }}
               </Button>
             </div>
 
@@ -118,26 +118,26 @@ export const TaggingSearchStep = defineComponent({
                   >
                     <div
                       class={[
-                        'grid size-5 place-items-center rounded-full border border-surface-300 text-white dark:border-surface-600',
+                        'grid size-6 place-items-center rounded-full border border-surface-300 text-white dark:border-surface-600',
                         {
                           'border-primary bg-primary': selectedCandidateId.value === candidate.id,
                         },
                       ]}
                     >
-                      {selectedCandidateId.value === candidate.id && <Check size={15} />}
+                      {selectedCandidateId.value === candidate.id && <Check class="size-[17px]" />}
                     </div>
-                    <TruncatedText class="text-sm font-bold">{candidate.title}</TruncatedText>
+                    <TruncatedText class="text-base font-bold">{candidate.title}</TruncatedText>
                   </Button>
                 ))}
               </div>
             ) : hasSearched.value ? (
               <div
                 class={[
-                  'mt-4 grid place-items-center gap-1.5 border-y py-app-section-y text-center',
+                  'mt-4 grid place-items-center gap-1.5 border-t py-app-section-y text-center',
                   'border-surface-200 text-muted-color dark:border-surface-700',
                 ]}
               >
-                <Search size={30} />
+                <Search class="size-[30px]" />
                 <div class="font-bold">{t('tagging.noSearchResults')}</div>
               </div>
             ) : null}
@@ -147,7 +147,6 @@ export const TaggingSearchStep = defineComponent({
             <PageActionBar end>
               <Button
                 label={t('common.next')}
-                size="large"
                 disabled={!canPrepare.value}
                 loading={phase.value === 'preparing'}
                 onClick={() => workspace.preparePlan()}

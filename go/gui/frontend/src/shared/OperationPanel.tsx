@@ -60,11 +60,11 @@ export const OperationPanel = defineComponent({
               outlined
               onClick={() => emit('cancel')}
             >
-              {{ icon: () => <Ban size={16} /> }}
+              {{ icon: () => <Ban /> }}
             </Button>
           ) : (
             <div class="flex items-center gap-1.5 text-color">
-              <LockKeyhole size={15} />
+              <LockKeyhole class="size-[15px]" />
               {t('operation.committingNotCancellable')}
             </div>
           )}

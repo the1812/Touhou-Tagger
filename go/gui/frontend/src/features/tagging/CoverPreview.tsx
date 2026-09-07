@@ -56,7 +56,7 @@ export const CoverPreview = defineComponent({
                 src={props.cover.url}
               />
               <div class="image-hover-label">
-                <Maximize2 size={16} /> {t('tagging.cover.viewFull')}
+                <Maximize2 class="size-[16px]" /> {t('tagging.cover.viewFull')}
               </div>
             </Button>
           ) : (
@@ -67,13 +67,13 @@ export const CoverPreview = defineComponent({
                 'content-center gap-2 p-5 text-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
               ]}
             >
-              <ImageIcon size={38} stroke-width={1.5} />
+              <ImageIcon class="size-[38px]" stroke-width={1.5} />
               <div class="font-bold text-color">{t('tagging.cover.noCover')}</div>
             </div>
           )}
 
           <div class="grid min-w-0 gap-2">
-            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-app-caption text-muted-color">
+            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-base text-muted-color">
               <div>{dimensions.value}</div>
               <div>{fileSize.value}</div>
             </div>

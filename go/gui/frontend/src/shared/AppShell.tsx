@@ -91,7 +91,7 @@ export const AppShell = defineComponent({
                     const Icon = item.icon
                     return (
                       <Tab key={item.path} value={item.path}>
-                        <Icon size={17} />
+                        <Icon />
                         <div>{t(item.titleKey)}</div>
                       </Tab>
                     )
@@ -99,7 +99,7 @@ export const AppShell = defineComponent({
                 </TabList>
               </Tabs>
             </div>
-            <div class="flex shrink-0 items-center gap-3">
+            <div class="flex shrink-0 items-center gap-1.5">
               {currentOperation.value && (
                 <div
                   class={[
@@ -113,10 +113,7 @@ export const AppShell = defineComponent({
               )}
               <Button
                 text
-                class={[
-                  'size-9! min-h-0! rounded-lg! p-0! text-muted-color! transition-colors',
-                  'hover:bg-primary-50! focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-primary! dark:hover:bg-primary-950!',
-                ]}
+                severity="secondary"
                 onClick={cycleThemeMode}
                 v-tooltip={[
                   {
@@ -130,20 +127,19 @@ export const AppShell = defineComponent({
                 {{
                   icon: () => {
                     const ThemeIcon = themeIcons[themeMode.value]
-                    return <ThemeIcon size={19} />
+                    return <ThemeIcon />
                   },
                 }}
               </Button>
-              <RouterLink
-                to={settingsNavigationItem.path}
-                class={[
-                  'grid size-9 place-items-center rounded-lg text-muted-color transition-colors hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:hover:bg-primary-950',
-                  { 'bg-primary-50 text-primary dark:bg-primary-950': route.name === 'settings' },
-                ]}
+              <Button
+                as={RouterLink}
+                {...{ to: settingsNavigationItem.path }}
+                text
+                severity={route.name === 'settings' ? 'primary' : 'secondary'}
                 v-tooltip={[t(settingsNavigationItem.titleKey), undefined, ['bottom']]}
               >
-                <Settings size={19} />
-              </RouterLink>
+                {{ icon: () => <Settings /> }}
+              </Button>
             </div>
           </div>
 

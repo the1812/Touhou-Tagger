@@ -65,13 +65,15 @@ export const ToastHost = defineComponent({
                 ]}
               >
                 {message.severity === 'success' ? (
-                  <Check class="self-center" size={20} />
+                  <Check class="self-center size-[20px]" />
                 ) : message.severity === 'info' ? (
-                  <Info class="self-center" size={20} />
+                  <Info class="self-center size-[20px]" />
                 ) : (
-                  <TriangleAlert class="self-center" size={20} />
+                  <TriangleAlert class="self-center size-[20px]" />
                 )}
-                <div class="min-w-0 self-center text-lg font-bold leading-6">{message.summary}</div>
+                <div class="min-w-0 self-center text-(length:--p-toast-summary-font-size) font-(--p-toast-summary-font-weight)">
+                  {message.summary}
+                </div>
                 <Button
                   unstyled
                   type="button"
@@ -81,10 +83,12 @@ export const ToastHost = defineComponent({
                   ]}
                   onClick={closeCallback}
                 >
-                  <X size={20} />
+                  <X class="size-[20px]" />
                 </Button>
                 <div class="col-start-2 col-end-4 grid min-w-0 gap-1">
-                  <div class="text-muted-color leading-[1.45]">{message.detail}</div>
+                  <div class="text-(--p-toast-detail-color) text-(length:--p-toast-detail-font-size) font-(--p-toast-detail-font-weight) leading-[1.45]">
+                    {message.detail}
+                  </div>
                   {diagnostics && (
                     <Button
                       label={t('common.copyDetails')}
@@ -94,7 +98,7 @@ export const ToastHost = defineComponent({
                       class="-ml-2 mt-1 justify-self-start"
                       onClick={() => copyDetails(diagnostics)}
                     >
-                      {{ icon: () => <Copy size={14} /> }}
+                      {{ icon: () => <Copy /> }}
                     </Button>
                   )}
                 </div>

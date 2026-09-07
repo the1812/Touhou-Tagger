@@ -20,15 +20,15 @@ export const DirectoryPickerEmptyState = defineComponent({
         {slots.default?.() ?? (
           <>
             <Button
-              class="directory-picker-button"
+              class="w-48"
               label={props.label || t('common.selectDirectory')}
               size="large"
               loading={props.loading}
               onClick={() => emit('select')}
             >
-              {{ icon: () => <FolderOpen size={19} /> }}
+              {{ icon: () => <FolderOpen /> }}
             </Button>
-            <div class="flex items-center gap-1 text-app-caption text-surface-500 dark:text-surface-400">
+            <div class="flex items-center gap-1 text-sm text-surface-500 dark:text-surface-400">
               <div class="app-kbd">Ctrl</div> + <div class="app-kbd">O</div>
             </div>
           </>

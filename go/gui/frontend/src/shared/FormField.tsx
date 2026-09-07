@@ -24,8 +24,8 @@ export const FormField = defineComponent({
           'grid gap-1.5',
           props.emphasis ? 'font-semibold' : 'font-normal',
           props.variant === 'settings'
-            ? ['w-full max-w-app-field content-start text-app-caption text-color']
-            : 'text-app-control',
+            ? ['w-full max-w-app-field content-start text-sm text-color']
+            : 'text-base',
           attrs.class,
         ]}
       >
@@ -58,7 +58,7 @@ export const FieldLabel = defineComponent({
         {slots.default?.()}
         {props.help && (
           <Button unstyled type="button" class="help-icon" v-tooltip={props.help}>
-            <Info size={13} />
+            <Info class="size-[13px]" />
           </Button>
         )}
       </div>

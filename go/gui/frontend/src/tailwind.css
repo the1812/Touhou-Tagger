@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:where(.app-dark, .app-dark *));
 
+@layer base {
+  :where(.lucide) {
+    width: 1em;
+    height: 1em;
+  }
+}
+
 @theme {
   --color-app-header: var(--p-surface-0);
   --color-app-header-dark: var(--p-surface-900);
@@ -11,24 +18,22 @@
   --color-app-footer: var(--p-surface-0);
   --color-app-footer-dark: var(--p-surface-900);
   --color-app-hover-dark: #211e29;
-  --spacing-app-header: 4rem;
+  --spacing-app-header: 3.5rem;
   --spacing-app-page-x: 1.5rem;
   --spacing-app-page-y: 1.25rem;
   --spacing-app-section-y: 1.25rem;
-  --spacing-app-control: 2.125rem;
-  --spacing-app-cover: 11.75rem;
+  --spacing-app-cover: 13.5rem;
   --spacing-app-window-min: 50rem;
   --container-app-field: 24rem;
   --container-app-dialog-min: 28rem;
   --container-app-settings: 70rem;
-  --text-app-heading: 1.18rem;
-  --text-app-control: 0.82rem;
-  --text-app-caption: 0.78rem;
 }
 
 @utility app-root {
   @apply min-h-screen min-w-app-window-min bg-app-content text-color antialiased selection:bg-primary-400/35 dark:bg-app-content-dark;
   color-scheme: light;
+  font-size: 14px;
+  line-height: normal;
   font-family: system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -43,89 +48,16 @@
 }
 
 @utility primevue-defaults {
-  & .p-component {
-    font-family: system-ui, sans-serif;
-  }
-
-  & .p-button {
-    @apply min-h-app-control px-3 py-2 text-app-caption leading-none;
-    --app-button-icon-size: 17px;
-    font-weight: 650;
-  }
-
-  & .p-button > svg,
-  & .p-button > .p-button-icon,
-  & .p-button > .p-button-loading-icon {
-    @apply shrink-0;
-    width: var(--app-button-icon-size);
-    height: var(--app-button-icon-size);
-    flex-basis: var(--app-button-icon-size);
-  }
-
-  & .p-button-sm {
-    --app-button-icon-size: 15px;
-  }
-
-  & .p-button-lg {
-    @apply min-h-9 px-3.5 py-2 text-[.86rem];
-    --app-button-icon-size: 19px;
-  }
-
-  & .p-button-icon-only {
-    @apply size-8 p-0;
-  }
-
-  & input.p-inputtext,
-  & .p-select,
-  & .p-inputnumber {
-    @apply h-app-control min-h-app-control text-app-control;
-  }
-
-  & .p-select-label,
-  & input.p-inputtext {
-    padding-block: 0.35rem;
-  }
-
-  & .p-select-label {
-    @apply flex items-center text-app-caption leading-[1.2];
-  }
-
-  & .p-inputnumber-input {
-    @apply text-app-control;
-  }
-
-  & .p-select-dropdown,
-  & .p-inputnumber-button {
-    @apply w-8;
-  }
-
-  & .p-select-overlay,
-  & .p-select-option {
-    @apply text-app-caption;
-  }
-
-  & .p-select-option {
-    padding: 0.45rem 0.65rem;
-  }
-
   & .p-toast {
     @apply opacity-100;
   }
 
   & .p-dialog {
-    @apply min-w-[min(var(--container-app-dialog-min),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] border-surface-200 text-app-control dark:border-surface-700;
-  }
-
-  & .p-dialog-close-button {
-    @apply size-8 min-h-8 min-w-8 rounded-full p-0;
-  }
-
-  & .p-dialog .p-textarea {
-    @apply px-2.5 py-2 text-app-control leading-[1.45];
+    @apply min-w-[min(var(--container-app-dialog-min),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] border-surface-200 dark:border-surface-700;
   }
 
   & .p-tooltip {
-    @apply text-xs leading-[1.35];
+    @apply text-sm;
   }
 
   & .app-theme-tooltip .p-tooltip-text {
@@ -159,7 +91,7 @@
   }
 
   & .p-tab {
-    @apply inline-flex min-h-app-header items-center gap-2 px-4 py-0 text-[.88rem] font-semibold;
+    @apply inline-flex min-h-app-header items-center gap-2 px-4 py-0 text-base font-semibold;
   }
 
   & .p-tablist-active-bar {
@@ -169,10 +101,6 @@
 
 @utility status-chip {
   @apply flex items-center border border-primary-200 bg-primary-50 font-semibold text-primary dark:border-primary-700 dark:bg-primary-950;
-}
-
-@utility status-icon {
-  @apply inline-flex h-8 items-center justify-center rounded-md text-surface-400 hover:bg-primary-50 dark:text-surface-500 dark:hover:bg-primary-950;
 }
 
 @utility help-icon {
@@ -187,10 +115,6 @@
   @apply grid min-h-[calc(100vh-var(--spacing-app-header)-2*var(--spacing-app-page-y))] place-items-center content-center gap-4 text-center;
 }
 
-@utility directory-picker-button {
-  @apply h-[38px] min-h-[38px] w-48;
-}
-
 @utility workspace-section {
   @apply min-w-0 max-w-full border-b border-surface-200 py-app-section-y dark:border-surface-700;
 }
@@ -201,8 +125,6 @@
 
 @utility compact-data-table {
   @apply min-h-60 w-full min-w-0 max-w-full;
-  --p-datatable-body-cell-sm-padding: 0.375rem 1rem;
-  --p-datatable-header-cell-sm-padding: 0.375rem 1rem;
 
   &[data-fit-content='true'] {
     @apply min-h-0;
@@ -210,7 +132,7 @@
 }
 
 @utility compact-table-cell {
-  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-app-caption;
+  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm;
 }
 
 @utility action-bar {
@@ -219,7 +141,7 @@
 
 @utility round-icon-buttons {
   & .p-button-icon-only {
-    @apply min-h-8 min-w-8 rounded-full;
+    @apply rounded-full;
   }
 }
 

@@ -2,11 +2,11 @@ version: "3"
 
 info:
   companyName: "Grant Howard"
-  productName: "Touhou Tagger Desktop"
+  productName: "Touhou Tagger"
   productIdentifier: "io.github.the1812.touhou-tagger"
-  description: "Touhou Tagger Desktop"
+  description: "Touhou Tagger"
   copyright: "Copyright Grant Howard"
-  comments: "Touhou Tagger Desktop"
+  comments: "Touhou Tagger"
   version: "2.3.0"
 
 dev_mode:

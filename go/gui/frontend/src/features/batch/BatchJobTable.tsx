@@ -34,7 +34,7 @@ const statusInfo = (status: BatchJobStatus) => {
 const candidateOptions = (job: BatchJobPreview) =>
   job.candidates.map(candidate => ({
     value: candidate.id,
-    label: `${candidate.title} · ${candidate.artists.join(' / ')}`,
+    label: [candidate.title, candidate.artists.join(' / ')].filter(Boolean).join(' · '),
   }))
 
 export const BatchJobTable = defineComponent({
@@ -76,16 +76,20 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'loading') {
         return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
       }
-      if (job.status === 'scan-failed') {
+      if (job.status === 'scan-failed' || job.status === 'ignored') {
         return (
           <div class="flex items-center justify-between gap-2">
-            <TruncatedText class="block text-red-600 dark:text-red-300">
+            <TruncatedText
+              class={
+                job.status === 'scan-failed' ? 'block text-red-600 dark:text-red-300' : 'block'
+              }
+            >
               {job.matchDescription}
             </TruncatedText>
             <Button
-              label={t('common.retry')}
+              label={t(job.status === 'ignored' ? 'batch.restore' : 'common.retry')}
               size="small"
-              severity="danger"
+              severity={job.status === 'ignored' ? 'secondary' : 'danger'}
               text
               loading={props.resolving(job.id)}
               disabled={props.disabled}
@@ -113,6 +117,8 @@ export const BatchJobTable = defineComponent({
       if (job.candidates.length > 1 || job.status === 'needs-candidate') {
         return (
           <Select
+            size="small"
+            overlayClass="text-sm"
             modelValue={job.selectedCandidateId}
             {...{
               'onUpdate:modelValue': (value: unknown) => emit('resolve', job.id, String(value)),
@@ -185,11 +191,7 @@ export const BatchJobTable = defineComponent({
             body: bodySlot(job => {
               const status = statusInfo(job.status)
               const tag = (
-                <Tag
-                  class="text-xs! font-normal!"
-                  value={status.label}
-                  severity={status.severity}
-                />
+                <Tag class="font-normal!" value={status.label} severity={status.severity} />
               )
               const issueText = job.issues.map(issue => issue.message).join('；')
               return issueText ? (

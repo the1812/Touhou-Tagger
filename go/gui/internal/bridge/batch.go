@@ -157,7 +157,7 @@ func (service *BatchService) LoadBatchJob(
 		session.mu.Unlock()
 		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 	}
-	if job.resolving || job.status == "ignored" {
+	if job.resolving {
 		session.mu.Unlock()
 		return BatchJobPreview{}, fmt.Errorf("这个专辑当前不能重新加载")
 	}

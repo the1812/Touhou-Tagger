@@ -21,19 +21,25 @@ type Source struct {
 }
 
 type searchItem struct {
-	ID    int64  `json:"id"`
+	ID    string `json:"id"`
 	Album string `json:"album"`
 }
 
+type searchResult struct {
+	Items []searchItem `json:"items"`
+}
+
 type albumDetail struct {
-	Album        string            `json:"album"`
-	AlbumOrder   string            `json:"albumOrder"`
-	AlbumArtists []string          `json:"albumArtists"`
-	Genres       []string          `json:"genres"`
-	Year         string            `json:"year"`
-	ExtraData    map[string]any    `json:"extraData"`
-	CoverURL     string            `json:"coverUrl"`
-	Tracks       []domain.Metadata `json:"tracks"`
+	Album        string         `json:"album"`
+	AlbumOrder   string         `json:"albumOrder"`
+	AlbumArtists []string       `json:"albumArtists"`
+	Genres       []string       `json:"genres"`
+	Year         string         `json:"year"`
+	ExtraData    map[string]any `json:"extraData"`
+	Links        struct {
+		Cover string `json:"cover"`
+	} `json:"links"`
+	Tracks []domain.Metadata `json:"tracks"`
 }
 
 func New(client *http.Client, base string) (*Source, error) {
@@ -49,20 +55,20 @@ func (sourceClient *Source) Search(
 	query string,
 ) ([]domain.AlbumCandidate, error) {
 	endpoint := sourceClient.baseURL.ResolveReference(&url.URL{
-		Path:     "/api/albums/search/",
-		RawQuery: url.Values{"keyword": []string{query}}.Encode(),
+		Path:     "/api/albums",
+		RawQuery: url.Values{"keyword": []string{query}, "limit": []string{strconv.Itoa(source.MaxSearchCount)}}.Encode(),
 	}).String()
-	var result []searchItem
+	var result searchResult
 	if err := sourceClient.getJSON(ctx, endpoint, &result); err != nil {
 		return nil, fmt.Errorf("search Doujin Meta: %w", err)
 	}
-	if len(result) > source.MaxSearchCount {
-		result = result[:source.MaxSearchCount]
+	if len(result.Items) > source.MaxSearchCount {
+		result.Items = result.Items[:source.MaxSearchCount]
 	}
-	candidates := make([]domain.AlbumCandidate, len(result))
-	for index, item := range result {
+	candidates := make([]domain.AlbumCandidate, len(result.Items))
+	for index, item := range result.Items {
 		candidates[index] = domain.AlbumCandidate{
-			ID:     strconv.FormatInt(item.ID, 10),
+			ID:     item.ID,
 			Name:   item.Album,
 			Source: "doujin-meta",
 		}
@@ -84,12 +90,14 @@ func (sourceClient *Source) Fetch(
 		detail.Tracks[0].Album = detail.Album
 		detail.Tracks[0].AlbumOrder = detail.AlbumOrder
 		detail.Tracks[0].AlbumArtists = detail.AlbumArtists
-		detail.Tracks[0].Genres = detail.Genres
+		if detail.Tracks[0].Genres == nil {
+			detail.Tracks[0].Genres = detail.Genres
+		}
 		detail.Tracks[0].Year = detail.Year
 		detail.Tracks[0].ExtraData = detail.ExtraData
 	}
-	if len(cover) == 0 && detail.CoverURL != "" {
-		coverURL, err := sourceClient.baseURL.Parse(detail.CoverURL)
+	if len(cover) == 0 && detail.Links.Cover != "" {
+		coverURL, err := sourceClient.baseURL.Parse(detail.Links.Cover)
 		if err != nil {
 			return domain.ExpandMetadata(detail.Tracks, nil), &source.PartialFetchError{
 				Err: fmt.Errorf("resolve Doujin Meta cover URL: %w", err),

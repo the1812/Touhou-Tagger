@@ -71,7 +71,7 @@ export const TrackMetadataDialog = defineComponent({
           default: () =>
             props.item && (
               <div class="grid gap-3.5">
-                <div class="grid min-w-0 gap-1.5 text-app-control">
+                <div class="grid min-w-0 gap-1.5 text-base">
                   <div class="font-semibold text-color">{t('tagging.trackDialog.localFile')}</div>
                   <TruncatedText class="font-normal text-color" tooltip={props.item.sourceName}>
                     {props.item.sourceName}

@@ -201,7 +201,6 @@
       "catalogNumber": "编号",
       "genres": "风格",
       "source": "来源",
-      "trackCount": "{count} 首曲目",
       "writeFiles": "将写入 {count} 个文件",
       "overwriteCoverSuffix": "，覆盖本地封面",
       "saveOriginalCoverSuffix": "，另存原始封面图",
@@ -259,6 +258,7 @@
     "resultCount": "{count} 个搜索结果",
     "noSearchResults": "未找到搜索结果",
     "ignore": "忽略",
+    "restore": "重新检测",
     "selectAlbum": "选择专辑",
     "empty": "没有匹配的目录，请尝试调整扫描的目录层级",
     "columns": {

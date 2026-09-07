@@ -10,39 +10,43 @@ const doujinMetaApi = axios.create({
 })
 
 interface DoujinMetaSearchItem {
-  id: number
+  id: string
   album: string
-  coverUrl: string
 }
-type DoujinMetaSearchResult = DoujinMetaSearchItem[]
+interface DoujinMetaSearchResult {
+  items: DoujinMetaSearchItem[]
+}
 interface DoujinMetaTrack extends Omit<
   Metadata,
-  keyof AlbumMetadata | 'comments' | 'lyricLanguage'
+  keyof AlbumMetadata | 'comments' | 'lyricLanguage' | 'lyric' | 'bpm' | 'key'
 > {
   genres?: string[]
   comments?: string | null
   lyricLanguage?: string | null
+  lyric?: string | null
+  bpm?: string | null
+  key?: string | null
 }
 interface DoujinMetaAlbumDetail {
   album: string
-  albumOrder: string
+  albumOrder: string | null
   albumArtists: string[]
   genres: string[]
-  year: string
-  extraData?: Record<string, unknown>
-  coverUrl: string
+  year: string | null
+  extraData: Record<string, unknown> | null
+  links: { cover?: string }
   tracks: DoujinMetaTrack[]
 }
 
 export class DoujinMeta extends MetadataSource {
-  private readonly albumIds = new Map<string, number>()
+  private readonly albumIds = new Map<string, string>()
 
   private async search(albumName: string) {
-    const { data } = await doujinMetaApi.get<DoujinMetaSearchResult>('/api/albums/search/', {
-      params: { keyword: albumName },
+    const { data } = await doujinMetaApi.get<DoujinMetaSearchResult>('/api/albums', {
+      params: { keyword: albumName, limit: MetadataSource.MaxSearchCount },
     })
-    data.forEach(album => this.albumIds.set(album.album, album.id))
-    return data
+    data.items.forEach(album => this.albumIds.set(album.album, album.id))
+    return data.items
   }
 
   async resolveAlbumName(albumName: string): Promise<string | string[]> {
@@ -62,10 +66,13 @@ export class DoujinMeta extends MetadataSource {
       throw new Error(`Doujin Meta album not found: ${albumName}`)
     }
     const { data: albumDetail } = await doujinMetaApi.get<DoujinMetaAlbumDetail>(
-      `/api/albums/${albumId}`,
+      `/api/albums/${encodeURIComponent(albumId)}`,
     )
     const downloadCover = async () => {
-      const { data: coverData } = await doujinMetaApi.get<Buffer>(albumDetail.coverUrl, {
+      if (!albumDetail.links.cover) {
+        return undefined
+      }
+      const { data: coverData } = await doujinMetaApi.get<Buffer>(albumDetail.links.cover, {
         responseType: 'arraybuffer',
       })
       return coverData
@@ -77,12 +84,15 @@ export class DoujinMeta extends MetadataSource {
         ...track,
         comments: track.comments ?? undefined,
         lyricLanguage: track.lyricLanguage ?? undefined,
+        lyric: track.lyric ?? undefined,
+        bpm: track.bpm ?? undefined,
+        key: track.key ?? undefined,
         album: albumDetail.album,
-        albumOrder: albumDetail.albumOrder,
+        albumOrder: albumDetail.albumOrder ?? '',
         albumArtists: albumDetail.albumArtists,
         genres: track.genres ?? albumDetail.genres,
-        year: albumDetail.year,
-        extraData: index === 0 ? albumDetail.extraData : undefined,
+        year: albumDetail.year ?? undefined,
+        extraData: index === 0 ? (albumDetail.extraData ?? undefined) : undefined,
       })),
       cover: coverBuffer,
     })

@@ -47,15 +47,15 @@ func main() {
 	}
 
 	app := application.New(application.Options{
-		Name:        "Touhou Tagger Desktop",
-		Description: "Touhou Tagger Desktop",
+		Name:        "Touhou Tagger",
+		Description: "Touhou Tagger",
 		Assets: application.AssetOptions{
 			Handler: backend.AssetHandler(staticAssets),
 		},
 	})
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:            "Touhou Tagger Desktop",
+		Title:            "Touhou Tagger",
 		Width:            savedWindowState.Width,
 		Height:           savedWindowState.Height,
 		MinWidth:         minimumWindowWidth,

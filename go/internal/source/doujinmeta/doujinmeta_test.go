@@ -2,7 +2,6 @@ package doujinmeta
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,13 +11,13 @@ func TestSearchAndFetch(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		var body string
 		switch request.URL.Path {
-		case "/api/albums/search/":
-			if request.URL.Query().Get("keyword") != "Test Album" {
+		case "/api/albums":
+			if request.URL.Query().Get("keyword") != "Test Album" || request.URL.Query().Get("limit") != "20" {
 				t.Fatalf("unexpected search query: %q", request.URL.RawQuery)
 			}
-			body = `[{"id":17,"album":"Test Album","coverUrl":""}]`
-		case "/api/albums/17":
-			body = fmt.Sprintf(`{"album":"Test Album","albumOrder":"TEST-001","albumArtists":["Circle"],"genres":["Trance"],"year":"2026","extraData":{"source":"test"},"coverUrl":%q,"tracks":[{"title":"Track","artists":["Artist"],"discNumber":"1","trackNumber":"1"}]}`, serverURL(request)+"/cover")
+			body = `{"items":[{"id":"01k3z4p8q9r0s1t2v3w4x5y6z7","album":"Test Album"}],"total":1,"limit":20,"offset":0}`
+		case "/api/albums/01k3z4p8q9r0s1t2v3w4x5y6z7":
+			body = `{"album":"Test Album","albumOrder":"TEST-001","albumArtists":["Circle"],"genres":["Trance"],"year":"2026","extraData":{"source":"test"},"links":{"cover":"/cover"},"tracks":[{"title":"Track","artists":["Artist"],"discNumber":"1","trackNumber":"1"}]}`
 		case "/cover":
 			body = "cover bytes"
 		default:
@@ -38,7 +37,7 @@ func TestSearchAndFetch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(candidates) != 1 || candidates[0].ID != "17" || candidates[0].Name != "Test Album" {
+	if len(candidates) != 1 || candidates[0].ID != "01k3z4p8q9r0s1t2v3w4x5y6z7" || candidates[0].Name != "Test Album" {
 		t.Fatalf("unexpected candidates: %#v", candidates)
 	}
 	metadata, err := source.Fetch(context.Background(), candidates[0].ID, nil)
@@ -69,8 +68,4 @@ func TestHTTPFailureIsExplicit(t *testing.T) {
 	if _, err := source.Search(context.Background(), "album"); err == nil {
 		t.Fatal("expected HTTP status error")
 	}
-}
-
-func serverURL(request *http.Request) string {
-	return "http://" + request.Host
 }

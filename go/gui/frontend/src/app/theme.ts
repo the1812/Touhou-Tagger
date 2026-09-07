@@ -2,6 +2,13 @@ import { definePreset } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
 
 export const TouhouTaggerPreset = definePreset(Aura, {
+  components: {
+    tooltip: {
+      root: {
+        gutter: '4px',
+      },
+    },
+  },
   primitive: {
     purple: {
       50: '#f7f5fc',
@@ -150,37 +157,6 @@ export const TouhouTaggerPreset = definePreset(Aura, {
             color: '#f4f3f7',
           },
         },
-      },
-    },
-  },
-  components: {
-    dialog: {
-      header: {
-        padding: '0.9rem 1rem 0.7rem',
-        gap: '0.5rem',
-      },
-      title: {
-        fontSize: '1rem',
-        fontWeight: '650',
-      },
-      content: {
-        padding: '0 1rem 1rem',
-      },
-      footer: {
-        padding: '0 1rem 1rem',
-        gap: '0.5rem',
-      },
-    },
-    select: {
-      root: {
-        sm: {
-          fontSize: '0.78rem',
-        },
-      },
-    },
-    tooltip: {
-      root: {
-        padding: '0.35rem 0.55rem',
       },
     },
   },

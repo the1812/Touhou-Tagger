@@ -291,7 +291,7 @@ export const SettingsPage = defineComponent({
                   disabled={saving.value}
                   onClick={confirmReset}
                 >
-                  {{ icon: () => <RotateCcw size={15} /> }}
+                  {{ icon: () => <RotateCcw /> }}
                 </Button>
               </div>
             </div>

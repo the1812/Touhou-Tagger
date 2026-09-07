@@ -27,13 +27,6 @@ export const MetadataTagsInput = defineComponent({
         typeahead={false}
         fluid
         size="small"
-        class="text-app-control"
-        pt={{
-          inputMultiple: { class: 'min-h-app-control gap-x-1 gap-y-0.5 px-2 py-1' },
-          chipItem: { class: 'flex h-6 items-center' },
-          pcChip: { root: { class: 'px-1.5 py-0 text-app-caption' } },
-          inputChip: { class: 'p-0 [&_input]:h-6 [&_input]:p-0 [&_input]:text-app-control' },
-        }}
       >
         {{
           chipicon: ({
@@ -42,7 +35,7 @@ export const MetadataTagsInput = defineComponent({
           }: {
             class?: string
             removeCallback: (event: Event) => void
-          }) => <X class={iconClass} size={13} onClick={event => removeCallback(event)} />,
+          }) => <X class={iconClass} onClick={event => removeCallback(event)} />,
         }}
       </AutoComplete>
     )
