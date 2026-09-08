@@ -1,9 +1,7 @@
 import { Image as ImageIcon, Maximize2 } from 'lucide-vue-next'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
 import Image from 'primevue/image'
 import Message from 'primevue/message'
-import { computed, defineComponent, type PropType, ref } from 'vue'
+import { computed, defineComponent, type PropType } from 'vue'
 
 import type { CoverPreview as CoverPreviewData } from '../../api'
 import { t } from '../../i18n'
@@ -17,7 +15,6 @@ export const CoverPreview = defineComponent({
     },
   },
   setup(props) {
-    const expanded = ref(false)
     const dimensions = computed(() =>
       props.cover.width && props.cover.height
         ? `${props.cover.width} × ${props.cover.height}`
@@ -34,70 +31,54 @@ export const CoverPreview = defineComponent({
     })
 
     return () => (
-      <>
-        <div class="grid w-app-cover min-w-0 gap-2">
-          {props.cover.url ? (
-            <Button
-              unstyled
-              type="button"
-              class={[
-                'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
-                'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
-                'group cursor-zoom-in p-0 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary',
-                'max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
-              ]}
-              onClick={() => {
-                expanded.value = true
-              }}
-            >
-              <Image
-                class="size-full"
-                imageClass="size-full object-contain"
-                src={props.cover.url}
-              />
-              <div class="image-hover-label">
-                <Maximize2 class="size-[16px]" /> {t('tagging.cover.viewFull')}
-              </div>
-            </Button>
-          ) : (
-            <div
-              class={[
-                'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
-                'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
-                'content-center gap-2 p-5 text-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
-              ]}
-            >
-              <ImageIcon class="size-[38px]" stroke-width={1.5} />
-              <div class="font-bold text-color">{t('tagging.cover.noCover')}</div>
-            </div>
-          )}
-
-          <div class="grid min-w-0 gap-2">
-            <div class="flex items-center justify-center gap-3 whitespace-nowrap text-base text-muted-color">
-              <div>{dimensions.value}</div>
-              <div>{fileSize.value}</div>
-            </div>
-            {props.cover.issue && (
-              <Message severity="error" closable={false}>
-                {props.cover.issue.message}
-              </Message>
-            )}
-          </div>
-        </div>
-
-        <Dialog
-          v-model:visible={expanded.value}
-          modal
-          header={t('tagging.cover.previewHeader')}
-          class="w-[min(760px,90vw)]"
-        >
+      <div class="grid w-app-cover min-w-0 gap-2">
+        {props.cover.url ? (
           <Image
-            class="block w-full"
-            imageClass="block max-h-[70vh] w-full object-contain"
+            preview
             src={props.cover.url}
-          />
-        </Dialog>
-      </>
+            class="size-app-cover overflow-hidden rounded-xl border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800 max-[720px]:w-[min(var(--spacing-app-cover),100%)]"
+            imageClass="size-full object-contain"
+            pt={{
+              image: { alt: t('tagging.cover.previewHeader') },
+              original: { alt: t('tagging.cover.previewHeader') },
+              zoomInButton: { autofocus: true },
+              closeButton: { autofocus: false },
+            }}
+          >
+            {{
+              previewicon: () => (
+                <div class="flex items-center gap-1.5 text-sm leading-normal">
+                  <Maximize2 />
+                  {t('tagging.cover.viewFull')}
+                </div>
+              ),
+            }}
+          </Image>
+        ) : (
+          <div
+            class={[
+              'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
+              'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
+              'content-center gap-2 p-5 text-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
+            ]}
+          >
+            <ImageIcon class="size-[38px]" stroke-width={1.5} />
+            <div class="font-bold text-color">{t('tagging.cover.noCover')}</div>
+          </div>
+        )}
+
+        <div class="grid min-w-0 gap-2">
+          <div class="flex items-center justify-center gap-3 whitespace-nowrap text-base text-muted-color">
+            <div>{dimensions.value}</div>
+            <div>{fileSize.value}</div>
+          </div>
+          {props.cover.issue && (
+            <Message severity="error" closable={false}>
+              {props.cover.issue.message}
+            </Message>
+          )}
+        </div>
+      </div>
     )
   },
 })

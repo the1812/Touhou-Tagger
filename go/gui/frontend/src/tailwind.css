@@ -158,7 +158,3 @@
     @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-app-hover-dark;
   }
 }
-
-@utility image-hover-label {
-  @apply pointer-events-none absolute right-2.5 bottom-2.5 flex translate-y-1 items-center gap-1.5 rounded-lg bg-surface-950/80 px-2 py-1.5 text-xs text-white opacity-0 transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100;
-}
