@@ -14,7 +14,10 @@ export const TruncatedText = defineComponent({
         'div',
         {
           ...attrs,
-          class: ['min-w-0 overflow-hidden text-ellipsis whitespace-nowrap', attrs.class],
+          class: [
+            'w-fit min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+            attrs.class,
+          ],
         },
         slots.default?.(),
       )
