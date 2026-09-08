@@ -114,7 +114,11 @@ export const BatchJobTable = defineComponent({
           </div>
         )
       }
-      if (job.candidates.length > 1 || job.status === 'needs-candidate') {
+      if (
+        job.candidates.length > 1 ||
+        job.candidates.some(candidate => !candidate.exactMatch) ||
+        job.status === 'needs-candidate'
+      ) {
         return (
           <Select
             size="small"
