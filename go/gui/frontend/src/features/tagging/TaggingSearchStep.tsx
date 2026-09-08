@@ -1,6 +1,7 @@
-import { Check, Search } from 'lucide-vue-next'
+import { Search } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
@@ -107,27 +108,23 @@ export const TaggingSearchStep = defineComponent({
             ) : candidates.value.length ? (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
                 {candidates.value.map(candidate => (
-                  <Button
-                    unstyled
+                  <div
                     key={candidate.id}
-                    type="button"
                     class="candidate-option"
                     data-selected={selectedCandidateId.value === candidate.id}
-                    disabled={isBusy.value}
-                    onClick={() => workspace.selectCandidate(candidate.id)}
+                    onClick={(event: MouseEvent) => {
+                      event.preventDefault()
+                      workspace.selectCandidate(candidate.id)
+                    }}
                   >
-                    <div
-                      class={[
-                        'grid size-6 place-items-center rounded-full border border-surface-300 text-white dark:border-surface-600',
-                        {
-                          'border-primary bg-primary': selectedCandidateId.value === candidate.id,
-                        },
-                      ]}
-                    >
-                      {selectedCandidateId.value === candidate.id && <Check class="size-[17px]" />}
-                    </div>
+                    <Checkbox
+                      binary
+                      readonly
+                      modelValue={selectedCandidateId.value === candidate.id}
+                      disabled={isBusy.value}
+                    />
                     <TruncatedText class="text-base font-bold">{candidate.title}</TruncatedText>
-                  </Button>
+                  </div>
                 ))}
               </div>
             ) : hasSearched.value ? (
