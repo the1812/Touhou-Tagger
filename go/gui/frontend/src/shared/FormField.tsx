@@ -11,18 +11,13 @@ export const FormField = defineComponent({
       default: 'dialog',
     },
     error: String,
-    emphasis: {
-      type: Boolean,
-      default: true,
-    },
   },
   setup(props, { attrs, slots }) {
     return () => (
       <label
         {...attrs}
         class={[
-          'grid gap-1.5',
-          props.emphasis ? 'font-semibold' : 'font-normal',
+          'grid gap-1.5 font-normal',
           props.variant === 'settings'
             ? ['w-full max-w-app-field content-start text-sm text-color']
             : 'text-base',
@@ -51,10 +46,21 @@ export const FieldLabel = defineComponent({
   inheritAttrs: false,
   props: {
     help: String,
+    emphasis: {
+      type: Boolean,
+      default: true,
+    },
   },
   setup(props, { attrs, slots }) {
     return () => (
-      <div {...attrs} class={['flex items-center gap-1', attrs.class]}>
+      <div
+        {...attrs}
+        class={[
+          'flex items-center gap-1',
+          props.emphasis ? 'font-semibold' : 'font-normal',
+          attrs.class,
+        ]}
+      >
         {slots.default?.()}
         {props.help && (
           <Button unstyled type="button" class="help-icon" v-tooltip={props.help}>

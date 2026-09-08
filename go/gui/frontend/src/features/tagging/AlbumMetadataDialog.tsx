@@ -5,7 +5,7 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { AlbumMetadata } from '../../api'
 import { t } from '../../i18n'
-import { FormField } from '../../shared/FormField'
+import { FieldLabel, FormField } from '../../shared/FormField'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
 export const AlbumMetadataDialog = defineComponent({
@@ -67,21 +67,21 @@ export const AlbumMetadataDialog = defineComponent({
           default: () => (
             <div class="grid gap-3.5">
               <FormField>
-                <div>{t('tagging.albumDialog.title')}</div>
-                <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
+                <FieldLabel>{t('tagging.albumDialog.title')}</FieldLabel>
+                <InputText v-model={draft.title} autofocus fluid invalid={!draft.title.trim()} />
               </FormField>
               <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
                 <FormField>
-                  <div>{t('tagging.albumDialog.catalogNumber')}</div>
+                  <FieldLabel>{t('tagging.albumDialog.catalogNumber')}</FieldLabel>
                   <InputText v-model={draft.albumOrder} fluid />
                 </FormField>
                 <FormField>
-                  <div>{t('tagging.albumDialog.year')}</div>
+                  <FieldLabel>{t('tagging.albumDialog.year')}</FieldLabel>
                   <InputText v-model={draft.year} fluid />
                 </FormField>
               </div>
               <FormField>
-                <div>{t('tagging.albumDialog.circles')}</div>
+                <FieldLabel>{t('tagging.albumDialog.circles')}</FieldLabel>
                 <MetadataTagsInput
                   modelValue={draft.artists}
                   {...{
@@ -92,7 +92,7 @@ export const AlbumMetadataDialog = defineComponent({
                 />
               </FormField>
               <FormField>
-                <div>{t('tagging.albumDialog.genres')}</div>
+                <FieldLabel>{t('tagging.albumDialog.genres')}</FieldLabel>
                 <MetadataTagsInput
                   modelValue={draft.genres}
                   {...{

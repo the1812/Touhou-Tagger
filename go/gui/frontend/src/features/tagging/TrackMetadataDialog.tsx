@@ -6,7 +6,7 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
-import { FormField } from '../../shared/FormField'
+import { FieldLabel, FormField } from '../../shared/FormField'
 import { TruncatedText } from '../../shared/TruncatedText'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
@@ -81,12 +81,12 @@ export const TrackMetadataDialog = defineComponent({
                 <FormField
                   error={!draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
                 >
-                  <div>{t('tagging.trackDialog.title')}</div>
-                  <InputText v-model={draft.title} fluid invalid={!draft.title.trim()} />
+                  <FieldLabel>{t('tagging.trackDialog.title')}</FieldLabel>
+                  <InputText v-model={draft.title} autofocus fluid invalid={!draft.title.trim()} />
                 </FormField>
 
                 <FormField>
-                  <div>{t('tagging.trackDialog.artists')}</div>
+                  <FieldLabel>{t('tagging.trackDialog.artists')}</FieldLabel>
                   <MetadataTagsInput
                     modelValue={draft.artists}
                     {...{
@@ -104,17 +104,17 @@ export const TrackMetadataDialog = defineComponent({
 
                 <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
                   <FormField>
-                    <div>{t('tagging.trackDialog.trackNumber')}</div>
+                    <FieldLabel>{t('tagging.trackDialog.trackNumber')}</FieldLabel>
                     <InputText v-model={draft.trackNumber} fluid />
                   </FormField>
                   <FormField>
-                    <div>{t('tagging.trackDialog.discNumber')}</div>
+                    <FieldLabel>{t('tagging.trackDialog.discNumber')}</FieldLabel>
                     <InputText v-model={draft.discNumber} fluid />
                   </FormField>
                 </div>
 
                 <FormField>
-                  <div>{t('tagging.trackDialog.comments')}</div>
+                  <FieldLabel>{t('tagging.trackDialog.comments')}</FieldLabel>
                   <Textarea v-model={draft.comments} rows={6} fluid />
                 </FormField>
 

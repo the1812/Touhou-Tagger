@@ -244,12 +244,8 @@ export const SettingsPage = defineComponent({
                         invalid={Boolean(errors.value.mixedLyricSeparator)}
                       />
                     </FormField>
-                    <FormField
-                      variant="settings"
-                      emphasis={false}
-                      class="min-w-0 justify-items-start"
-                    >
-                      <FieldLabel help={t('settings.preserveTimelineHelp')}>
+                    <FormField variant="settings" class="min-w-0 justify-items-start">
+                      <FieldLabel emphasis={false} help={t('settings.preserveTimelineHelp')}>
                         {t('settings.preserveTimeline')}
                       </FieldLabel>
                       <ToggleSwitch
