@@ -112,7 +112,7 @@ export const TaggingPlanStep = defineComponent({
             </div>
           </div>
 
-          <div class="workspace-section grid w-full content-start gap-4 border-b-0">
+          <div class="workspace-section grid w-full content-start gap-4">
             {currentPlan.issues.map(issue => (
               <Message
                 key={issue.code}

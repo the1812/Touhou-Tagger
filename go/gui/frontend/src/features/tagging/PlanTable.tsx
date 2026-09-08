@@ -50,7 +50,7 @@ export const PlanTable = defineComponent({
         dataKey="id"
         scrollable
         scrollHeight="flex"
-        size="small"
+        showGridlines
         tableClass="w-full min-w-0 max-w-full table-fixed"
         class="compact-data-table"
         data-fit-content="true"
@@ -80,8 +80,8 @@ export const PlanTable = defineComponent({
           <Column
             field="discNumber"
             header={t('tagging.table.discNumber')}
-            headerClass={['compact-table-cell', 'w-18'].join(' ')}
-            bodyClass={['compact-table-cell', 'w-18'].join(' ')}
+            headerClass={['compact-table-cell', 'w-[100px]'].join(' ')}
+            bodyClass={['compact-table-cell', 'w-[100px]'].join(' ')}
             v-slots={{
               body: bodySlot(item => (
                 <div class="text-muted-color tabular-nums">{item.discNumber}</div>
@@ -92,8 +92,8 @@ export const PlanTable = defineComponent({
         <Column
           field="trackNumber"
           header={t('tagging.table.trackNumber')}
-          headerClass={['compact-table-cell', 'w-18'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-18'].join(' ')}
+          headerClass={['compact-table-cell', 'w-[100px]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[100px]'].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <div class="text-muted-color tabular-nums">{item.trackNumber}</div>
@@ -103,8 +103,8 @@ export const PlanTable = defineComponent({
         <Column
           field="title"
           header={t('tagging.table.title')}
-          headerClass={['compact-table-cell', 'w-[23%]'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-[23%]'].join(' ')}
+          headerClass={['compact-table-cell', 'w-[30%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[30%]'].join(' ')}
           v-slots={{
             body: bodySlot(item => (
               <TruncatedText class="block" tooltip={item.title}>

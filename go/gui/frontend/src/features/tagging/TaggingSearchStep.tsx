@@ -59,7 +59,7 @@ export const TaggingSearchStep = defineComponent({
 
       return (
         <>
-          <div class="workspace-section border-b-0">
+          <div class="workspace-section">
             <div class="workspace-heading">
               <WorkspaceTitle>{t('tagging.searchAlbum')}</WorkspaceTitle>
             </div>

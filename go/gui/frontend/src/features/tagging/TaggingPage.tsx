@@ -57,14 +57,14 @@ export const TaggingPage = defineComponent({
       const currentPhase = phase.value
 
       return (
-        <div class="round-icon-buttons grid min-h-full content-start gap-0">
+        <div class="round-icon-buttons flex min-h-full flex-col">
           {currentPhase === 'idle' || currentPhase === 'selecting' ? (
             <DirectoryPickerEmptyState
               loading={currentPhase === 'selecting'}
               onSelect={() => workspace.selectDirectory()}
             />
           ) : (
-            <div class="min-w-0 -mt-5">
+            <div class="workspace-sections flex min-w-0 flex-1 flex-col">
               <div class="workspace-section">
                 {currentPhase === 'scanning' ? (
                   <div class="grid gap-3">
@@ -125,7 +125,7 @@ export const TaggingPage = defineComponent({
                         </div>
                       </div>
 
-                      <div class="mt-3 flex w-max max-w-full items-center gap-0.5">
+                      <div class="mt-3 -mx-1.5 -mb-1.5 flex w-max max-w-full items-center">
                         <StatusIcon
                           icon={FileAudio}
                           active
@@ -198,6 +198,8 @@ export const TaggingPage = defineComponent({
               )}
               {currentResult && (
                 <CompletionPanel
+                  class="flex-1 justify-center pb-app-section-y"
+                  title={currentResult.message}
                   onReveal={() => workspace.reveal()}
                   onComplete={() => workspace.startOver()}
                 />

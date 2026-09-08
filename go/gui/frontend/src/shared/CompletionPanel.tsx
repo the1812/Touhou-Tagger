@@ -3,10 +3,12 @@ import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 
 import { t } from '../i18n'
+import { WorkspaceTitle } from './WorkspaceTitle'
 
 export const CompletionPanel = defineComponent({
   name: 'CompletionPanel',
   props: {
+    title: { type: String, required: true },
     warning: Boolean,
     retryable: Boolean,
   },
@@ -17,7 +19,7 @@ export const CompletionPanel = defineComponent({
   },
   setup(props, { emit }) {
     return () => (
-      <div class="workspace-section flex items-center gap-5 border-b-0 py-6">
+      <div class="workspace-section flex items-center gap-5">
         <div
           class={[
             'grid size-16 place-items-center rounded-full bg-surface-100 text-primary dark:bg-primary-950',
@@ -28,26 +30,29 @@ export const CompletionPanel = defineComponent({
         >
           {props.warning ? <TriangleAlert class="size-[34px]" /> : <Check class="size-[34px]" />}
         </div>
-        <div class="flex flex-wrap gap-3">
-          <Button
-            label={t('common.revealDirectory')}
-            severity="secondary"
-            outlined
-            onClick={() => emit('reveal')}
-          >
-            {{ icon: () => <ExternalLink /> }}
-          </Button>
-          {props.retryable && (
+        <div class="grid gap-3">
+          <WorkspaceTitle>{props.title}</WorkspaceTitle>
+          <div class="flex flex-wrap gap-3">
             <Button
-              label={t('operation.retryFailedOnly')}
+              label={t('common.revealDirectory')}
               severity="secondary"
               outlined
-              onClick={() => emit('retry')}
+              onClick={() => emit('reveal')}
             >
-              {{ icon: () => <RotateCcw /> }}
+              {{ icon: () => <ExternalLink /> }}
             </Button>
-          )}
-          <Button label={t('common.complete')} onClick={() => emit('complete')} />
+            {props.retryable && (
+              <Button
+                label={t('operation.retryFailedOnly')}
+                severity="secondary"
+                outlined
+                onClick={() => emit('retry')}
+              >
+                {{ icon: () => <RotateCcw /> }}
+              </Button>
+            )}
+            <Button label={t('common.complete')} onClick={() => emit('complete')} />
+          </div>
         </div>
       </div>
     )

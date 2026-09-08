@@ -65,12 +65,7 @@ export const BatchPage = defineComponent({
       const currentResult = result.value
 
       return (
-        <div
-          class={[
-            'round-icon-buttons grid min-h-full content-start gap-0',
-            { '-mt-5': currentDirectory },
-          ]}
-        >
+        <div class="workspace-sections round-icon-buttons grid min-h-full content-start gap-0">
           {!currentDirectory ? (
             <DirectoryPickerEmptyState
               loading={selecting.value}
@@ -117,7 +112,7 @@ export const BatchPage = defineComponent({
 
               {!currentOperation && !currentResult && (
                 <>
-                  <div class="workspace-section grid min-h-[390px] content-start gap-3 border-b-0">
+                  <div class="workspace-section grid min-h-[390px] content-start gap-3">
                     <div class="workspace-heading items-center">
                       <WorkspaceTitle>{t('batch.scanHeading')}</WorkspaceTitle>
                       <div class="flex items-center gap-3">
@@ -215,6 +210,7 @@ export const BatchPage = defineComponent({
               {currentResult && (
                 <>
                   <CompletionPanel
+                    title={currentResult.message}
                     warning={currentResult.failed > 0 || currentResult.cancelled}
                     retryable={failedCount.value > 0}
                     onReveal={() => batch.reveal()}
@@ -223,7 +219,7 @@ export const BatchPage = defineComponent({
                   />
 
                   {failedJobs.value.length > 0 && (
-                    <div class="workspace-section grid min-h-64 content-start gap-3 border-b-0">
+                    <div class="workspace-section grid min-h-64 content-start gap-3">
                       <div class="workspace-heading">
                         <WorkspaceTitle>{t('batch.failedItems')}</WorkspaceTitle>
                       </div>

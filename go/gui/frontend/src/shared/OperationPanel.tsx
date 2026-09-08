@@ -36,7 +36,7 @@ export const OperationPanel = defineComponent({
     })
 
     return () => (
-      <div class="grid gap-5 py-app-section-y">
+      <div class="workspace-section grid gap-5">
         <div class="flex items-center justify-between gap-4">
           <div class="mt-1 font-bold">{stageLabel.value}</div>
           <div class="font-bold text-primary tabular-nums">

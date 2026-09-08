@@ -13,13 +13,13 @@
 @theme {
   --color-app-header: var(--p-surface-0);
   --color-app-header-dark: var(--p-surface-900);
-  --color-app-content: #f6f5f9;
+  --color-app-content: var(--p-surface-50);
   --color-app-content-dark: #0d0c11;
   --color-app-footer: var(--p-surface-0);
   --color-app-footer-dark: var(--p-surface-900);
   --color-app-hover-dark: #211e29;
   --spacing-app-header: 3.5rem;
-  --spacing-app-page-x: 1.5rem;
+  --spacing-app-page-x: 1.25rem;
   --spacing-app-page-y: 1.25rem;
   --spacing-app-section-y: 1.25rem;
   --spacing-app-cover: 13.5rem;
@@ -48,6 +48,10 @@
 }
 
 @utility primevue-defaults {
+  & .p-button-outlined:not(:enabled:hover):not(:enabled:active) {
+    @apply bg-surface-0;
+  }
+
   & .p-toast {
     @apply opacity-100;
   }
@@ -99,10 +103,6 @@
   }
 }
 
-@utility status-chip {
-  @apply flex items-center border border-primary-200 bg-primary-50 font-semibold text-primary dark:border-primary-700 dark:bg-primary-950;
-}
-
 @utility help-icon {
   @apply inline-grid size-4 cursor-help place-items-center rounded-full border-0 bg-transparent p-0 text-muted-color outline-none focus-visible:text-primary;
 }
@@ -115,8 +115,14 @@
   @apply grid min-h-[calc(100vh-var(--spacing-app-header)-2*var(--spacing-app-page-y))] place-items-center content-center gap-4 text-center;
 }
 
+@utility workspace-sections {
+  & > .workspace-section + .workspace-section {
+    @apply mt-app-section-y border-t border-surface-200 pt-app-section-y dark:border-surface-700;
+  }
+}
+
 @utility workspace-section {
-  @apply min-w-0 max-w-full border-b border-surface-200 py-app-section-y dark:border-surface-700;
+  @apply min-w-0 max-w-full;
 }
 
 @utility workspace-heading {

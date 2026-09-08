@@ -145,7 +145,7 @@ export const BatchJobTable = defineComponent({
         dataKey="id"
         scrollable
         scrollHeight="flex"
-        size="small"
+        showGridlines
         tableClass="w-full min-w-[720px] table-fixed"
         class="compact-data-table"
         rowClass={rowClass}

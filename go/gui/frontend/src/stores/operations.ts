@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 import type {
   BatchRunResult,
@@ -19,8 +19,6 @@ interface OperationHandlers {
 export const useOperationsStore = defineStore('operations', () => {
   const active = ref<Partial<Record<OperationKind, OperationProgress>>>({})
   const handlers = new Map<string, OperationHandlers>()
-
-  const current = computed(() => active.value.workspace ?? active.value.batch)
 
   const get = (kind: OperationKind) => active.value[kind]
 
@@ -65,7 +63,6 @@ export const useOperationsStore = defineStore('operations', () => {
   }
 
   return {
-    current,
     get,
     begin,
     release,
