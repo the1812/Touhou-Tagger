@@ -161,7 +161,7 @@ func candidateToDTO(candidate domain.AlbumCandidate, query string) AlbumCandidat
 		Source:      candidate.Source,
 		SourceLabel: sourceLabel(candidate.Source),
 		Artists:     []string{},
-		ExactMatch:  strings.EqualFold(strings.TrimSpace(candidate.Name), strings.TrimSpace(query)),
+		ExactMatch:  candidate.MatchesName(query),
 	}
 }
 

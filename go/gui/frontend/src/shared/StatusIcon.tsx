@@ -26,7 +26,9 @@ export const StatusIcon = defineComponent({
         v-tooltip={props.tooltip}
       >
         <props.icon class="size-[16px]" />
-        {props.count !== undefined && <div class="text-base tabular-nums font-medium">{props.count}</div>}
+        {props.count !== undefined && (
+          <div class="text-base tabular-nums font-medium">{props.count}</div>
+        )}
       </div>
     )
   },

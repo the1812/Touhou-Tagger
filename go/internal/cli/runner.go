@@ -280,7 +280,7 @@ func (runner *Runner) selectCandidate(
 	interactive bool,
 ) (domain.AlbumCandidate, bool, error) {
 	for _, candidate := range candidates {
-		if candidate.Name == query {
+		if candidate.MatchesName(query) {
 			return candidate, true, nil
 		}
 	}

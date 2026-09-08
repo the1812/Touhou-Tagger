@@ -1,5 +1,13 @@
 package domain
 
+import (
+	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"golang.org/x/text/unicode/norm"
+)
+
 type Metadata struct {
 	Album         string         `json:"album,omitempty"`
 	AlbumOrder    string         `json:"albumOrder,omitempty"`
@@ -30,4 +38,10 @@ type AlbumCandidate struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	Source string `json:"source"`
+}
+
+func (candidate AlbumCandidate) MatchesName(query string) bool {
+	lower := cases.Lower(language.Und)
+	return strings.TrimSpace(lower.String(norm.NFKC.String(candidate.Name))) ==
+		strings.TrimSpace(lower.String(norm.NFKC.String(query)))
 }
