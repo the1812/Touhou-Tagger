@@ -35,7 +35,8 @@ type PlanOutputConflict struct {
 }
 
 type PlanOutputConflictError struct {
-	Err error
+	Kind string
+	Err  error
 }
 
 func (err *PlanOutputConflictError) Error() string {
@@ -107,19 +108,19 @@ func ValidateTagPlanOutputs(plan domain.TagPlan, config domain.MetadataConfig) e
 	conflict := conflicts[0]
 	switch conflict.Kind {
 	case OutputConflictExists:
-		return &PlanOutputConflictError{Err: fmt.Errorf(
+		return &PlanOutputConflictError{Kind: conflict.Kind, Err: fmt.Errorf(
 			"output file already exists: %q",
 			conflict.Output.Path,
 		)}
 	case OutputConflictDuplicate:
-		return &PlanOutputConflictError{Err: fmt.Errorf(
+		return &PlanOutputConflictError{Kind: conflict.Kind, Err: fmt.Errorf(
 			"output file conflict: tracks %d and %d both target %q",
 			conflict.Other.ItemIndex+1,
 			conflict.Output.ItemIndex+1,
 			conflict.Output.Path,
 		)}
 	default:
-		return &PlanOutputConflictError{Err: fmt.Errorf(
+		return &PlanOutputConflictError{Kind: conflict.Kind, Err: fmt.Errorf(
 			"inspect output file %q: %w",
 			conflict.Output.Path,
 			conflict.Err,

@@ -1,6 +1,14 @@
+export interface ErrorInfo {
+  code: string
+  params?: { files: number; tracks: number }
+  message: string
+  details: string
+}
+
 export type IssueSeverity = 'warning' | 'error'
 
 export interface StateIssue {
+  error?: ErrorInfo
   code: string
   message: string
   severity: IssueSeverity
@@ -179,6 +187,7 @@ export interface OperationResult {
 }
 
 export interface OperationFailure {
+  error?: ErrorInfo
   operationId: string
   kind: OperationKind
   message: string
@@ -241,6 +250,7 @@ export interface Settings {
 }
 
 export interface ProcessError {
+  error?: ErrorInfo
   message: string
   details?: string
 }

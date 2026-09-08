@@ -56,7 +56,7 @@ func Load() (domain.MetadataConfig, error) {
 		return defaults, fmt.Errorf("read config: %w", err)
 	}
 	if err := json.Unmarshal(data, &defaults); err != nil {
-		return defaults, fmt.Errorf("parse config: %w", err)
+		return defaults, &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse config: %w", err)}
 	}
 	applyDefaults(&defaults)
 	return defaults, nil

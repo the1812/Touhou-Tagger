@@ -52,14 +52,14 @@ func (wiki *Source) Search(
 	}
 	var response []json.RawMessage
 	if err := json.Unmarshal(data, &response); err != nil {
-		return nil, fmt.Errorf("decode THBWiki search response: %w", err)
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode THBWiki search response: %w", err)}
 	}
 	if len(response) < 2 {
 		return []domain.AlbumCandidate{}, nil
 	}
 	var names []string
 	if err := json.Unmarshal(response[1], &names); err != nil {
-		return nil, fmt.Errorf("decode THBWiki search names: %w", err)
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode THBWiki search names: %w", err)}
 	}
 	candidates := make([]domain.AlbumCandidate, 0, len(names))
 	for _, name := range names {
@@ -96,11 +96,11 @@ func (wiki *Source) ParseAlbumHTML(
 ) ([]domain.Metadata, error) {
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(htmlContent))
 	if err != nil {
-		return nil, fmt.Errorf("parse THBWiki album HTML: %w", err)
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("parse THBWiki album HTML: %w", err)}
 	}
 	infoTable := document.Find(".doujininfo").First()
 	if infoTable.Length() == 0 {
-		return nil, fmt.Errorf("THBWiki page is not a doujin album entry")
+		return nil, source.ErrNotAlbum
 	}
 	album := tableValue(infoTable, "名称")
 	albumOrder := tableValue(infoTable, "编号")
@@ -191,7 +191,7 @@ func (wiki *Source) get(ctx context.Context, endpoint string) ([]byte, error) {
 		return nil, fmt.Errorf("read response from %s: %w", endpoint, errors.Join(readErr, closeErr))
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("request %s returned %s: %s", endpoint, response.Status, strings.TrimSpace(string(data)))
+		return nil, &source.HTTPStatusError{URL: endpoint, StatusCode: response.StatusCode, Status: response.Status, Body: strings.TrimSpace(string(data))}
 	}
 	return data, nil
 }

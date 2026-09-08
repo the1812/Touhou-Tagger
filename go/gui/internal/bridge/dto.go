@@ -1,10 +1,11 @@
 package bridge
 
 type StateIssue struct {
-	Code     string `json:"code"`
-	Message  string `json:"message"`
-	Severity string `json:"severity"`
-	ItemID   string `json:"itemId,omitempty"`
+	Error    *ErrorInfo `json:"error,omitempty"`
+	Code     string     `json:"code"`
+	Message  string     `json:"message"`
+	Severity string     `json:"severity"`
+	ItemID   string     `json:"itemId,omitempty"`
 }
 
 type SourceOption struct {
@@ -166,16 +167,18 @@ type OperationResult struct {
 }
 
 type OperationFailure struct {
-	OperationID     string `json:"operationId"`
-	Kind            string `json:"kind"`
-	Message         string `json:"message"`
-	Details         string `json:"details,omitempty"`
-	PlanInvalidated bool   `json:"planInvalidated"`
+	Error           *ErrorInfo `json:"error,omitempty"`
+	OperationID     string     `json:"operationId"`
+	Kind            string     `json:"kind"`
+	Message         string     `json:"message"`
+	Details         string     `json:"details,omitempty"`
+	PlanInvalidated bool       `json:"planInvalidated"`
 }
 
 type ProcessError struct {
-	Message string `json:"message"`
-	Details string `json:"details,omitempty"`
+	Error   *ErrorInfo `json:"error,omitempty"`
+	Message string     `json:"message"`
+	Details string     `json:"details,omitempty"`
 }
 
 type BatchJobPreview struct {

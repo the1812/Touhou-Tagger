@@ -382,7 +382,7 @@ func (runner *Runner) reportWarning(warning application.ProcessWarning) error {
 		runner.errors,
 		"警告: %s\n详情: %s\n",
 		warning.Message,
-		warning.Details,
+		warning.Err,
 	); err != nil {
 		return fmt.Errorf("write warning output: %w", err)
 	}

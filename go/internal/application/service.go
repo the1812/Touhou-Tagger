@@ -16,8 +16,8 @@ import (
 type EventSink func(domain.ProgressEvent) error
 
 type ProcessWarning struct {
+	Err       error
 	Message   string
-	Details   string
 	Directory string
 }
 
@@ -110,7 +110,7 @@ func (service *Service) FetchTagData(
 		return TagData{}, nil, err
 	}
 	if len(scan.AudioFiles) == 0 {
-		return TagData{}, nil, fmt.Errorf("no supported audio files found in %q", scan.Directory)
+		return TagData{}, nil, fmt.Errorf("%w in %q", domain.ErrNoAudio, scan.Directory)
 	}
 	var cover []byte
 	if scan.CoverPath != "" {
@@ -153,15 +153,15 @@ func (service *Service) FetchTagData(
 		}
 		metadata = fallbackMetadata
 		warning := ProcessWarning{
+			Err: err,
 			Message: fmt.Sprintf(
 				"从 %s 下载远程封面失败，已使用无封面继续预览。",
 				metadataSourceName,
 			),
-			Details:   err.Error(),
 			Directory: scan.Directory,
 		}
 		if service.Warnings == nil {
-			return TagData{}, nil, fmt.Errorf("%s %s", warning.Message, warning.Details)
+			return TagData{}, nil, fmt.Errorf("%s: %w", warning.Message, warning.Err)
 		}
 		if warningErr := service.Warnings(warning); warningErr != nil {
 			return TagData{}, nil, fmt.Errorf("report process warning: %w", warningErr)
@@ -189,7 +189,7 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 		writer, exists := service.Writers[item.Format]
 		if !exists {
 			return errors.Join(
-				fmt.Errorf("no tag writer registered for %s file %q", item.Format, item.SourcePath),
+				fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath),
 				cleanupPrepared(prepared),
 			)
 		}

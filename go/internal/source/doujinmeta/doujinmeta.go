@@ -126,7 +126,7 @@ func (sourceClient *Source) getJSON(ctx context.Context, endpoint string, output
 		return err
 	}
 	if err := json.Unmarshal(data, output); err != nil {
-		return fmt.Errorf("decode %s: %w", endpoint, err)
+		return &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode %s: %w", endpoint, err)}
 	}
 	return nil
 }
@@ -146,7 +146,7 @@ func (sourceClient *Source) getBytes(ctx context.Context, endpoint string) ([]by
 		return nil, fmt.Errorf("read response from %s: %w", endpoint, errors.Join(err, closeErr))
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("request %s returned %s: %s", endpoint, response.Status, strings.TrimSpace(string(data)))
+		return nil, &source.HTTPStatusError{URL: endpoint, StatusCode: response.StatusCode, Status: response.Status, Body: strings.TrimSpace(string(data))}
 	}
 	return data, nil
 }

@@ -50,11 +50,11 @@ func (wiki *Source) parseTrack(
 ) (domain.Metadata, error) {
 	match := leadingNumber.FindStringSubmatch(findTrackNumberCell(row).Text())
 	if len(match) < 2 {
-		return domain.Metadata{}, fmt.Errorf("parse THBWiki track number from %q", findTrackNumberCell(row).Text())
+		return domain.Metadata{}, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("parse THBWiki track number from %q", findTrackNumberCell(row).Text())}
 	}
 	number, err := strconv.Atoi(match[1])
 	if err != nil {
-		return domain.Metadata{}, fmt.Errorf("parse THBWiki track number %q: %w", match[1], err)
+		return domain.Metadata{}, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("parse THBWiki track number %q: %w", match[1], err)}
 	}
 	title := strings.TrimSpace(row.Find(".title").First().Text())
 	metadata := domain.Metadata{Title: title, TrackNumber: strconv.Itoa(number)}

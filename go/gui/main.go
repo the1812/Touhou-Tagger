@@ -68,9 +68,10 @@ func main() {
 	}
 	windowState := newWindowStateTracker(savedWindowState, window)
 	backend.Attach(app, window)
-	app.RegisterService(application.NewService(backend.Workspace))
-	app.RegisterService(application.NewService(backend.Batch))
-	app.RegisterService(application.NewService(backend.Settings))
+	serviceOptions := application.ServiceOptions{MarshalError: bridge.MarshalError}
+	app.RegisterService(application.NewServiceWithOptions(backend.Workspace, serviceOptions))
+	app.RegisterService(application.NewServiceWithOptions(backend.Batch, serviceOptions))
+	app.RegisterService(application.NewServiceWithOptions(backend.Settings, serviceOptions))
 	app.OnShutdown(func() {
 		backend.Close()
 		if err := windowState.save(window); err != nil {

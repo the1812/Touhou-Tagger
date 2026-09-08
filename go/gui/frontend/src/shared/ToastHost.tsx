@@ -86,7 +86,7 @@ export const ToastHost = defineComponent({
                   <X class="size-[20px]" />
                 </Button>
                 <div class="col-start-2 col-end-4 grid min-w-0 gap-1">
-                  <div class="text-(--p-toast-detail-color) text-(length:--p-toast-detail-font-size) font-(--p-toast-detail-font-weight) leading-[1.45]">
+                  <div class="wrap-anywhere whitespace-pre-wrap text-(--p-toast-detail-color) text-(length:--p-toast-detail-font-size) font-(--p-toast-detail-font-weight) leading-[1.45]">
                     {message.detail}
                   </div>
                   {diagnostics && (

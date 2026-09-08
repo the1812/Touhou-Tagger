@@ -46,12 +46,12 @@ func (Source) Fetch(
 	if strings.EqualFold(filepath.Ext(id), ".jsonc") {
 		data, err = hujson.Standardize(data)
 		if err != nil {
-			return nil, fmt.Errorf("parse local JSONC %q: %w", id, err)
+			return nil, &domain.ParseError{Kind: domain.MetadataData, Err: fmt.Errorf("parse local JSONC %q: %w", id, err)}
 		}
 	}
 	var metadata []domain.Metadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
-		return nil, fmt.Errorf("parse local metadata %q: %w", id, err)
+		return nil, &domain.ParseError{Kind: domain.MetadataData, Err: fmt.Errorf("parse local metadata %q: %w", id, err)}
 	}
 	return domain.ExpandMetadata(metadata, cover), nil
 }

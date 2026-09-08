@@ -14,10 +14,7 @@ import (
 func BuildTagPlan(scan domain.AlbumScan, metadata []domain.Metadata) (domain.TagPlan, error) {
 	metadata = domain.ExpandMetadata(metadata, nil)
 	if len(scan.AudioFiles) != len(metadata) {
-		return domain.TagPlan{}, fmt.Errorf(
-			"track count mismatch in %q: found %d audio files but metadata contains %d tracks",
-			scan.Directory, len(scan.AudioFiles), len(metadata),
-		)
+		return domain.TagPlan{}, &domain.TrackCountMismatchError{Directory: scan.Directory, Files: len(scan.AudioFiles), Tracks: len(metadata)}
 	}
 	width := int(math.Log10(float64(max(len(metadata), 1)))) + 1
 	if width < 2 {
@@ -39,12 +36,12 @@ func BuildTagPlan(scan domain.AlbumScan, metadata []domain.Metadata) (domain.Tag
 		target := filepath.Join(filepath.Dir(audio.Path), baseName)
 		key := pathKey(target)
 		if previous, exists := targetPaths[key]; exists {
-			return domain.TagPlan{}, fmt.Errorf("target filename conflict: %q and %q", previous, target)
+			return domain.TagPlan{}, &domain.FileConflictError{Path: target, OtherPath: previous}
 		}
 		targetPaths[key] = target
 		if _, sourceTarget := sourcePaths[key]; !sourceTarget {
 			if _, err := os.Stat(target); err == nil {
-				return domain.TagPlan{}, fmt.Errorf("target file already exists: %q", target)
+				return domain.TagPlan{}, &domain.FileConflictError{Path: target}
 			} else if !os.IsNotExist(err) {
 				return domain.TagPlan{}, fmt.Errorf("inspect target file %q: %w", target, err)
 			}

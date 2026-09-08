@@ -6,6 +6,7 @@ import {
   WorkspaceService,
 } from '../../bindings/github.com/the1812/Touhou-Tagger/go/gui/internal/bridge/index.js'
 import { t } from '../i18n'
+import { errorMessage } from './errorMessage'
 import type {
   AlbumCandidate,
   BatchJobPreview,
@@ -21,6 +22,7 @@ import type {
   PlanPreview,
   ProcessError,
   Settings,
+  ErrorInfo,
   WorkspaceSummary,
 } from './types'
 
@@ -53,9 +55,11 @@ const issueMessage = (code: string) => {
   return t(keys[code] ?? 'backend.issue.generic')
 }
 
-const normalizeIssue = <T extends { code: string; message: string }>(issue: T): T => ({
+const normalizeIssue = <T extends { code: string; message: string; error?: ErrorInfo }>(
+  issue: T,
+): T => ({
   ...issue,
-  message: issueMessage(issue.code),
+  message: issue.error ? errorMessage(issue.error) : issue.message || issueMessage(issue.code),
 })
 
 const optionLabel = (value: string, fallback: string) => {
@@ -278,19 +282,20 @@ export const nativeApi: GUIApi = {
     })
   },
   onFailure(handler) {
-    return Events.On('gui:operation-failed', event =>
+    return Events.On('gui:operation-failed', event => {
+      const failure = event.data as OperationFailure
       handler({
-        ...(event.data as OperationFailure),
-        message: t('common.operationFailed'),
-        details: (event.data as OperationFailure).message,
-      }),
-    )
+        ...failure,
+        message: failure.error ? errorMessage(failure.error) : failure.message,
+      })
+    })
   },
   onProcessError(handler) {
     return Events.On('gui:process-error', event => {
       const error = event.data as ProcessError
       handler({
-        message: t('common.operationFailed'),
+        ...error,
+        message: error.error ? `${error.message}\n${errorMessage(error.error)}` : error.message,
         details: error.details || error.message,
       })
     })

@@ -47,7 +47,7 @@ func LoadAlbum(directory string) (AlbumOptions, error) {
 	}
 	var value AlbumOptions
 	if err := json.Unmarshal(data, &value); err != nil {
-		return AlbumOptions{}, fmt.Errorf("parse album config: %w", err)
+		return AlbumOptions{}, &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse album config: %w", err)}
 	}
 	return value, nil
 }
@@ -127,7 +127,7 @@ func SaveDefaultAlbumHint(directory, hint string) error {
 	value := make(map[string]json.RawMessage)
 	if err == nil {
 		if err := json.Unmarshal(data, &value); err != nil {
-			return fmt.Errorf("parse album config: %w", err)
+			return &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse album config: %w", err)}
 		}
 	}
 	hintData, err := json.Marshal(hint)

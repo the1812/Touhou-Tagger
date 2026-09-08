@@ -65,7 +65,7 @@ func validateSourceSnapshots(snapshots []sourceSnapshot) error {
 			return fmt.Errorf("revalidate source file %q: %w", snapshot.path, err)
 		}
 		if !matches {
-			return fmt.Errorf("source file %q changed while preparing the tag plan", snapshot.path)
+			return fmt.Errorf("%w: %q", domain.ErrSourceChanged, snapshot.path)
 		}
 	}
 	return nil

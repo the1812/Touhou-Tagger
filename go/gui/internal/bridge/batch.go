@@ -103,7 +103,7 @@ func (service *BatchService) ScanBatch(
 		if discovered.PreflightErr != nil {
 			job.status = "scan-failed"
 			job.matchDescription = "扫描失败"
-			job.issues = append(job.issues, errorIssue("scan-failed", discovered.PreflightErr.Error()))
+			job.issues = append(job.issues, failureIssue("scan-failed", discovered.PreflightErr))
 		}
 		session.jobs = append(session.jobs, job)
 	}
@@ -217,14 +217,14 @@ func (service *BatchService) loadBatchJob(
 	if err != nil {
 		job.status = "scan-failed"
 		job.matchDescription = "扫描失败"
-		job.issues = append(job.issues, errorIssue("scan-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("scan-failed", err))
 		return
 	}
 	scan, err := applicationService.ScanAlbum(ctx, job.directory)
 	if err != nil {
 		job.status = "scan-failed"
 		job.matchDescription = "扫描失败"
-		job.issues = append(job.issues, errorIssue("scan-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("scan-failed", err))
 		return
 	}
 	job.audioCount = len(scan.AudioFiles)
@@ -237,7 +237,7 @@ func (service *BatchService) loadBatchJob(
 	if err != nil {
 		job.status = "scan-failed"
 		job.matchDescription = "配置解析失败"
-		job.issues = append(job.issues, errorIssue("config-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("config-failed", err))
 		return
 	}
 	if scan.MetadataPath != "" {
@@ -262,7 +262,7 @@ func (service *BatchService) loadBatchJob(
 	if err != nil {
 		job.status = "scan-failed"
 		job.matchDescription = "配置解析失败"
-		job.issues = append(job.issues, errorIssue("config-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("config-failed", err))
 		return
 	}
 	job.source = resolvedConfig.Metadata.Source
@@ -284,7 +284,7 @@ func (service *BatchService) loadBatchJob(
 	if err != nil {
 		job.status = "scan-failed"
 		job.matchDescription = "搜索失败"
-		job.issues = append(job.issues, errorIssue("search-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("search-failed", err))
 		return
 	}
 	job.candidates = candidates
@@ -315,7 +315,7 @@ func (service *BatchService) prepareBatchJob(
 	plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, session.id)
 	if err != nil {
 		job.status = "scan-failed"
-		job.issues = append(job.issues, errorIssue("prepare-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("prepare-failed", err))
 		return
 	}
 	job.planID = plan.PlanID
@@ -411,7 +411,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	job.issues = job.issues[:0]
 	if err != nil {
 		job.status = "scan-failed"
-		job.issues = append(job.issues, errorIssue("prepare-failed", err.Error()))
+		job.issues = append(job.issues, failureIssue("prepare-failed", err))
 		return batchJobPreview(session.root, job), nil
 	}
 	job.planID = plan.PlanID
@@ -763,7 +763,7 @@ func (service *BatchService) emitBatchAlbumProgress(
 func (service *BatchService) failJob(session *batchSession, job *batchJob, err error) {
 	session.mu.Lock()
 	job.status = "failed"
-	job.issues = []StateIssue{errorIssue("operation-failed", err.Error())}
+	job.issues = []StateIssue{failureIssue("operation-failed", err)}
 	session.mu.Unlock()
 }
 

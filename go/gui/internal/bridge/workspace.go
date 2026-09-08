@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -232,17 +233,19 @@ func coverStatus(path string) CoverStatus {
 }
 
 func planBuildIssue(err error) StateIssue {
-	message := err.Error()
 	code := "invalid-plan"
+	var mismatch *domain.TrackCountMismatchError
+	var conflict *domain.FileConflictError
 	switch {
-	case strings.Contains(message, "track count mismatch"):
+	case errors.As(err, &mismatch):
 		code = "track-count-mismatch"
-	case strings.Contains(message, "target filename conflict"):
-		code = "target-conflict"
-	case strings.Contains(message, "target file already exists"):
+	case errors.As(err, &conflict):
 		code = "target-exists"
+		if conflict.OtherPath != "" {
+			code = "target-conflict"
+		}
 	}
-	return errorIssue(code, message)
+	return failureIssue(code, err)
 }
 
 func errorIssue(code, message string) StateIssue {

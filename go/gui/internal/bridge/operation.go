@@ -252,9 +252,11 @@ func (manager *operationManager) emitProcessError(warning coreapp.ProcessWarning
 	if emitter == nil {
 		return fmt.Errorf("GUI event emitter is not attached")
 	}
+	info := DescribeError(warning.Err)
 	emitter(processErrorEvent, ProcessError{
+		Error:   &info,
 		Message: warning.Message,
-		Details: warning.Details,
+		Details: info.Details,
 	})
 	return nil
 }
@@ -275,7 +277,9 @@ func (manager *operationManager) finish(operationID string, result any, err erro
 	}
 	if err != nil {
 		var invalidated *planInvalidatedError
+		info := DescribeError(err)
 		emitter(operationFailedEvent, OperationFailure{
+			Error:           &info,
 			OperationID:     operationID,
 			Kind:            item.kind,
 			Message:         operationFailureMessage(err),

@@ -66,8 +66,8 @@
     "incomplete": "操作部分完成"
   },
   "notifications": {
-    "discardPlanFailed": "释放旧写入内容失败",
-    "preparePlanFailed": "准备写入内容失败",
+    "discardPlanFailed": "释放旧专辑数据失败",
+    "preparePlanFailed": "准备专辑数据失败",
     "searchAlbumsFailed": "搜索专辑失败",
     "scanAlbumFailed": "扫描专辑失败",
     "selectAlbumDirectoryFailed": "无法选择专辑文件夹",
@@ -286,6 +286,30 @@
     "localCover": "本地封面",
     "coverReady": "将按当前封面设置写入图片",
     "candidateRequired": "写入前需要选择匹配的专辑。"
+  },
+  "errors": {
+    "notAlbum": "所选 THBWiki 页面不是同人专辑条目，请选择专辑条目后重试。",
+    "noAudio": "目录中没有支持的 MP3 或 FLAC 文件，请选择包含音频文件的专辑目录。",
+    "trackMismatch": "本地有 {files} 个音频文件，但专辑元数据有 {tracks} 首曲目。请检查所选专辑及文件是否齐全。",
+    "targetConflict": "多个文件将使用相同的目标文件名，请调整曲目序号或标题后重试。",
+    "targetExists": "目标文件已存在，请处理重名文件后重新生成写入预览。",
+    "sourceChanged": "生成预览后源文件发生了变化，请重新扫描并生成预览。",
+    "planInvalidated": "写入预览已失效，请重新扫描并生成预览。",
+    "fileBusy": "文件正被其他程序占用，请关闭正在使用它的播放器或编辑器后重试。",
+    "diskFull": "磁盘空间不足，无法保存文件，请释放空间后重试。",
+    "permissionDenied": "没有访问文件或目录的权限，请检查目录权限及文件是否只读。",
+    "fileMissing": "需要的文件或目录已不存在，请检查路径并重新扫描。",
+    "timeout": "请求超时，请检查网络，或在设置中增加请求超时时间后重试。",
+    "rateLimited": "数据源限制了请求频率，请稍后重试。",
+    "accessDenied": "数据源拒绝了请求，可能需要登录或通过网站验证，请在浏览器中确认访问情况。",
+    "notFound": "数据源上的页面或资源不存在，请重新搜索并选择有效的专辑条目。",
+    "serverError": "数据源服务暂时出错，请稍后重试，或切换数据源。",
+    "connectionFailed": "无法连接数据源，请检查网络、代理及网站是否可以访问。",
+    "certificateFailed": "无法建立安全连接，请检查系统时间、代理及网站证书。",
+    "invalidConfig": "本地配置或 metadata.json 格式有误，请检查文件语法及字段内容。",
+    "invalidResponse": "无法解析数据源返回的专辑信息，页面结构或响应内容可能已变化，请确认条目或切换数据源。",
+    "unsupportedFormat": "当前音频格式不支持读取或写入标签，请使用受支持的 MP3 或 FLAC 文件。",
+    "cancelled": "操作已取消。"
   },
   "backend": {
     "progress": {

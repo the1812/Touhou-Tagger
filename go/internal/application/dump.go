@@ -27,14 +27,14 @@ func (service *Service) DumpMetadata(
 		return nil, err
 	}
 	if len(scan.AudioFiles) == 0 {
-		return nil, fmt.Errorf("no supported audio files found in %q", scan.Directory)
+		return nil, fmt.Errorf("%w in %q", domain.ErrNoAudio, scan.Directory)
 	}
 	metadata := make([]domain.Metadata, len(scan.AudioFiles))
 	var cover []byte
 	for index, audio := range scan.AudioFiles {
 		reader, exists := service.Readers[audio.Format]
 		if !exists {
-			return nil, fmt.Errorf("no tag reader registered for %s file %q", audio.Format, audio.Path)
+			return nil, fmt.Errorf("%w: no tag reader registered for %s file %q", domain.ErrUnsupportedFormat, audio.Format, audio.Path)
 		}
 		item, err := reader.Read(ctx, audio.Path, service.Config)
 		if err != nil {
