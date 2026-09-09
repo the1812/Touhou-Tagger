@@ -1,8 +1,8 @@
 import { Search } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
-import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
+import RadioButton from 'primevue/radiobutton'
 import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import { computed, defineComponent } from 'vue'
@@ -112,15 +112,16 @@ export const TaggingSearchStep = defineComponent({
                     key={candidate.id}
                     class="candidate-option"
                     data-selected={selectedCandidateId.value === candidate.id}
-                    onClick={(event: MouseEvent) => {
-                      event.preventDefault()
-                      workspace.selectCandidate(candidate.id)
-                    }}
+                    onClick={() => workspace.selectCandidate(candidate.id)}
                   >
-                    <Checkbox
-                      binary
-                      readonly
-                      modelValue={selectedCandidateId.value === candidate.id}
+                    <RadioButton
+                      name="album-candidate"
+                      value={candidate.id}
+                      modelValue={selectedCandidateId.value}
+                      {...{
+                        'onUpdate:modelValue': (value: string) => workspace.selectCandidate(value),
+                        onClick: (event: MouseEvent) => event.stopPropagation(),
+                      }}
                       disabled={isBusy.value}
                     />
                     <TruncatedText class="text-base font-medium">{candidate.title}</TruncatedText>

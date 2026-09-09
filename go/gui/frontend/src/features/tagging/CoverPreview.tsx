@@ -33,7 +33,7 @@ export const CoverPreview = defineComponent({
     return () => (
       <div class="grid w-app-cover min-w-0 gap-2">
         {props.cover.url ? (
-          <div class="flex size-app-cover items-center justify-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]">
+          <div class="flex size-app-cover items-center justify-center">
             <Image
               preview
               src={props.cover.url}
@@ -61,7 +61,7 @@ export const CoverPreview = defineComponent({
             class={[
               'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
               'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
-              'content-center gap-2 p-5 text-center max-[720px]:w-[min(var(--spacing-app-cover),100%)]',
+              'content-center gap-2 p-5 text-center',
             ]}
           >
             <ImageIcon class="size-[38px]" stroke-width={1.5} />

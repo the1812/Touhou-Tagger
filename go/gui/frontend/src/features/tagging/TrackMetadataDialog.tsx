@@ -31,9 +31,9 @@ export const TrackMetadataDialog = defineComponent({
     })
 
     watch(
-      () => props.item,
-      item => {
-        if (!item) {
+      [() => props.visible, () => props.item],
+      ([visible, item]) => {
+        if (!visible || !item) {
           return
         }
         draft.discNumber = item.discNumber
@@ -103,7 +103,7 @@ export const TrackMetadataDialog = defineComponent({
                   )}
                 </FormField>
 
-                <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
+                <div class="grid grid-cols-2 gap-3">
                   <FormField>
                     <FieldLabel>{t('tagging.trackDialog.trackNumber')}</FieldLabel>
                     <InputText v-model={draft.trackNumber} fluid />

@@ -23,14 +23,13 @@
   --spacing-app-page-y: 1.25rem;
   --spacing-app-section-y: 1.25rem;
   --spacing-app-cover: 13.5rem;
-  --spacing-app-window-min: 50rem;
   --container-app-field: 24rem;
   --container-app-dialog-min: 28rem;
   --container-app-settings: 70rem;
 }
 
 @utility app-root {
-  @apply min-h-screen min-w-app-window-min bg-app-content text-color antialiased selection:bg-primary-400/35 dark:bg-app-content-dark;
+  @apply min-h-screen bg-app-content text-color antialiased selection:bg-primary-400/35 dark:bg-app-content-dark;
   color-scheme: light;
   font-size: 14px;
   line-height: normal;
@@ -44,7 +43,7 @@
 }
 
 @utility app-body {
-  @apply m-0 min-h-screen min-w-app-window-min overflow-hidden bg-app-content dark:bg-app-content-dark;
+  @apply m-0 min-h-screen overflow-hidden bg-app-content dark:bg-app-content-dark;
 }
 
 @utility primevue-defaults {
@@ -160,7 +159,7 @@
 }
 
 @utility candidate-option {
-  @apply grid min-h-[3.25rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 disabled:cursor-default dark:border-surface-700 dark:hover:bg-app-hover-dark;
+  @apply grid min-h-[3.25rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-app-hover-dark;
 
   &[data-selected='true'] {
     @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-app-hover-dark;

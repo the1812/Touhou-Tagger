@@ -8,7 +8,7 @@ export const PageActionBar = defineComponent({
   setup(props, { slots }) {
     return () => (
       <Teleport to="#page-action-bar">
-        <div class={['action-bar backdrop-blur-md', props.end ? 'justify-end' : 'justify-between']}>
+        <div class={['action-bar', props.end ? 'justify-end' : 'justify-between']}>
           {slots.default?.()}
         </div>
       </Teleport>

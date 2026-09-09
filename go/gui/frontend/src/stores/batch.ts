@@ -78,20 +78,6 @@ export const useBatchStore = defineStore('batch', () => {
     }
   }
 
-  const setDepth = (value: number | null) => {
-    if (
-      value === null ||
-      value === depth.value ||
-      selecting.value ||
-      scanning.value ||
-      resolvingCount.value > 0 ||
-      operation.value
-    ) {
-      return
-    }
-    depth.value = value
-  }
-
   const updateJob = async (
     jobId: string,
     request: (api: Awaited<ReturnType<typeof getApi>>, batchId: string) => Promise<BatchJobPreview>,
@@ -220,6 +206,21 @@ export const useBatchStore = defineStore('batch', () => {
     } finally {
       scanning.value = false
     }
+  }
+
+  const setDepth = async (value: number | null) => {
+    if (
+      value === null ||
+      value === depth.value ||
+      selecting.value ||
+      scanning.value ||
+      resolvingCount.value > 0 ||
+      operation.value
+    ) {
+      return
+    }
+    depth.value = value
+    await scan()
   }
 
   const selectDirectory = async () => {

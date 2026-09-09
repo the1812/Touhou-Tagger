@@ -42,12 +42,7 @@ export const TaggingPlanStep = defineComponent({
 
       return (
         <>
-          <div
-            class={[
-              'workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4',
-              'max-[1100px]:grid-cols-1',
-            ]}
-          >
+          <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
             <div class="grid w-app-cover content-start gap-3">
               <CoverPreview cover={currentPlan.cover} />
               {currentPlan.options.canSaveCover && (

@@ -28,9 +28,9 @@ export const AlbumMetadataDialog = defineComponent({
     })
 
     watch(
-      () => props.album,
-      album => {
-        if (!album) {
+      [() => props.visible, () => props.album],
+      ([visible, album]) => {
+        if (!visible || !album) {
           return
         }
         draft.title = album.title
@@ -70,7 +70,7 @@ export const AlbumMetadataDialog = defineComponent({
                 <FieldLabel>{t('tagging.albumDialog.title')}</FieldLabel>
                 <InputText v-model={draft.title} autofocus fluid invalid={!draft.title.trim()} />
               </FormField>
-              <div class="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1">
+              <div class="grid grid-cols-2 gap-3">
                 <FormField>
                   <FieldLabel>{t('tagging.albumDialog.catalogNumber')}</FieldLabel>
                   <InputText v-model={draft.albumOrder} fluid />
