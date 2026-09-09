@@ -67,22 +67,41 @@ export const AlbumMetadataDialog = defineComponent({
           default: () => (
             <div class="grid gap-3.5">
               <FormField>
-                <FieldLabel>{t('tagging.albumDialog.title')}</FieldLabel>
-                <InputText v-model={draft.title} autofocus fluid invalid={!draft.title.trim()} />
+                <FieldLabel for="tagging-albumDialog-title">
+                  {t('tagging.albumDialog.title')}
+                </FieldLabel>
+                <InputText
+                  id="tagging-albumDialog-title"
+                  v-model={draft.title}
+                  autofocus
+                  fluid
+                  invalid={!draft.title.trim()}
+                />
               </FormField>
               <div class="grid grid-cols-2 gap-3">
                 <FormField>
-                  <FieldLabel>{t('tagging.albumDialog.catalogNumber')}</FieldLabel>
-                  <InputText v-model={draft.albumOrder} fluid />
+                  <FieldLabel for="tagging-albumDialog-catalogNumber">
+                    {t('tagging.albumDialog.catalogNumber')}
+                  </FieldLabel>
+                  <InputText
+                    id="tagging-albumDialog-catalogNumber"
+                    v-model={draft.albumOrder}
+                    fluid
+                  />
                 </FormField>
                 <FormField>
-                  <FieldLabel>{t('tagging.albumDialog.year')}</FieldLabel>
-                  <InputText v-model={draft.year} fluid />
+                  <FieldLabel for="tagging-albumDialog-year">
+                    {t('tagging.albumDialog.year')}
+                  </FieldLabel>
+                  <InputText id="tagging-albumDialog-year" v-model={draft.year} fluid />
                 </FormField>
               </div>
               <FormField>
-                <FieldLabel>{t('tagging.albumDialog.circles')}</FieldLabel>
+                <FieldLabel for="tagging-albumDialog-circles">
+                  {t('tagging.albumDialog.circles')}
+                </FieldLabel>
                 <MetadataTagsInput
+                  inputId="tagging-albumDialog-circles"
                   modelValue={draft.artists}
                   {...{
                     'onUpdate:modelValue': (values: string[]) => {
@@ -92,8 +111,11 @@ export const AlbumMetadataDialog = defineComponent({
                 />
               </FormField>
               <FormField>
-                <FieldLabel>{t('tagging.albumDialog.genres')}</FieldLabel>
+                <FieldLabel for="tagging-albumDialog-genres">
+                  {t('tagging.albumDialog.genres')}
+                </FieldLabel>
                 <MetadataTagsInput
+                  inputId="tagging-albumDialog-genres"
                   modelValue={draft.genres}
                   {...{
                     'onUpdate:modelValue': (values: string[]) => {

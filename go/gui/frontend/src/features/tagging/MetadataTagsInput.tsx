@@ -9,6 +9,7 @@ const normalizeValues = (values: string[]) => [
 export const MetadataTagsInput = defineComponent({
   name: 'MetadataTagsInput',
   props: {
+    inputId: String,
     modelValue: {
       type: Array as PropType<string[]>,
       required: true,
@@ -18,6 +19,7 @@ export const MetadataTagsInput = defineComponent({
   setup(props, { emit }) {
     return () => (
       <AutoComplete
+        inputId={props.inputId}
         modelValue={props.modelValue}
         {...{
           'onUpdate:modelValue': (values: string[]) =>

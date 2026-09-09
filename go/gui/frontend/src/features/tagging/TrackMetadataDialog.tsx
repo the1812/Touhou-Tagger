@@ -82,13 +82,24 @@ export const TrackMetadataDialog = defineComponent({
                 <FormField
                   error={!draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
                 >
-                  <FieldLabel>{t('tagging.trackDialog.title')}</FieldLabel>
-                  <InputText v-model={draft.title} autofocus fluid invalid={!draft.title.trim()} />
+                  <FieldLabel for="tagging-trackDialog-title">
+                    {t('tagging.trackDialog.title')}
+                  </FieldLabel>
+                  <InputText
+                    id="tagging-trackDialog-title"
+                    v-model={draft.title}
+                    autofocus
+                    fluid
+                    invalid={!draft.title.trim()}
+                  />
                 </FormField>
 
                 <FormField>
-                  <FieldLabel>{t('tagging.trackDialog.artists')}</FieldLabel>
+                  <FieldLabel for="tagging-trackDialog-artists">
+                    {t('tagging.trackDialog.artists')}
+                  </FieldLabel>
                   <MetadataTagsInput
+                    inputId="tagging-trackDialog-artists"
                     modelValue={draft.artists}
                     {...{
                       'onUpdate:modelValue': (values: string[]) => {
@@ -105,18 +116,37 @@ export const TrackMetadataDialog = defineComponent({
 
                 <div class="grid grid-cols-2 gap-3">
                   <FormField>
-                    <FieldLabel>{t('tagging.trackDialog.trackNumber')}</FieldLabel>
-                    <InputText v-model={draft.trackNumber} fluid />
+                    <FieldLabel for="tagging-trackDialog-trackNumber">
+                      {t('tagging.trackDialog.trackNumber')}
+                    </FieldLabel>
+                    <InputText
+                      id="tagging-trackDialog-trackNumber"
+                      v-model={draft.trackNumber}
+                      fluid
+                    />
                   </FormField>
                   <FormField>
-                    <FieldLabel>{t('tagging.trackDialog.discNumber')}</FieldLabel>
-                    <InputText v-model={draft.discNumber} fluid />
+                    <FieldLabel for="tagging-trackDialog-discNumber">
+                      {t('tagging.trackDialog.discNumber')}
+                    </FieldLabel>
+                    <InputText
+                      id="tagging-trackDialog-discNumber"
+                      v-model={draft.discNumber}
+                      fluid
+                    />
                   </FormField>
                 </div>
 
                 <FormField>
-                  <FieldLabel>{t('tagging.trackDialog.comments')}</FieldLabel>
-                  <Textarea v-model={draft.comments} rows={6} fluid />
+                  <FieldLabel for="tagging-trackDialog-comments">
+                    {t('tagging.trackDialog.comments')}
+                  </FieldLabel>
+                  <Textarea
+                    id="tagging-trackDialog-comments"
+                    v-model={draft.comments}
+                    rows={6}
+                    fluid
+                  />
                 </FormField>
 
                 {props.item.issues.length > 0 && (

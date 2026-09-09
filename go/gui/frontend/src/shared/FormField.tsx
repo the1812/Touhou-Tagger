@@ -14,7 +14,7 @@ export const FormField = defineComponent({
   },
   setup(props, { attrs, slots }) {
     return () => (
-      <label
+      <div
         {...attrs}
         class={[
           'grid gap-1.5 font-normal',
@@ -36,7 +36,7 @@ export const FormField = defineComponent({
               {props.error}
             </div>
           ))}
-      </label>
+      </div>
     )
   },
 })
@@ -45,6 +45,7 @@ export const FieldLabel = defineComponent({
   name: 'FieldLabel',
   inheritAttrs: false,
   props: {
+    for: { type: String, required: true },
     help: String,
     emphasis: {
       type: Boolean,
@@ -61,7 +62,7 @@ export const FieldLabel = defineComponent({
           attrs.class,
         ]}
       >
-        {slots.default?.()}
+        <label for={props.for}>{slots.default?.()}</label>
         {props.help && (
           <Button unstyled type="button" class="help-icon" v-tooltip={props.help}>
             <Info class="size-[13px]" />

@@ -105,10 +105,14 @@ export const SettingsPage = defineComponent({
                 <FormSection title={t('settings.general')}>
                   <div class="grid justify-items-start gap-y-3.5">
                     <FormField variant="settings" error={errors.value.defaultSource}>
-                      <FieldLabel help={t('settings.defaultSourceHelp')}>
+                      <FieldLabel
+                        for="settings-defaultSource"
+                        help={t('settings.defaultSourceHelp')}
+                      >
                         {t('settings.defaultSource')}
                       </FieldLabel>
                       <Select
+                        labelId="settings-defaultSource"
                         v-model={currentDraft.defaultSource}
                         options={searchableSources.value}
                         optionLabel="label"
@@ -118,10 +122,14 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings">
-                      <FieldLabel help={t('settings.commentLanguageHelp')}>
+                      <FieldLabel
+                        for="settings-commentLanguage"
+                        help={t('settings.commentLanguageHelp')}
+                      >
                         {t('settings.commentLanguage')}
                       </FieldLabel>
                       <Select
+                        labelId="settings-commentLanguage"
                         v-model={currentDraft.commentLanguage}
                         options={capabilities.value?.commentLanguages}
                         optionLabel="label"
@@ -131,10 +139,11 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.mp3MultiValueSeparator}>
-                      <FieldLabel help={t('settings.mp3SeparatorHelp')}>
+                      <FieldLabel for="settings-mp3Separator" help={t('settings.mp3SeparatorHelp')}>
                         {t('settings.mp3Separator')}
                       </FieldLabel>
                       <InputText
+                        id="settings-mp3Separator"
                         v-model={currentDraft.mp3MultiValueSeparator}
                         invalid={Boolean(errors.value.mp3MultiValueSeparator)}
                         size="small"
@@ -142,10 +151,14 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.requestTimeoutSeconds}>
-                      <FieldLabel help={t('settings.requestTimeoutHelp')}>
+                      <FieldLabel
+                        for="settings-requestTimeout"
+                        help={t('settings.requestTimeoutHelp')}
+                      >
                         {t('settings.requestTimeout')}
                       </FieldLabel>
                       <InputNumber
+                        inputId="settings-requestTimeout"
                         useGrouping={false}
                         v-model={currentDraft.requestTimeoutSeconds}
                         min={1}
@@ -157,10 +170,11 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.retryCount}>
-                      <FieldLabel help={t('settings.retryCountHelp')}>
+                      <FieldLabel for="settings-retryCount" help={t('settings.retryCountHelp')}>
                         {t('settings.retryCount')}
                       </FieldLabel>
                       <InputNumber
+                        inputId="settings-retryCount"
                         useGrouping={false}
                         v-model={currentDraft.retryCount}
                         min={1}
@@ -177,10 +191,14 @@ export const SettingsPage = defineComponent({
                 <FormSection title={t('settings.cover')}>
                   <div class="grid justify-items-start gap-y-3.5">
                     <FormField variant="settings" error={errors.value.coverCompressionThresholdKb}>
-                      <FieldLabel help={t('settings.coverThresholdHelp')}>
+                      <FieldLabel
+                        for="settings-coverThreshold"
+                        help={t('settings.coverThresholdHelp')}
+                      >
                         {t('settings.coverThreshold')}
                       </FieldLabel>
                       <InputNumber
+                        inputId="settings-coverThreshold"
                         useGrouping={false}
                         v-model={currentDraft.coverCompressionThresholdKb}
                         min={0}
@@ -191,10 +209,11 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.coverMaxEdge}>
-                      <FieldLabel help={t('settings.coverMaxEdgeHelp')}>
+                      <FieldLabel for="settings-coverMaxEdge" help={t('settings.coverMaxEdgeHelp')}>
                         {t('settings.coverMaxEdge')}
                       </FieldLabel>
                       <InputNumber
+                        inputId="settings-coverMaxEdge"
                         useGrouping={false}
                         v-model={currentDraft.coverMaxEdge}
                         min={0}
@@ -210,10 +229,14 @@ export const SettingsPage = defineComponent({
                 <FormSection title={t('settings.lyrics')}>
                   <div class="grid justify-items-start gap-y-3.5">
                     <FormField variant="settings" error={errors.value.lyricDestination}>
-                      <FieldLabel help={t('settings.outputDestinationHelp')}>
+                      <FieldLabel
+                        for="settings-outputDestination"
+                        help={t('settings.outputDestinationHelp')}
+                      >
                         {t('settings.outputDestination')}
                       </FieldLabel>
                       <Select
+                        labelId="settings-outputDestination"
                         v-model={lyricDestination.value}
                         options={lyricDestinations}
                         optionLabel="label"
@@ -223,10 +246,11 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings">
-                      <FieldLabel help={t('settings.lyricTypeHelp')}>
+                      <FieldLabel for="settings-lyricType" help={t('settings.lyricTypeHelp')}>
                         {t('settings.lyricType')}
                       </FieldLabel>
                       <Select
+                        labelId="settings-lyricType"
                         v-model={currentDraft.lyricType}
                         options={capabilities.value?.lyricTypes}
                         optionLabel="label"
@@ -237,10 +261,14 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.mixedLyricSeparator}>
-                      <FieldLabel help={t('settings.mixedLyricSeparatorHelp')}>
+                      <FieldLabel
+                        for="settings-mixedLyricSeparator"
+                        help={t('settings.mixedLyricSeparatorHelp')}
+                      >
                         {t('settings.mixedLyricSeparator')}
                       </FieldLabel>
                       <InputText
+                        id="settings-mixedLyricSeparator"
                         v-model={currentDraft.mixedLyricSeparator}
                         size="small"
                         fluid
@@ -249,19 +277,28 @@ export const SettingsPage = defineComponent({
                       />
                     </FormField>
                     <FormField variant="settings" class="min-w-0 justify-items-start">
-                      <FieldLabel emphasis={false} help={t('settings.preserveTimelineHelp')}>
+                      <FieldLabel
+                        for="settings-preserveTimeline"
+                        emphasis={false}
+                        help={t('settings.preserveTimelineHelp')}
+                      >
                         {t('settings.preserveTimeline')}
                       </FieldLabel>
                       <ToggleSwitch
+                        inputId="settings-preserveTimeline"
                         v-model={currentDraft.preserveLyricTimeline}
                         disabled={lyricDestination.value === 'none'}
                       />
                     </FormField>
                     <FormField variant="settings" error={errors.value.lyricCacheSize}>
-                      <FieldLabel help={t('settings.lyricCacheSizeHelp')}>
+                      <FieldLabel
+                        for="settings-lyricCacheSize"
+                        help={t('settings.lyricCacheSizeHelp')}
+                      >
                         {t('settings.lyricCacheSize')}
                       </FieldLabel>
                       <InputNumber
+                        inputId="settings-lyricCacheSize"
                         useGrouping={false}
                         v-model={currentDraft.lyricCacheSize}
                         min={1}
