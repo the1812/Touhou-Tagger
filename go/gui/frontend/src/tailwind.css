@@ -102,11 +102,12 @@
   }
 
   & .p-tab {
-    @apply inline-flex min-h-app-header items-center gap-2 px-4 py-0 text-base font-semibold;
+    @apply mb-0 inline-flex min-h-app-header items-center gap-2 border-0 px-4 py-0 text-base font-semibold;
   }
 
   & .p-tablist-active-bar {
-    @apply h-[3px] rounded-t bg-primary;
+    @apply h-[2px] rounded-t bg-primary;
+    inset-block-end: 0;
   }
 }
 

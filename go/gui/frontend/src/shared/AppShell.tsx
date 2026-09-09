@@ -76,7 +76,7 @@ export const AppShell = defineComponent({
               'border-surface-200 bg-app-header dark:border-surface-700 dark:bg-app-header-dark',
             ]}
           >
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 self-end">
               <Tabs
                 value={selectedTab.value}
                 class="app-top-tabs"
