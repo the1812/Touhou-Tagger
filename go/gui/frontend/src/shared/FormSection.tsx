@@ -10,7 +10,7 @@ export const FormSection = defineComponent({
     return () => (
       <div {...attrs} class={['grid gap-4 py-app-section-y', attrs.class]}>
         {(slots.title || props.title) && (
-          <div class="text-base font-bold">{slots.title?.() ?? props.title}</div>
+          <div class="text-base font-medium">{slots.title?.() ?? props.title}</div>
         )}
         {slots.default?.()}
       </div>

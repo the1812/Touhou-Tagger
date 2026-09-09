@@ -1,13 +1,13 @@
-import { Pencil } from 'lucide-vue-next'
+import { Pencil, Play } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { defineComponent, ref } from 'vue'
 import { Translation } from 'vue-i18n'
 
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
+import { Message } from '../../shared/Message'
 import { PageActionBar } from '../../shared/PageActionBar'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useWorkspaceStore } from '../../stores/workspace'
@@ -59,7 +59,7 @@ export const TaggingPlanStep = defineComponent({
                     }}
                     disabled={isBusy.value}
                   />
-                  <div class="text-base font-bold">
+                  <div class="text-base font-medium">
                     {summary.value?.localCover.exists
                       ? t('tagging.plan.overwriteCover')
                       : t('tagging.plan.saveOriginalCover')}
@@ -89,23 +89,23 @@ export const TaggingPlanStep = defineComponent({
                 ]}
               >
                 <div class="metadata-row">
-                  <div class="font-bold text-color">{t('tagging.plan.circles')}</div>
+                  <div class="font-medium text-color">{t('tagging.plan.circles')}</div>
                   {currentPlan.album.artists.join(' / ') || '—'}
                 </div>
                 <div class="metadata-row">
-                  <div class="font-bold text-color">{t('tagging.plan.year')}</div>
+                  <div class="font-medium text-color">{t('tagging.plan.year')}</div>
                   {currentPlan.album.year || '—'}
                 </div>
                 <div class="metadata-row">
-                  <div class="font-bold text-color">{t('tagging.plan.catalogNumber')}</div>
+                  <div class="font-medium text-color">{t('tagging.plan.catalogNumber')}</div>
                   {currentPlan.album.albumOrder || '—'}
                 </div>
                 <div class="metadata-row">
-                  <div class="font-bold text-color">{t('tagging.plan.genres')}</div>
+                  <div class="font-medium text-color">{t('tagging.plan.genres')}</div>
                   {currentPlan.album.genres.join(' / ') || '—'}
                 </div>
                 <div class="metadata-row">
-                  <div class="font-bold text-color">{t('tagging.plan.source')}</div>
+                  <div class="font-medium text-color">{t('tagging.plan.source')}</div>
                   {currentPlan.candidate.sourceLabel}
                 </div>
               </div>
@@ -114,11 +114,7 @@ export const TaggingPlanStep = defineComponent({
 
           <div class="workspace-section grid w-full content-start gap-4">
             {currentPlan.issues.map(issue => (
-              <Message
-                key={issue.code}
-                severity={issue.severity === 'error' ? 'error' : 'warn'}
-                closable={false}
-              >
+              <Message key={issue.code} severity={issue.severity === 'error' ? 'error' : 'warn'}>
                 {issue.message}
               </Message>
             ))}
@@ -132,7 +128,7 @@ export const TaggingPlanStep = defineComponent({
                 scope="global"
                 v-slots={{
                   count: () => (
-                    <div class="inline font-bold text-color">{currentPlan.options.writeFiles}</div>
+                    <div class="inline text-color">{currentPlan.options.writeFiles}</div>
                   ),
                 }}
               />
@@ -161,10 +157,12 @@ export const TaggingPlanStep = defineComponent({
                 }}
               >
                 <Button
-                  label={t('common.confirm')}
+                  label={t('common.start')}
                   disabled={!canCommit.value}
                   onClick={() => workspace.commit()}
-                />
+                >
+                  {{ icon: () => <Play /> }}
+                </Button>
               </div>
             </div>
           </PageActionBar>

@@ -7,6 +7,7 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 import type { PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
 import { FieldLabel, FormField } from '../../shared/FormField'
+import { Message } from '../../shared/Message'
 import { TruncatedText } from '../../shared/TruncatedText'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
@@ -96,7 +97,7 @@ export const TrackMetadataDialog = defineComponent({
                     }}
                   />
                   {draft.artists.length === 0 && (
-                    <div class="text-xs font-normal text-amber-700 dark:text-amber-300">
+                    <div class="text-sm font-normal text-amber-700 dark:text-amber-300">
                       {t('tagging.trackDialog.missingArtists')}
                     </div>
                   )}
@@ -119,21 +120,13 @@ export const TrackMetadataDialog = defineComponent({
                 </FormField>
 
                 {props.item.issues.length > 0 && (
-                  <div
-                    class={[
-                      'rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3',
-                      'dark:border-amber-700 dark:bg-amber-950/50',
-                    ]}
-                  >
-                    <div class="font-bold">{t('tagging.trackDialog.issues')}</div>
-                    <div class="mt-1.5 grid gap-1 pl-4">
+                  <Message severity="warn">
+                    <div class="grid gap-1">
                       {props.item.issues.map(issue => (
-                        <div key={issue.code} class="before:mr-2 before:content-['•']">
-                          {issue.message}
-                        </div>
+                        <div key={issue.code}>{issue.message}</div>
                       ))}
                     </div>
-                  </div>
+                  </Message>
                 )}
               </div>
             ),

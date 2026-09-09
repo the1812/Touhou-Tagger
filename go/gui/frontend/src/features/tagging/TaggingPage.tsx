@@ -9,7 +9,6 @@ import {
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import { defineComponent } from 'vue'
 
@@ -17,6 +16,7 @@ import { usePageCommands } from '../../app/pageCommands'
 import { t } from '../../i18n'
 import { CompletionPanel } from '../../shared/CompletionPanel'
 import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
+import { Message } from '../../shared/Message'
 import { OperationPanel } from '../../shared/OperationPanel'
 import { StatusIcon } from '../../shared/StatusIcon'
 import { TruncatedText } from '../../shared/TruncatedText'
@@ -174,16 +174,13 @@ export const TaggingPage = defineComponent({
                           <Message
                             key={issue.code}
                             severity={issue.severity === 'error' ? 'error' : 'warn'}
-                            closable={false}
                           >
                             {issue.message}
                           </Message>
                         ))}
 
                       {currentPhase === 'failed' && (
-                        <Message severity="warn" closable={false}>
-                          {t('tagging.planInvalidated')}
-                        </Message>
+                        <Message severity="warn">{t('tagging.planInvalidated')}</Message>
                       )}
                     </>
                   )

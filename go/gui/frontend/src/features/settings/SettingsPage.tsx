@@ -146,6 +146,7 @@ export const SettingsPage = defineComponent({
                         {t('settings.requestTimeout')}
                       </FieldLabel>
                       <InputNumber
+                        useGrouping={false}
                         v-model={currentDraft.requestTimeoutSeconds}
                         min={1}
                         max={300}
@@ -160,6 +161,7 @@ export const SettingsPage = defineComponent({
                         {t('settings.retryCount')}
                       </FieldLabel>
                       <InputNumber
+                        useGrouping={false}
                         v-model={currentDraft.retryCount}
                         min={1}
                         max={10}
@@ -179,6 +181,7 @@ export const SettingsPage = defineComponent({
                         {t('settings.coverThreshold')}
                       </FieldLabel>
                       <InputNumber
+                        useGrouping={false}
                         v-model={currentDraft.coverCompressionThresholdKb}
                         min={0}
                         showButtons
@@ -192,6 +195,7 @@ export const SettingsPage = defineComponent({
                         {t('settings.coverMaxEdge')}
                       </FieldLabel>
                       <InputNumber
+                        useGrouping={false}
                         v-model={currentDraft.coverMaxEdge}
                         min={0}
                         showButtons
@@ -258,6 +262,7 @@ export const SettingsPage = defineComponent({
                         {t('settings.lyricCacheSize')}
                       </FieldLabel>
                       <InputNumber
+                        useGrouping={false}
                         v-model={currentDraft.lyricCacheSize}
                         min={1}
                         max={10000}

@@ -30,7 +30,7 @@ export const FormField = defineComponent({
             <div
               class={[
                 'font-normal text-red-700! dark:text-red-300!',
-                props.variant === 'settings' ? 'leading-[1.4]' : 'text-xs',
+                props.variant === 'settings' ? 'text-base leading-[1.4]' : 'text-sm',
               ]}
             >
               {props.error}

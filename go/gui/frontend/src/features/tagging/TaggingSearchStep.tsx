@@ -60,7 +60,7 @@ export const TaggingSearchStep = defineComponent({
 
       return (
         <>
-          <div class="workspace-section">
+          <div class="workspace-section flex flex-1 flex-col">
             <div class="workspace-heading">
               <WorkspaceTitle>{t('tagging.searchAlbum')}</WorkspaceTitle>
             </div>
@@ -123,19 +123,19 @@ export const TaggingSearchStep = defineComponent({
                       modelValue={selectedCandidateId.value === candidate.id}
                       disabled={isBusy.value}
                     />
-                    <TruncatedText class="text-base font-bold">{candidate.title}</TruncatedText>
+                    <TruncatedText class="text-base font-medium">{candidate.title}</TruncatedText>
                   </div>
                 ))}
               </div>
             ) : hasSearched.value ? (
               <div
                 class={[
-                  'mt-4 grid place-items-center gap-1.5 border-t py-app-section-y text-center',
+                  'mt-4 flex flex-1 flex-col items-center justify-center gap-3 border-t py-app-section-y text-center',
                   'border-surface-200 text-muted-color dark:border-surface-700',
                 ]}
               >
                 <Search class="size-[30px]" />
-                <div class="font-bold">{t('tagging.noSearchResults')}</div>
+                <div class="font-medium">{t('tagging.noSearchResults')}</div>
               </div>
             ) : null}
           </div>

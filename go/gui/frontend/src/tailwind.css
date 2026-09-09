@@ -49,7 +49,15 @@
 
 @utility primevue-defaults {
   & .p-button-outlined:not(:enabled:hover):not(:enabled:active) {
-    @apply bg-surface-0;
+    @apply bg-surface-0 dark:bg-surface-900;
+  }
+
+  & .p-autocomplete-chip-item {
+    @apply cursor-default;
+  }
+
+  & .p-autocomplete-chip-icon {
+    @apply cursor-pointer;
   }
 
   & .p-toast {

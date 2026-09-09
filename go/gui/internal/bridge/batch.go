@@ -138,7 +138,7 @@ func (service *BatchService) LoadBatchJob(
 	session, exists := service.sessions[batchID]
 	if !exists {
 		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -191,7 +191,7 @@ func (service *BatchService) LoadBatchJob(
 		if working.planID != "" {
 			service.planner.discard(working.planID)
 		}
-		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -216,8 +216,8 @@ func (service *BatchService) loadBatchJob(
 	applicationService, err := service.runtime.service(nil)
 	if err != nil {
 		job.status = "scan-failed"
-		job.matchDescription = "扫描失败"
-		job.issues = append(job.issues, failureIssue("scan-failed", err))
+		job.matchDescription = "加载失败"
+		job.issues = append(job.issues, failureIssue("load-failed", err))
 		return
 	}
 	scan, err := applicationService.ScanAlbum(ctx, job.directory)
@@ -338,7 +338,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	session, exists := service.sessions[batchID]
 	if !exists {
 		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -392,7 +392,7 @@ func (service *BatchService) ResolveBatchCandidate(
 		if err == nil {
 			service.planner.discard(plan.PlanID)
 		}
-		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -433,7 +433,7 @@ func (service *BatchService) IgnoreBatchJob(
 	session, exists := service.sessions[batchID]
 	if !exists {
 		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
@@ -479,7 +479,7 @@ func (service *BatchService) RunBatch(
 	session, exists := service.sessions[batchID]
 	service.mu.RUnlock()
 	if !exists {
-		return OperationStart{}, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return OperationStart{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	if session.running {
@@ -787,7 +787,7 @@ func (service *BatchService) lookupJob(
 	session, exists := service.sessions[batchID]
 	service.mu.RUnlock()
 	if !exists {
-		return nil, nil, fmt.Errorf("批量扫描结果已失效，请重新扫描")
+		return nil, nil, fmt.Errorf("批量任务已失效，请重新扫描目录")
 	}
 	session.mu.Lock()
 	defer session.mu.Unlock()

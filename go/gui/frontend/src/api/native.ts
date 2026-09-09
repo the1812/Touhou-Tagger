@@ -41,6 +41,7 @@ const issueMessage = (code: string) => {
     'invalid-cover': 'backend.issue.invalidCover',
     'cover-target-invalid': 'backend.issue.invalidCover',
     'scan-failed': 'backend.issue.scanFailed',
+    'load-failed': 'batch.loadFailed',
     'config-failed': 'backend.issue.configFailed',
     'search-failed': 'backend.issue.searchFailed',
     'candidate-required': 'backend.issue.candidateRequired',
@@ -166,8 +167,9 @@ const batchMatchDescription = (job: BatchJobPreview) => {
     case 'ignored':
       return t('batch.ignoredDescription')
     case 'scan-failed':
+      return t('batch.loadFailed')
     case 'failed':
-      return t('batch.scanFailedDescription')
+      return t('batch.status.failed')
     case 'needs-candidate':
       return job.candidates.length
         ? t('batch.resultCount', { count: job.candidates.length })

@@ -20,7 +20,7 @@ const statusInfo = (status: BatchJobStatus) => {
     'needs-candidate': { label: t('batch.status.needsCandidate'), severity: 'warn' },
     'local-metadata': { label: t('batch.status.localMetadata'), severity: 'info' },
     'track-mismatch': { label: t('batch.status.trackMismatch'), severity: 'danger' },
-    'scan-failed': { label: t('batch.status.scanFailed'), severity: 'danger' },
+    'scan-failed': { label: t('batch.loadFailed'), severity: 'danger' },
     ignored: { label: t('batch.status.ignored'), severity: 'secondary' },
     queued: { label: t('batch.status.queued'), severity: 'secondary' },
     running: { label: t('batch.status.running'), severity: 'info' },
@@ -122,7 +122,6 @@ export const BatchJobTable = defineComponent({
         return (
           <Select
             size="small"
-            overlayClass="text-sm"
             modelValue={job.selectedCandidateId}
             {...{
               'onUpdate:modelValue': (value: unknown) => emit('resolve', job.id, String(value)),
@@ -178,7 +177,7 @@ export const BatchJobTable = defineComponent({
         <Column
           header={t('batch.columns.match')}
           headerClass={['compact-table-cell', 'w-[34%]'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-[34%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[34%]', 'py-1!'].join(' ')}
           v-slots={{ body: bodySlot(matchCell) }}
         />
         <Column

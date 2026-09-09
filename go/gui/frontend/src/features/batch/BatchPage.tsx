@@ -121,6 +121,7 @@ export const BatchPage = defineComponent({
                             {t('batch.depth')}
                           </div>
                           <InputNumber
+                            useGrouping={false}
                             class="w-28"
                             modelValue={depth.value}
                             {...{
@@ -157,7 +158,7 @@ export const BatchPage = defineComponent({
                             'border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary',
                           ]}
                         />
-                        <div class="text-base font-bold">{t('batch.scanning')}</div>
+                        <div class="text-base font-medium">{t('batch.scanning')}</div>
                       </div>
                     ) : (
                       <BatchJobTable
@@ -182,7 +183,7 @@ export const BatchPage = defineComponent({
                           scope="global"
                           v-slots={{
                             count: () => (
-                              <div class="inline font-bold text-color">
+                              <div class="inline text-color">
                                 {currentPreview.jobs.length}
                               </div>
                             ),
@@ -191,7 +192,7 @@ export const BatchPage = defineComponent({
                       </div>
                       <div class="flex min-w-0 items-center">
                         <Button
-                          label={t('batch.start')}
+                          label={t('common.start')}
                           disabled={!canRun.value}
                           onClick={() => batch.run(false)}
                         >
