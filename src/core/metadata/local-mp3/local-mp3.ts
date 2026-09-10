@@ -4,7 +4,6 @@ import { readdir } from 'fs/promises'
 import id3 from 'node-id3'
 
 import { resolvePath } from '../../exists.js'
-import { defaultsToEmptyString } from '../../proxy.js'
 import { MetadataSource } from '../metadata-source.js'
 import { Metadata } from '../metadata.js'
 
@@ -37,22 +36,22 @@ export class LocalMp3 extends MetadataSource {
     const metadatas = discs.flatMap((discFiles, index) => {
       const discNumber = (index + 1).toString()
       return discFiles.map(file => {
-        const tags = defaultsToEmptyString(id3.read(file))
+        const tags = id3.read(file)
         const { separator } = this.config
         const metadata: Metadata = {
-          title: tags.title,
-          artists: tags.artist.split(separator),
+          title: tags.title ?? '',
+          artists: (tags.artist ?? '').split(separator),
           discNumber,
-          trackNumber: tags.trackNumber,
+          trackNumber: tags.trackNumber ?? '',
           composers: tags.composer ? tags.composer.split(separator) : undefined,
           comments: tags.comment ? tags.comment.text : undefined,
           lyricists: tags.textWriter ? tags.textWriter.split(separator) : undefined,
-          album: tags.album,
+          album: tags.album ?? '',
           albumOrder: tags.albumOrder || '',
           albumArtists: tags.performerInfo ? tags.performerInfo.split(separator) : undefined,
           genres: tags.genre ? tags.genre.split(separator) : undefined,
           year: tags.year || undefined,
-          coverImage: (tags.image && tags.image.imageBuffer) || cover || undefined,
+          coverImage: tags.image?.imageBuffer || cover,
         }
         if (this.config.lyric && tags.unsynchronisedLyrics) {
           metadata.lyric = tags.unsynchronisedLyrics.text

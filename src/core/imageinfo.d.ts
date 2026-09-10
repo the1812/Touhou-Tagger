@@ -1,10 +1,10 @@
 declare module 'imageinfo' {
   function imageinfo(data: Buffer): {
-    type: string
-    format: string
-    mimeType: string
-    width: number
-    height: number
+    readonly type: string
+    readonly format: string
+    readonly mimeType: string
+    readonly width: number
+    readonly height: number
   }
   export = imageinfo
 }

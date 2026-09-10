@@ -5,7 +5,7 @@ import { getDefaultAlbumName } from './default-album-name.js'
 import { getCliOptions } from './options.js'
 
 export const runTagger = async () => {
-  let spinner: Ora
+  let spinner: Ora | undefined
   const cliOptions = getCliOptions()
   const start = async (album: string) => {
     const { default: ora } = await import('ora')

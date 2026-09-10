@@ -45,15 +45,15 @@ const createBatchRun = async (config: {
     try {
       const album = await getDefaultAlbumName(albums[index].name)
       const spinner = ora(oraOptions).start()
-      spinner.prefixText = `[${album}] (${index + 1}/${albumCount})`
-      log(`start processing album #${index + 1}`)
+      spinner.prefixText = `[${album}] (${String(index + 1)}/${String(albumCount)})`
+      log(`start processing album #${String(index + 1)}`)
       await onProcess({
         currentAlbum: album,
         workingDir: albums[index].path,
         spinner,
         index,
       })
-      log(`processed album #${index + 1}`)
+      log(`processed album #${String(index + 1)}`)
     } catch (error) {
       log('batch error:', (error as Error).message)
       continue

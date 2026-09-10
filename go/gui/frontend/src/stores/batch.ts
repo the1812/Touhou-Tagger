@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, unref } from 'vue'
 
 import {
   getApi,
@@ -104,7 +104,7 @@ export const useBatchStore = defineStore('batch', () => {
       const updated = await request(api, batchId)
       if (
         requestVersion !== contextVersion ||
-        preview.value?.batchId !== batchId ||
+        unref(preview)?.batchId !== batchId ||
         resolveTokens.get(jobId) !== resolveToken
       ) {
         return
@@ -115,7 +115,7 @@ export const useBatchStore = defineStore('batch', () => {
       }
     } catch (error) {
       if (requestVersion === contextVersion && resolveTokens.get(jobId) === resolveToken) {
-        const job = preview.value?.jobs.find(item => item.id === jobId)
+        const job = unref(preview)?.jobs.find(item => item.id === jobId)
         if (job) {
           const message = error instanceof Error ? error.message : String(error)
           job.status = 'scan-failed'
@@ -197,7 +197,7 @@ export const useBatchStore = defineStore('batch', () => {
       preview.value = nextPreview
       result.value = undefined
       scanning.value = false
-      loadJobs(nextPreview.jobs.filter(job => job.status === 'loading').map(job => job.id))
+      void loadJobs(nextPreview.jobs.filter(job => job.status === 'loading').map(job => job.id))
     } catch (error) {
       if (requestVersion !== contextVersion) {
         return
@@ -276,7 +276,7 @@ export const useBatchStore = defineStore('batch', () => {
       result.value = { ...nextResult, jobs: preview.value?.jobs ?? [] }
     }
     if (nextResult.failed > 0) {
-      const failedJobs = result.value?.jobs.filter(job => job.status === 'failed') ?? []
+      const failedJobs = result.value.jobs.filter(job => job.status === 'failed')
       notifications.error(
         t('notifications.batchCompletedWithFailures'),
         t('notifications.batchCompletedWithFailuresDetail', { count: nextResult.failed }),

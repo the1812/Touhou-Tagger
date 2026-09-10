@@ -22,7 +22,7 @@ export const useSettingsStore = defineStore('settings', () => {
   let loadPromise: Promise<void> | undefined
   let savePromise: Promise<boolean> | undefined
   let saveTimer: ReturnType<typeof setTimeout> | undefined
-  let saveQueued = false
+  const saveQueued = ref(false)
 
   const dirty = computed(() => !settingsEqual(saved.value, draft.value))
   const errors = computed<Record<string, string>>(() => {
@@ -105,13 +105,13 @@ export const useSettingsStore = defineStore('settings', () => {
       return Promise.resolve(!dirty.value)
     }
     if (savePromise) {
-      saveQueued = true
+      saveQueued.value = true
       return savePromise
     }
 
     const snapshot = cloneSettings(draft.value)
     saving.value = true
-    saveQueued = false
+    saveQueued.value = false
     savePromise = (async () => {
       try {
         const api = await getApi()
@@ -127,11 +127,11 @@ export const useSettingsStore = defineStore('settings', () => {
       } finally {
         saving.value = false
         savePromise = undefined
-        if (saveQueued) {
-          saveQueued = false
+        if (saveQueued.value) {
+          saveQueued.value = false
           saveTimer = setTimeout(() => {
             saveTimer = undefined
-            save()
+            void save()
           }, autoSaveDelay)
         }
       }
@@ -145,12 +145,12 @@ export const useSettingsStore = defineStore('settings', () => {
       return
     }
     if (saving.value) {
-      saveQueued = true
+      saveQueued.value = true
       return
     }
     saveTimer = setTimeout(() => {
       saveTimer = undefined
-      save()
+      void save()
     }, autoSaveDelay)
   }
 
@@ -187,7 +187,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const discard = () => {
     clearSaveTimer()
-    saveQueued = false
+    saveQueued.value = false
     if (saved.value) {
       draft.value = cloneSettings(saved.value)
     }

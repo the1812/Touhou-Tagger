@@ -4,10 +4,10 @@ import { simplifyMetadataInfo } from '../core/metadata/normalize/normalize.js'
 import { CliCommandBase } from './command-base.js'
 import { getMetadataConfig } from './options.js'
 
-const handleBufferStringify = (key: string, value: any) => {
-  const isBuffer = typeof value === 'object' && value !== null && value.type === 'Buffer'
-  if (isBuffer) {
-    return `<Buffer length=${value.data?.length ?? 0}>`
+const handleBufferStringify = (key: string, value: unknown) => {
+  const buffer = value as { type?: string; data?: number[] } | null
+  if (buffer?.type === 'Buffer') {
+    return `<Buffer length=${String(buffer.data?.length ?? 0)}>`
   }
   return value
 }
@@ -15,24 +15,21 @@ const dumpCover = async (metadatas: Metadata[]) => {
   const { writeFileSync } = await import('fs')
   const { resolve } = await import('path')
   const metadata = metadatas.find(m => m.coverImage)
-  if (!metadata) {
+  const cover = metadata?.coverImage
+  if (!cover) {
     return
   }
   const { default: imageType } = await import('image-type')
-  const type = imageType(metadata.coverImage)
+  const type = imageType(cover)
   if (!type) {
     return
   }
   const coverFilename = resolve(process.cwd(), `cover.${type.ext}`)
   log('cover file', coverFilename)
-  writeFileSync(coverFilename, metadata.coverImage)
+  writeFileSync(coverFilename, cover)
 }
 
 export class CliDumper extends CliCommandBase {
-  constructor() {
-    super()
-  }
-
   async run() {
     await this.loadAlbumOptions()
     const { glob } = await import('glob')
@@ -51,7 +48,7 @@ export class CliDumper extends CliCommandBase {
       console.log('没有找到能够提取的音乐文件')
       return
     }
-    const results: { metadata: Metadata; rawTag: any }[] = await Promise.all(
+    const results: { metadata: Metadata; rawTag: unknown }[] = await Promise.all(
       files.map(async file => {
         const type = extname(file)
         const reader = readerMappings[type]

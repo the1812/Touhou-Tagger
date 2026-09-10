@@ -7,24 +7,22 @@ import type { MetadataConfig } from '../core-config.js'
 const getQuality = (size: number) => Math.round(92.647 - 1.683e-6 * size)
 const CompressedData = Symbol('CompressedData')
 
-let imagePool: Promise<ImagePoolType>
-const initImagePool = async () => {
-  if (imagePool) {
-    return
-  }
-  imagePool = (async () => {
+let imagePool: Promise<ImagePoolType> | undefined
+const getImagePool = () => {
+  imagePool ??= (async () => {
     const { ImagePool } = await import('@squoosh/lib')
     return new ImagePool(cpus().length)
   })()
+  return imagePool
 }
 
 export type CompressedBuffer = Buffer & {
-  [CompressedData]: Promise<Buffer>
+  [CompressedData]?: Promise<Buffer>
 }
 export const compressImage = async (buffer: Buffer | CompressedBuffer, resolution?: number) => {
-  await initImagePool()
-  if (!buffer[CompressedData]) {
-    buffer[CompressedData] = (async () => {
+  const cached = buffer as CompressedBuffer
+  if (!cached[CompressedData]) {
+    cached[CompressedData] = (async () => {
       const { default: imageInfo } = await import('imageinfo')
       const info = imageInfo(buffer)
       const resize = (() => {
@@ -43,7 +41,7 @@ export const compressImage = async (buffer: Buffer | CompressedBuffer, resolutio
         }
         return undefined
       })()
-      const pool = await imagePool
+      const pool = await getImagePool()
       const image = pool.ingestImage(buffer)
 
       await image.preprocess(
@@ -62,7 +60,7 @@ export const compressImage = async (buffer: Buffer | CompressedBuffer, resolutio
       return resultBuffer
     })()
   }
-  return (buffer as CompressedBuffer)[CompressedData]
+  return cached[CompressedData]
 }
 export const compressImageByConfig = async (
   buffer: Buffer | CompressedBuffer,

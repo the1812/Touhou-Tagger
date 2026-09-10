@@ -83,7 +83,7 @@ export const SettingsPage = defineComponent({
         acceptLabel: t('settings.reset.accept'),
         rejectLabel: t('common.cancel'),
         rejectProps: { severity: 'secondary', text: true },
-        accept: settingsStore.reset,
+        accept: () => void settingsStore.reset(),
       })
     }
 

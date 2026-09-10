@@ -5,7 +5,7 @@ import { Ora } from 'ora'
 
 import { MetadataConfig } from '../core/core-config.js'
 import { log } from '../core/debug.js'
-import { Metadata, MetadataSource } from '../core/index.js'
+import { Metadata } from '../core/index.js'
 import { readline } from '../core/readline.js'
 import { setAlbumOptions } from './album-options.js'
 import { CliCommandBase } from './command-base.js'
@@ -29,9 +29,8 @@ const leadingNumberSort = (a: string, b: string) => {
   }
   return intCompare
 }
-const TimeoutError = Symbol('timeout')
+const TimeoutError = new Error('timeout')
 export class CliTagger extends CliCommandBase {
-  metadataSource: MetadataSource
   metadataConfig: MetadataConfig
   constructor(public spinner: Ora) {
     super()
@@ -69,9 +68,11 @@ export class CliTagger extends CliCommandBase {
   async downloadMetadata(album: string, cover?: Buffer) {
     const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
+    if (!metadataSource) {
+      throw new Error(`未找到与'${this.options.source}'相关联的数据源.`)
+    }
     metadataSource.config = this.metadataConfig
-    this.metadataSource = metadataSource
-    return this.metadataSource.getMetadata(album, cover)
+    return metadataSource.getMetadata(album, cover)
   }
   async createFiles(metadata: Metadata[]) {
     const { dirname } = await import('path')
@@ -123,8 +124,9 @@ export class CliTagger extends CliCommandBase {
       const writer = writerMappings[type]
       writer.config = this.metadataConfig
       await writer.write(metadata[i], file)
-      if (this.options.lyric && this.options['lyric-output'] === 'lrc' && metadata[i].lyric) {
-        await writeFile(`${file.substring(0, file.lastIndexOf(type))}.lrc`, metadata[i].lyric)
+      const lyric = metadata[i].lyric
+      if (this.options.lyric && this.options['lyric-output'] === 'lrc' && lyric) {
+        await writeFile(`${file.substring(0, file.lastIndexOf(type))}.lrc`, lyric)
       }
     }
     // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
@@ -163,7 +165,7 @@ export class CliTagger extends CliCommandBase {
         retryCount += 1
         const reason = (() => {
           if (error === TimeoutError) {
-            return `操作超时(${this.options.timeout}秒)`
+            return `操作超时(${String(this.options.timeout)}秒)`
           }
           if (!error) {
             return '发生未知错误'
@@ -175,7 +177,7 @@ export class CliTagger extends CliCommandBase {
         })()
         log('\nretry get error', retryCount, reason)
         if (error === TimeoutError && retryCount < this.options.retry) {
-          this.spinner.fail(`${reason}, 进行第${retryCount}次重试...`)
+          this.spinner.fail(`${reason}, 进行第${String(retryCount)}次重试...`)
         } else {
           throw new Error(reason)
         }
@@ -216,7 +218,7 @@ export class CliTagger extends CliCommandBase {
     }
     metadataSource.config = this.metadataConfig
     log('searching')
-    const handleError = (error: any) => {
+    const handleError = (error: unknown) => {
       if (error instanceof Error) {
         this.spinner.fail(`错误: ${error.message}`)
       } else {
@@ -235,7 +237,7 @@ export class CliTagger extends CliCommandBase {
         return remoteResults[0]
       }
       return remoteResults
-    }).catch(error => {
+    }).catch((error: unknown) => {
       handleError(error)
       return [] as string[]
     })
@@ -246,7 +248,7 @@ export class CliTagger extends CliCommandBase {
       this.spinner.fail('未找到匹配专辑或有多个搜索结果')
     } else if (searchResult.length > 0) {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
-      console.log(searchResult.map((it, index) => `${index + 1}\t${it}`).join('\n'))
+      console.log(searchResult.map((it, index) => `${String(index + 1)}\t${it}`).join('\n'))
       const answer = await readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ')
       const index = parseInt(answer)
       if (isNaN(index) || index < 1 || index > searchResult.length) {

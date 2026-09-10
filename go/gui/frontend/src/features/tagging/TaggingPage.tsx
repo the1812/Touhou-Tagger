@@ -37,7 +37,7 @@ export const TaggingPage = defineComponent({
         if (!summary.value?.directory) {
           return false
         }
-        workspace.scan()
+        void workspace.scan()
         return true
       },
       focusSearch: () => {
@@ -115,7 +115,7 @@ export const TaggingPage = defineComponent({
                               severity="secondary"
                               text
                               rounded
-                              onClick={() => workspace.reveal()}
+                              onClick={() => void workspace.reveal()}
                             >
                               {{ icon: () => <ExternalLink /> }}
                             </Button>
@@ -125,7 +125,7 @@ export const TaggingPage = defineComponent({
                               text
                               rounded
                               disabled={isBusy.value}
-                              onClick={() => workspace.scan()}
+                              onClick={() => void workspace.scan()}
                             >
                               {{
                                 icon: () => (
@@ -142,7 +142,7 @@ export const TaggingPage = defineComponent({
                             severity="secondary"
                             outlined
                             disabled={isBusy.value}
-                            onClick={() => workspace.selectDirectory()}
+                            onClick={() => void workspace.selectDirectory()}
                           >
                             {{ icon: () => <FolderOpen /> }}
                           </Button>

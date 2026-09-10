@@ -34,11 +34,17 @@
     "Vorbis",
     "wikitable"
   ],
-  "oxc.fmt.configPath": ".oxfmtrc.jsonc",
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "oxc.typeAware": true,
+  "[typescriptreact]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

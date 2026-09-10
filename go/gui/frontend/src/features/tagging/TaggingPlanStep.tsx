@@ -5,7 +5,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { defineComponent, ref } from 'vue'
 import { Translation } from 'vue-i18n'
 
-import type { PlanItemPreview } from '../../api'
+import type { TrackMetadataPatch, AlbumMetadataPatch, PlanItemPreview } from '../../api'
 import { t } from '../../i18n'
 import { Message } from '../../shared/Message'
 import { PageActionBar } from '../../shared/PageActionBar'
@@ -139,7 +139,7 @@ export const TaggingPlanStep = defineComponent({
                   severity="secondary"
                   text
                   disabled={isBusy.value}
-                  onClick={() => workspace.backToSearch()}
+                  onClick={() => void workspace.backToSearch()}
                 />
               )}
               <div
@@ -154,7 +154,7 @@ export const TaggingPlanStep = defineComponent({
                 <Button
                   label={t('common.start')}
                   disabled={!canCommit.value}
-                  onClick={() => workspace.commit()}
+                  onClick={() => void workspace.commit()}
                 >
                   {{ icon: () => <Play /> }}
                 </Button>
@@ -170,7 +170,7 @@ export const TaggingPlanStep = defineComponent({
               },
             }}
             item={selectedTrack.value}
-            onSave={track => workspace.updateTrack(track)}
+            onSave={(track: TrackMetadataPatch) => workspace.updateTrack(track)}
           />
           <AlbumMetadataDialog
             visible={albumDialogVisible.value}
@@ -180,7 +180,7 @@ export const TaggingPlanStep = defineComponent({
                 albumDialogVisible.value = value
               },
             }}
-            onSave={album => workspace.updateAlbum(album)}
+            onSave={(album: AlbumMetadataPatch) => workspace.updateAlbum(album)}
           />
         </>
       )

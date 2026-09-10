@@ -21,10 +21,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
       - run: pnpm run build
       - run: pnpm run test
-      - run: pnpm run lint
-      - run: pnpm run format:check
       - name: Verify npm package boundaries
         shell: pwsh
         run: |
@@ -80,27 +79,19 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: go/gui/frontend/pnpm-lock.yaml
-      - uses: actions/setup-go@v6.5.0
-        with:
-          go-version-file: go/go.mod
-          cache-dependency-path: go/go.sum
-      - name: Install Wails CLI
-        shell: pwsh
-        run: |
-          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.117
-          if ($LASTEXITCODE -ne 0) {
-            throw 'Wails CLI installation failed.'
-          }
-          Join-Path (go env GOPATH) bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Install frontend dependencies
         working-directory: go/gui/frontend
         run: pnpm install --frozen-lockfile
       - name: Check frontend formatting
         working-directory: go/gui/frontend
         run: pnpm run format:check
+      - uses: actions/setup-go@v6.5.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
       - name: Build Windows amd64 GUI
         working-directory: go/gui
-        run: wails3 build GOOS=windows GOARCH=amd64
+        run: go tool wails3 task build
       - name: Verify executable
         shell: pwsh
         run: |

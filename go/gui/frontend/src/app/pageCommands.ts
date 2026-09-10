@@ -1,9 +1,9 @@
 import { inject, type InjectionKey, onBeforeUnmount, onMounted, provide } from 'vue'
 
 export interface PageCommands {
-  openDirectory?: () => boolean | void | Promise<void>
-  refresh?: () => boolean | void | Promise<void>
-  focusSearch?: () => boolean | void
+  openDirectory?: (() => boolean) | (() => void | Promise<void>)
+  refresh?: (() => boolean) | (() => void | Promise<void>)
+  focusSearch?: (() => boolean) | (() => void)
 }
 
 interface PageCommandRegistry {

@@ -6,7 +6,7 @@ import { log } from '../../../debug.js'
 import { getLyricParser, LyricParser } from './lyric-parser.js'
 
 let lyricParser: LyricParser
-const downloadMetadataLyrics = async () => {
+const downloadMetadataLyrics = () => {
   const lyric = lyricParser.readLyric()
   const lyricLanguage = lyricParser.findLanguage()
   log(lyricLanguage)
@@ -19,7 +19,7 @@ const downloadMetadataLyrics = async () => {
 const downloadLrcLyrics = async (title: string, index: number, config: MetadataConfig) => {
   const lyricLanguage = lyricParser.findLanguage()
   const languageSuffix = lyricParser.getLrcFileSuffix()
-  const indexString = index === 0 ? '' : `.${index + 1}`
+  const indexString = index === 0 ? '' : `.${String(index + 1)}`
   const url = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(
     title,
   )}${indexString}${languageSuffix}.lrc`
@@ -94,10 +94,11 @@ export const downloadLyrics = async (
   lyricParser = getLyricParser(lyricTable, config.lyric)
   switch (config.lyric.output) {
     case 'lrc': {
-      const originalTitle = document
-        .querySelector('.firstHeading')
-        .textContent.replace(/^\s*歌词\s*[:：]\s*/, '')
-        .trim()
+      const originalTitle =
+        document
+          .querySelector('.firstHeading')
+          ?.textContent.replace(/^\s*歌词\s*[:：]\s*/, '')
+          .trim() ?? title
       return downloadLrcLyrics(originalTitle, tables.indexOf(lyricTable), config)
     }
     case 'metadata': // fallthrough

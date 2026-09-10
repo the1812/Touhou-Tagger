@@ -27,12 +27,10 @@ createApp(App)
       select: {
         overlay: ({ props }: SelectPassThroughMethodOptions<unknown>) => ({
           style: {
-            fontSize:
-              props.size === 'small'
-                ? 'var(--p-select-sm-font-size)'
-                : props.size === 'large'
-                  ? 'var(--p-select-lg-font-size)'
-                  : undefined,
+            fontSize: {
+              small: 'var(--p-select-sm-font-size)',
+              large: 'var(--p-select-lg-font-size)',
+            }[props.size as 'small' | 'large'],
           },
         }),
       },

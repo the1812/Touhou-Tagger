@@ -53,7 +53,7 @@ export const BatchPage = defineComponent({
         if (!directory.value) {
           return false
         }
-        batch.scan()
+        void batch.scan()
         return true
       },
     })
@@ -91,7 +91,7 @@ export const BatchPage = defineComponent({
                         severity="secondary"
                         text
                         rounded
-                        onClick={() => batch.reveal()}
+                        onClick={() => void batch.reveal()}
                       >
                         {{ icon: () => <ExternalLink /> }}
                       </Button>
@@ -102,7 +102,7 @@ export const BatchPage = defineComponent({
                       outlined
                       loading={selecting.value}
                       disabled={controlsDisabled.value}
-                      onClick={() => batch.selectDirectory()}
+                      onClick={() => void batch.selectDirectory()}
                     >
                       {{ icon: () => <FolderOpen /> }}
                     </Button>
@@ -141,7 +141,7 @@ export const BatchPage = defineComponent({
                           severity="secondary"
                           outlined
                           disabled={controlsDisabled.value}
-                          onClick={() => batch.scan()}
+                          onClick={() => void batch.scan()}
                         >
                           {{
                             icon: () => <RefreshCw class={{ 'animate-spin': scanning.value }} />,
@@ -183,9 +183,7 @@ export const BatchPage = defineComponent({
                           scope="global"
                           v-slots={{
                             count: () => (
-                              <div class="inline text-color">
-                                {currentPreview.jobs.length}
-                              </div>
+                              <div class="inline text-color">{currentPreview.jobs.length}</div>
                             ),
                           }}
                         />
@@ -194,7 +192,7 @@ export const BatchPage = defineComponent({
                         <Button
                           label={t('common.start')}
                           disabled={!canRun.value}
-                          onClick={() => batch.run(false)}
+                          onClick={() => void batch.run(false)}
                         >
                           {{ icon: () => <Play /> }}
                         </Button>

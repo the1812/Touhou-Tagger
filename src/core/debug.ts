@@ -2,8 +2,8 @@ let debug = false
 export const setDebug = (value: boolean) => {
   debug = value
 }
-const invoke = (methodName: string) => {
-  return (...args: any[]) => {
+const invoke = (methodName: 'log' | 'warn' | 'error') => {
+  return (...args: unknown[]) => {
     if (!debug) {
       return
     }

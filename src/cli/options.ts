@@ -6,7 +6,7 @@ import { loadConfigFile } from './config-file.js'
 
 export type CliOptions = ReturnType<typeof readCliOptionsFromFile>
 
-let cliOptions: CliOptions
+let cliOptions: CliOptions | undefined
 
 export const getLyricConfig = (options: CliOptions): LyricConfig => {
   return {

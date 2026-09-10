@@ -26,16 +26,18 @@
   "main": "dist/core/index.js",
   "scripts": {
     "start": "node dist/cli/index.js",
-    "test": "vitest run",
+    "test": "vp test run",
     "watch": "tsc --watch --sourceMap",
-    "lint": "oxlint --type-aware src test vitest.config.ts",
-    "lint:fix": "oxlint --type-aware --fix src test vitest.config.ts",
-    "format": "oxfmt .",
-    "format:check": "oxfmt . --check",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
     "build": "tsc",
     "build:go": "pnpm run build:go-cli && pnpm run build:go-gui",
     "build:go-cli": "cd go && go build -trimpath -o ./bin/thtag.exe ./cmd/thtag",
-    "build:go-gui": "cd go/gui && go tool wails3 task build"
+    "build:go-gui": "cd go/gui && go tool wails3 task build",
+    "prepare": "vp config --no-agent",
+    "check": "vp check"
   },
   "dependencies": {
     "@squoosh/lib": "0.5.3",
@@ -51,13 +53,13 @@
     "yargs": "17.5.1"
   },
   "devDependencies": {
+    "@the1812/oxc-config": "1.0.1",
     "@types/node": "25.9.3",
     "@types/yargs": "17.0.12",
-    "oxfmt": "0.54.0",
-    "oxlint": "1.69.0",
-    "oxlint-tsgolint": "0.23.0",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">= 22"

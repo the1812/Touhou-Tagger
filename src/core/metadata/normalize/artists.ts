@@ -12,10 +12,11 @@ export const expandArtistsPlugin: MetadataNormalizePlugin = () => {
 /** artists 和 composers 相同时, 省略 artists */
 export const simplifyArtistsPlugin: MetadataNormalizePlugin = () => {
   return ({ metadata }) => {
+    const { composers } = metadata
     if (
       Array.isArray(metadata.artists) &&
-      Array.isArray(metadata.composers) &&
-      metadata.artists.every((item, index) => item === metadata.composers[index])
+      Array.isArray(composers) &&
+      metadata.artists.every((item, index) => item === composers[index])
     ) {
       delete metadata.artists
     }

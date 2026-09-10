@@ -14,7 +14,7 @@ const internalNormalize = async (params: {
   cover?: Buffer
 }) => {
   const { plugins, metadatas, cover } = params
-  if (!metadatas || metadatas.length === 0) {
+  if (metadatas.length === 0) {
     return metadatas
   }
   const pluginInstances = plugins.map(p => p({ cover }))

@@ -349,7 +349,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     if (completion.kind !== 'workspace') {
       return
     }
-    const nextResult = completion as OperationResult
+    const nextResult = completion
     if (nextResult.cancelled) {
       result.value = undefined
       phase.value = plan.value ? 'ready' : 'failed'

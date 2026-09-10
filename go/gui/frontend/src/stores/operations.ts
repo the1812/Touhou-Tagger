@@ -28,7 +28,7 @@ export const useOperationsStore = defineStore('operations', () => {
   }
 
   const release = (operationId: string) => {
-    const operation = Object.values(active.value).find(item => item?.operationId === operationId)
+    const operation = Object.values(active.value).find(item => item.operationId === operationId)
     if (operation) {
       const next = { ...active.value }
       delete next[operation.kind]

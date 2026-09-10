@@ -69,7 +69,7 @@ export const TaggingSearchStep = defineComponent({
               onKeydown={(event: KeyboardEvent) => {
                 if (event.key === 'Enter' && !event.isComposing) {
                   event.preventDefault()
-                  workspace.search()
+                  void workspace.search()
                 }
               }}
             >
@@ -93,19 +93,20 @@ export const TaggingSearchStep = defineComponent({
                 type="button"
                 loading={phase.value === 'searching'}
                 disabled={!canSearch.value}
-                onClick={() => workspace.search()}
+                onClick={() => void workspace.search()}
               >
                 {{ icon: () => <Search /> }}
               </Button>
             </div>
 
-            {phase.value === 'searching' ? (
+            {phase.value === 'searching' && (
               <div class="mt-4 grid gap-2">
                 {[1, 2, 3].map(index => (
                   <Skeleton key={index} height="3.25rem" />
                 ))}
               </div>
-            ) : candidates.value.length ? (
+            )}
+            {phase.value !== 'searching' && candidates.value.length > 0 && (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
                 {candidates.value.map(candidate => (
                   <div
@@ -128,7 +129,8 @@ export const TaggingSearchStep = defineComponent({
                   </div>
                 ))}
               </div>
-            ) : hasSearched.value ? (
+            )}
+            {phase.value !== 'searching' && candidates.value.length === 0 && hasSearched.value && (
               <div
                 class={[
                   'mt-4 flex flex-1 flex-col items-center justify-center gap-3 border-t py-app-section-y text-center',
@@ -138,7 +140,7 @@ export const TaggingSearchStep = defineComponent({
                 <Search class="size-[30px]" />
                 <div class="font-medium">{t('tagging.noSearchResults')}</div>
               </div>
-            ) : null}
+            )}
           </div>
 
           {candidates.value.length > 0 && (
@@ -147,7 +149,7 @@ export const TaggingSearchStep = defineComponent({
                 label={t('common.next')}
                 disabled={!canPrepare.value}
                 loading={phase.value === 'preparing'}
-                onClick={() => workspace.preparePlan()}
+                onClick={() => void workspace.preparePlan()}
               />
             </PageActionBar>
           )}

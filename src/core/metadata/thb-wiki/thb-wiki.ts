@@ -40,14 +40,14 @@ export class ThbWiki extends MetadataSource {
       this.host
     }/api.php?action=opensearch&format=json&formatversion=2&search=${encodeURIComponent(
       albumName,
-    )}&limit=${MetadataSource.MaxSearchCount}&suggest=true`
-    const response = await axios.get(url, {
+    )}&limit=${String(MetadataSource.MaxSearchCount)}&suggest=true`
+    const response = await axios.get<[string, string[]]>(url, {
       responseType: 'json',
       timeout: this.config.timeout * 1000,
     })
-    if (response.status === 200 && Array.isArray(response.data) && response.data.length > 1) {
+    if (response.status === 200 && Array.isArray(response.data)) {
       const [, names] = response.data
-      const filteredNames = (names as string[]).filter(it => !it.startsWith('歌词:'))
+      const filteredNames = names.filter(it => !it.startsWith('歌词:'))
       const [name] = filteredNames
       if (name === albumName) {
         return name
@@ -91,10 +91,7 @@ export class ThbWiki extends MetadataSource {
     const genres = genre ? genre.split('，') : []
     const year = parseInt(getTableItem('首发日期'))
     const replaceAltNames = (str: string) => {
-      if (albumArtistsAltNames.has(str)) {
-        return albumArtistsAltNames.get(str)
-      }
-      return str
+      return albumArtistsAltNames.get(str) ?? str
     }
     return {
       album,
@@ -151,9 +148,9 @@ export class ThbWiki extends MetadataSource {
       return [...data.childNodes].some(node => isNodeAnElement(node, 'br'))
     }
 
-    const label = trackInfoRow.querySelector('.label').textContent.trim()
+    const label = (trackInfoRow.querySelector('.label') as HTMLElement).textContent.trim()
     const rawData = trackInfoRow.querySelector('.text') as HTMLElement
-    const actions: { [infoName: string]: (data: HTMLElement) => TrackParseInfo } = {
+    const actions: Partial<Record<string, (data: HTMLElement) => TrackParseInfo>> = {
       编曲: defaultInfoParser('arrangers'),
       再编曲: defaultInfoParser('remix'),
       作曲: defaultInfoParser('composers'),
@@ -176,9 +173,9 @@ export class ThbWiki extends MetadataSource {
           const artists = anchors.map(a => {
             const isRealArtist =
               a.previousSibling &&
-              a.previousSibling.textContent.trim() === '（' &&
+              a.previousSibling.textContent?.trim() === '（' &&
               a.nextSibling &&
-              a.nextSibling.textContent.trim() === '）'
+              a.nextSibling.textContent?.trim() === '）'
             if (isRealArtist) {
               return a.textContent
             }
@@ -203,7 +200,7 @@ export class ThbWiki extends MetadataSource {
         const rows = slices
           .map(it => {
             const [instrumentOrPerformer, performer] = (it as [ChildNode, HTMLAnchorElement]).map(
-              row => row.textContent,
+              row => row.textContent ?? '',
             )
             const result = performer || instrumentOrPerformer
             const sequenceIndex = result.indexOf('：')
@@ -251,7 +248,7 @@ export class ThbWiki extends MetadataSource {
     }
     return action(rawData)
   }
-  private rowDataNormalize(rowData: Partial<Metadata>, removePatterns: RegExp[] = []) {
+  private rowDataNormalize<T extends Partial<Metadata>>(rowData: T, removePatterns: RegExp[] = []) {
     const normalizeAction = (str: string) => {
       if (altNames.has(str)) {
         return altNames.get(str)
@@ -272,10 +269,10 @@ export class ThbWiki extends MetadataSource {
     }
     for (const [key, value] of Object.entries(rowData)) {
       if (typeof value === 'string') {
-        rowData[key] = normalizeAction(value)
+        Object.assign(rowData, { [key]: normalizeAction(value) })
       }
       if (Array.isArray(value)) {
-        rowData[key] = [...new Set(value.map(v => normalizeAction(v)))]
+        Object.assign(rowData, { [key]: [...new Set(value.map(v => normalizeAction(v)))] })
       }
     }
     return rowData
@@ -283,11 +280,11 @@ export class ThbWiki extends MetadataSource {
   private async parseRow(trackNumberElement: Element) {
     const trackNumber = parseInt(trackNumberElement.textContent).toString()
     const trackNumberRow = trackNumberElement.parentElement as HTMLTableRowElement
-    const title = trackNumberRow.querySelector('.title').textContent.trim()
+    const title = (trackNumberRow.querySelector('.title') as HTMLElement).textContent.trim()
     const { lyricLanguage, lyric } = await (async () => {
-      const lyricLink = trackNumberRow.querySelector(
+      const lyricLink = trackNumberRow.querySelector<HTMLAnchorElement>(
         ':not(.new) > a:not(.external)',
-      ) as HTMLAnchorElement
+      )
       if (this.config.lyric && lyricLink) {
         const { downloadLyrics } = await import('./lyrics/thb-wiki-lyrics.js')
         return downloadLyrics(
@@ -317,7 +314,7 @@ export class ThbWiki extends MetadataSource {
       'instruments',
       'voices',
     ].flatMap(name => infos.filter(it => it.name === name).flatMap(it => it.result as string[]))
-    const [composers] = infos.filter(it => it.name === 'composers').map(it => it.result as string[])
+    const composers = infos.find(it => it.name === 'composers')?.result as string[] | undefined
     // log('artists:', artists)
     if (arrangers.length === 0 && composers) {
       arrangers.push(...composers)
@@ -338,7 +335,7 @@ export class ThbWiki extends MetadataSource {
     const rowData = {
       ...this.rowDataNormalize(artistsRowData, [/（.+）$/]),
       ...this.rowDataNormalize(otherRowData),
-    } as Metadata
+    }
     log(rowData)
     return rowData
   }
@@ -347,12 +344,12 @@ export class ThbWiki extends MetadataSource {
     const url = `https://${this.host}/${encodeURIComponent(albumName)}`
     const response = await axios.get(url, { timeout: this.config.timeout * 1000 })
     const { document } = parseHTML(response.data).window
-    const infoTable = document.querySelector('.doujininfo') as HTMLTableElement
+    const infoTable = document.querySelector<HTMLTableElement>('.doujininfo')
     if (!infoTable) {
       throw new Error('页面不是同人专辑词条')
     }
     const { album, albumOrder, albumArtists, genres, year } = this.getAlbumData(infoTable)
-    const coverImageElement = document.querySelector('.cover-artwork img') as HTMLImageElement
+    const coverImageElement = document.querySelector<HTMLImageElement>('.cover-artwork img')
     const coverImage = await (async () => {
       if (cover) {
         return cover

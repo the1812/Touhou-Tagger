@@ -17,7 +17,7 @@ export const CoverPreview = defineComponent({
   setup(props) {
     const dimensions = computed(() =>
       props.cover.width && props.cover.height
-        ? `${props.cover.width} × ${props.cover.height}`
+        ? `${String(props.cover.width)} × ${String(props.cover.height)}`
         : t('tagging.cover.unknownDimensions'),
     )
     const fileSize = computed(() => {
@@ -25,7 +25,7 @@ export const CoverPreview = defineComponent({
         return t('tagging.cover.unknownSize')
       }
       if (props.cover.byteSize < 1024 * 1024) {
-        return `${Math.round(props.cover.byteSize / 1024)} KB`
+        return `${String(Math.round(props.cover.byteSize / 1024))} KB`
       }
       return `${(props.cover.byteSize / 1024 / 1024).toFixed(1)} MB`
     })

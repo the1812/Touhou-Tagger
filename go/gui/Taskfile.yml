@@ -7,16 +7,6 @@ vars:
   GOARCH: '{{.GOARCH | default "amd64"}}'
 
 tasks:
-  install:frontend:
-    dir: frontend
-    sources:
-      - package.json
-      - pnpm-lock.yaml
-    generates:
-      - node_modules/**/*
-    cmds:
-      - pnpm install --frozen-lockfile
-
   generate:bindings:
     sources:
       - "*.go"
@@ -46,7 +36,6 @@ tasks:
 
   build:frontend:
     deps:
-      - install:frontend
       - generate:bindings
     dir: frontend
     cmds:
@@ -69,8 +58,6 @@ tasks:
       GOARCH: "{{.GOARCH}}"
 
   dev:frontend:
-    deps:
-      - install:frontend
     dir: frontend
     cmds:
       - pnpm run dev -- --port {{.VITE_PORT}} --strictPort

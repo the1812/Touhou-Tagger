@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises'
 
 import axios from 'axios'
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vite-plus/test'
 
 import type { LyricConfig, Metadata } from '../src/core/index.js'
 import { downloadLyrics } from '../src/core/metadata/thb-wiki/lyrics/thb-wiki-lyrics.js'
@@ -62,7 +62,7 @@ describe('THBWiki album contracts', () => {
       const albumUrl = `https://fixture.invalid/${encodeURIComponent(name)}`
       const get = vi.spyOn(axios, 'get').mockImplementation(url => {
         const data = url === albumUrl ? html : fixtureCover
-        return Promise.resolve({ data, status: 200 }) as ReturnType<typeof axios.get>
+        return Promise.resolve({ data, status: 200 })
       })
       const source = new ThbWiki('fixture.invalid')
       source.config = metadataConfig()
@@ -120,9 +120,7 @@ describe('THBWiki lyric contracts', () => {
         readFile(fixturePath(...basePath, 'cases.json'), 'utf8'),
       ])
       const cases = JSON.parse(casesData) as LyricContract[]
-      vi.spyOn(axios, 'get').mockImplementation(
-        () => Promise.resolve({ data: html, status: 200 }) as ReturnType<typeof axios.get>,
-      )
+      vi.spyOn(axios, 'get').mockImplementation(() => Promise.resolve({ data: html, status: 200 }))
 
       for (const contract of cases) {
         const expected = await readExpectedText(...basePath, contract.expected)
@@ -136,7 +134,7 @@ describe('THBWiki lyric contracts', () => {
         const result = await downloadLyrics(`https://fixture.invalid/${name}`, contract.title, {
           ...metadataConfig(),
           lyric,
-        } as Required<ReturnType<typeof metadataConfig>>)
+        })
 
         expect(result.lyric, contract.name).toBe(expected)
         expect(result.lyricLanguage ?? null, contract.name).toBe(contract.language)
@@ -169,7 +167,7 @@ describe('THBWiki lyric contracts', () => {
     const expectedUrl = `https://cd.thwiki.cc/lyrics/${encodeURIComponent(contract.pageTitle)}${contract.version}..lrc`
     const get = vi.spyOn(axios, 'get').mockImplementation(url => {
       const data = url === pageUrl ? html : expected
-      return Promise.resolve({ data, status: 200 }) as ReturnType<typeof axios.get>
+      return Promise.resolve({ data, status: 200 })
     })
     const lyric: LyricConfig = {
       type: 'original',
@@ -182,7 +180,7 @@ describe('THBWiki lyric contracts', () => {
     const result = await downloadLyrics(pageUrl, contract.trackTitle, {
       ...metadataConfig(),
       lyric,
-    } as Required<ReturnType<typeof metadataConfig>>)
+    })
 
     expect(result).toEqual({ lyric: expected, lyricLanguage: contract.language })
     expect(get).toHaveBeenNthCalledWith(2, expectedUrl, {

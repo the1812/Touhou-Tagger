@@ -4,12 +4,12 @@ import { Metadata } from '../../metadata/metadata.js'
 import { MetadataReader } from '../metadata-reader.js'
 
 const languageCodeConvert = (code: string | undefined) => {
-  const mapping = {
+  const mapping: Record<string, string | undefined> = {
     jpn: 'ja',
     deu: 'de',
     zho: 'zh',
   }
-  return code ? mapping[code] || mapping.jpn : mapping.jpn
+  return code ? mapping[code] || 'ja' : 'ja'
 }
 export class Mp3Reader extends MetadataReader<nodeId3.Tags> {
   async readRaw(input: string | Buffer) {
@@ -44,7 +44,7 @@ export class Mp3Reader extends MetadataReader<nodeId3.Tags> {
       key: tag.initialKey,
       lyric: tag.unsynchronisedLyrics?.text,
       lyricLanguage: tag.unsynchronisedLyrics
-        ? languageCodeConvert(tag.unsynchronisedLyrics?.language)
+        ? languageCodeConvert(tag.unsynchronisedLyrics.language)
         : undefined,
       coverImage: tag.image?.imageBuffer,
     }

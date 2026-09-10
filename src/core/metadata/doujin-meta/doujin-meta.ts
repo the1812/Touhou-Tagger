@@ -51,7 +51,7 @@ export class DoujinMeta extends MetadataSource {
 
   async resolveAlbumName(albumName: string): Promise<string | string[]> {
     const searchResult = await this.search(albumName)
-    const firstResult = searchResult[0]
+    const firstResult = searchResult.at(0)
     if (
       firstResult &&
       firstResult.album.normalize('NFKC').toLowerCase().trim() ===

@@ -59,6 +59,12 @@ const emitSequence = (
   const timer = window.setInterval(() => {
     const stage = stages[index]
     const current = Math.min(total, Math.ceil(((index + 1) / stages.length) * total))
+    let message = `正在处理 ${String(current)} / ${String(total)}`
+    if (stage === 'committing') {
+      message = '正在保存文件'
+    } else if (stage === 'renaming') {
+      message = '正在重命名'
+    }
     const progress: OperationProgress = {
       operationId,
       kind,
@@ -69,12 +75,7 @@ const emitSequence = (
         kind === 'workspace'
           ? activePlan.items[Math.min(current - 1, activePlan.items.length - 1)]?.sourceName
           : activeBatch.jobs[Math.min(current - 1, activeBatch.jobs.length - 1)]?.relativePath,
-      message:
-        stage === 'committing'
-          ? '正在保存文件'
-          : stage === 'renaming'
-            ? '正在重命名'
-            : `正在处理 ${current} / ${total}`,
+      message,
       cancellable: stage === 'preparing' || stage === 'writing',
     }
     progressHandlers.forEach(handler => handler(progress))
@@ -102,8 +103,8 @@ export const fixtureApi: GUIApi = {
     return clone(capabilities)
   },
 
-  async getStartupDirectory() {
-    return ''
+  getStartupDirectory() {
+    return Promise.resolve('')
   },
 
   async selectAlbumDirectory() {
@@ -165,8 +166,8 @@ export const fixtureApi: GUIApi = {
     await wait()
   },
 
-  async commitPlan() {
-    const operationId = `fixture-workspace-${Date.now()}`
+  commitPlan() {
+    const operationId = `fixture-workspace-${String(Date.now())}`
     pendingStarts.set(operationId, {
       kind: 'workspace',
       start: () =>
@@ -200,16 +201,17 @@ export const fixtureApi: GUIApi = {
           }),
         ),
     })
-    return { operationId }
+    return Promise.resolve({ operationId })
   },
 
-  async startOperation(operationId) {
+  startOperation(operationId) {
     const pending = pendingStarts.get(operationId)
     if (!pending || pending.kind !== 'workspace') {
-      throw new Error('写入操作不存在或已经开始。')
+      return Promise.reject(new Error('写入操作不存在或已经开始。'))
     }
     pendingStarts.delete(operationId)
     pending.start()
+    return Promise.resolve()
   },
 
   async cancelOperation(operationId) {
@@ -292,8 +294,8 @@ export const fixtureApi: GUIApi = {
     await wait()
   },
 
-  async runBatch(_batchId, failedOnly) {
-    const operationId = `fixture-batch-${Date.now()}`
+  runBatch(_batchId, failedOnly) {
+    const operationId = `fixture-batch-${String(Date.now())}`
     const jobs = failedOnly
       ? activeBatch.jobs.filter(job => job.status === 'failed')
       : activeBatch.jobs
@@ -343,23 +345,24 @@ export const fixtureApi: GUIApi = {
           },
         ),
     })
-    return { operationId }
+    return Promise.resolve({ operationId })
   },
 
-  async startBatch(operationId) {
+  startBatch(operationId) {
     const pending = pendingStarts.get(operationId)
     if (!pending || pending.kind !== 'batch') {
-      throw new Error('批量写入操作不存在或已经开始。')
+      return Promise.reject(new Error('批量写入操作不存在或已经开始。'))
     }
     pendingStarts.delete(operationId)
     pending.start()
+    return Promise.resolve()
   },
 
-  async cancelBatch(operationId) {
-    if (pendingStarts.delete(operationId)) {
-      return
+  cancelBatch(operationId) {
+    if (!pendingStarts.delete(operationId)) {
+      operationCancels.get(operationId)?.()
     }
-    operationCancels.get(operationId)?.()
+    return Promise.resolve()
   },
 
   async loadSettings() {

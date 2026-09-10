@@ -5,4 +5,4 @@ import { thbWiki } from './thb-wiki/thb-wiki.js'
 export const sourceMappings = {
   'thb-wiki': thbWiki,
   'doujin-meta': doujinMeta,
-} as { [type: string]: MetadataSource }
+} as Partial<Record<string, MetadataSource>>

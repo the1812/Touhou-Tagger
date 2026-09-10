@@ -12,3 +12,6 @@ pnpm-workspace.yaml
 /fixtures/
 /go/
 /test/
+
+.vite-hooks/
+vite.config.ts

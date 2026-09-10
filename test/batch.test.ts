@@ -1,7 +1,7 @@
 import { copyFile, mkdir, readdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vite-plus/test'
 
 import { flacReader } from '../src/core/reader/flac/flac-reader.js'
 import { mp3Reader } from '../src/core/reader/mp3/mp3-reader.js'

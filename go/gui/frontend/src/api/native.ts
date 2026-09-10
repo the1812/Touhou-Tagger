@@ -12,25 +12,30 @@ import type {
   BatchJobPreview,
   BatchPreview,
   BatchRunResult,
-  Capabilities,
   GUIApi,
   OperationFailure,
   OperationProgress,
   OperationResult,
-  OperationStart,
   PlanPatch,
   PlanPreview,
   ProcessError,
-  Settings,
   ErrorInfo,
   WorkspaceSummary,
 } from './types'
+
+type Wire<T> = T extends (infer Item)[]
+  ? Wire<Item>[] | null
+  : T extends object
+    ? { [Key in keyof T]: Wire<T[Key]> }
+    : T
 
 const sourceLabel = (source: string) => {
   const keys: Record<string, string> = {
     'thb-wiki': 'data.sources.thbWiki',
     'doujin-meta': 'data.sources.doujinMeta',
     'local-json': 'data.sources.localJson',
+    none: 'data.noCover',
+    local: 'data.localCover',
   }
   return keys[source] ? t(keys[source]) : source
 }
@@ -114,25 +119,30 @@ const normalizeProgress = (progress: OperationProgress): OperationProgress => ({
   message: progressMessage(progress),
 })
 
-const normalizeResult = <T extends OperationResult | BatchRunResult>(result: T): T => ({
-  ...result,
-  message: result.cancelled
-    ? t(result.kind === 'batch' ? 'backend.result.batchCancelled' : 'backend.result.cancelled')
-    : result.kind === 'batch'
-      ? t('backend.result.batchComplete', {
-          succeeded: result.succeeded,
-          failed: result.failed,
-        })
-      : t('backend.result.writeComplete', { count: result.succeeded }),
-})
+const normalizeResult = <T extends Wire<OperationResult | BatchRunResult>>(result: T): T => {
+  let message: string
+  if (result.cancelled) {
+    message = t(
+      result.kind === 'batch' ? 'backend.result.batchCancelled' : 'backend.result.cancelled',
+    )
+  } else if (result.kind === 'batch') {
+    message = t('backend.result.batchComplete', {
+      succeeded: result.succeeded,
+      failed: result.failed,
+    })
+  } else {
+    message = t('backend.result.writeComplete', { count: result.succeeded })
+  }
+  return { ...result, message }
+}
 
-const normalizeCandidate = (candidate: AlbumCandidate): AlbumCandidate => ({
+const normalizeCandidate = (candidate: Wire<AlbumCandidate>): AlbumCandidate => ({
   ...candidate,
   sourceLabel: sourceLabel(candidate.source),
   artists: candidate.artists ?? [],
 })
 
-const normalizePlan = (plan: PlanPreview): PlanPreview => ({
+const normalizePlan = (plan: Wire<PlanPreview>): PlanPreview => ({
   ...plan,
   album: {
     ...plan.album,
@@ -142,12 +152,7 @@ const normalizePlan = (plan: PlanPreview): PlanPreview => ({
   candidate: normalizeCandidate(plan.candidate),
   cover: {
     ...plan.cover,
-    sourceLabel:
-      plan.cover.source === 'none'
-        ? t('data.noCover')
-        : plan.cover.source === 'local'
-          ? t('data.localCover')
-          : sourceLabel(plan.cover.source),
+    sourceLabel: sourceLabel(plan.cover.source),
     compressionDescription:
       plan.cover.source === 'none' ? t('data.noCoverWrite') : t('data.coverReady'),
     issue: plan.cover.issue ? normalizeIssue(plan.cover.issue) : undefined,
@@ -160,7 +165,7 @@ const normalizePlan = (plan: PlanPreview): PlanPreview => ({
   issues: (plan.issues ?? []).map(normalizeIssue),
 })
 
-const batchMatchDescription = (job: BatchJobPreview) => {
+const batchMatchDescription = (job: Wire<BatchJobPreview>) => {
   switch (job.status) {
     case 'loading':
       return t('batch.loading')
@@ -171,7 +176,7 @@ const batchMatchDescription = (job: BatchJobPreview) => {
     case 'failed':
       return t('batch.status.failed')
     case 'needs-candidate':
-      return job.candidates.length
+      return job.candidates?.length
         ? t('batch.resultCount', { count: job.candidates.length })
         : t('data.candidateRequired')
     default:
@@ -179,21 +184,21 @@ const batchMatchDescription = (job: BatchJobPreview) => {
   }
 }
 
-const normalizeBatchJob = (job: BatchJobPreview): BatchJobPreview => ({
+const normalizeBatchJob = (job: Wire<BatchJobPreview>): BatchJobPreview => ({
   ...job,
   issues: (job.issues ?? []).map(normalizeIssue),
   candidates: (job.candidates ?? []).map(normalizeCandidate),
   matchDescription: batchMatchDescription(job),
 })
 
-const normalizeBatch = (preview: BatchPreview): BatchPreview => ({
+const normalizeBatch = (preview: Wire<BatchPreview>): BatchPreview => ({
   ...preview,
   jobs: (preview.jobs ?? []).map(normalizeBatchJob),
 })
 
 export const nativeApi: GUIApi = {
   getCapabilities: async () => {
-    const capabilities = (await SettingsService.GetCapabilities()) as Capabilities
+    const capabilities = await SettingsService.GetCapabilities()
     return {
       ...capabilities,
       sources: (capabilities.sources ?? []).map(source => ({
@@ -213,7 +218,7 @@ export const nativeApi: GUIApi = {
   getStartupDirectory: () => WorkspaceService.GetStartupDirectory(),
   selectAlbumDirectory: title => WorkspaceService.SelectAlbumDirectory(title),
   scanWorkspace: async directory => {
-    const summary = (await WorkspaceService.ScanWorkspace(directory)) as WorkspaceSummary
+    const summary = (await WorkspaceService.ScanWorkspace(directory)) as Wire<WorkspaceSummary>
     return {
       ...summary,
       issues: (summary.issues ?? []).map(normalizeIssue),
@@ -231,15 +236,14 @@ export const nativeApi: GUIApi = {
   },
   preparePlan: async (directory, candidateId, source) =>
     normalizePlan(
-      (await WorkspaceService.PreparePlan(directory, candidateId, source)) as PlanPreview,
+      (await WorkspaceService.PreparePlan(directory, candidateId, source)) as Wire<PlanPreview>,
     ),
   updatePlan: async (patch: PlanPatch) =>
-    normalizePlan((await WorkspaceService.UpdatePlan(patch)) as PlanPreview),
+    normalizePlan((await WorkspaceService.UpdatePlan(patch)) as Wire<PlanPreview>),
   async discardPlan(planId) {
     await WorkspaceService.DiscardPlan(planId)
   },
-  commitPlan: async (planId, revision) =>
-    (await WorkspaceService.CommitPlan(planId, revision)) as OperationStart,
+  commitPlan: async (planId, revision) => await WorkspaceService.CommitPlan(planId, revision),
   startOperation: operationId => WorkspaceService.StartOperation(operationId),
   async cancelOperation(operationId) {
     await WorkspaceService.CancelOperation(operationId)
@@ -247,29 +251,28 @@ export const nativeApi: GUIApi = {
   revealDirectory: directory => WorkspaceService.RevealDirectory(directory),
   selectBatchDirectory: title => BatchService.SelectBatchDirectory(title),
   scanBatch: async (directory, depth, source) =>
-    normalizeBatch((await BatchService.ScanBatch(directory, depth, source)) as BatchPreview),
+    normalizeBatch((await BatchService.ScanBatch(directory, depth, source)) as Wire<BatchPreview>),
   loadBatchJob: async (batchId, jobId) =>
-    normalizeBatchJob((await BatchService.LoadBatchJob(batchId, jobId)) as BatchJobPreview),
+    normalizeBatchJob((await BatchService.LoadBatchJob(batchId, jobId)) as Wire<BatchJobPreview>),
   resolveBatchCandidate: async (batchId, jobId, candidateId) => {
     const job = (await BatchService.ResolveBatchCandidate(
       batchId,
       jobId,
       candidateId,
-    )) as BatchJobPreview
+    )) as Wire<BatchJobPreview>
     return normalizeBatchJob(job)
   },
   ignoreBatchJob: async (batchId, jobId) =>
-    normalizeBatchJob((await BatchService.IgnoreBatchJob(batchId, jobId)) as BatchJobPreview),
+    normalizeBatchJob((await BatchService.IgnoreBatchJob(batchId, jobId)) as Wire<BatchJobPreview>),
   discardBatch: batchId => BatchService.DiscardBatch(batchId),
-  runBatch: async (batchId, failedOnly) =>
-    (await BatchService.RunBatch(batchId, failedOnly)) as OperationStart,
+  runBatch: async (batchId, failedOnly) => await BatchService.RunBatch(batchId, failedOnly),
   startBatch: operationId => BatchService.StartBatch(operationId),
   async cancelBatch(operationId) {
     await BatchService.CancelBatch(operationId)
   },
-  loadSettings: async () => (await SettingsService.LoadSettings()) as Settings,
-  saveSettings: async settings => (await SettingsService.SaveSettings(settings)) as Settings,
-  resetSettings: async () => (await SettingsService.ResetSettings()) as Settings,
+  loadSettings: async () => await SettingsService.LoadSettings(),
+  saveSettings: async settings => await SettingsService.SaveSettings(settings),
+  resetSettings: async () => await SettingsService.ResetSettings(),
   onProgress(handler) {
     return Events.On('gui:operation-progress', event =>
       handler(normalizeProgress(event.data as OperationProgress)),
@@ -277,7 +280,7 @@ export const nativeApi: GUIApi = {
   },
   onComplete(handler) {
     return Events.On('gui:operation-complete', event => {
-      const result = normalizeResult(event.data as OperationResult | BatchRunResult)
+      const result = normalizeResult(event.data as Wire<OperationResult | BatchRunResult>)
       handler(
         'jobs' in result ? { ...result, jobs: (result.jobs ?? []).map(normalizeBatchJob) } : result,
       )

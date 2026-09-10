@@ -64,19 +64,19 @@ const fixtureCandidate = (
   artists: fixture.album.albumArtists,
   year: fixture.album.year,
   exactMatch,
-  description: `${fixture.tracks.length} 首曲目 · ${fixture.album.genres.join('、')}`,
+  description: `${String(fixture.tracks.length)} 首曲目 · ${fixture.album.genres.join('、')}`,
 })
 
 export const candidates = [
   fixtureCandidate(singleDiscFixture, 'fixture:single-disc', true),
-  fixtureCandidate(multipleDiscFixture as AlbumFixture, 'fixture:multiple-disc', false),
-  fixtureCandidate(noCoverFixture as AlbumFixture, 'fixture:no-cover', false),
+  fixtureCandidate(multipleDiscFixture, 'fixture:multiple-disc', false),
+  fixtureCandidate(noCoverFixture, 'fixture:no-cover', false),
 ]
 
 const fixtureByCandidate = new Map<string, AlbumFixture>([
   ['fixture:single-disc', singleDiscFixture],
-  ['fixture:multiple-disc', multipleDiscFixture as AlbumFixture],
-  ['fixture:no-cover', noCoverFixture as AlbumFixture],
+  ['fixture:multiple-disc', multipleDiscFixture],
+  ['fixture:no-cover', noCoverFixture],
 ])
 
 export const workspaceSummary: WorkspaceSummary = {
@@ -112,7 +112,7 @@ const planItem = (track: AlbumFixture['tracks'][number], index: number): PlanIte
   const targetName = `${prefix}. ${track.title}.mp3`
 
   return {
-    id: `fixture-track-${index + 1}`,
+    id: `fixture-track-${String(index + 1)}`,
     sourceName: `${prefix} ${track.title}.mp3`,
     format: 'MP3',
     discNumber: track.discNumber,
@@ -151,7 +151,7 @@ export const createPlan = (
           sourceLabel: 'THBWiki 封面',
           width: 600,
           height: 600,
-          byteSize: 43_246,
+          byteSize: 43246,
           compressionDescription: '低于 1500 KB 阈值，将保留原始图片',
         }
       : {

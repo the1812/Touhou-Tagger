@@ -17,8 +17,11 @@ export const Message = defineComponent({
   },
   setup(props, { attrs, slots }) {
     return () => {
-      const Icon =
-        props.severity === 'warn' ? TriangleAlert : props.severity === 'error' ? CircleX : undefined
+      const icons: Partial<Record<string, typeof TriangleAlert>> = {
+        warn: TriangleAlert,
+        error: CircleX,
+      }
+      const Icon = icons[props.severity]
 
       return (
         <PrimeMessage closable={false} {...attrs} severity={props.severity} size={props.size}>

@@ -3,7 +3,7 @@ import type { MetadataNormalizePlugin } from './types.js'
 /** 处理封面图片 */
 export const expandCoverPlugin: MetadataNormalizePlugin = ({ cover }) => {
   let firstCoverBuffer: Buffer | undefined
-  return async ({ metadata, index }) => {
+  return ({ metadata, index }) => {
     if (index === 0) {
       if (cover !== undefined) {
         firstCoverBuffer = cover

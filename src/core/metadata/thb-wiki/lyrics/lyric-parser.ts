@@ -10,7 +10,7 @@ const readCellText = (element: Element | undefined) => {
       return '\n'
     }
     if (node.nodeType === 3) {
-      return node.textContent.replace(/\r/g, '').replace(/\n\s*/g, '')
+      return (node as Text).data.replace(/\r/g, '').replace(/\n\s*/g, '')
     }
     return [...node.childNodes].map(readNode).join('')
   }
@@ -92,7 +92,7 @@ export abstract class LyricParser {
 }
 class OriginalLyricParser extends LyricParser {
   findLanguage(): string | undefined {
-    return this.firstRowData.originalData.getAttribute('lang')
+    return this.firstRowData.originalData.getAttribute('lang') ?? undefined
   }
   readLyricRow(row: Element): string {
     const { originalText, time } = this.getRowData(row)
@@ -109,9 +109,9 @@ class TranslatedLyricParser extends LyricParser {
   findLanguage(): string | undefined {
     const { originalData, translatedData, hasTranslatedData } = this.firstRowData
     if (hasTranslatedData) {
-      return translatedData.getAttribute('lang')
+      return translatedData.getAttribute('lang') ?? undefined
     }
-    return originalData.getAttribute('lang')
+    return originalData.getAttribute('lang') ?? undefined
   }
   readLyricRow(row: Element): string {
     const { translatedText, time } = this.getRowData(row)
@@ -121,7 +121,7 @@ class TranslatedLyricParser extends LyricParser {
     return translatedText
   }
   getLrcFileSuffix(): string {
-    return `.${this.findLanguage()}`
+    return `.${String(this.findLanguage())}`
   }
 }
 class MixedLyricParser extends LyricParser {
@@ -130,7 +130,7 @@ class MixedLyricParser extends LyricParser {
     if (hasTranslatedData) {
       return undefined
     }
-    return originalData.getAttribute('lang')
+    return originalData.getAttribute('lang') ?? undefined
   }
   readLyricRow(row: Element): string {
     const { originalText, translatedText, hasTranslatedData, time } = this.getRowData(row)

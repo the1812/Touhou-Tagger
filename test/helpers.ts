@@ -2,7 +2,7 @@ import { mkdir, rm } from 'fs/promises'
 import { join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
-import { expect } from 'vitest'
+import { expect } from 'vite-plus/test'
 
 import type { Metadata, MetadataConfig } from '../src/core/index.js'
 

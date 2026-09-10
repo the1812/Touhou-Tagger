@@ -3,13 +3,13 @@ import type { MetadataNormalizePlugin } from './types.js'
 
 /** 使用 alt-names 的数据进行替换 */
 export const altNamesPlugin: MetadataNormalizePlugin = () => {
-  const altNameFields = ['artists', 'lyricists', 'composers']
+  const altNameFields = ['artists', 'lyricists', 'composers'] as const
   return ({ metadata }) => {
     altNameFields.forEach(field => {
-      if (!altNameFields.includes(field) || !Array.isArray(metadata[field])) {
+      const values = metadata[field]
+      if (!values) {
         return
       }
-      const values = metadata[field] as string[]
       const replaceValues = values.map(v => {
         const replaceValue = altNames.get(v)
         if (replaceValue !== undefined) {

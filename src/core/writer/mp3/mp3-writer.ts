@@ -5,12 +5,12 @@ import { Metadata } from '../../metadata/metadata.js'
 import { MetadataWriter } from '../metadata-writer.js'
 
 const languageCodeConvert = (code: string | undefined) => {
-  const mapping = {
+  const mapping: Record<string, string | undefined> = {
     ja: 'jpn',
     de: 'deu',
     zh: 'zho',
   }
-  return code ? mapping[code] || mapping.ja : mapping.ja
+  return code ? mapping[code] || 'jpn' : 'jpn'
 }
 export class Mp3Writer extends MetadataWriter {
   private getNodeId3Tag(metadata: Metadata, separator: string) {
@@ -53,13 +53,12 @@ export class Mp3Writer extends MetadataWriter {
   async write(metadata: Metadata, filePath: string) {
     const tag = this.getNodeId3Tag(metadata, this.config.separator)
     if (this.config.lyric && this.config.lyric.output === 'lrc') {
-      tag.unsynchronisedLyrics.text = ''
-      tag.unsynchronisedLyrics.language = undefined
+      delete tag.unsynchronisedLyrics
     }
     log(
       this.config.coverCompressSize,
       this.config.coverCompressSize * 1024 * 1024,
-      tag.image?.imageBuffer?.length,
+      tag.image?.imageBuffer.length,
     )
     if (tag.image?.imageBuffer) {
       const { compressImageByConfig } = await import('../image-compress.js')

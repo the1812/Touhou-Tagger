@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises'
 
 import imageInfo from 'imageinfo'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 
 import { compressImageByConfig } from '../src/core/writer/image-compress.js'
 import { fixturePath, metadataConfig } from './helpers.js'
@@ -17,8 +17,8 @@ describe('cover compression', () => {
     )
 
     expect(compressed.length).toBeLessThan(cover.length)
-    expect(imageInfo(compressed)?.width).toBe(2400)
-    expect(imageInfo(compressed)?.height).toBe(2400)
+    expect(imageInfo(compressed).width).toBe(2400)
+    expect(imageInfo(compressed).height).toBe(2400)
   })
 
   test('compresses and resizes cover when resolution limit is configured', async () => {
@@ -33,7 +33,7 @@ describe('cover compression', () => {
     const info = imageInfo(compressed)
 
     expect(compressed.length).toBeLessThan(cover.length)
-    expect(info?.width).toBeLessThanOrEqual(256)
-    expect(info?.height).toBeLessThanOrEqual(256)
+    expect(info.width).toBeLessThanOrEqual(256)
+    expect(info.height).toBeLessThanOrEqual(256)
   })
 })
