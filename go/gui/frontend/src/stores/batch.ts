@@ -254,13 +254,6 @@ export const useBatchStore = defineStore('batch', () => {
       t('notifications.updateBatchCandidateFailed'),
     )
 
-  const ignoreJob = (jobId: string) =>
-    updateJob(
-      jobId,
-      (api, batchId) => api.ignoreBatchJob(batchId, jobId),
-      t('notifications.ignoreBatchAlbumFailed'),
-    )
-
   function receiveComplete(nextResult: OperationResult | BatchRunResult) {
     if (nextResult.kind !== 'batch') {
       return
@@ -400,7 +393,6 @@ export const useBatchStore = defineStore('batch', () => {
     scan,
     loadJob,
     resolveCandidate,
-    ignoreJob,
     isResolving,
     run,
     cancel,

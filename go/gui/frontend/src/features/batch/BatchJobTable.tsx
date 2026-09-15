@@ -21,7 +21,7 @@ const statusInfo = (status: BatchJobStatus) => {
     'local-metadata': { label: t('batch.status.localMetadata'), severity: 'info' },
     'track-mismatch': { label: t('batch.status.trackMismatch'), severity: 'danger' },
     'scan-failed': { label: t('batch.loadFailed'), severity: 'danger' },
-    ignored: { label: t('batch.status.ignored'), severity: 'secondary' },
+    'no-audio': { label: t('batch.noAudio'), severity: 'secondary' },
     queued: { label: t('batch.status.queued'), severity: 'secondary' },
     running: { label: t('batch.status.running'), severity: 'info' },
     succeeded: { label: t('batch.status.succeeded'), severity: 'success' },
@@ -53,7 +53,6 @@ export const BatchJobTable = defineComponent({
   },
   emits: {
     resolve: (jobId: string, candidateId: string) => Boolean(jobId && candidateId),
-    ignore: (jobId: string) => Boolean(jobId),
     retry: (jobId: string) => Boolean(jobId),
   },
   setup(props, { emit }) {
@@ -67,7 +66,6 @@ export const BatchJobTable = defineComponent({
         ['track-mismatch', 'scan-failed', 'failed'].includes(job.status) &&
           'bg-red-50/60 dark:bg-red-950/30',
         job.status === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
-        job.status === 'ignored' && 'text-muted-color',
       )
     const matchCell = (job: BatchJobPreview) => {
       if (!props.editable) {
@@ -76,11 +74,7 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'loading') {
         return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
       }
-      if (
-        job.status === 'scan-failed' ||
-        job.status === 'ignored' ||
-        (job.status === 'failed' && !job.canRun)
-      ) {
+      if (job.status === 'scan-failed' || (job.status === 'failed' && !job.canRun)) {
         return (
           <div class="flex items-center justify-between gap-2">
             <TruncatedText
@@ -91,9 +85,9 @@ export const BatchJobTable = defineComponent({
               {job.matchDescription}
             </TruncatedText>
             <Button
-              label={t(job.status === 'ignored' ? 'batch.restore' : 'common.retry')}
+              label={t('common.retry')}
               size="small"
-              severity={job.status === 'ignored' ? 'secondary' : 'danger'}
+              severity="danger"
               text
               loading={props.resolving(job.id)}
               disabled={props.disabled}
@@ -103,20 +97,7 @@ export const BatchJobTable = defineComponent({
         )
       }
       if (job.status === 'needs-candidate' && job.candidates.length === 0) {
-        return (
-          <div class="flex items-center justify-between gap-2">
-            <div class="text-muted-color">{t('batch.noSearchResults')}</div>
-            <Button
-              label={t('batch.ignore')}
-              size="small"
-              severity="secondary"
-              text
-              loading={props.resolving(job.id)}
-              disabled={props.disabled}
-              onClick={() => emit('ignore', job.id)}
-            />
-          </div>
-        )
+        return <div class="text-muted-color">{t('batch.noSearchResults')}</div>
       }
       if (
         job.candidates.length > 1 ||

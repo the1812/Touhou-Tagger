@@ -169,8 +169,8 @@ const batchMatchDescription = (job: Wire<BatchJobPreview>) => {
   switch (job.status) {
     case 'loading':
       return t('batch.loading')
-    case 'ignored':
-      return t('batch.ignoredDescription')
+    case 'no-audio':
+      return t('batch.noAudio')
     case 'scan-failed':
       return t('batch.loadFailed')
     case 'failed':
@@ -262,8 +262,6 @@ export const nativeApi: GUIApi = {
     )) as Wire<BatchJobPreview>
     return normalizeBatchJob(job)
   },
-  ignoreBatchJob: async (batchId, jobId) =>
-    normalizeBatchJob((await BatchService.IgnoreBatchJob(batchId, jobId)) as Wire<BatchJobPreview>),
   discardBatch: batchId => BatchService.DiscardBatch(batchId),
   runBatch: async (batchId, failedOnly) => await BatchService.RunBatch(batchId, failedOnly),
   startBatch: operationId => BatchService.StartBatch(operationId),

@@ -293,7 +293,7 @@ export const fixtureApi: GUIApi = {
       rootDirectory: directory,
       depth,
       jobs: batchJobs().map(job =>
-        job.status === 'ignored'
+        job.status === 'no-audio'
           ? job
           : {
               ...job,
@@ -330,20 +330,6 @@ export const fixtureApi: GUIApi = {
     job.status = 'ready'
     job.canRun = true
     job.matchDescription = '已选择搜索结果'
-    job.issues = []
-    return clone(job)
-  },
-
-  async ignoreBatchJob(_batchId, jobId) {
-    await wait(120)
-    const job = activeBatch.jobs.find(item => item.id === jobId)
-    if (!job) {
-      throw new Error('批量写入专辑不存在。')
-    }
-    job.selectedCandidateId = undefined
-    job.status = 'ignored'
-    job.canRun = false
-    job.matchDescription = '已由用户忽略'
     job.issues = []
     return clone(job)
   },

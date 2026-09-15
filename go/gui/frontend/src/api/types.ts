@@ -204,7 +204,7 @@ export type BatchJobStatus =
   | 'local-metadata'
   | 'track-mismatch'
   | 'scan-failed'
-  | 'ignored'
+  | 'no-audio'
   | 'queued'
   | 'running'
   | 'succeeded'
@@ -291,7 +291,6 @@ export interface BatchApi {
     jobId: string,
     candidateId: string,
   ): Promise<BatchJobPreview>
-  ignoreBatchJob(batchId: string, jobId: string): Promise<BatchJobPreview>
   discardBatch(batchId: string): Promise<void>
   runBatch(batchId: string, failedOnly: boolean): Promise<OperationStart>
   startBatch(operationId: string): Promise<void>

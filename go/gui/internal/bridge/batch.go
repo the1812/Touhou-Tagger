@@ -96,8 +96,8 @@ func (service *BatchService) ScanBatch(
 			candidates:        []AlbumCandidate{},
 		}
 		if discovered.Ignored {
-			job.status = "ignored"
-			job.matchDescription = "无音频，已忽略"
+			job.status = "no-audio"
+			job.matchDescription = "无音频"
 			session.jobs = append(session.jobs, job)
 			continue
 		}
@@ -231,8 +231,8 @@ func (service *BatchService) loadBatchJob(
 	}
 	job.audioCount = len(scan.AudioFiles)
 	if job.audioCount == 0 {
-		job.status = "ignored"
-		job.matchDescription = "无音频，已忽略"
+		job.status = "no-audio"
+		job.matchDescription = "无音频"
 		return
 	}
 	job.inferredAlbumName, err = application.DefaultAlbumName(job.directory)
@@ -428,53 +428,6 @@ func (service *BatchService) ResolveBatchCandidate(
 		job.status = "track-mismatch"
 	}
 	return batchJobPreview(session.root, job), nil
-}
-
-func (service *BatchService) IgnoreBatchJob(
-	batchID string,
-	jobID string,
-) (BatchJobPreview, error) {
-	service.mu.RLock()
-	session, exists := service.sessions[batchID]
-	if !exists {
-		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
-	}
-	session.mu.Lock()
-	service.mu.RUnlock()
-	if session.running {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能忽略专辑")
-	}
-	var job *batchJob
-	for _, item := range session.jobs {
-		if item.id == jobID {
-			job = item
-			break
-		}
-	}
-	if job == nil {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
-	}
-	if job.resolving {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("这个专辑正在加载搜索结果，请稍候")
-	}
-	planID := job.planID
-	job.canRun = false
-	job.planID = ""
-	job.revision = 0
-	job.selectedCandidateID = ""
-	job.status = "ignored"
-	job.matchDescription = "已忽略"
-	job.issues = []StateIssue{}
-	preview := batchJobPreview(session.root, job)
-	session.mu.Unlock()
-	if planID != "" {
-		service.planner.discard(planID)
-	}
-	return preview, nil
 }
 
 func (service *BatchService) RunBatch(

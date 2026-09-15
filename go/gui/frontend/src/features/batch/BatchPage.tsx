@@ -166,7 +166,6 @@ export const BatchPage = defineComponent({
                       disabled={tableDisabled.value}
                       resolving={batch.isResolving}
                       onResolve={(jobId, candidateId) => batch.resolveCandidate(jobId, candidateId)}
-                      onIgnore={jobId => batch.ignoreJob(jobId)}
                       onRetry={jobId => batch.loadJob(jobId)}
                     />
                   )}
