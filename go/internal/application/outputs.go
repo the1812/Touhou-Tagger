@@ -84,7 +84,10 @@ func InspectPlanOutputs(outputs []PlanOutput) []PlanOutputConflict {
 		} else {
 			seen[key] = output
 		}
-		if _, err := os.Stat(output.Path); err == nil {
+		if info, err := os.Stat(output.Path); err == nil {
+			if output.Kind == OutputLRC && info.Mode().IsRegular() {
+				continue
+			}
 			conflicts = append(conflicts, PlanOutputConflict{
 				Kind:   OutputConflictExists,
 				Output: output,

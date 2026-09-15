@@ -154,25 +154,27 @@ type OperationProgress struct {
 }
 
 type OperationResult struct {
-	OperationID string `json:"operationId"`
-	Kind        string `json:"kind"`
-	Succeeded   int    `json:"succeeded"`
-	Failed      int    `json:"failed"`
-	Renamed     int    `json:"renamed"`
-	CoversSaved int    `json:"coversSaved"`
-	LRCFiles    int    `json:"lrcFiles"`
-	DurationMS  int64  `json:"durationMs"`
-	Cancelled   bool   `json:"cancelled"`
-	Message     string `json:"message"`
+	Plan        *PlanPreview `json:"plan,omitempty"`
+	OperationID string       `json:"operationId"`
+	Kind        string       `json:"kind"`
+	Succeeded   int          `json:"succeeded"`
+	Failed      int          `json:"failed"`
+	Renamed     int          `json:"renamed"`
+	CoversSaved int          `json:"coversSaved"`
+	LRCFiles    int          `json:"lrcFiles"`
+	DurationMS  int64        `json:"durationMs"`
+	Cancelled   bool         `json:"cancelled"`
+	Message     string       `json:"message"`
 }
 
 type OperationFailure struct {
-	Error           *ErrorInfo `json:"error,omitempty"`
-	OperationID     string     `json:"operationId"`
-	Kind            string     `json:"kind"`
-	Message         string     `json:"message"`
-	Details         string     `json:"details,omitempty"`
-	PlanInvalidated bool       `json:"planInvalidated"`
+	Plan            *PlanPreview `json:"plan,omitempty"`
+	Error           *ErrorInfo   `json:"error,omitempty"`
+	OperationID     string       `json:"operationId"`
+	Kind            string       `json:"kind"`
+	Message         string       `json:"message"`
+	Details         string       `json:"details,omitempty"`
+	PlanInvalidated bool         `json:"planInvalidated"`
 }
 
 type ProcessError struct {
@@ -182,6 +184,7 @@ type ProcessError struct {
 }
 
 type BatchJobPreview struct {
+	CanRun              bool             `json:"canRun"`
 	ID                  string           `json:"id"`
 	RelativePath        string           `json:"relativePath"`
 	InferredAlbumName   string           `json:"inferredAlbumName"`

@@ -7,7 +7,7 @@ export const PageActionBar = defineComponent({
   },
   setup(props, { slots }) {
     return () => (
-      <Teleport to="#page-action-bar">
+      <Teleport defer to="#page-action-bar">
         <div class={['action-bar', props.end ? 'justify-end' : 'justify-between']}>
           {slots.default?.()}
         </div>

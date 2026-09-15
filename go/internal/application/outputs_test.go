@@ -11,7 +11,7 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
 )
 
-func TestValidateTagPlanOutputsRejectsExistingAndDuplicateLRC(t *testing.T) {
+func TestValidateTagPlanOutputsAllowsUpdatesAndRejectsConflicts(t *testing.T) {
 	directory := t.TempDir()
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
@@ -22,6 +22,15 @@ func TestValidateTagPlanOutputsRejectsExistingAndDuplicateLRC(t *testing.T) {
 		Metadata:   domain.Metadata{Lyric: "lyrics"},
 	}}}
 	if err := os.WriteFile(LRCPath(target), []byte("existing"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateTagPlanOutputs(plan, config); err != nil {
+		t.Fatalf("existing LRC cannot be updated: %v", err)
+	}
+	if err := os.Remove(LRCPath(target)); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(LRCPath(target), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := ValidateTagPlanOutputs(plan, config); err == nil ||
@@ -56,7 +65,7 @@ func TestTagPlanOutputsIgnoresDisabledLyricPreference(t *testing.T) {
 	}
 }
 
-func TestApplyTagPlanRejectsLRCConflictBeforePreparingAudio(t *testing.T) {
+func TestApplyTagPlanUpdatesExistingLRC(t *testing.T) {
 	directory := t.TempDir()
 	audioPath := filepath.Join(directory, "01 Song.mp3")
 	if err := os.WriteFile(audioPath, []byte("audio"), 0o644); err != nil {
@@ -81,11 +90,21 @@ func TestApplyTagPlanRejectsLRCConflictBeforePreparingAudio(t *testing.T) {
 		Config:  domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true},
 		Writers: tagio.Writers{domain.FormatMP3: writer},
 	}
-	if err := service.ApplyTagPlan(context.Background(), plan); err == nil {
-		t.Fatal("ApplyTagPlan() accepted an existing LRC target")
+	for _, lyric := range []string{"first update", "second update"} {
+		plan.Items[0].Metadata.Lyric = lyric
+		if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+			t.Fatal(err)
+		}
+		actual, err := os.ReadFile(LRCPath(audioPath))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(actual) != lyric {
+			t.Fatalf("LRC = %q, want %q", actual, lyric)
+		}
 	}
-	if writer.writes != 0 {
-		t.Fatalf("writer was called %d times before output validation", writer.writes)
+	if writer.writes != 2 {
+		t.Fatalf("writer calls = %d, want 2", writer.writes)
 	}
 }
 

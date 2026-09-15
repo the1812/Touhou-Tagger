@@ -9,6 +9,7 @@ import type { TrackMetadataPatch, AlbumMetadataPatch, PlanItemPreview } from '..
 import { t } from '../../i18n'
 import { Message } from '../../shared/Message'
 import { PageActionBar } from '../../shared/PageActionBar'
+import { useDelayedBusy } from '../../shared/useDelayedBusy'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { AlbumMetadataDialog } from './AlbumMetadataDialog'
@@ -20,14 +21,15 @@ export const TaggingPlanStep = defineComponent({
   name: 'TaggingPlanStep',
   setup() {
     const workspace = useWorkspaceStore()
-    const { plan, summary, operation, result, isBusy, blockingIssues, canCommit } =
+    const { plan, summary, phase, isWriting, isBusy, blockingIssues, canCommit } =
       storeToRefs(workspace)
+    const showSpinner = useDelayedBusy(() => isWriting.value)
     const selectedTrack = ref<PlanItemPreview>()
     const trackDialogVisible = ref(false)
     const albumDialogVisible = ref(false)
 
     const openTrack = (item: PlanItemPreview) => {
-      if (isBusy.value) {
+      if (isBusy.value || phase.value !== 'ready') {
         return
       }
       selectedTrack.value = item
@@ -36,10 +38,12 @@ export const TaggingPlanStep = defineComponent({
 
     return () => {
       const currentPlan = plan.value
-      if (!currentPlan || operation.value || result.value) {
+      if (!currentPlan) {
         return null
       }
 
+      const stale = phase.value === 'failed'
+      const idleAction = stale ? 'tagging.rescan' : 'common.start'
       return (
         <>
           <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
@@ -52,7 +56,7 @@ export const TaggingPlanStep = defineComponent({
                     {...{
                       'onUpdate:modelValue': (value: boolean) => workspace.updateSaveCover(value),
                     }}
-                    disabled={isBusy.value}
+                    disabled={isBusy.value || stale}
                   />
                   <div class="text-base font-medium">
                     {summary.value?.localCover.exists
@@ -69,7 +73,7 @@ export const TaggingPlanStep = defineComponent({
                   label={t('tagging.plan.editAlbum')}
                   severity="secondary"
                   outlined
-                  disabled={isBusy.value}
+                  disabled={isBusy.value || stale}
                   onClick={() => {
                     albumDialogVisible.value = true
                   }}
@@ -113,7 +117,11 @@ export const TaggingPlanStep = defineComponent({
                 {issue.message}
               </Message>
             ))}
-            <PlanTable items={currentPlan.items} disabled={isBusy.value} onEdit={openTrack} />
+            <PlanTable
+              items={currentPlan.items}
+              disabled={isBusy.value || stale}
+              onEdit={openTrack}
+            />
           </div>
 
           <PageActionBar>
@@ -138,7 +146,7 @@ export const TaggingPlanStep = defineComponent({
                   label={t('common.previous')}
                   severity="secondary"
                   text
-                  disabled={isBusy.value}
+                  disabled={isBusy.value || stale}
                   onClick={() => void workspace.backToSearch()}
                 />
               )}
@@ -152,9 +160,11 @@ export const TaggingPlanStep = defineComponent({
                 }}
               >
                 <Button
-                  label={t('common.start')}
-                  disabled={!canCommit.value}
-                  onClick={() => void workspace.commit()}
+                  class="min-w-28"
+                  label={t(isWriting.value ? 'operation.writing' : idleAction)}
+                  loading={showSpinner.value}
+                  disabled={isBusy.value || (!stale && !canCommit.value)}
+                  onClick={() => void (stale ? workspace.scan() : workspace.commit())}
                 >
                   {{ icon: () => <Play /> }}
                 </Button>

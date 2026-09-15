@@ -76,7 +76,11 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'loading') {
         return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
       }
-      if (job.status === 'scan-failed' || job.status === 'ignored') {
+      if (
+        job.status === 'scan-failed' ||
+        job.status === 'ignored' ||
+        (job.status === 'failed' && !job.canRun)
+      ) {
         return (
           <div class="flex items-center justify-between gap-2">
             <TruncatedText

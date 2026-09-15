@@ -9,6 +9,7 @@ import {
   fixtureDirectory,
   workspaceSummary,
 } from './fixtureData'
+import { attachProgressMock, progressMock, progressMockKind } from './progressMock'
 import type {
   BatchPreview,
   BatchRunResult,
@@ -28,7 +29,7 @@ const operationTimers = new Map<string, number>()
 const pendingStarts = new Map<string, { kind: 'workspace' | 'batch'; start: () => void }>()
 const operationCancels = new Map<string, () => void>()
 
-const clone = <T>(value: T): T => structuredClone(value)
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 const wait = (duration = 80) =>
   new Promise<void>(resolve => {
     window.setTimeout(resolve, duration)
@@ -50,6 +51,44 @@ const emitSequence = (
   onDone: () => OperationResult | BatchRunResult,
   onCancel: () => OperationResult | BatchRunResult,
 ) => {
+  if (progressMockKind === kind) {
+    attachProgressMock(
+      {
+        operationId,
+        kind,
+        stage: 'writing',
+        current: Math.max(1, Math.floor(total / 2)),
+        total,
+        message: '正在写入标签',
+        cancellable: true,
+      },
+      kind === 'workspace'
+        ? activePlan.items.map(item => item.sourceName)
+        : activeBatch.jobs.map(job => job.relativePath),
+      progress => progressHandlers.forEach(handler => handler(progress)),
+      outcome => {
+        operationCancels.delete(operationId)
+        if (outcome === 'failure') {
+          failureHandlers.forEach(handler =>
+            handler({
+              operationId,
+              kind,
+              message: '模拟写入失败',
+              details: '无法写入文件：文件正被其他程序使用。',
+              planInvalidated: false,
+              plan: kind === 'workspace' ? clone(activePlan) : undefined,
+            }),
+          )
+        } else {
+          completeHandlers.forEach(handler =>
+            handler(outcome === 'success' ? onDone() : onCancel()),
+          )
+        }
+      },
+    )
+    operationCancels.set(operationId, () => progressMock.finish('cancel'))
+    return
+  }
   const stages: OperationProgress['stage'][] =
     kind === 'workspace'
       ? ['preparing', 'writing', 'writing', 'committing', 'renaming']
@@ -137,6 +176,7 @@ export const fixtureApi: GUIApi = {
   },
 
   async updatePlan(patch: PlanPatch) {
+    patch = clone(patch)
     await wait(120)
     const album = { ...activePlan.album, ...patch.album }
     const changedTracks = new Map(patch.tracks?.map(track => [track.id, track]) ?? [])
@@ -175,18 +215,32 @@ export const fixtureApi: GUIApi = {
           operationId,
           'workspace',
           activePlan.items.length,
-          () => ({
-            operationId,
-            kind: 'workspace',
-            succeeded: activePlan.items.length,
-            failed: 0,
-            renamed: activePlan.options.renameFiles,
-            coversSaved: activePlan.options.saveCover ? 1 : 0,
-            lrcFiles: activePlan.options.lrcFiles,
-            durationMs: 1840,
-            cancelled: false,
-            message: '写入完成。',
-          }),
+          () => {
+            const renamed = activePlan.options.renameFiles
+            activePlan = {
+              ...activePlan,
+              revision: activePlan.revision + 1,
+              items: activePlan.items.map(item => ({
+                ...item,
+                sourceName: item.targetName,
+                willRename: false,
+              })),
+              options: { ...activePlan.options, renameFiles: 0 },
+            }
+            return {
+              operationId,
+              kind: 'workspace',
+              succeeded: activePlan.items.length,
+              failed: 0,
+              renamed,
+              coversSaved: activePlan.options.saveCover ? 1 : 0,
+              lrcFiles: activePlan.options.lrcFiles,
+              durationMs: 1840,
+              cancelled: false,
+              message: '写入完成。',
+              plan: clone(activePlan),
+            }
+          },
           () => ({
             operationId,
             kind: 'workspace',
@@ -198,6 +252,7 @@ export const fixtureApi: GUIApi = {
             durationMs: 320,
             cancelled: true,
             message: '已取消写入。',
+            plan: clone(activePlan),
           }),
         ),
     })
@@ -244,6 +299,7 @@ export const fixtureApi: GUIApi = {
               ...job,
               matchDescription: t('batch.loading'),
               status: 'loading',
+              canRun: false,
               issues: [],
               candidates: [],
               selectedCandidateId: undefined,
@@ -272,6 +328,7 @@ export const fixtureApi: GUIApi = {
     }
     job.selectedCandidateId = candidateId
     job.status = 'ready'
+    job.canRun = true
     job.matchDescription = '已选择搜索结果'
     job.issues = []
     return clone(job)
@@ -285,6 +342,7 @@ export const fixtureApi: GUIApi = {
     }
     job.selectedCandidateId = undefined
     job.status = 'ignored'
+    job.canRun = false
     job.matchDescription = '已由用户忽略'
     job.issues = []
     return clone(job)
@@ -297,8 +355,8 @@ export const fixtureApi: GUIApi = {
   runBatch(_batchId, failedOnly) {
     const operationId = `fixture-batch-${String(Date.now())}`
     const jobs = failedOnly
-      ? activeBatch.jobs.filter(job => job.status === 'failed')
-      : activeBatch.jobs
+      ? activeBatch.jobs.filter(job => job.status === 'failed' && job.canRun)
+      : activeBatch.jobs.filter(job => job.canRun)
     pendingStarts.set(operationId, {
       kind: 'batch',
       start: () =>
@@ -309,12 +367,12 @@ export const fixtureApi: GUIApi = {
           () => {
             activeBatch.jobs = activeBatch.jobs.map(job => ({
               ...job,
-              status: job.status === 'ignored' ? 'ignored' : 'succeeded',
+              status: jobs.some(selected => selected.id === job.id) ? 'succeeded' : job.status,
             }))
             return {
               operationId,
               kind: 'batch',
-              succeeded: activeBatch.jobs.filter(job => job.status === 'succeeded').length,
+              succeeded: jobs.length,
               failed: 0,
               renamed: 25,
               coversSaved: 2,

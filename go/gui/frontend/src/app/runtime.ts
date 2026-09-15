@@ -27,6 +27,16 @@ export const useAppRuntime = () => {
       }),
     )
     await settings.load()
+    if (
+      import.meta.env.DEV &&
+      isFixtureMode &&
+      ['workspace', 'batch'].includes(
+        new URLSearchParams(window.location.search).get('progress') ?? '',
+      )
+    ) {
+      const { initializeProgressMock } = await import('../shared/ProgressMockPanel')
+      await initializeProgressMock()
+    }
     if (!isFixtureMode) {
       await workspace.loadStartupDirectory()
     }

@@ -276,6 +276,10 @@ func (manager *operationManager) finish(operationID string, result any, err erro
 		return
 	}
 	if err != nil {
+		var plan *PlanPreview
+		if completed, ok := result.(OperationResult); ok {
+			plan = completed.Plan
+		}
 		var invalidated *planInvalidatedError
 		info := DescribeError(err)
 		emitter(operationFailedEvent, OperationFailure{
@@ -285,6 +289,7 @@ func (manager *operationManager) finish(operationID string, result any, err erro
 			Message:         operationFailureMessage(err),
 			Details:         err.Error(),
 			PlanInvalidated: errors.As(err, &invalidated),
+			Plan:            plan,
 		})
 		return
 	}

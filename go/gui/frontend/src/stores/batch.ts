@@ -24,28 +24,23 @@ export const useBatchStore = defineStore('batch', () => {
   const scanning = ref(false)
   const result = ref<BatchRunResult>()
   const resolvingJobIds = ref(new Set<string>())
+  const failure = ref<OperationFailure>()
+  const resultOpen = ref(false)
   const notifications = useNotificationsStore()
   const operations = useOperationsStore()
   const settings = useSettingsStore()
   let contextVersion = 0
   let resolveSequence = 0
   const resolveTokens = new Map<string, number>()
+  const starting = ref(false)
   const operation = computed(() => operations.get('batch'))
+  const isWriting = computed(() => starting.value || Boolean(operation.value))
   const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
 
-  const unresolvedCount = computed(
-    () =>
-      preview.value?.jobs.filter(job =>
-        ['loading', 'needs-candidate', 'track-mismatch', 'scan-failed'].includes(job.status),
-      ).length ?? 0,
-  )
-  const readyCount = computed(
-    () =>
-      preview.value?.jobs.filter(job => ['ready', 'local-metadata'].includes(job.status)).length ??
-      0,
-  )
-  const failedCount = computed(
-    () => preview.value?.jobs.filter(job => job.status === 'failed').length ?? 0,
+  const readyCount = computed(() => preview.value?.jobs.filter(job => job.canRun).length ?? 0)
+  const skippedCount = computed(() => (preview.value?.jobs.length ?? 0) - readyCount.value)
+  const retryableCount = computed(
+    () => preview.value?.jobs.filter(job => job.status === 'failed' && job.canRun).length ?? 0,
   )
   const resolvingCount = computed(() => resolvingJobIds.value.size)
   const canRun = computed(() =>
@@ -53,17 +48,18 @@ export const useBatchStore = defineStore('batch', () => {
       preview.value &&
       depth.value === preview.value.depth &&
       readyCount.value > 0 &&
-      unresolvedCount.value === 0 &&
       resolvingCount.value === 0 &&
       !selecting.value &&
       !scanning.value &&
-      !operation.value,
+      !isWriting.value,
     ),
   )
 
   const discardCurrentPreview = async () => {
     const batchId = preview.value?.batchId
     preview.value = undefined
+    resultOpen.value = false
+    failure.value = undefined
     result.value = undefined
     resolvingJobIds.value.clear()
     resolveTokens.clear()
@@ -88,7 +84,7 @@ export const useBatchStore = defineStore('batch', () => {
       !preview.value ||
       selecting.value ||
       scanning.value ||
-      operation.value ||
+      isWriting.value ||
       resolvingJobIds.value.has(jobId)
     ) {
       return
@@ -118,6 +114,7 @@ export const useBatchStore = defineStore('batch', () => {
         const job = unref(preview)?.jobs.find(item => item.id === jobId)
         if (job) {
           const message = error instanceof Error ? error.message : String(error)
+          job.canRun = false
           job.status = 'scan-failed'
           job.matchDescription = t('batch.loadFailed')
           job.issues = [{ code: 'load-failed', message, severity: 'error' }]
@@ -140,12 +137,13 @@ export const useBatchStore = defineStore('batch', () => {
       !job ||
       selecting.value ||
       scanning.value ||
-      operation.value ||
+      isWriting.value ||
       resolvingJobIds.value.has(jobId)
     ) {
       return
     }
     job.status = 'loading'
+    job.canRun = false
     job.matchDescription = t('batch.loading')
     job.issues = []
     await updateJob(
@@ -176,7 +174,7 @@ export const useBatchStore = defineStore('batch', () => {
       selecting.value ||
       scanning.value ||
       resolvingCount.value > 0 ||
-      operation.value
+      isWriting.value
     ) {
       return
     }
@@ -215,7 +213,7 @@ export const useBatchStore = defineStore('batch', () => {
       selecting.value ||
       scanning.value ||
       resolvingCount.value > 0 ||
-      operation.value
+      isWriting.value
     ) {
       return
     }
@@ -224,7 +222,7 @@ export const useBatchStore = defineStore('batch', () => {
   }
 
   const selectDirectory = async () => {
-    if (selecting.value || scanning.value || operation.value || resolvingCount.value > 0) {
+    if (selecting.value || scanning.value || isWriting.value || resolvingCount.value > 0) {
       return
     }
     selecting.value = true
@@ -275,29 +273,15 @@ export const useBatchStore = defineStore('batch', () => {
     } else {
       result.value = { ...nextResult, jobs: preview.value?.jobs ?? [] }
     }
-    if (nextResult.failed > 0) {
-      const failedJobs = result.value.jobs.filter(job => job.status === 'failed')
-      notifications.error(
-        t('notifications.batchCompletedWithFailures'),
-        t('notifications.batchCompletedWithFailuresDetail', { count: nextResult.failed }),
-        {
-          sticky: true,
-          diagnostics: failedJobs
-            .map(job => `${job.relativePath}: ${job.issues.map(issue => issue.message).join('；')}`)
-            .join('\n'),
-        },
-      )
-    }
+    failure.value = undefined
+    resultOpen.value = true
   }
 
-  function receiveFailure(failure: OperationFailure) {
-    if (failure.kind !== 'batch') {
-      return
-    }
-    notifications.error(t('notifications.batchWriteFailed'), failure.message, {
-      sticky: true,
-      diagnostics: failure.details,
-    })
+  function receiveFailure(nextFailure: OperationFailure) {
+    if (nextFailure.kind !== 'batch') return
+    failure.value = nextFailure
+    result.value = undefined
+    resultOpen.value = true
   }
 
   const run = async (failedOnly = false) => {
@@ -306,11 +290,14 @@ export const useBatchStore = defineStore('batch', () => {
       selecting.value ||
       scanning.value ||
       resolvingCount.value > 0 ||
-      operation.value ||
-      (failedOnly ? failedCount.value === 0 : !canRun.value)
+      isWriting.value ||
+      (failedOnly ? retryableCount.value === 0 : !canRun.value)
     ) {
       return
     }
+    starting.value = true
+    resultOpen.value = false
+    failure.value = undefined
     const currentPreview = preview.value
     let reservedOperationId = ''
     try {
@@ -323,7 +310,7 @@ export const useBatchStore = defineStore('batch', () => {
           kind: 'batch',
           stage: 'preparing',
           current: 0,
-          total: failedOnly ? failedCount.value : readyCount.value,
+          total: failedOnly ? retryableCount.value : readyCount.value,
           message: t('notifications.preparingBatchWrite'),
           cancellable: true,
         },
@@ -351,6 +338,8 @@ export const useBatchStore = defineStore('batch', () => {
         sticky: true,
         diagnostics: cleanupDetails || undefined,
       })
+    } finally {
+      starting.value = false
     }
   }
 
@@ -379,7 +368,7 @@ export const useBatchStore = defineStore('batch', () => {
   }
 
   const startOver = async () => {
-    if (selecting.value || scanning.value || resolvingCount.value > 0 || operation.value) {
+    if (selecting.value || scanning.value || resolvingCount.value > 0 || isWriting.value) {
       return
     }
     contextVersion += 1
@@ -397,10 +386,13 @@ export const useBatchStore = defineStore('batch', () => {
     selecting,
     scanning,
     operation,
+    isWriting,
     result,
-    unresolvedCount,
+    failure,
+    resultOpen,
+    skippedCount,
+    retryableCount,
     readyCount,
-    failedCount,
     resolvingCount,
     canRun,
     setDepth,

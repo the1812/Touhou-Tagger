@@ -68,7 +68,7 @@ func TestApplyTagPlanSupportsFilenameSwaps(t *testing.T) {
 		Config:  domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true},
 		Writers: tagio.Writers{domain.FormatMP3: writer},
 	}
-	if err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+	if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
 		t.Fatal(err)
 	}
 	assertFileContent(t, second, "first:A")
@@ -126,7 +126,7 @@ func TestApplyTagPlanLeavesOriginalsUntouchedWhenPreparationFails(t *testing.T) 
 		Config:  domain.DefaultMetadataConfig(),
 		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{failAt: 2}},
 	}
-	if err := service.ApplyTagPlan(context.Background(), plan); err == nil {
+	if _, err := service.ApplyTagPlan(context.Background(), plan); err == nil {
 		t.Fatal("expected injected writer failure")
 	}
 	assertFileContent(t, first, "first")
@@ -163,7 +163,7 @@ func TestApplyTagPlanRejectsSourceChangedDuringPreparation(t *testing.T) {
 			return os.WriteFile(source, []byte("external source change"), 0o644)
 		},
 	}
-	err = service.ApplyTagPlan(context.Background(), plan)
+	_, err = service.ApplyTagPlan(context.Background(), plan)
 	if err == nil || !strings.Contains(err.Error(), "changed while preparing") {
 		t.Fatalf("ApplyTagPlan() error = %v", err)
 	}
@@ -246,7 +246,7 @@ func TestApplyTagPlanDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
 			return os.WriteFile(target, []byte("external target"), 0o644)
 		},
 	}
-	err = service.ApplyTagPlan(context.Background(), plan)
+	_, err = service.ApplyTagPlan(context.Background(), plan)
 	if err == nil || !TagFilesMayHaveChanged(err) {
 		t.Fatalf("ApplyTagPlan() error = %v", err)
 	}
@@ -427,7 +427,7 @@ func TestApplyTagPlanAppliesCaseOnlyFilenameChanges(t *testing.T) {
 		Config:  domain.DefaultMetadataConfig(),
 		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{}},
 	}
-	if err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+	if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
 		t.Fatal(err)
 	}
 	entries, err := os.ReadDir(directory)

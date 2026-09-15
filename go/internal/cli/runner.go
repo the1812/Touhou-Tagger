@@ -253,7 +253,7 @@ func (runner *Runner) tagDirectory(
 			return err
 		}
 	}
-	if err := service.ApplyTagPlan(ctx, plan); err != nil {
+	if _, err := service.ApplyTagPlan(ctx, plan); err != nil {
 		return err
 	}
 	if options.Cover && len(plan.Items) > 0 && len(plan.Items[0].Metadata.CoverImage) > 0 {

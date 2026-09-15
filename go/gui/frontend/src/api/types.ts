@@ -174,6 +174,7 @@ export interface OperationStart {
 }
 
 export interface OperationResult {
+  plan?: PlanPreview
   operationId: string
   kind: OperationKind
   succeeded: number
@@ -187,6 +188,7 @@ export interface OperationResult {
 }
 
 export interface OperationFailure {
+  plan?: PlanPreview
   error?: ErrorInfo
   operationId: string
   kind: OperationKind
@@ -210,6 +212,7 @@ export type BatchJobStatus =
   | 'cancelled'
 
 export interface BatchJobPreview {
+  canRun: boolean
   id: string
   relativePath: string
   inferredAlbumName: string

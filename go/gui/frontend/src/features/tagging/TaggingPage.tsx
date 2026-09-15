@@ -14,10 +14,9 @@ import { defineComponent } from 'vue'
 
 import { usePageCommands } from '../../app/pageCommands'
 import { t } from '../../i18n'
-import { CompletionPanel } from '../../shared/CompletionPanel'
+import { CompletionDialog } from '../../shared/CompletionDialog'
 import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
 import { Message } from '../../shared/Message'
-import { OperationPanel } from '../../shared/OperationPanel'
 import { StatusIcon } from '../../shared/StatusIcon'
 import { TruncatedText } from '../../shared/TruncatedText'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
@@ -29,7 +28,7 @@ export const TaggingPage = defineComponent({
   name: 'TaggingPage',
   setup() {
     const workspace = useWorkspaceStore()
-    const { phase, summary, operation, result, isBusy } = storeToRefs(workspace)
+    const { phase, summary, result, failure, resultOpen, isBusy } = storeToRefs(workspace)
 
     usePageCommands({
       openDirectory: () => workspace.selectDirectory(),
@@ -52,7 +51,6 @@ export const TaggingPage = defineComponent({
 
     return () => {
       const currentSummary = summary.value
-      const currentOperation = operation.value
       const currentResult = result.value
       const currentPhase = phase.value
 
@@ -214,17 +212,18 @@ export const TaggingPage = defineComponent({
               <TaggingSearchStep />
               <TaggingPlanStep />
 
-              {currentOperation && (
-                <OperationPanel operation={currentOperation} onCancel={() => workspace.cancel()} />
-              )}
-              {currentResult && (
-                <CompletionPanel
-                  class="flex-1 justify-center pb-app-section-y"
-                  title={currentResult.message}
-                  onReveal={() => workspace.reveal()}
-                  onComplete={() => workspace.startOver()}
-                />
-              )}
+              <CompletionDialog
+                visible={resultOpen.value}
+                title={failure.value?.message ?? currentResult?.message ?? ''}
+                warning={Boolean(
+                  failure.value || currentResult?.cancelled || currentResult?.failed,
+                )}
+                details={failure.value?.details}
+                onReveal={() => workspace.reveal()}
+                onClose={() => {
+                  workspace.resultOpen = false
+                }}
+              />
             </div>
           )}
         </div>

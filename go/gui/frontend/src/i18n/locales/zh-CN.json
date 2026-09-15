@@ -226,6 +226,7 @@
     }
   },
   "batch": {
+    "writeSelection": " · 将写入 {ready} 个，跳过 {skipped} 个",
     "selectDirectoryDialog": "选择批量写入的根目录",
     "directoryFallback": "批量写入目录",
     "scanHeading": "专辑列表",

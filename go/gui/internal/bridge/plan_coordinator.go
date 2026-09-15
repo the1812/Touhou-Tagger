@@ -207,14 +207,10 @@ func (service *planCoordinator) commitPlan(planID string, revision int) (Operati
 			planID,
 			service.ops.eventSink(operationID),
 		)
-		if err == nil || !reusable {
+		if !reusable {
 			service.store.delete(planID)
-		} else {
-			session.mu.Lock()
-			session.committing = false
-			session.mu.Unlock()
 		}
-		if errors.Is(err, context.Canceled) {
+		if errors.Is(err, context.Canceled) && reusable {
 			result.OperationID = operationID
 			result.Kind = "workspace"
 			result.Cancelled = true
@@ -240,12 +236,23 @@ func (service *planCoordinator) executeCommit(
 	operationID string,
 	planID string,
 	events coreapp.EventSink,
-) (OperationResult, bool, error) {
+) (result OperationResult, reusable bool, err error) {
 	started := time.Now()
 	session, exists := service.store.get(planID)
 	if !exists {
 		return OperationResult{}, false, fmt.Errorf("写入内容已失效")
 	}
+	defer func() {
+		session.mu.Lock()
+		defer session.mu.Unlock()
+		session.committing = false
+		if reusable {
+			session.revision++
+			service.rebuildSession(session)
+			preview := service.previewLocked(session)
+			result.Plan = &preview
+		}
+	}()
 	session.mu.Lock()
 	configValue := cloneConfig(session.config)
 	metadata := cloneMetadata(session.metadata)
@@ -265,7 +272,7 @@ func (service *planCoordinator) executeCommit(
 	}
 	plan, err := coreapp.BuildTagPlan(scan, metadata)
 	if err != nil {
-		return OperationResult{}, false, fmt.Errorf("准备写入内容: %w", err)
+		return OperationResult{}, true, fmt.Errorf("准备写入内容: %w", err)
 	}
 	renamed := 0
 	for _, item := range plan.Items {
@@ -273,31 +280,42 @@ func (service *planCoordinator) executeCommit(
 			renamed++
 		}
 	}
-	if err := applicationService.ApplyTagPlan(ctx, plan); err != nil {
-		reusable := !coreapp.TagFilesMayHaveChanged(err) && !coreapp.PlanOutputsChanged(err)
-		return OperationResult{}, reusable, err
+	applied, applyErr := applicationService.ApplyTagPlan(ctx, plan)
+	if applied.Renamed {
+		session.mu.Lock()
+		for index, item := range plan.Items {
+			session.scan.AudioFiles[index].Path = item.TargetPath
+		}
+		session.mu.Unlock()
+	}
+	if applyErr != nil {
+		return OperationResult{}, applied.Renamed || !coreapp.TagFilesMayHaveChanged(applyErr), applyErr
 	}
 	coversSaved := 0
 	if saveCover {
 		var saveErr error
+		var coverPath string
 		if scan.CoverPath != "" {
-			_, saveErr = coreapp.SaveCoverAt(scan.CoverPath, cover)
+			coverPath, saveErr = coreapp.SaveCoverAt(scan.CoverPath, cover)
 		} else {
-			_, saveErr = coreapp.SaveCoverNew(directory, cover)
+			coverPath, saveErr = coreapp.SaveCoverNew(directory, cover)
 		}
 		if saveErr != nil {
-			return OperationResult{}, false, saveErr
+			return OperationResult{}, true, saveErr
 		}
+		session.mu.Lock()
+		session.scan.CoverPath = coverPath
+		session.mu.Unlock()
 		coversSaved = 1
 	}
 	if candidate.Source != "local-json" {
 		defaultName, err := coreapp.DefaultAlbumName(directory)
 		if err != nil {
-			return OperationResult{}, false, err
+			return OperationResult{}, true, err
 		}
 		if candidate.Name != "" && candidate.Name != defaultName {
 			if err := config.SaveDefaultAlbumHint(directory, candidate.Name); err != nil {
-				return OperationResult{}, false, err
+				return OperationResult{}, true, err
 			}
 		}
 	}
@@ -318,7 +336,7 @@ func (service *planCoordinator) executeCommit(
 			Current:   len(plan.Items),
 			Total:     len(plan.Items),
 		}); err != nil {
-			return OperationResult{}, false, fmt.Errorf("发送最终完成进度: %w", err)
+			return OperationResult{}, true, fmt.Errorf("发送最终完成进度: %w", err)
 		}
 	}
 	return OperationResult{
@@ -330,7 +348,7 @@ func (service *planCoordinator) executeCommit(
 		LRCFiles:    lrcFiles,
 		DurationMS:  time.Since(started).Milliseconds(),
 		Message:     fmt.Sprintf("已完成 %d 首曲目的写入。", len(plan.Items)),
-	}, false, nil
+	}, true, nil
 }
 
 func withoutCompleteEvents(events coreapp.EventSink) coreapp.EventSink {

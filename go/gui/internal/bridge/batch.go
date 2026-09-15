@@ -14,6 +14,7 @@ import (
 )
 
 type batchJob struct {
+	canRun              bool
 	id                  string
 	directory           string
 	inferredAlbumName   string
@@ -170,6 +171,7 @@ func (service *BatchService) LoadBatchJob(
 	job.issues = []StateIssue{}
 	job.candidates = []AlbumCandidate{}
 	job.selectedCandidateID = ""
+	job.canRun = false
 	job.planID = ""
 	job.revision = 0
 	working := &batchJob{
@@ -318,6 +320,7 @@ func (service *BatchService) prepareBatchJob(
 		job.issues = append(job.issues, failureIssue("prepare-failed", err))
 		return
 	}
+	job.canRun = plan.CanCommit
 	job.planID = plan.PlanID
 	job.revision = plan.Revision
 	job.issues = append(job.issues, plan.Issues...)
@@ -405,6 +408,7 @@ func (service *BatchService) ResolveBatchCandidate(
 	}
 	job.resolving = false
 	job.resolveToken = ""
+	job.canRun = false
 	job.selectedCandidateID = candidate.ID
 	job.source = candidate.Source
 	job.matchDescription = "已选择搜索结果"
@@ -414,6 +418,7 @@ func (service *BatchService) ResolveBatchCandidate(
 		job.issues = append(job.issues, failureIssue("prepare-failed", err))
 		return batchJobPreview(session.root, job), nil
 	}
+	job.canRun = plan.CanCommit
 	job.planID = plan.PlanID
 	job.revision = plan.Revision
 	job.issues = append(job.issues, plan.Issues...)
@@ -457,6 +462,7 @@ func (service *BatchService) IgnoreBatchJob(
 		return BatchJobPreview{}, fmt.Errorf("这个专辑正在加载搜索结果，请稍候")
 	}
 	planID := job.planID
+	job.canRun = false
 	job.planID = ""
 	job.revision = 0
 	job.selectedCandidateID = ""
@@ -496,14 +502,14 @@ func (service *BatchService) RunBatch(
 	previousStatuses := make(map[string]string, len(session.jobs))
 	for _, job := range session.jobs {
 		if failedOnly {
-			if job.status == "failed" {
+			if job.status == "failed" && job.canRun {
 				selected = append(selected, job.id)
 				previousStatuses[job.id] = job.status
 				job.status = "queued"
 			}
 			continue
 		}
-		if job.status == "ready" || job.status == "local-metadata" {
+		if job.canRun {
 			selected = append(selected, job.id)
 			previousStatuses[job.id] = job.status
 			job.status = "queued"
@@ -596,8 +602,6 @@ func (service *BatchService) executeBatch(
 		session.mu.Lock()
 		job.status = "running"
 		directory := job.directory
-		candidateID := job.selectedCandidateID
-		sourceName := job.source
 		planID := job.planID
 		revision := job.revision
 		session.mu.Unlock()
@@ -609,61 +613,30 @@ func (service *BatchService) executeBatch(
 			Path:        filepath.Base(directory),
 			Message:     fmt.Sprintf("正在处理专辑 %d / %d", index+1, len(selected)),
 		})
-		if planID == "" || !service.planner.claim(planID, revision) {
-			plan, prepareErr := service.planner.prepareOwnedPlan(
-				ctx,
-				directory,
-				candidateID,
-				sourceName,
-				session.id,
-			)
-			if prepareErr != nil {
-				if errors.Is(prepareErr, context.Canceled) {
-					service.cancelRemaining(session, selected[index:])
-					result.Cancelled = true
-					result.Message = "已取消当前准备阶段，并停止写入后续专辑。"
-					result.DurationMS = time.Since(started).Milliseconds()
-					result.Jobs = batchJobPreviews(session)
-					return result, nil
-				}
-				service.failJob(session, job, prepareErr)
-				result.Failed++
-				service.emitBatchAlbumProgress(
-					operationID,
-					index+1,
-					len(selected),
-					directory,
-					fmt.Sprintf("专辑 %d / %d 处理失败", index+1, len(selected)),
-				)
-				continue
-			}
-			planID = plan.PlanID
-			revision = plan.Revision
+		if !service.planner.claim(planID, revision) {
+			service.failJob(session, job, fmt.Errorf("写入内容不可用，请重新加载此专辑"))
 			session.mu.Lock()
-			job.planID = planID
-			job.revision = revision
+			job.canRun = false
 			session.mu.Unlock()
-			if !plan.CanCommit || !service.planner.claim(planID, revision) {
-				service.failJob(session, job, fmt.Errorf("写入内容仍有未解决的问题"))
-				result.Failed++
-				service.emitBatchAlbumProgress(
-					operationID,
-					index+1,
-					len(selected),
-					directory,
-					fmt.Sprintf("专辑 %d / %d 处理失败", index+1, len(selected)),
-				)
-				continue
-			}
+			result.Failed++
+			continue
 		}
-		commitResult, _, commitErr := service.planner.executeCommit(
+		commitResult, reusable, commitErr := service.planner.executeCommit(
 			ctx,
 			operationID,
 			planID,
 			service.batchEventSink(operationID, index, len(selected), directory),
 		)
-		service.planner.delete(planID)
-		if errors.Is(commitErr, context.Canceled) {
+		session.mu.Lock()
+		job.canRun = commitResult.Plan != nil && commitResult.Plan.CanCommit
+		if commitResult.Plan != nil {
+			job.revision = commitResult.Plan.Revision
+		}
+		session.mu.Unlock()
+		if !reusable {
+			service.planner.delete(planID)
+		}
+		if errors.Is(commitErr, context.Canceled) && reusable {
 			service.cancelRemaining(session, selected[index+1:])
 			session.mu.Lock()
 			job.status = "cancelled"
@@ -830,6 +803,7 @@ func batchJobPreview(root string, job *batchJob) BatchJobPreview {
 		relative = filepath.Base(job.directory)
 	}
 	return BatchJobPreview{
+		CanRun:              job.canRun && !job.resolving,
 		ID:                  job.id,
 		RelativePath:        relative,
 		InferredAlbumName:   job.inferredAlbumName,

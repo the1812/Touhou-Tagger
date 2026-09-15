@@ -29,7 +29,6 @@ export const TaggingSearchStep = defineComponent({
       selectedCandidateId,
       plan,
       operation,
-      result,
       isBusy,
       canSearch,
       canPrepare,
@@ -52,8 +51,7 @@ export const TaggingSearchStep = defineComponent({
         currentSummary.hasMetadataJson ||
         phase.value === 'failed' ||
         plan.value ||
-        operation.value ||
-        result.value
+        operation.value
       ) {
         return null
       }

@@ -36,7 +36,7 @@ func TestWithoutCompleteEventsDefersOnlyFinalProgress(t *testing.T) {
 	}
 }
 
-func TestInspectPlanOutputsReportsExistingTargets(t *testing.T) {
+func TestInspectPlanOutputsAllowsExistingLRC(t *testing.T) {
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
 	config := domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true}
@@ -49,7 +49,7 @@ func TestInspectPlanOutputsReportsExistingTargets(t *testing.T) {
 		t.Fatal(err)
 	}
 	issues := inspectPlanOutputs(plan, config, directory, nil, false, "")
-	if len(issues) != 1 || issues[0].Code != "lrc-target-exists" {
+	if len(issues) != 0 {
 		t.Fatalf("inspectPlanOutputs() issues = %#v", issues)
 	}
 }

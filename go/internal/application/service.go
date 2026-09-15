@@ -170,36 +170,40 @@ func (service *Service) FetchTagData(
 	return TagData{Scan: scan, Metadata: metadata}, cover, nil
 }
 
-func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) error {
+type TagWriteResult struct {
+	Renamed bool
+}
+
+func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) (result TagWriteResult, err error) {
 	if len(plan.Items) == 0 {
-		return fmt.Errorf("tag plan for %q is empty", plan.Directory)
+		return result, fmt.Errorf("tag plan for %q is empty", plan.Directory)
 	}
 	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
-		return err
+		return result, err
 	}
 	sourceSnapshots, err := snapshotSources(plan.Items)
 	if err != nil {
-		return err
+		return result, err
 	}
 	prepared := make([]preparedWrite, 0, len(plan.Items))
 	for index, item := range plan.Items {
 		if err := ctx.Err(); err != nil {
-			return errors.Join(err, cleanupPrepared(prepared))
+			return result, errors.Join(err, cleanupPrepared(prepared))
 		}
 		writer, exists := service.Writers[item.Format]
 		if !exists {
-			return errors.Join(
+			return result, errors.Join(
 				fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath),
 				cleanupPrepared(prepared),
 			)
 		}
 		temporary, err := copyToTemporary(ctx, item.SourcePath, ".thtag-write-*")
 		if err != nil {
-			return errors.Join(err, cleanupPrepared(prepared))
+			return result, errors.Join(err, cleanupPrepared(prepared))
 		}
 		prepared = append(prepared, preparedWrite{item: item, temporary: temporary})
 		if err := writer.Write(ctx, temporary, item.Metadata, service.Config); err != nil {
-			return errors.Join(
+			return result, errors.Join(
 				fmt.Errorf("write metadata to %q: %w", item.SourcePath, err),
 				cleanupPrepared(prepared),
 			)
@@ -208,7 +212,7 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 			Stage: domain.StageWrite, Directory: plan.Directory, Path: item.SourcePath,
 			Current: index + 1, Total: len(plan.Items),
 		}); err != nil {
-			return errors.Join(err, cleanupPrepared(prepared))
+			return result, errors.Join(err, cleanupPrepared(prepared))
 		}
 	}
 	if err := service.emit(domain.ProgressEvent{
@@ -217,19 +221,19 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 		Current:   len(plan.Items),
 		Total:     len(plan.Items),
 	}); err != nil {
-		return errors.Join(err, cleanupPrepared(prepared))
+		return result, errors.Join(err, cleanupPrepared(prepared))
 	}
 	if err := ctx.Err(); err != nil {
-		return errors.Join(err, cleanupPrepared(prepared))
+		return result, errors.Join(err, cleanupPrepared(prepared))
 	}
 	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
-		return errors.Join(err, cleanupPrepared(prepared))
+		return result, errors.Join(err, cleanupPrepared(prepared))
 	}
 	if err := validateSourceSnapshots(sourceSnapshots); err != nil {
-		return errors.Join(err, cleanupPrepared(prepared))
+		return result, errors.Join(err, cleanupPrepared(prepared))
 	}
 	if err := replaceOriginals(prepared, sourceSnapshots); err != nil {
-		return errors.Join(&TagFilesChangedError{Err: err}, cleanupPrepared(prepared))
+		return result, errors.Join(&TagFilesChangedError{Err: err}, cleanupPrepared(prepared))
 	}
 	if err := service.emit(domain.ProgressEvent{
 		Stage:     domain.StageRename,
@@ -237,15 +241,16 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 		Current:   len(plan.Items),
 		Total:     len(plan.Items),
 	}); err != nil {
-		return &TagFilesChangedError{Err: err}
+		return result, &TagFilesChangedError{Err: err}
 	}
 	if err := renameTwoPhase(plan.Items); err != nil {
-		return &TagFilesChangedError{Err: err}
+		return result, &TagFilesChangedError{Err: err}
 	}
+	result.Renamed = true
 	for _, output := range TagPlanOutputs(plan, service.Config) {
 		item := plan.Items[output.ItemIndex]
-		if err := writeNewFile(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
-			return &TagFilesChangedError{
+		if err := atomicWrite(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
+			return result, &TagFilesChangedError{
 				Err: fmt.Errorf("write LRC %q: %w", output.Path, err),
 			}
 		}
@@ -256,9 +261,9 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) e
 		Current:   len(plan.Items),
 		Total:     len(plan.Items),
 	}); err != nil {
-		return &TagFilesChangedError{Err: err}
+		return result, &TagFilesChangedError{Err: err}
 	}
-	return nil
+	return result, nil
 }
 
 func (service *Service) emit(event domain.ProgressEvent) error {

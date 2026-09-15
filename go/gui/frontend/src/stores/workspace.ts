@@ -27,7 +27,6 @@ export type WorkspacePhase =
   | 'preparing'
   | 'ready'
   | 'editing'
-  | 'complete'
   | 'failed'
 
 export const useWorkspaceStore = defineStore('workspace', () => {
@@ -41,18 +40,22 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const selectedCandidateId = ref('')
   const plan = ref<PlanPreview>()
   const result = ref<OperationResult>()
+  const failure = ref<OperationFailure>()
+  const resultOpen = ref(false)
   const notifications = useNotificationsStore()
   const operations = useOperationsStore()
   const settings = useSettingsStore()
   let contextVersion = 0
 
+  const starting = ref(false)
   const operation = computed(() => operations.get('workspace'))
+  const isWriting = computed(() => starting.value || Boolean(operation.value))
   const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
 
   const isBusy = computed(
     () =>
       ['selecting', 'scanning', 'searching', 'preparing', 'editing'].includes(phase.value) ||
-      Boolean(operation.value),
+      isWriting.value,
   )
   const blockingIssues = computed(() => {
     const issues = [
@@ -80,7 +83,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       phase.value === 'ready' &&
       Boolean(plan.value?.canCommit) &&
       blockingIssues.value.length === 0 &&
-      !operation.value,
+      !isWriting.value,
   )
   const clearAfterDirectory = () => {
     candidates.value = []
@@ -88,6 +91,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     selectedCandidateId.value = ''
     plan.value = undefined
     result.value = undefined
+    failure.value = undefined
+    resultOpen.value = false
   }
 
   const discardCurrentPlan = async () => {
@@ -349,38 +354,29 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     if (completion.kind !== 'workspace') {
       return
     }
-    const nextResult = completion
-    if (nextResult.cancelled) {
-      result.value = undefined
-      phase.value = plan.value ? 'ready' : 'failed'
-      notifications.info(t('notifications.writeCancelled'), nextResult.message)
-      return
-    }
-    result.value = nextResult
-    plan.value = undefined
-    phase.value = 'complete'
+    result.value = completion
+    failure.value = undefined
+    resultOpen.value = true
+    plan.value = completion.plan ?? plan.value
+    phase.value = plan.value ? 'ready' : 'failed'
   }
 
-  function receiveFailure(failure: OperationFailure) {
-    if (failure.kind !== 'workspace') {
-      return
-    }
-    if (failure.planInvalidated) {
-      plan.value = undefined
-      phase.value = 'failed'
-    } else {
-      phase.value = plan.value ? 'ready' : 'failed'
-    }
-    notifications.error(t('notifications.writeFailed'), failure.message, {
-      sticky: true,
-      diagnostics: failure.details,
-    })
+  function receiveFailure(nextFailure: OperationFailure) {
+    if (nextFailure.kind !== 'workspace') return
+    plan.value = nextFailure.plan ?? plan.value
+    failure.value = nextFailure
+    result.value = undefined
+    resultOpen.value = true
+    phase.value = nextFailure.planInvalidated || !plan.value ? 'failed' : 'ready'
   }
 
   const commit = async () => {
     if (!canCommit.value || !plan.value) {
       return
     }
+    starting.value = true
+    resultOpen.value = false
+    failure.value = undefined
     const currentPlan = plan.value
     let reservedOperationId = ''
     result.value = undefined
@@ -420,6 +416,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         sticky: true,
         diagnostics: cleanupDetails || undefined,
       })
+    } finally {
+      starting.value = false
     }
   }
 
@@ -485,7 +483,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     plan,
     operation,
     result,
+    failure,
+    resultOpen,
     isBusy,
+    isWriting,
     blockingIssues,
     canSearch,
     canPrepare,

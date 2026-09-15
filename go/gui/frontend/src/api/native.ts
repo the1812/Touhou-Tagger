@@ -282,15 +282,22 @@ export const nativeApi: GUIApi = {
     return Events.On('gui:operation-complete', event => {
       const result = normalizeResult(event.data as Wire<OperationResult | BatchRunResult>)
       handler(
-        'jobs' in result ? { ...result, jobs: (result.jobs ?? []).map(normalizeBatchJob) } : result,
+        'jobs' in result
+          ? {
+              ...result,
+              plan: result.plan ? normalizePlan(result.plan) : undefined,
+              jobs: (result.jobs ?? []).map(normalizeBatchJob),
+            }
+          : { ...result, plan: result.plan ? normalizePlan(result.plan) : undefined },
       )
     })
   },
   onFailure(handler) {
     return Events.On('gui:operation-failed', event => {
-      const failure = event.data as OperationFailure
+      const failure = event.data as Wire<OperationFailure>
       handler({
         ...failure,
+        plan: failure.plan ? normalizePlan(failure.plan) : undefined,
         message: failure.error ? errorMessage(failure.error) : failure.message,
       })
     })

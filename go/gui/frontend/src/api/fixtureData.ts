@@ -186,6 +186,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     matchDescription: '精确匹配',
     audioCount: singleDiscFixture.tracks.length,
     status: 'ready',
+    canRun: true,
     issues: [],
     candidates: [candidates[0]],
     selectedCandidateId: candidates[0].id,
@@ -198,6 +199,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     matchDescription: '多个搜索结果',
     audioCount: multipleDiscFixture.tracks.length,
     status: 'needs-candidate',
+    canRun: false,
     issues: [
       {
         code: 'candidate-required',
@@ -215,6 +217,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     matchDescription: '精确匹配',
     audioCount: noCoverFixture.tracks.length,
     status: 'ready',
+    canRun: true,
     issues: [],
     candidates: [candidates[2]],
     selectedCandidateId: candidates[2].id,
