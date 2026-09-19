@@ -28,16 +28,10 @@ jobs:
           $commit = git rev-parse --short HEAD
           $date = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
           go build -trimpath -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" -o ./bin/thtag.exe ./cmd/thtag
-      - name: Create zip
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force release/go | Out-Null
-          Copy-Item -LiteralPath go/bin/thtag.exe -Destination release/go/thtag.exe
-          Compress-Archive -LiteralPath release/go/thtag.exe -DestinationPath release/touhou-tagger-go-windows-x64.zip -CompressionLevel Optimal
       - uses: actions/upload-artifact@v7.0.1
         with:
-          name: touhou-tagger-go-windows-x64
-          path: release/touhou-tagger-go-windows-x64.zip
+          path: go/bin/thtag.exe
+          archive: false
           if-no-files-found: error
 
   package-gui:
@@ -61,16 +55,10 @@ jobs:
       - name: Build GUI
         working-directory: go/gui
         run: go tool wails3 task build
-      - name: Create zip
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force release/gui | Out-Null
-          Copy-Item -LiteralPath go/bin/TouhouTagger.exe -Destination release/gui/TouhouTagger.exe
-          Compress-Archive -LiteralPath release/gui/TouhouTagger.exe -DestinationPath release/touhou-tagger-gui-windows-x64.zip -CompressionLevel Optimal
       - uses: actions/upload-artifact@v7.0.1
         with:
-          name: touhou-tagger-gui-windows-x64
-          path: release/touhou-tagger-gui-windows-x64.zip
+          path: go/bin/TouhouTagger.exe
+          archive: false
           if-no-files-found: error
 
   publish-release:
@@ -83,10 +71,10 @@ jobs:
         with:
           path: release-assets
           merge-multiple: true
-      - name: Upload zips
+      - name: Upload executables
         shell: pwsh
         run: |
-          Get-ChildItem -LiteralPath release-assets -Filter *.zip | ForEach-Object {
+          Get-ChildItem -LiteralPath release-assets -Filter *.exe | ForEach-Object {
             gh release upload $env:RELEASE_TAG $_.FullName --clobber
             if ($LASTEXITCODE -ne 0) {
               throw "Failed to upload release asset $($_.Name)."

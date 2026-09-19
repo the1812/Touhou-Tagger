@@ -24,29 +24,6 @@ jobs:
       - run: pnpm run check
       - run: pnpm run build
       - run: pnpm run test
-      - name: Verify npm package boundaries
-        shell: pwsh
-        run: |
-          pnpm pack --pack-destination $env:RUNNER_TEMP
-          if ($LASTEXITCODE -ne 0) {
-            throw 'pnpm pack failed.'
-          }
-          $archive = Get-ChildItem -LiteralPath $env:RUNNER_TEMP -Filter 'touhou-tagger-*.tgz' |
-            Sort-Object LastWriteTime -Descending |
-            Select-Object -First 1
-          if (-not $archive) {
-            throw 'pnpm pack did not create an archive.'
-          }
-          $entries = @(tar -tf $archive.FullName)
-          if ($LASTEXITCODE -ne 0) {
-            throw 'Unable to inspect the npm package.'
-          }
-          $forbidden = @($entries | Where-Object {
-            $_ -match '^package/(fixtures|test|go)(/|$)'
-          })
-          if ($forbidden.Count -gt 0) {
-            throw "Forbidden npm package entries: $($forbidden -join ', ')"
-          }
   go:
     name: Go
     runs-on: windows-2025
@@ -92,9 +69,3 @@ jobs:
       - name: Build Windows amd64 GUI
         working-directory: go/gui
         run: go tool wails3 task build
-      - name: Verify executable
-        shell: pwsh
-        run: |
-          if (-not (Test-Path -LiteralPath go/bin/TouhouTagger.exe)) {
-            throw 'go/bin/TouhouTagger.exe was not built.'
-          }

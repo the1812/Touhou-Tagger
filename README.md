@@ -29,7 +29,7 @@
 
 ## 安装 / 更新
 
-### 方式 1: Node.js
+### 方式 1: Node.js CLI
 
 需要事先装有 [Node.js](https://nodejs.org/en/) 和 [pnpm](https://pnpm.io/installation), 然后使用以下命令来安装此工具:
 
@@ -39,11 +39,17 @@ pnpm install --global touhou-tagger
 
 > 如果曾经使用其他包管理器安装过 v1.5.0 之前的版本, 需要先卸载再使用 pnpm 安装.
 
-### 方式 2: 可执行文件 (Windows)
+### 方式 2: Go CLI
 
-从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中下载 `touhou-tagger-go-windows-x64.zip`, 解压后将 `thtag.exe` 的存放目录添加到 Path 中即可.
+从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中下载 `thtag.exe`, 将其存放目录添加到 Path 中即可.
 
-> 可执行文件由 Go 实现, 仅支持 Windows, 其他操作系统也可以从源码自行打包.
+> 仅支持 Windows, 其他操作系统也可以从源码自行构建.
+
+### 方式 3: Go GUI
+
+从 [Releases](https://github.com/the1812/Touhou-Tagger/releases) 中下载 `TouhouTagger.exe`, 双击即可运行.
+
+> 仅支持 Windows, 其他操作系统也可以从源码自行构建.
 
 ## 使用
 
