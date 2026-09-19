@@ -8,6 +8,16 @@
     width: 1em;
     height: 1em;
   }
+
+  .app-root,
+  .app-root * {
+    scrollbar-width: none;
+  }
+
+  .app-root::-webkit-scrollbar,
+  .app-root *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @theme {
@@ -73,18 +83,6 @@
 
   & .app-theme-tooltip .p-tooltip-text {
     @apply whitespace-nowrap;
-  }
-
-  & .p-datatable-table-container {
-    scrollbar-width: thin;
-  }
-}
-
-@utility app-scrollbar {
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
   }
 }
 

@@ -161,7 +161,7 @@ export const AppShell = defineComponent({
             data-file-drop-target={canDrop.value ? true : undefined}
             onDragleave={clearDrop}
             class={cx(
-              'app-directory-drop app-scrollbar min-h-0 min-w-0',
+              'app-directory-drop min-h-0 min-w-0',
               'bg-app-content dark:bg-app-content-dark',
               route.name === 'settings'
                 ? 'overflow-hidden p-0'
