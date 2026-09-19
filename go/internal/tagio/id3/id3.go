@@ -118,6 +118,7 @@ func (writer Writer) Write(
 	defer func() {
 		resultErr = errors.Join(resultErr, tag.Close())
 	}()
+	tag.SetVersion(3)
 	encoding := id3v2.EncodingUTF8
 	if tag.Version() == 3 {
 		encoding = id3v2.EncodingUTF16

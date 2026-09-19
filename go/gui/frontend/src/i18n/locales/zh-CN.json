@@ -160,7 +160,7 @@
     "selectDirectoryDialog": "选择专辑文件夹",
     "unnamedAlbum": "未命名专辑",
     "rescan": "重新扫描 (F5)",
-    "audioSummary": "{count} 首音频（{mp3} MP3 · {flac} FLAC）",
+    "audioSummary": "{count} 首音频（{mp3} MP3, {flac} FLAC）",
     "localCoverFound": "本地封面：{name}",
     "found": "已找到",
     "noLocalCover": "无本地封面文件",
@@ -225,7 +225,7 @@
     }
   },
   "batch": {
-    "writeSelection": " · 将写入 {ready} 个，跳过 {skipped} 个",
+    "writeSelection": "，将写入 {ready} 个，跳过 {skipped} 个",
     "selectDirectoryDialog": "选择批量写入的根目录",
     "directoryFallback": "批量写入目录",
     "scanHeading": "专辑列表",
