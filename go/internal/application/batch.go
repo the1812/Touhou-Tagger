@@ -6,14 +6,17 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
-var datedAlbumName = regexp.MustCompile(`^\d{4}\.\d{2}\.\d{2} (.+?) \[.+?\]$`)
+var albumNameFormats = []*regexp.Regexp{
+	regexp.MustCompile(`^\d{4}\.\d{2}\.\d{2} \[.+?\] (.+?)( \[.+?\])?$`),
+	regexp.MustCompile(`^\d{4}\.\d{2}\.\d{2} (.+?)( \[.+?\])?$`),
+	regexp.MustCompile(`^(.+?) \[.+?\]$`),
+}
 
 func (service *Service) ScanBatch(
 	ctx context.Context,
@@ -107,11 +110,10 @@ func DefaultAlbumName(directory string) (string, error) {
 		return options.DefaultAlbumHint, nil
 	}
 	name := filepath.Base(filepath.Clean(directory))
-	if match := datedAlbumName.FindStringSubmatch(name); len(match) > 1 {
-		return match[1], nil
-	}
-	if before, _, found := strings.Cut(name, " [Disc "); found {
-		return before, nil
+	for _, format := range albumNameFormats {
+		if match := format.FindStringSubmatch(name); len(match) > 1 {
+			return match[1], nil
+		}
 	}
 	return name, nil
 }

@@ -1,1 +1,2 @@
-vp staged
+vp check --fix
+vp -C go/gui/frontend check --fix
