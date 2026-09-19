@@ -4,7 +4,7 @@ import { parseHTML } from 'linkedom'
 import { MetadataConfig } from '../../core-config.js'
 import { log } from '../../debug.js'
 import { albumArtistsAltNames, altNames } from '../alt-names.js'
-import { MetadataSource } from '../metadata-source.js'
+import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
 import { Metadata } from '../metadata.js'
 
 const isNodeAnElement = <TargetType extends Element>(
@@ -339,7 +339,7 @@ export class ThbWiki extends MetadataSource {
     log(rowData)
     return rowData
   }
-  async getMetadata(albumName: string, cover?: Buffer) {
+  async getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
     // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
     const url = `https://${this.host}/${encodeURIComponent(albumName)}`
     const response = await axios.get(url, { timeout: this.config.timeout * 1000 })
@@ -351,8 +351,11 @@ export class ThbWiki extends MetadataSource {
     const { album, albumOrder, albumArtists, genres, year } = this.getAlbumData(infoTable)
     const coverImageElement = document.querySelector<HTMLImageElement>('.cover-artwork img')
     const coverImage = await (async () => {
-      if (cover) {
-        return cover
+      if (options.cover) {
+        return options.cover
+      }
+      if (options.downloadCover === false) {
+        return undefined
       }
       if (coverImageElement) {
         return this.getAlbumCover(coverImageElement)

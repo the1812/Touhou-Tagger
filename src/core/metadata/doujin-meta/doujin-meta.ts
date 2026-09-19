@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { MetadataSource } from '../metadata-source.js'
+import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
 import type { AlbumMetadata, Metadata } from '../metadata.js'
 import { expandMetadataInfo } from '../normalize/normalize.js'
 
@@ -62,7 +62,7 @@ export class DoujinMeta extends MetadataSource {
     return searchResult.map(it => it.album).slice(0, MetadataSource.MaxSearchCount)
   }
 
-  async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> {
+  async getMetadata(albumName: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
     if (!this.albumIds.has(albumName)) {
       await this.search(albumName)
     }
@@ -82,7 +82,8 @@ export class DoujinMeta extends MetadataSource {
       })
       return coverData
     }
-    const coverBuffer = cover ?? (await downloadCover())
+    const coverBuffer =
+      options.cover ?? (options.downloadCover === false ? undefined : await downloadCover())
 
     return expandMetadataInfo({
       metadatas: albumDetail.tracks.map((track, index) => ({

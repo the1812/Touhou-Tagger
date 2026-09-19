@@ -4,7 +4,7 @@ import { readdir } from 'fs/promises'
 import id3 from 'node-id3'
 
 import { resolvePath } from '../../exists.js'
-import { MetadataSource } from '../metadata-source.js'
+import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
 import { Metadata } from '../metadata.js'
 
 const dirFilter = async <Result = string>(
@@ -31,7 +31,7 @@ export class LocalMp3 extends MetadataSource {
     }
     return [await dirFilter(path, mp3Filter, name => join(path, name))]
   }
-  async getMetadata(fullPath: string, cover?: Buffer) {
+  async getMetadata(fullPath: string, options: MetadataFetchOptions = {}) {
     const discs = await this.getMultipleDiscFiles(fullPath)
     const metadatas = discs.flatMap((discFiles, index) => {
       const discNumber = (index + 1).toString()
@@ -51,7 +51,7 @@ export class LocalMp3 extends MetadataSource {
           albumArtists: tags.performerInfo ? tags.performerInfo.split(separator) : undefined,
           genres: tags.genre ? tags.genre.split(separator) : undefined,
           year: tags.year || undefined,
-          coverImage: tags.image?.imageBuffer || cover,
+          coverImage: tags.image?.imageBuffer || options.cover,
         }
         if (this.config.lyric && tags.unsynchronisedLyrics) {
           metadata.lyric = tags.unsynchronisedLyrics.text

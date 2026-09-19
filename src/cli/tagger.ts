@@ -72,7 +72,7 @@ export class CliTagger extends CliCommandBase {
       throw new Error(`未找到与'${this.options.source}'相关联的数据源.`)
     }
     metadataSource.config = this.metadataConfig
-    return metadataSource.getMetadata(album, cover)
+    return metadataSource.getMetadata(album, { cover })
   }
   async createFiles(metadata: Metadata[]) {
     const { dirname } = await import('path')

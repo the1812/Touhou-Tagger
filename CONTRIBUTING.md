@@ -13,14 +13,14 @@ pnpm install
 在 `src/core/metadata/` 中添加文件 `xxx.ts`, 继承 `MetadataSource` 类:
 
 ```TypeScript
-import { MetadataSource } from './metadata-source'
+import { MetadataFetchOptions, MetadataSource } from './metadata-source'
 import { Metadata } from './metadata'
 
 export class XXX extends MetadataSource {
   // 搜索专辑, 返回 string 表示精确匹配, 返回 string[] 表示未找到精确匹配, 内容是根据 albumName 搜索得到的结果
   async resolveAlbumName(albumName: string): Promise<string[] | string> { /* ... */ }
-  // 下载专辑信息, 返回 Metadata[], cover 如果传入现成的封面图片 Buffer, 将跳过封面下载节省时间
-  async getMetadata(albumName: string, cover?: Buffer): Promise<Metadata[]> { /* ... */ }
+  // 下载专辑信息, 返回 Metadata[], options.cover 如果传入现成的封面图片 Buffer, 将跳过封面下载节省时间
+  async getMetadata(albumName: string, options?: MetadataFetchOptions): Promise<Metadata[]> { /* ... */ }
 }
 export const xxx = new XXX()
 ```
