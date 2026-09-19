@@ -212,6 +212,7 @@ export const BatchPage = defineComponent({
                           </div>
                           <Button
                             label={t('operation.cancel')}
+                            class="min-w-28"
                             severity="secondary"
                             text
                             disabled={!currentOperation?.cancellable}
@@ -223,6 +224,7 @@ export const BatchPage = defineComponent({
                       ) : (
                         <Button
                           label={t('common.start')}
+                          class="min-w-28"
                           disabled={!canRun.value}
                           onClick={() => void batch.run(false)}
                         >
