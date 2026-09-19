@@ -3,13 +3,16 @@ import Button from 'primevue/button'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
 import Tabs from 'primevue/tabs'
-import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { defineComponent, onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
+import { getApi } from '../api'
 import { settingsNavigationItem, workspaceNavigationItems } from '../app/navigation'
 import { usePageCommandRegistry } from '../app/pageCommands'
 import { useThemeMode, type ThemeMode } from '../app/themeMode'
 import { t } from '../i18n'
+import { useBatchStore } from '../stores/batch'
+import { useWorkspaceStore } from '../stores/workspace'
 import { cx } from './classNames'
 import { ToastHost } from './ToastHost'
 
@@ -19,6 +22,23 @@ export const AppShell = defineComponent({
     const route = useRoute()
     const router = useRouter()
     const commands = usePageCommandRegistry()
+    const workspace = useWorkspaceStore()
+    const batch = useBatchStore()
+    const canDrop = computed(() =>
+      route.name === 'tagging'
+        ? !workspace.isBusy && !workspace.operation
+        : route.name === 'batch' &&
+          !batch.selecting &&
+          !batch.scanning &&
+          !batch.isWriting &&
+          batch.resolvingCount === 0,
+    )
+    let disposeDrop: (() => void) | undefined
+    let unmounted = false
+    const clearDrop = (event: DragEvent) => {
+      if (!event.relatedTarget)
+        (event.currentTarget as HTMLElement).classList.remove('file-drop-target-active')
+    }
     const { themeMode, nextThemeMode, cycleThemeMode } = useThemeMode()
     const selectedTab = ref('')
     const themeIcons: Record<ThemeMode, typeof Monitor> = {
@@ -59,11 +79,18 @@ export const AppShell = defineComponent({
       }
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       window.addEventListener('keydown', onKeydown)
+      const api = await getApi()
+      if (!unmounted)
+        disposeDrop = api.onDirectoryDrop(directory => {
+          if (canDrop.value) commands.run('openDirectory', directory)
+        })
     })
 
     onBeforeUnmount(() => {
+      unmounted = true
+      disposeDrop?.()
       window.removeEventListener('keydown', onKeydown)
     })
 
@@ -131,8 +158,10 @@ export const AppShell = defineComponent({
           </div>
 
           <div
+            data-file-drop-target={canDrop.value ? true : undefined}
+            onDragleave={clearDrop}
             class={cx(
-              'app-scrollbar min-h-0 min-w-0',
+              'app-directory-drop app-scrollbar min-h-0 min-w-0',
               'bg-app-content dark:bg-app-content-dark',
               route.name === 'settings'
                 ? 'overflow-hidden p-0'

@@ -215,6 +215,8 @@ export const nativeApi: GUIApi = {
       })),
     }
   },
+  onDirectoryDrop: handler =>
+    Events.On('gui:directory-dropped', event => handler(event.data as string)),
   getStartupDirectory: () => WorkspaceService.GetStartupDirectory(),
   selectAlbumDirectory: title => WorkspaceService.SelectAlbumDirectory(title),
   scanWorkspace: async directory => {

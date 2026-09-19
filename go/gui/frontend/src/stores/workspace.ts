@@ -214,7 +214,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
-  const selectDirectory = async () => {
+  const selectDirectory = async (targetDirectory?: string) => {
     if (isBusy.value || operation.value) {
       return
     }
@@ -222,7 +222,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     phase.value = 'selecting'
     try {
       const api = await getApi()
-      const selected = await api.selectAlbumDirectory(t('tagging.selectDirectoryDialog'))
+      const selected =
+        targetDirectory ?? (await api.selectAlbumDirectory(t('tagging.selectDirectoryDialog')))
       if (!selected) {
         phase.value = previousPhase
         return

@@ -221,7 +221,7 @@ export const useBatchStore = defineStore('batch', () => {
     await scan()
   }
 
-  const selectDirectory = async () => {
+  const selectDirectory = async (targetDirectory?: string) => {
     if (selecting.value || scanning.value || isWriting.value || resolvingCount.value > 0) {
       return
     }
@@ -229,7 +229,8 @@ export const useBatchStore = defineStore('batch', () => {
     let shouldScan = false
     try {
       const api = await getApi()
-      const selected = await api.selectBatchDirectory(t('batch.selectDirectoryDialog'))
+      const selected =
+        targetDirectory ?? (await api.selectBatchDirectory(t('batch.selectDirectoryDialog')))
       if (selected) {
         contextVersion += 1
         await discardCurrentPreview()

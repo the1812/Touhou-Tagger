@@ -31,7 +31,7 @@ export const TaggingPage = defineComponent({
     const { phase, summary, result, failure, resultOpen, isBusy } = storeToRefs(workspace)
 
     usePageCommands({
-      openDirectory: () => workspace.selectDirectory(),
+      openDirectory: directory => workspace.selectDirectory(directory),
       refresh: () => {
         if (!summary.value?.directory) {
           return false

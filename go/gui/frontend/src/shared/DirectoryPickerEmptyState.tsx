@@ -2,6 +2,7 @@ import { FolderOpen } from 'lucide-vue-next'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 
+import logo from '../../../../../assets/logo.svg'
 import { t } from '../i18n'
 
 export const DirectoryPickerEmptyState = defineComponent({
@@ -19,6 +20,7 @@ export const DirectoryPickerEmptyState = defineComponent({
       <div {...attrs} class={['page-empty-state', attrs.class]}>
         {slots.default?.() ?? (
           <>
+            <div class="app-welcome-logo" style={{ backgroundImage: `url("${logo}")` }} />
             <Button
               class="w-48"
               label={props.label || t('common.selectDirectory')}

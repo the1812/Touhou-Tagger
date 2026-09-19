@@ -49,7 +49,7 @@ export const BatchPage = defineComponent({
     )
     const tableDisabled = computed(() => selecting.value || scanning.value || isWriting.value)
     usePageCommands({
-      openDirectory: () => batch.selectDirectory(),
+      openDirectory: target => batch.selectDirectory(target),
       refresh: () => {
         if (!directory.value) {
           return false

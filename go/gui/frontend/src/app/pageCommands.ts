@@ -1,14 +1,14 @@
 import { inject, type InjectionKey, onBeforeUnmount, onMounted, provide } from 'vue'
 
 export interface PageCommands {
-  openDirectory?: (() => boolean) | (() => void | Promise<void>)
+  openDirectory?: ((directory?: string) => boolean) | ((directory?: string) => void | Promise<void>)
   refresh?: (() => boolean) | (() => void | Promise<void>)
   focusSearch?: (() => boolean) | (() => void)
 }
 
 interface PageCommandRegistry {
   register(commands: PageCommands): () => void
-  run(command: keyof PageCommands): boolean
+  run(command: keyof PageCommands, directory?: string): boolean
 }
 
 const pageCommandRegistryKey: InjectionKey<PageCommandRegistry> = Symbol('page-command-registry')
@@ -24,12 +24,12 @@ export const providePageCommandRegistry = (): PageCommandRegistry => {
         }
       }
     },
-    run(command) {
+    run(command, directory) {
       const handler = current[command]
       if (!handler) {
         return false
       }
-      return handler() !== false
+      return handler(directory) !== false
     },
   }
   provide(pageCommandRegistryKey, registry)

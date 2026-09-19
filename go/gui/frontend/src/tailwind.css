@@ -166,3 +166,28 @@
     @apply bg-surface-100 shadow-[inset_3px_0_0_var(--p-primary-color)] dark:bg-app-hover-dark;
   }
 }
+
+@utility app-welcome-logo {
+  width: 420px;
+  aspect-ratio: 2 / 1;
+  margin-bottom: 0.75rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.4;
+  filter: contrast(1.2) saturate(0.8);
+}
+@utility app-directory-drop {
+  position: relative;
+
+  &[data-file-drop-target].file-drop-target-active::after {
+    content: '';
+    position: fixed;
+    inset: calc(var(--spacing-app-header) + 12px) 12px 12px;
+    z-index: 100;
+    pointer-events: none;
+    border: 2px dashed var(--p-primary-color);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
+  }
+}

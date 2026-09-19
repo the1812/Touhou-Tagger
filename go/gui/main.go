@@ -5,12 +5,14 @@ import (
 	"embed"
 	"io/fs"
 	"log"
+	"os"
 	"time"
 
 	"github.com/the1812/Touhou-Tagger/go/gui/internal/bridge"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/imagecodec"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/embed
@@ -56,12 +58,24 @@ func main() {
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Touhou Tagger",
+		EnableFileDrop:   true,
 		Width:            savedWindowState.Width,
 		Height:           savedWindowState.Height,
 		MinWidth:         minimumWindowWidth,
 		MinHeight:        minimumWindowHeight,
 		BackgroundColour: application.NewRGB(248, 245, 241),
 		URL:              "/",
+	})
+	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
+		files := event.Context().DroppedFiles()
+		if len(files) != 1 {
+			return
+		}
+		info, err := os.Stat(files[0])
+		if err != nil || !info.IsDir() {
+			return
+		}
+		app.Event.Emit("gui:directory-dropped", files[0])
 	})
 	if savedWindowState.Maximised {
 		window.Maximise()
