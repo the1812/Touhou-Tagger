@@ -2,10 +2,13 @@ package id3
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"unicode/utf16"
 
 	id3v2 "github.com/bogem/id3v2/v2"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -16,6 +19,58 @@ type Reader struct{}
 
 type Writer struct {
 	CoverProcessor tagio.CoverProcessor
+}
+
+// https://github.com/n10v/id3v2/issues/86
+type id3v23CommentFrame struct {
+	Language string
+	Text     string
+}
+
+func (frame id3v23CommentFrame) Size() int {
+	return len(frame.body())
+}
+
+func (frame id3v23CommentFrame) UniqueIdentifier() string {
+	return frame.Language
+}
+
+func (frame id3v23CommentFrame) WriteTo(writer io.Writer) (int64, error) {
+	if len(frame.Language) != 3 {
+		return 0, id3v2.ErrInvalidLanguageLength
+	}
+	body := frame.body()
+	written, err := writer.Write(body)
+	if err != nil {
+		return int64(written), err
+	}
+	if written != len(body) {
+		return int64(written), io.ErrShortWrite
+	}
+	return int64(written), nil
+}
+
+func (frame id3v23CommentFrame) body() []byte {
+	description := encodeID3v23UTF16LE("")
+	text := encodeID3v23UTF16LE(frame.Text)
+	body := make([]byte, 0, 1+len(frame.Language)+len(description)+2+len(text))
+	body = append(body, 1)
+	body = append(body, frame.Language...)
+	body = append(body, description...)
+	body = append(body, 0, 0)
+	body = append(body, text...)
+	return body
+}
+
+func encodeID3v23UTF16LE(value string) []byte {
+	codeUnits := utf16.Encode([]rune(value))
+	encoded := make([]byte, 2+len(codeUnits)*2)
+	encoded[0] = 0xff
+	encoded[1] = 0xfe
+	for index, codeUnit := range codeUnits {
+		binary.LittleEndian.PutUint16(encoded[2+index*2:], codeUnit)
+	}
+	return encoded
 }
 
 const albumSortFrameID = "TSOA"
@@ -142,8 +197,7 @@ func (writer Writer) Write(
 	setText(tag, "BPM", metadata.BPM, encoding)
 	setText(tag, "Initial key", metadata.Key, encoding)
 	if metadata.Comments != "" {
-		tag.AddCommentFrame(id3v2.CommentFrame{
-			Encoding: encoding,
+		tag.AddFrame(tag.CommonID("Comments"), id3v23CommentFrame{
 			Language: config.CommentLanguage,
 			Text:     metadata.Comments,
 		})
