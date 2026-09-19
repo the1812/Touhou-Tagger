@@ -66,6 +66,6 @@ jobs:
         with:
           go-version-file: go/go.mod
           cache-dependency-path: go/go.sum
-      - name: Build Windows amd64 GUI
+      - name: Build GUI
         working-directory: go/gui
         run: go tool wails3 task build
