@@ -67,6 +67,7 @@ jobs:
     needs: [package-go, package-gui]
     runs-on: windows-2025
     steps:
+      - uses: actions/checkout@v7.0.0
       - uses: actions/download-artifact@v8.0.1
         with:
           path: release-assets
