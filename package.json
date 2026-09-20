@@ -36,6 +36,7 @@
     "build:go": "pnpm run build:go-cli && pnpm run build:go-gui",
     "build:go-cli": "cd go && go build -trimpath -o ./bin/thtag.exe ./cmd/thtag",
     "build:go-gui": "cd go/gui && go tool wails3 task build",
+    "dev:go-gui": "cd go/gui && go tool wails3 task dev",
     "prepare": "vp config --no-agent",
     "check": "vp check"
   },
