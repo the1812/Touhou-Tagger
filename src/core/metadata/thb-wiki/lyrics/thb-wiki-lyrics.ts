@@ -3,6 +3,7 @@ import { parseHTML } from 'linkedom'
 
 import { MetadataConfig } from '../../../core-config.js'
 import { log } from '../../../debug.js'
+import { getHttpRequestOptions } from '../../../http.js'
 import { getLyricParser, LyricParser } from './lyric-parser.js'
 
 let lyricParser: LyricParser
@@ -26,7 +27,10 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
   log(url)
   let response: AxiosResponse<string>
   try {
-    response = await axios.get(url, { responseType: 'text', timeout: config.timeout * 1000 })
+    response = await axios.get(url, {
+      ...getHttpRequestOptions(config),
+      responseType: 'text',
+    })
     return {
       lyric: response.data,
       lyricLanguage,
@@ -43,7 +47,7 @@ const lyricDocumentCache: { url: string; document: Document }[] = []
 export const downloadLyrics = async (
   url: string,
   title: string,
-  config: Required<MetadataConfig>,
+  config: MetadataConfig & { lyric: NonNullable<MetadataConfig['lyric']> },
 ) => {
   log(`\n下载歌词中: ${title}`)
   let document = lyricDocumentCache.find(it => it.url === url)?.document
@@ -51,7 +55,7 @@ export const downloadLyrics = async (
     log(url)
     let response: AxiosResponse<string>
     try {
-      response = await axios.get(url, { timeout: config.timeout * 1000 })
+      response = await axios.get(url, getHttpRequestOptions(config))
     } catch {
       console.error(`下载歌词页面失败: ${url}`)
       return {

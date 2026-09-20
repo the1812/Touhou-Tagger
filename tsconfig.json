@@ -11,6 +11,7 @@
     "skipLibCheck": true,
     "sourceMap": false,
     "allowJs": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
     "declarationDir": "./dist/",

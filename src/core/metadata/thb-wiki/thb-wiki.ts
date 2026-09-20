@@ -3,6 +3,7 @@ import { parseHTML } from 'linkedom'
 
 import { MetadataConfig } from '../../core-config.js'
 import { log } from '../../debug.js'
+import { getHttpRequestOptions } from '../../http.js'
 import { albumArtistsAltNames, altNames } from '../alt-names.js'
 import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
 import { Metadata } from '../metadata.js'
@@ -52,8 +53,8 @@ export class ThbWiki extends MetadataSource {
       albumName,
     )}&limit=${String(MetadataSource.MaxSearchCount)}&suggest=true`
     const response = await axios.get<[string, string[]]>(url, {
+      ...getHttpRequestOptions(this.config),
       responseType: 'json',
-      timeout: this.config.timeout * 1000,
     })
     if (response.status === 200 && Array.isArray(response.data)) {
       const [, names] = response.data
@@ -70,8 +71,8 @@ export class ThbWiki extends MetadataSource {
     const src = img.src.replace('/thumb/', '/')
     const url = src.substring(0, src.lastIndexOf('/'))
     const response = await axios.get(url, {
+      ...getHttpRequestOptions(this.config),
       responseType: 'arraybuffer',
-      timeout: this.config.timeout * 1000,
     })
     return response.data as Buffer
   }
@@ -300,7 +301,7 @@ export class ThbWiki extends MetadataSource {
         return downloadLyrics(
           `https://${this.host}${lyricLink.href}`,
           title,
-          this.config as Required<MetadataConfig>,
+          this.config as MetadataConfig & { lyric: NonNullable<MetadataConfig['lyric']> },
         )
       }
       return {
@@ -408,8 +409,8 @@ export class ThbWiki extends MetadataSource {
       albumName,
     )}&prop=text`
     const response = await axios.get<ParseResponse>(url, {
+      ...getHttpRequestOptions(this.config),
       responseType: 'json',
-      timeout: this.config.timeout * 1000,
     })
     if (response.data.error) {
       throw new Error(

@@ -1,11 +1,13 @@
 import axios from 'axios'
 
+import { defaultUserAgent } from '../../http.js'
 import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
 import type { AlbumMetadata, Metadata } from '../metadata.js'
 import { expandMetadataInfo } from '../normalize/normalize.js'
 
 const doujinMetaApi = axios.create({
   baseURL: 'https://doujin-meta.vercel.app',
+  headers: { 'User-Agent': defaultUserAgent },
   responseType: 'json',
 })
 

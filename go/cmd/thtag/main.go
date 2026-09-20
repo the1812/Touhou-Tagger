@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/cli"
+	"github.com/the1812/Touhou-Tagger/go/internal/useragent"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 )
 
 func main() {
+	useragent.SetVersion(version)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	err := cli.Execute(ctx, os.Args[1:], cli.BuildInfo{

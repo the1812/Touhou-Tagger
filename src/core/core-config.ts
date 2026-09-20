@@ -8,6 +8,7 @@ export interface LyricConfig {
 }
 export interface MetadataConfig {
   lyric?: LyricConfig
+  userAgent?: string
   commentLanguage: string
   coverCompressSize: number
   coverCompressResolution: number

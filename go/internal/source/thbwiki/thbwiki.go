@@ -14,6 +14,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
+	"github.com/the1812/Touhou-Tagger/go/internal/useragent"
 )
 
 type Source struct {
@@ -209,6 +210,7 @@ func (wiki *Source) get(ctx context.Context, endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
+	request.Header.Set("User-Agent", useragent.TouhouTagger())
 	response, err := wiki.client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("request %s: %w", endpoint, err)

@@ -13,6 +13,7 @@ import (
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
+	"github.com/the1812/Touhou-Tagger/go/internal/useragent"
 )
 
 type Source struct {
@@ -136,6 +137,7 @@ func (sourceClient *Source) getBytes(ctx context.Context, endpoint string) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
+	request.Header.Set("User-Agent", useragent.TouhouTagger())
 	response, err := sourceClient.client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("request %s: %w", endpoint, err)

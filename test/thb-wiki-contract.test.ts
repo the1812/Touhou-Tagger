@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises'
 import axios from 'axios'
 import { afterEach, describe, expect, test, vi } from 'vite-plus/test'
 
+import { defaultUserAgent } from '../src/core/http.js'
 import type { LyricConfig, Metadata } from '../src/core/index.js'
 import { downloadLyrics } from '../src/core/metadata/thb-wiki/lyrics/thb-wiki-lyrics.js'
 import { ThbWiki } from '../src/core/metadata/thb-wiki/thb-wiki.js'
@@ -186,6 +187,7 @@ describe('THBWiki lyric contracts', () => {
 
     expect(result).toEqual({ lyric: expected, lyricLanguage: contract.language })
     expect(get).toHaveBeenNthCalledWith(2, expectedUrl, {
+      headers: { 'User-Agent': defaultUserAgent },
       responseType: 'text',
       timeout: 5000,
     })
