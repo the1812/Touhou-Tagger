@@ -59,9 +59,11 @@ describe('THBWiki album contracts', () => {
         readFile(fixturePath(...basePath, 'expected.json'), 'utf8'),
       ])
       const contract = JSON.parse(expectedData) as AlbumContract
-      const albumUrl = `https://fixture.invalid/${encodeURIComponent(name)}`
+      const albumUrl = `https://fixture.invalid/api.php?action=parse&format=json&formatversion=2&page=${encodeURIComponent(
+        name,
+      )}&prop=text`
       const get = vi.spyOn(axios, 'get').mockImplementation(url => {
-        const data = url === albumUrl ? html : fixtureCover
+        const data = url === albumUrl ? { parse: { text: html } } : fixtureCover
         return Promise.resolve({ data, status: 200 })
       })
       const source = new ThbWiki('fixture.invalid')

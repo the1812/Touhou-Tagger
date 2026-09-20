@@ -30,8 +30,18 @@ const splitChildNodesByBr = (element: Element) => {
 }
 type TrackParseInfo = { name: string; result: string | string[] }
 
+type ParseResponse = {
+  parse?: {
+    text?: string
+  }
+  error?: {
+    code?: string
+    info?: string
+  }
+}
+
 export class ThbWiki extends MetadataSource {
-  constructor(public readonly host = 'thbwiki.cc') {
+  constructor(public readonly host = 'thwiki.cc') {
     super()
   }
 
@@ -394,10 +404,23 @@ export class ThbWiki extends MetadataSource {
   }
 
   async getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
-    // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
-    const url = `https://${this.host}/${encodeURIComponent(albumName)}`
-    const response = await axios.get<string>(url, { timeout: this.config.timeout * 1000 })
-    return this.getMetadataFromHtml(response.data, options)
+    const url = `https://${this.host}/api.php?action=parse&format=json&formatversion=2&page=${encodeURIComponent(
+      albumName,
+    )}&prop=text`
+    const response = await axios.get<ParseResponse>(url, {
+      responseType: 'json',
+      timeout: this.config.timeout * 1000,
+    })
+    if (response.data.error) {
+      throw new Error(
+        `THBWiki API 错误 ${response.data.error.code ?? ''}: ${response.data.error.info ?? ''}`.trim(),
+      )
+    }
+    const html = response.data.parse?.text
+    if (!html) {
+      throw new Error('THBWiki API 未返回 HTML 内容')
+    }
+    return this.getMetadataFromHtml(html, options)
   }
 }
 export const thbWiki = new ThbWiki()

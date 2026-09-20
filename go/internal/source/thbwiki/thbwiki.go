@@ -23,6 +23,16 @@ type Source struct {
 	lyrics *lyricsService
 }
 
+type parseResponse struct {
+	Parse struct {
+		Text string `json:"text"`
+	} `json:"parse"`
+	Error *struct {
+		Code string `json:"code"`
+		Info string `json:"info"`
+	} `json:"error"`
+}
+
 func New(client *http.Client, base string, config domain.MetadataConfig) (*Source, error) {
 	parsed, err := url.Parse(base)
 	if err != nil {
@@ -37,7 +47,7 @@ func (wiki *Source) Search(
 	ctx context.Context,
 	query string,
 ) ([]domain.AlbumCandidate, error) {
-	endpoint := wiki.base.ResolveReference(&url.URL{Path: "/api.php"})
+	endpoint := wiki.apiEndpoint()
 	parameters := endpoint.Query()
 	parameters.Set("action", "opensearch")
 	parameters.Set("format", "json")
@@ -78,15 +88,33 @@ func (wiki *Source) Fetch(
 	id string,
 	cover []byte,
 ) ([]domain.Metadata, error) {
-	endpoint := wiki.base.ResolveReference(&url.URL{
-		Path:    "/" + id,
-		RawPath: "/" + url.PathEscape(id),
-	})
+	endpoint := wiki.apiEndpoint()
+	parameters := endpoint.Query()
+	parameters.Set("action", "parse")
+	parameters.Set("format", "json")
+	parameters.Set("formatversion", "2")
+	parameters.Set("page", id)
+	parameters.Set("prop", "text")
+	endpoint.RawQuery = parameters.Encode()
 	data, err := wiki.get(ctx, endpoint.String())
 	if err != nil {
 		return nil, fmt.Errorf("fetch THBWiki album %q: %w", id, err)
 	}
-	return wiki.ParseAlbumHTML(ctx, string(data), cover)
+	var response parseResponse
+	if err := json.Unmarshal(data, &response); err != nil {
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode THBWiki parse response: %w", err)}
+	}
+	if response.Error != nil {
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("THBWiki parse error %s: %s", response.Error.Code, response.Error.Info)}
+	}
+	if response.Parse.Text == "" {
+		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: errors.New("THBWiki parse response has no parse.text")}
+	}
+	return wiki.ParseAlbumHTML(ctx, response.Parse.Text, cover)
+}
+
+func (wiki *Source) apiEndpoint() *url.URL {
+	return wiki.base.ResolveReference(&url.URL{Path: "/api.php"})
 }
 
 func (wiki *Source) ParseAlbumHTML(

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	DefaultTHBWikiURL    = "https://thbwiki.cc"
+	DefaultTHBWikiURL    = "https://thwiki.cc"
 	DefaultDoujinMetaURL = "https://doujin-meta.vercel.app"
 )
 
