@@ -339,11 +339,8 @@ export class ThbWiki extends MetadataSource {
     log(rowData)
     return rowData
   }
-  async getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
-    // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
-    const url = `https://${this.host}/${encodeURIComponent(albumName)}`
-    const response = await axios.get(url, { timeout: this.config.timeout * 1000 })
-    const { document } = parseHTML(response.data).window
+  async getMetadataFromHtml(html: string, options: MetadataFetchOptions = {}) {
+    const { document } = parseHTML(html).window
     const infoTable = document.querySelector<HTMLTableElement>('.doujininfo')
     if (!infoTable) {
       throw new Error('页面不是同人专辑词条')
@@ -394,6 +391,13 @@ export class ThbWiki extends MetadataSource {
       discNumber += 1
     }
     return metadatas
+  }
+
+  async getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
+    // const url = `https://${this.host}/index.php?search=${encodeURIComponent(albumName)}`
+    const url = `https://${this.host}/${encodeURIComponent(albumName)}`
+    const response = await axios.get<string>(url, { timeout: this.config.timeout * 1000 })
+    return this.getMetadataFromHtml(response.data, options)
   }
 }
 export const thbWiki = new ThbWiki()
