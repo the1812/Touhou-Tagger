@@ -7,6 +7,7 @@ import {
   MetadataNormalizePlugin,
   expandMetadataInfo,
   expandMetadataInfoWithoutCover,
+  simplifyMetadataInfo,
 } from '../normalize/normalize.js'
 
 /** @deprecated 请使用 {@link MetadataNormalizePlugin}. */
@@ -18,6 +19,9 @@ export class LocalJson extends MetadataSource {
   }
   async normalizeWithoutCover(metadatas: Metadata[]) {
     return expandMetadataInfoWithoutCover({ metadatas })
+  }
+  async simplify(metadatas: Metadata[]) {
+    return simplifyMetadataInfo({ metadatas })
   }
   async resolveAlbumName(localSource: string) {
     return resolvePath(localSource)
