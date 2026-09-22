@@ -239,7 +239,7 @@
       "ready": "可写入",
       "needsCandidate": "需要选择",
       "localMetadata": "本地元数据",
-      "trackMismatch": "曲目数不匹配",
+      "blocked": "无法写入",
       "queued": "等待中",
       "running": "处理中",
       "succeeded": "完成",

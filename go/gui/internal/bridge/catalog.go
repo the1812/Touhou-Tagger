@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/the1812/Touhou-Tagger/go/internal/config"
+	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
 )
 
 type candidateCatalog struct {
@@ -20,41 +20,16 @@ func newCandidateCatalog() *candidateCatalog {
 
 func (catalog *candidateCatalog) search(
 	ctx context.Context,
-	runtime *runtimeState,
+	applicationService *coreapp.Service,
 	owner string,
-	directory string,
 	query string,
-	sourceName string,
 	replace bool,
 ) ([]AlbumCandidate, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return nil, fmt.Errorf("专辑名称不能为空")
 	}
-	storedConfig := runtime.getConfig()
-	resolvedConfig, err := config.ResolveAlbum(
-		directory,
-		storedConfig,
-		storedConfig.LyricEnabled,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if sourceName != "" {
-		resolvedConfig.Metadata.Source = sourceName
-	}
-	sourceName = resolvedConfig.Metadata.Source
-	if !runtime.searchableSource(sourceName) {
-		return nil, fmt.Errorf("数据源 %q 不支持专辑搜索", sourceName)
-	}
-	applicationService, err := runtime.serviceWithConfig(
-		config.RuntimeMetadata(resolvedConfig.Metadata),
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	candidates, err := applicationService.SearchAlbums(ctx, query, sourceName)
+	candidates, err := applicationService.SearchAlbums(ctx, query, applicationService.Config.Source)
 	if err != nil {
 		return nil, err
 	}

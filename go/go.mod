@@ -10,6 +10,7 @@ require (
 	github.com/go-flac/flacpicture v0.3.0
 	github.com/go-flac/flacvorbis v0.2.0
 	github.com/go-flac/go-flac v1.0.0
+	github.com/go-resty/resty/v2 v2.17.2
 	github.com/spf13/cobra v1.10.2
 	github.com/tailscale/hujson v0.0.0-20260302212456-ecc657c15afd
 	github.com/tetratelabs/wazero v1.12.0

@@ -2,22 +2,18 @@ package doujinmeta
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
-	"github.com/the1812/Touhou-Tagger/go/internal/useragent"
 )
 
 type Source struct {
-	client  *http.Client
+	client  *resty.Client
 	baseURL *url.URL
 }
 
@@ -48,7 +44,7 @@ func New(client *http.Client, base string) (*Source, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse Doujin Meta base URL: %w", err)
 	}
-	return &Source{client: client, baseURL: parsed}, nil
+	return &Source{client: source.NewHTTPClient(client), baseURL: parsed}, nil
 }
 
 func (sourceClient *Source) Search(
@@ -60,7 +56,8 @@ func (sourceClient *Source) Search(
 		RawQuery: url.Values{"keyword": []string{query}, "limit": []string{strconv.Itoa(source.MaxSearchCount)}}.Encode(),
 	}).String()
 	var result searchResult
-	if err := sourceClient.getJSON(ctx, endpoint, &result); err != nil {
+	if _, err := sourceClient.client.R().SetContext(ctx).SetResult(&result).
+		ForceContentType("application/json").Get(endpoint); err != nil {
 		return nil, fmt.Errorf("search Doujin Meta: %w", err)
 	}
 	if len(result.Items) > source.MaxSearchCount {
@@ -84,7 +81,8 @@ func (sourceClient *Source) Fetch(
 ) ([]domain.Metadata, error) {
 	endpoint := sourceClient.resolveResource("/api/albums/", id)
 	var detail albumDetail
-	if err := sourceClient.getJSON(ctx, endpoint, &detail); err != nil {
+	if _, err := sourceClient.client.R().SetContext(ctx).SetResult(&detail).
+		ForceContentType("application/json").Get(endpoint); err != nil {
 		return nil, fmt.Errorf("fetch Doujin Meta album %q: %w", id, err)
 	}
 	if len(detail.Tracks) > 0 {
@@ -104,12 +102,13 @@ func (sourceClient *Source) Fetch(
 				Err: fmt.Errorf("resolve Doujin Meta cover URL: %w", err),
 			}
 		}
-		cover, err = sourceClient.getBytes(ctx, coverURL.String())
+		response, err := sourceClient.client.R().SetContext(ctx).Get(coverURL.String())
 		if err != nil {
 			return domain.ExpandMetadata(detail.Tracks, nil), &source.PartialFetchError{
 				Err: fmt.Errorf("fetch Doujin Meta cover: %w", err),
 			}
 		}
+		cover = response.Body()
 	}
 	return domain.ExpandMetadata(detail.Tracks, cover), nil
 }
@@ -119,36 +118,4 @@ func (sourceClient *Source) resolveResource(prefix, value string) string {
 		Path:    prefix + value,
 		RawPath: prefix + url.PathEscape(value),
 	}).String()
-}
-
-func (sourceClient *Source) getJSON(ctx context.Context, endpoint string, output any) error {
-	data, err := sourceClient.getBytes(ctx, endpoint)
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(data, output); err != nil {
-		return &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode %s: %w", endpoint, err)}
-	}
-	return nil
-}
-
-func (sourceClient *Source) getBytes(ctx context.Context, endpoint string) ([]byte, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-	request.Header.Set("User-Agent", useragent.TouhouTagger())
-	response, err := sourceClient.client.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("request %s: %w", endpoint, err)
-	}
-	data, err := io.ReadAll(response.Body)
-	closeErr := response.Body.Close()
-	if err != nil || closeErr != nil {
-		return nil, fmt.Errorf("read response from %s: %w", endpoint, errors.Join(err, closeErr))
-	}
-	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return nil, &source.HTTPStatusError{URL: endpoint, StatusCode: response.StatusCode, Status: response.Status, Body: strings.TrimSpace(string(data))}
-	}
-	return data, nil
 }

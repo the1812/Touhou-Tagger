@@ -327,10 +327,19 @@ export const fixtureApi: GUIApi = {
       throw new Error('批量写入专辑不存在。')
     }
     job.selectedCandidateId = candidateId
-    job.status = 'ready'
-    job.canRun = true
-    job.matchDescription = '已选择搜索结果'
-    job.issues = []
+    const plan = createPlan(candidateId)
+    job.canRun = job.audioCount === plan.items.length && plan.canCommit
+    job.status = job.canRun ? 'ready' : 'blocked'
+    job.matchDescription = job.canRun ? '已选择搜索结果' : t('batch.status.blocked')
+    job.issues = job.canRun
+      ? []
+      : [
+          {
+            code: 'track-count-mismatch',
+            message: t('backend.issue.trackMismatch'),
+            severity: 'error',
+          },
+        ]
     return clone(job)
   },
 

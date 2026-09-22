@@ -190,3 +190,18 @@ func cloneMetadata(metadata []domain.Metadata) []domain.Metadata {
 	}
 	return result
 }
+
+func (session *planSession) coverOutput() (*coreapp.CoverOutput, error) {
+	if !session.saveCover || len(session.cover) == 0 {
+		return nil, nil
+	}
+	path := session.scan.CoverPath
+	if path == "" {
+		var err error
+		path, err = coreapp.CoverPath(session.scan.Directory, session.cover)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &coreapp.CoverOutput{Path: path, Data: session.cover, Replace: session.scan.CoverPath != ""}, nil
+}

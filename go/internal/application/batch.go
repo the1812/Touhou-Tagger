@@ -106,16 +106,20 @@ func DefaultAlbumName(directory string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if options.DefaultAlbumHint != "" {
-		return options.DefaultAlbumHint, nil
+	return albumName(directory, options.DefaultAlbumHint), nil
+}
+
+func albumName(directory, hint string) string {
+	if hint != "" {
+		return hint
 	}
 	name := filepath.Base(filepath.Clean(directory))
 	for _, format := range albumNameFormats {
 		if match := format.FindStringSubmatch(name); len(match) > 1 {
-			return match[1], nil
+			return match[1]
 		}
 	}
-	return name, nil
+	return name
 }
 
 func directoriesAtDepth(ctx context.Context, directory string, depth int) ([]string, error) {

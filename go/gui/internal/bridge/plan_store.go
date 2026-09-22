@@ -14,6 +14,7 @@ type planSession struct {
 	id          string
 	owner       string
 	revision    int
+	albumName   string
 	scan        domain.AlbumScan
 	metadata    []domain.Metadata
 	plan        domain.TagPlan

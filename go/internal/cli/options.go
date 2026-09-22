@@ -84,33 +84,20 @@ func (options Options) lyricConfig() *domain.LyricConfig {
 	}
 }
 
-func (options Options) forDirectory(directory string) (Options, error) {
-	resolved, err := config.ResolveAlbum(directory, options.persistedConfig(), options.Lyric)
-	if err != nil {
-		return Options{}, err
-	}
-	options.Source = resolved.Metadata.Source
-	options.CommentLanguage = resolved.Metadata.CommentLanguage
-	options.CoverCompressSize = resolved.Metadata.CoverCompressSize
-	options.CoverCompressResolution = resolved.Metadata.CoverCompressResolution
-	options.Separator = resolved.Metadata.Separator
-	options.Timeout = resolved.Metadata.Timeout
-	options.Retry = resolved.Metadata.Retry
-	options.Lyric = resolved.Metadata.LyricEnabled
-	options.LyricType = string(resolved.Lyric.Type)
-	options.LyricOutput = string(resolved.Lyric.Output)
-	options.LyricTime = resolved.Lyric.Time
-	options.LyricCacheSize = resolved.Lyric.MaxCacheSize
-	options.TranslationSeparator = resolved.Lyric.TranslationSeparator
-	if resolved.Interactive != nil {
-		options.Interactive = *resolved.Interactive
-	}
-	if resolved.Cover != nil {
-		options.Cover = *resolved.Cover
-	}
-	return options, nil
+type albumOptions struct {
+	Metadata    domain.MetadataConfig
+	Cover       bool
+	Interactive bool
 }
 
-func (options Options) isInteractive() bool {
-	return options.Interactive && !options.NoInteractive
+func (options Options) forAlbum(resolved config.ResolvedAlbumConfig) albumOptions {
+	value := albumOptions{Metadata: resolved.Metadata, Cover: options.Cover, Interactive: options.Interactive}
+	if resolved.Cover != nil {
+		value.Cover = *resolved.Cover
+	}
+	if resolved.Interactive != nil {
+		value.Interactive = *resolved.Interactive
+	}
+	value.Interactive = value.Interactive && !options.NoInteractive
+	return value
 }

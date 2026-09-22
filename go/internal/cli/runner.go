@@ -169,7 +169,7 @@ func (runner *Runner) runTag(ctx context.Context, albumArgument string) error {
 }
 
 func (runner *Runner) runBatchTag(ctx context.Context) error {
-	service, err := runner.service(runner.options)
+	service, err := runner.service(runner.options.metadataConfig())
 	if err != nil {
 		return err
 	}
@@ -198,29 +198,24 @@ func (runner *Runner) tagDirectory(
 	albumArgument string,
 	batch bool,
 ) error {
-	options, err := runner.options.forDirectory(directory)
+	if err := runner.reportProgress(domain.ProgressEvent{Stage: domain.StageScan, Directory: directory}); err != nil {
+		return err
+	}
+	album, err := application.OpenAlbum(ctx, directory, runner.options.config(runner.options.Lyric))
 	if err != nil {
 		return err
 	}
-	if err := validateOptions(options); err != nil {
-		return fmt.Errorf("invalid album options for %q: %w", directory, err)
-	}
-	service, err := runner.service(options)
+	options := runner.options.forAlbum(album.Config)
+	service, err := runner.service(options.Metadata)
 	if err != nil {
 		return err
 	}
-	scan, err := service.ScanAlbum(ctx, directory)
-	if err != nil {
-		return err
-	}
+	scan := album.Scan
 	albumName := albumArgument
 	if albumName == "" {
-		albumName, err = application.DefaultAlbumName(directory)
-		if err != nil {
-			return err
-		}
+		albumName = album.Name
 	}
-	if !batch && options.isInteractive() && scan.MetadataPath == "" {
+	if !batch && options.Interactive && scan.MetadataPath == "" {
 		answer, err := runner.prompt(fmt.Sprintf("请输入专辑名称(%s): ", albumName))
 		if err != nil {
 			return err
@@ -231,12 +226,12 @@ func (runner *Runner) tagDirectory(
 	}
 	candidate := domain.AlbumCandidate{ID: scan.MetadataPath, Name: albumName, Source: "local-json"}
 	if scan.MetadataPath == "" {
-		candidates, err := service.SearchAlbums(ctx, albumName, options.Source)
+		candidates, err := service.SearchAlbums(ctx, albumName, options.Metadata.Source)
 		if err != nil {
 			return err
 		}
 		var selected bool
-		candidate, selected, err = runner.selectCandidate(candidates, albumName, options.isInteractive())
+		candidate, selected, err = runner.selectCandidate(candidates, albumName, options.Interactive)
 		if err != nil {
 			return err
 		}
@@ -244,31 +239,20 @@ func (runner *Runner) tagDirectory(
 			return nil
 		}
 	}
-	plan, _, err := service.BuildTagPlan(ctx, directory, candidate)
+	plan, cover, err := service.BuildTagPlan(ctx, scan, candidate)
 	if err != nil {
 		return err
 	}
-	if options.Cover && len(plan.Items) > 0 && len(plan.Items[0].Metadata.CoverImage) > 0 {
-		if _, err := application.CoverPath(directory, plan.Items[0].Metadata.CoverImage); err != nil {
+	commit := application.AlbumCommit{Plan: plan, Candidate: candidate, DefaultAlbumName: album.Name}
+	if options.Cover && len(cover) > 0 {
+		path, err := application.CoverPath(directory, cover)
+		if err != nil {
 			return err
 		}
+		commit.Cover = &application.CoverOutput{Path: path, Data: cover, Replace: true}
 	}
-	if _, err := service.ApplyTagPlan(ctx, plan); err != nil {
+	if _, err := service.CommitAlbum(ctx, commit); err != nil {
 		return err
-	}
-	if options.Cover && len(plan.Items) > 0 && len(plan.Items[0].Metadata.CoverImage) > 0 {
-		if _, err := application.SaveCover(directory, plan.Items[0].Metadata.CoverImage); err != nil {
-			return err
-		}
-	}
-	defaultName, err := application.DefaultAlbumName(directory)
-	if err != nil {
-		return err
-	}
-	if scan.MetadataPath == "" && candidate.Name != "" && candidate.Name != defaultName {
-		if err := config.SaveDefaultAlbumHint(directory, candidate.Name); err != nil {
-			return err
-		}
 	}
 	_, err = fmt.Fprintf(runner.output, "成功写入专辑信息: %s\n", candidate.Name)
 	return err
@@ -322,7 +306,7 @@ func (runner *Runner) runDump(ctx context.Context) error {
 		return err
 	}
 	if runner.options.Batch != "" {
-		service, err := runner.service(runner.options)
+		service, err := runner.service(runner.options.metadataConfig())
 		if err != nil {
 			return err
 		}
@@ -352,23 +336,23 @@ func (runner *Runner) runDump(ctx context.Context) error {
 }
 
 func (runner *Runner) dumpDirectory(ctx context.Context, directory string) error {
-	options, err := runner.options.forDirectory(directory)
+	if err := runner.reportProgress(domain.ProgressEvent{Stage: domain.StageScan, Directory: directory}); err != nil {
+		return err
+	}
+	album, err := application.OpenAlbum(ctx, directory, runner.options.config(runner.options.Lyric))
 	if err != nil {
 		return err
 	}
-	if err := validateOptions(options); err != nil {
-		return fmt.Errorf("invalid album options for %q: %w", directory, err)
-	}
-	service, err := runner.service(options)
+	options := runner.options.forAlbum(album.Config)
+	service, err := runner.service(options.Metadata)
 	if err != nil {
 		return err
 	}
-	_, err = service.DumpMetadata(ctx, directory, options.Cover)
+	_, err = service.DumpMetadata(ctx, album.Scan, options.Cover)
 	return err
 }
 
-func (runner *Runner) service(options Options) (*application.Service, error) {
-	metadataConfig := options.metadataConfig()
+func (runner *Runner) service(metadataConfig domain.MetadataConfig) (*application.Service, error) {
 	return bootstrap.NewService(bootstrap.Options{
 		Config:         metadataConfig,
 		Events:         runner.reportProgress,

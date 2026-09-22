@@ -5,20 +5,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-resty/resty/v2"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
-	"github.com/the1812/Touhou-Tagger/go/internal/useragent"
 )
 
 type Source struct {
-	client *http.Client
+	client *resty.Client
 	base   *url.URL
 	config domain.MetadataConfig
 	lyrics *lyricsService
@@ -39,7 +38,7 @@ func New(client *http.Client, base string, config domain.MetadataConfig) (*Sourc
 	if err != nil {
 		return nil, fmt.Errorf("parse THBWiki base URL: %w", err)
 	}
-	instance := &Source{client: client, base: parsed, config: config}
+	instance := &Source{client: source.NewHTTPClient(client), base: parsed, config: config}
 	instance.lyrics = newLyricsService(instance)
 	return instance, nil
 }
@@ -57,13 +56,10 @@ func (wiki *Source) Search(
 	parameters.Set("limit", fmt.Sprint(source.MaxSearchCount))
 	parameters.Set("suggest", "true")
 	endpoint.RawQuery = parameters.Encode()
-	data, err := wiki.get(ctx, endpoint.String())
-	if err != nil {
-		return nil, fmt.Errorf("search THBWiki: %w", err)
-	}
 	var response []json.RawMessage
-	if err := json.Unmarshal(data, &response); err != nil {
-		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode THBWiki search response: %w", err)}
+	if _, err := wiki.client.R().SetContext(ctx).SetResult(&response).
+		ForceContentType("application/json").Get(endpoint.String()); err != nil {
+		return nil, fmt.Errorf("search THBWiki: %w", err)
 	}
 	if len(response) < 2 {
 		return []domain.AlbumCandidate{}, nil
@@ -97,13 +93,10 @@ func (wiki *Source) Fetch(
 	parameters.Set("page", id)
 	parameters.Set("prop", "text")
 	endpoint.RawQuery = parameters.Encode()
-	data, err := wiki.get(ctx, endpoint.String())
-	if err != nil {
-		return nil, fmt.Errorf("fetch THBWiki album %q: %w", id, err)
-	}
 	var response parseResponse
-	if err := json.Unmarshal(data, &response); err != nil {
-		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("decode THBWiki parse response: %w", err)}
+	if _, err := wiki.client.R().SetContext(ctx).SetResult(&response).
+		ForceContentType("application/json").Get(endpoint.String()); err != nil {
+		return nil, fmt.Errorf("fetch THBWiki album %q: %w", id, err)
 	}
 	if response.Error != nil {
 		return nil, &domain.ParseError{Kind: domain.RemoteResponse, Err: fmt.Errorf("THBWiki parse error %s: %s", response.Error.Code, response.Error.Info)}
@@ -206,24 +199,11 @@ func (wiki *Source) downloadCover(ctx context.Context, sourceURL string) ([]byte
 }
 
 func (wiki *Source) get(ctx context.Context, endpoint string) ([]byte, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-	request.Header.Set("User-Agent", useragent.TouhouTagger())
-	response, err := wiki.client.Do(request)
+	response, err := wiki.client.R().SetContext(ctx).Get(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("request %s: %w", endpoint, err)
 	}
-	data, readErr := io.ReadAll(response.Body)
-	closeErr := response.Body.Close()
-	if readErr != nil || closeErr != nil {
-		return nil, fmt.Errorf("read response from %s: %w", endpoint, errors.Join(readErr, closeErr))
-	}
-	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return nil, &source.HTTPStatusError{URL: endpoint, StatusCode: response.StatusCode, Status: response.Status, Body: strings.TrimSpace(string(data))}
-	}
-	return data, nil
+	return response.Body(), nil
 }
 
 func tableValue(table *goquery.Selection, label string) string {

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
-	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -33,14 +32,10 @@ func (coordinator *planCoordinator) discardOwner(owner string) {
 	coordinator.catalog.discardOwner(owner)
 }
 
-func (coordinator *planCoordinator) claim(planID string, revision int) bool {
-	session, exists := coordinator.store.get(planID)
-	if !exists {
-		return false
-	}
+func (coordinator *planCoordinator) claim(session *planSession) bool {
 	session.mu.Lock()
 	defer session.mu.Unlock()
-	if session.revision != revision || session.committing || !canCommit(session) {
+	if !canCommit(session) {
 		return false
 	}
 	session.committing = true
@@ -53,83 +48,56 @@ func (service *planCoordinator) prepareOwnedPlan(
 	candidateID string,
 	sourceName string,
 	owner string,
-) (PlanPreview, error) {
-	storedConfig := service.runtime.getConfig()
-	resolvedConfig, err := config.ResolveAlbum(
-		directory,
-		storedConfig,
-		storedConfig.LyricEnabled,
-	)
+) (*planSession, error) {
+	album, err := coreapp.OpenAlbum(ctx, directory, service.runtime.getConfig())
 	if err != nil {
-		return PlanPreview{}, err
+		return nil, err
 	}
-	if sourceName != "" {
-		resolvedConfig.Metadata.Source = sourceName
-	}
-	sourceName = resolvedConfig.Metadata.Source
-	if sourceName != "local-json" && !service.runtime.searchableSource(sourceName) {
-		return PlanPreview{}, fmt.Errorf("数据源 %q 不支持专辑搜索", sourceName)
-	}
-	runtimeConfig := config.RuntimeMetadata(resolvedConfig.Metadata)
-	applicationService, err := service.runtime.serviceWithConfig(runtimeConfig, nil)
+	applicationService, err := service.runtime.albumService(album, sourceName)
 	if err != nil {
-		return PlanPreview{}, err
+		return nil, err
 	}
-	initialScan, err := applicationService.ScanAlbum(ctx, directory)
+	return service.prepareAlbumPlan(ctx, album, applicationService, candidateID, owner)
+}
+
+func (service *planCoordinator) prepareAlbumPlan(
+	ctx context.Context,
+	album coreapp.Album,
+	applicationService *coreapp.Service,
+	candidateID string,
+	owner string,
+) (*planSession, error) {
+	sourceName := applicationService.Config.Source
+	candidate, exists := service.catalog.get(owner, sourceName, candidateID)
+	if album.Scan.MetadataPath != "" {
+		candidate = candidateToDTO(domain.AlbumCandidate{
+			ID: "local-json", Name: album.Name, Source: "local-json",
+		}, album.Name)
+		exists = true
+	}
+	if !exists {
+		return nil, fmt.Errorf("专辑搜索结果已失效，请重新搜索")
+	}
+	data, err := applicationService.FetchTagData(ctx, album.Scan, dtoToCandidate(candidate))
 	if err != nil {
-		return PlanPreview{}, err
-	}
-	candidate, candidateExists := service.catalog.get(owner, sourceName, candidateID)
-	if initialScan.MetadataPath != "" {
-		name, nameErr := coreapp.DefaultAlbumName(initialScan.Directory)
-		if nameErr != nil {
-			return PlanPreview{}, nameErr
-		}
-		candidate = AlbumCandidate{
-			ID:          "local-json",
-			Title:       name,
-			Source:      "local-json",
-			SourceLabel: sourceLabel("local-json"),
-			Artists:     []string{},
-			ExactMatch:  true,
-		}
-		candidateExists = true
-	}
-	if !candidateExists {
-		return PlanPreview{}, fmt.Errorf("专辑搜索结果已失效，请重新搜索")
-	}
-	data, localCover, err := applicationService.FetchTagData(ctx, initialScan.Directory, domain.AlbumCandidate{
-		ID:     candidate.ID,
-		Name:   candidate.Title,
-		Source: candidate.Source,
-	})
-	if err != nil {
-		return PlanPreview{}, err
-	}
-	cover := localCover
-	coverSource := ""
-	if len(localCover) > 0 {
-		coverSource = "local"
-	} else if len(data.Metadata) > 0 && len(data.Metadata[0].CoverImage) > 0 {
-		cover = append([]byte(nil), data.Metadata[0].CoverImage...)
-		coverSource = candidate.Source
+		return nil, err
 	}
 	session := &planSession{
 		id:          newID("plan"),
 		owner:       owner,
 		revision:    1,
-		scan:        data.Scan,
+		albumName:   album.Name,
+		scan:        album.Scan,
 		metadata:    cloneMetadata(data.Metadata),
 		candidate:   dtoToCandidate(candidate),
-		cover:       cover,
-		coverSource: coverSource,
-		saveCover: len(cover) > 0 &&
-			(resolvedConfig.Cover == nil || *resolvedConfig.Cover),
-		config: runtimeConfig,
+		cover:       data.Cover,
+		coverSource: data.CoverSource,
+		saveCover:   len(data.Cover) > 0 && (album.Config.Cover == nil || *album.Config.Cover),
+		config:      applicationService.Config,
 	}
 	service.rebuildSession(session)
 	service.store.put(session)
-	return service.previewLocked(session), nil
+	return session, nil
 }
 
 func (service *planCoordinator) updatePlan(
@@ -204,7 +172,7 @@ func (service *planCoordinator) commitPlan(planID string, revision int) (Operati
 		result, reusable, err := service.executeCommit(
 			ctx,
 			operationID,
-			planID,
+			session,
 			service.ops.eventSink(operationID),
 		)
 		if !reusable {
@@ -234,14 +202,10 @@ func (service *planCoordinator) commitPlan(planID string, revision int) (Operati
 func (service *planCoordinator) executeCommit(
 	ctx context.Context,
 	operationID string,
-	planID string,
+	session *planSession,
 	events coreapp.EventSink,
 ) (result OperationResult, reusable bool, err error) {
 	started := time.Now()
-	session, exists := service.store.get(planID)
-	if !exists {
-		return OperationResult{}, false, fmt.Errorf("写入内容已失效")
-	}
 	defer func() {
 		session.mu.Lock()
 		defer session.mu.Unlock()
@@ -249,118 +213,54 @@ func (service *planCoordinator) executeCommit(
 		if reusable {
 			session.revision++
 			service.rebuildSession(session)
-			preview := service.previewLocked(session)
-			result.Plan = &preview
+			if session.owner == "workspace" {
+				preview := service.previewLocked(session)
+				result.Plan = &preview
+			}
 		}
 	}()
 	session.mu.Lock()
 	configValue := cloneConfig(session.config)
 	metadata := cloneMetadata(session.metadata)
-	candidate := session.candidate
-	cover := append([]byte(nil), session.cover...)
+	commit := coreapp.AlbumCommit{Candidate: session.candidate, DefaultAlbumName: session.albumName}
 	scan := session.scan
-	directory := scan.Directory
-	saveCover := session.saveCover && len(cover) > 0
+	commit.Cover, err = session.coverOutput()
 	session.mu.Unlock()
-
-	applicationService, err := service.runtime.serviceWithConfig(
-		configValue,
-		withoutCompleteEvents(events),
-	)
 	if err != nil {
 		return OperationResult{}, true, err
 	}
-	plan, err := coreapp.BuildTagPlan(scan, metadata)
+	applicationService, err := service.runtime.serviceWithConfig(configValue, events)
+	if err != nil {
+		return OperationResult{}, true, err
+	}
+	commit.Plan, err = coreapp.BuildTagPlan(scan, metadata)
 	if err != nil {
 		return OperationResult{}, true, fmt.Errorf("准备写入内容: %w", err)
 	}
-	renamed := 0
-	for _, item := range plan.Items {
-		if !equalPath(item.SourcePath, item.TargetPath) {
-			renamed++
-		}
-	}
-	applied, applyErr := applicationService.ApplyTagPlan(ctx, plan)
-	if applied.Renamed {
-		session.mu.Lock()
-		for index, item := range plan.Items {
+	applied, err := applicationService.CommitAlbum(ctx, commit)
+	session.mu.Lock()
+	if applied.AudioRenamed {
+		for index, item := range commit.Plan.Items {
 			session.scan.AudioFiles[index].Path = item.TargetPath
 		}
-		session.mu.Unlock()
 	}
-	if applyErr != nil {
-		return OperationResult{}, applied.Renamed || !coreapp.TagFilesMayHaveChanged(applyErr), applyErr
+	if applied.CoverPath != "" {
+		session.scan.CoverPath = applied.CoverPath
 	}
-	coversSaved := 0
-	if saveCover {
-		var saveErr error
-		var coverPath string
-		if scan.CoverPath != "" {
-			coverPath, saveErr = coreapp.SaveCoverAt(scan.CoverPath, cover)
-		} else {
-			coverPath, saveErr = coreapp.SaveCoverNew(directory, cover)
-		}
-		if saveErr != nil {
-			return OperationResult{}, true, saveErr
-		}
-		session.mu.Lock()
-		session.scan.CoverPath = coverPath
-		session.mu.Unlock()
-		coversSaved = 1
+	if err == nil && commit.Candidate.Source != "local-json" && commit.Candidate.Name != "" {
+		session.albumName = commit.Candidate.Name
 	}
-	if candidate.Source != "local-json" {
-		defaultName, err := coreapp.DefaultAlbumName(directory)
-		if err != nil {
-			return OperationResult{}, true, err
-		}
-		if candidate.Name != "" && candidate.Name != defaultName {
-			if err := config.SaveDefaultAlbumHint(directory, candidate.Name); err != nil {
-				return OperationResult{}, true, err
-			}
-		}
-	}
-	lrcFiles := 0
-	if configValue.LyricEnabled &&
-		configValue.Lyric != nil &&
-		configValue.Lyric.Output == domain.LyricLRC {
-		for _, item := range plan.Items {
-			if item.Metadata.Lyric != "" {
-				lrcFiles++
-			}
-		}
-	}
-	if events != nil {
-		if err := events(domain.ProgressEvent{
-			Stage:     domain.StageComplete,
-			Directory: directory,
-			Current:   len(plan.Items),
-			Total:     len(plan.Items),
-		}); err != nil {
-			return OperationResult{}, true, fmt.Errorf("发送最终完成进度: %w", err)
-		}
-	}
+	session.mu.Unlock()
 	return OperationResult{
 		OperationID: operationID,
 		Kind:        "workspace",
-		Succeeded:   len(plan.Items),
-		Renamed:     renamed,
-		CoversSaved: coversSaved,
-		LRCFiles:    lrcFiles,
+		Succeeded:   applied.Written,
+		Renamed:     applied.Renamed,
+		CoversSaved: applied.CoversSaved,
+		LRCFiles:    applied.LRCFiles,
 		DurationMS:  time.Since(started).Milliseconds(),
-		Message:     fmt.Sprintf("已完成 %d 首曲目的写入。", len(plan.Items)),
-	}, true, nil
-}
-
-func withoutCompleteEvents(events coreapp.EventSink) coreapp.EventSink {
-	if events == nil {
-		return nil
-	}
-	return func(event domain.ProgressEvent) error {
-		if event.Stage == domain.StageComplete {
-			return nil
-		}
-		return events(event)
-	}
+		Message:     fmt.Sprintf("已完成 %d 首曲目的写入。", applied.Written),
+	}, applied.Reusable, err
 }
 
 func (service *planCoordinator) rebuildSession(session *planSession) {
@@ -435,7 +335,7 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 		if index < len(session.plan.Items) {
 			planItem := session.plan.Items[index]
 			item.TargetName = filepath.Base(planItem.TargetPath)
-			item.WillRename = !equalPath(planItem.SourcePath, planItem.TargetPath)
+			item.WillRename = planItem.SourcePath != planItem.TargetPath
 		}
 		for _, issue := range session.issues {
 			if issue.ItemID == item.ID {
@@ -464,21 +364,12 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 	}
 	cover := service.coverPreview(session)
 	renamed := 0
-	lrcFiles := 0
 	for _, item := range items {
 		if item.WillRename {
 			renamed++
 		}
 	}
-	if session.config.LyricEnabled &&
-		session.config.Lyric != nil &&
-		session.config.Lyric.Output == domain.LyricLRC {
-		for _, item := range session.metadata {
-			if item.Lyric != "" {
-				lrcFiles++
-			}
-		}
-	}
+	lrcFiles := len(coreapp.TagPlanOutputs(session.plan, session.config))
 	compressCover := session.config.CoverCompressSize > 0 &&
 		float64(len(session.cover)) > session.config.CoverCompressSize*1024*1024
 	canSaveCover := len(session.cover) > 0

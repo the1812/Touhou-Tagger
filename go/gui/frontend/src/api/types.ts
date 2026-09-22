@@ -202,7 +202,7 @@ export type BatchJobStatus =
   | 'ready'
   | 'needs-candidate'
   | 'local-metadata'
-  | 'track-mismatch'
+  | 'blocked'
   | 'scan-failed'
   | 'no-audio'
   | 'queued'

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	albumfs "github.com/the1812/Touhou-Tagger/go/internal/filesystem"
 )
 
 type AlbumOptions struct {
@@ -31,7 +32,6 @@ type AlbumOptions struct {
 
 type ResolvedAlbumConfig struct {
 	Metadata         domain.MetadataConfig
-	Lyric            domain.LyricConfig
 	DefaultAlbumHint string
 	Interactive      *bool
 	Cover            *bool
@@ -111,7 +111,6 @@ func ResolveAlbum(
 	}
 	return ResolvedAlbumConfig{
 		Metadata:         base,
-		Lyric:            lyric,
 		DefaultAlbumHint: album.DefaultAlbumHint,
 		Interactive:      album.Interactive,
 		Cover:            album.Cover,
@@ -139,7 +138,7 @@ func SaveDefaultAlbumHint(directory, hint string) error {
 	if err != nil {
 		return fmt.Errorf("encode album config: %w", err)
 	}
-	if err := writeFileAtomic(path, data, 0o644); err != nil {
+	if err := albumfs.WriteFileAtomic(path, data, 0o644); err != nil {
 		return fmt.Errorf("write album config: %w", err)
 	}
 	return nil

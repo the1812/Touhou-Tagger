@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	albumfs "github.com/the1812/Touhou-Tagger/go/internal/filesystem"
 )
 
 func Path() (string, error) {
@@ -74,43 +75,8 @@ func Save(value domain.MetadataConfig) (resultErr error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("create config directory: %w", err)
 	}
-	if err := writeFileAtomic(path, data, 0o600); err != nil {
+	if err := albumfs.WriteFileAtomic(path, data, 0o600); err != nil {
 		return fmt.Errorf("replace config: %w", err)
-	}
-	return nil
-}
-
-func writeFileAtomic(path string, data []byte, mode os.FileMode) (resultErr error) {
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".config-*.tmp")
-	if err != nil {
-		return fmt.Errorf("create temporary file: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	closed := false
-	defer func() {
-		if !closed {
-			resultErr = errors.Join(resultErr, temporary.Close())
-		}
-		if removeErr := os.Remove(temporaryPath); removeErr != nil && !os.IsNotExist(removeErr) {
-			resultErr = errors.Join(resultErr, fmt.Errorf("remove temporary file: %w", removeErr))
-		}
-	}()
-	if err := temporary.Chmod(mode); err != nil {
-		return fmt.Errorf("set temporary file mode: %w", err)
-	}
-	if _, err := temporary.Write(data); err != nil {
-		return fmt.Errorf("write temporary file: %w", err)
-	}
-	if err := temporary.Sync(); err != nil {
-		return fmt.Errorf("flush temporary file: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		closed = true
-		return fmt.Errorf("close temporary file: %w", err)
-	}
-	closed = true
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return fmt.Errorf("replace file: %w", err)
 	}
 	return nil
 }

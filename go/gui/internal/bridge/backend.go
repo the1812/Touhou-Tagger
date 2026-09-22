@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
@@ -103,16 +104,7 @@ func (backend *Backend) Close() {
 }
 
 func (runtime *runtimeState) service(events coreapp.EventSink) (*coreapp.Service, error) {
-	runtime.mu.RLock()
-	config := runtime.config
-	factory := runtime.factory
-	runtime.mu.RUnlock()
-	service, err := factory(config, events)
-	if err != nil {
-		return nil, err
-	}
-	service.Warnings = runtime.warnings
-	return service, nil
+	return runtime.serviceWithConfig(runtime.getConfig(), events)
 }
 
 func (runtime *runtimeState) serviceWithConfig(
@@ -125,6 +117,17 @@ func (runtime *runtimeState) serviceWithConfig(
 	}
 	service.Warnings = runtime.warnings
 	return service, nil
+}
+
+func (runtime *runtimeState) albumService(album coreapp.Album, sourceName string) (*coreapp.Service, error) {
+	value := album.Config.Metadata
+	if sourceName != "" && album.Scan.MetadataPath == "" {
+		value.Source = sourceName
+	}
+	if value.Source != "local-json" && !runtime.searchableSource(value.Source) {
+		return nil, fmt.Errorf("数据源 %q 不支持专辑搜索", value.Source)
+	}
+	return runtime.serviceWithConfig(value, nil)
 }
 
 func (runtime *runtimeState) getConfig() domain.MetadataConfig {

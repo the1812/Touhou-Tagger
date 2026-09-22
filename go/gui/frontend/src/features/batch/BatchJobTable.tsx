@@ -19,7 +19,7 @@ const statusInfo = (status: BatchJobStatus) => {
     ready: { label: t('batch.status.ready'), severity: 'success' },
     'needs-candidate': { label: t('batch.status.needsCandidate'), severity: 'warn' },
     'local-metadata': { label: t('batch.status.localMetadata'), severity: 'info' },
-    'track-mismatch': { label: t('batch.status.trackMismatch'), severity: 'danger' },
+    blocked: { label: t('batch.status.blocked'), severity: 'danger' },
     'scan-failed': { label: t('batch.loadFailed'), severity: 'danger' },
     'no-audio': { label: t('batch.noAudio'), severity: 'secondary' },
     queued: { label: t('batch.status.queued'), severity: 'secondary' },
@@ -63,7 +63,7 @@ export const BatchJobTable = defineComponent({
     const rowClass = (job: BatchJobPreview) =>
       cx(
         'h-[46px]',
-        ['track-mismatch', 'scan-failed', 'failed'].includes(job.status) &&
+        ['blocked', 'scan-failed', 'failed'].includes(job.status) &&
           'bg-red-50/60 dark:bg-red-950/30',
         job.status === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
       )
@@ -74,7 +74,11 @@ export const BatchJobTable = defineComponent({
       if (job.status === 'loading') {
         return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
       }
-      if (job.status === 'scan-failed' || (job.status === 'failed' && !job.canRun)) {
+      if (
+        job.status === 'scan-failed' ||
+        (job.status === 'blocked' && job.candidates.length <= 1) ||
+        (job.status === 'failed' && !job.canRun)
+      ) {
         return (
           <div class="flex items-center justify-between gap-2">
             <TruncatedText

@@ -33,8 +33,9 @@ type Service struct {
 }
 
 type TagData struct {
-	Scan     domain.AlbumScan
-	Metadata []domain.Metadata
+	Metadata    []domain.Metadata
+	Cover       []byte
+	CoverSource string
 }
 
 type TagFilesChangedError struct {
@@ -83,40 +84,37 @@ func (service *Service) SearchAlbums(
 
 func (service *Service) BuildTagPlan(
 	ctx context.Context,
-	directory string,
+	scan domain.AlbumScan,
 	candidate domain.AlbumCandidate,
 ) (domain.TagPlan, []byte, error) {
-	data, cover, err := service.FetchTagData(ctx, directory, candidate)
+	data, err := service.FetchTagData(ctx, scan, candidate)
 	if err != nil {
 		return domain.TagPlan{}, nil, err
 	}
-	plan, err := BuildTagPlan(data.Scan, data.Metadata)
+	plan, err := BuildTagPlan(scan, data.Metadata)
 	if err != nil {
 		return domain.TagPlan{}, nil, err
 	}
-	if err := service.emit(domain.ProgressEvent{Stage: domain.StagePlan, Directory: data.Scan.Directory, Total: len(plan.Items)}); err != nil {
+	if err := service.emit(domain.ProgressEvent{Stage: domain.StagePlan, Directory: scan.Directory, Total: len(plan.Items)}); err != nil {
 		return domain.TagPlan{}, nil, err
 	}
-	return plan, cover, nil
+	return plan, data.Cover, nil
 }
 
 func (service *Service) FetchTagData(
 	ctx context.Context,
-	directory string,
+	scan domain.AlbumScan,
 	candidate domain.AlbumCandidate,
-) (TagData, []byte, error) {
-	scan, err := service.ScanAlbum(ctx, directory)
-	if err != nil {
-		return TagData{}, nil, err
-	}
+) (TagData, error) {
 	if len(scan.AudioFiles) == 0 {
-		return TagData{}, nil, fmt.Errorf("%w in %q", domain.ErrNoAudio, scan.Directory)
+		return TagData{}, fmt.Errorf("%w in %q", domain.ErrNoAudio, scan.Directory)
 	}
 	var cover []byte
 	if scan.CoverPath != "" {
+		var err error
 		cover, err = os.ReadFile(scan.CoverPath)
 		if err != nil {
-			return TagData{}, nil, fmt.Errorf("read local cover %q: %w", scan.CoverPath, err)
+			return TagData{}, fmt.Errorf("read local cover %q: %w", scan.CoverPath, err)
 		}
 	}
 	metadataSourceName := candidate.Source
@@ -127,10 +125,10 @@ func (service *Service) FetchTagData(
 	}
 	metadataSource, exists := service.Sources[metadataSourceName]
 	if !exists {
-		return TagData{}, nil, fmt.Errorf("metadata source %q is not registered", metadataSourceName)
+		return TagData{}, fmt.Errorf("metadata source %q is not registered", metadataSourceName)
 	}
 	if err := service.emit(domain.ProgressEvent{Stage: domain.StageFetch, Directory: scan.Directory, Message: metadataID}); err != nil {
-		return TagData{}, nil, err
+		return TagData{}, err
 	}
 	var fallbackMetadata []domain.Metadata
 	var partialFetchErr error
@@ -149,7 +147,7 @@ func (service *Service) FetchTagData(
 	)
 	if err != nil {
 		if partialFetchErr == nil || errors.Is(err, context.Canceled) {
-			return TagData{}, nil, err
+			return TagData{}, err
 		}
 		metadata = fallbackMetadata
 		warning := ProcessWarning{
@@ -161,13 +159,20 @@ func (service *Service) FetchTagData(
 			Directory: scan.Directory,
 		}
 		if service.Warnings == nil {
-			return TagData{}, nil, fmt.Errorf("%s: %w", warning.Message, warning.Err)
+			return TagData{}, fmt.Errorf("%s: %w", warning.Message, warning.Err)
 		}
 		if warningErr := service.Warnings(warning); warningErr != nil {
-			return TagData{}, nil, fmt.Errorf("report process warning: %w", warningErr)
+			return TagData{}, fmt.Errorf("report process warning: %w", warningErr)
 		}
 	}
-	return TagData{Scan: scan, Metadata: metadata}, cover, nil
+	coverSource := "local"
+	if len(cover) == 0 {
+		coverSource = metadataSourceName
+		if len(metadata) > 0 {
+			cover = metadata[0].CoverImage
+		}
+	}
+	return TagData{Metadata: metadata, Cover: cover, CoverSource: coverSource}, nil
 }
 
 type TagWriteResult struct {
@@ -249,19 +254,11 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) (
 	result.Renamed = true
 	for _, output := range TagPlanOutputs(plan, service.Config) {
 		item := plan.Items[output.ItemIndex]
-		if err := atomicWrite(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
+		if err := albumfs.WriteFileAtomic(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
 			return result, &TagFilesChangedError{
 				Err: fmt.Errorf("write LRC %q: %w", output.Path, err),
 			}
 		}
-	}
-	if err := service.emit(domain.ProgressEvent{
-		Stage:     domain.StageComplete,
-		Directory: plan.Directory,
-		Current:   len(plan.Items),
-		Total:     len(plan.Items),
-	}); err != nil {
-		return result, &TagFilesChangedError{Err: err}
 	}
 	return result, nil
 }

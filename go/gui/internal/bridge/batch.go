@@ -9,26 +9,30 @@ import (
 	"time"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
-	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
 type batchJob struct {
-	canRun              bool
 	id                  string
 	directory           string
 	inferredAlbumName   string
 	source              string
-	matchDescription    string
 	audioCount          int
 	status              string
 	issues              []StateIssue
 	candidates          []AlbumCandidate
 	selectedCandidateID string
-	planID              string
-	revision            int
-	resolving           bool
-	resolveToken        string
+	plan                *planSession
+	loadID              string
+}
+
+func (job *batchJob) canRun() bool {
+	if job.loadID != "" || job.plan == nil {
+		return false
+	}
+	job.plan.mu.Lock()
+	defer job.plan.mu.Unlock()
+	return canCommit(job.plan)
 }
 
 type batchSession struct {
@@ -91,19 +95,16 @@ func (service *BatchService) ScanBatch(
 			source:            sourceName,
 			audioCount:        discovered.AudioCount,
 			status:            "loading",
-			matchDescription:  "正在加载",
 			issues:            []StateIssue{},
 			candidates:        []AlbumCandidate{},
 		}
 		if discovered.Ignored {
 			job.status = "no-audio"
-			job.matchDescription = "无音频"
 			session.jobs = append(session.jobs, job)
 			continue
 		}
 		if discovered.PreflightErr != nil {
 			job.status = "scan-failed"
-			job.matchDescription = "扫描失败"
 			job.issues = append(job.issues, failureIssue("scan-failed", discovered.PreflightErr))
 		}
 		session.jobs = append(session.jobs, job)
@@ -124,218 +125,36 @@ func (service *BatchService) ScanBatch(
 	return batchPreview(session), nil
 }
 
-func (service *BatchService) LoadBatchJob(
-	ctx context.Context,
-	batchID string,
-	jobID string,
-) (BatchJobPreview, error) {
+func (service *BatchService) LoadBatchJob(ctx context.Context, batchID, jobID string) (BatchJobPreview, error) {
 	select {
 	case service.loadSlots <- struct{}{}:
 		defer func() { <-service.loadSlots }()
 	case <-ctx.Done():
 		return BatchJobPreview{}, ctx.Err()
 	}
-	service.mu.RLock()
-	session, exists := service.sessions[batchID]
-	if !exists {
-		service.mu.RUnlock()
-		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
-	}
-	session.mu.Lock()
-	service.mu.RUnlock()
-	if session.running {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能重新加载专辑")
-	}
-	var job *batchJob
-	for _, item := range session.jobs {
-		if item.id == jobID {
-			job = item
-			break
-		}
-	}
-	if job == nil {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
-	}
-	if job.resolving {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("这个专辑当前不能重新加载")
-	}
-	token := newID("load")
-	previousPlanID := job.planID
-	job.resolving = true
-	job.resolveToken = token
-	job.status = "loading"
-	job.matchDescription = "正在加载"
-	job.issues = []StateIssue{}
-	job.candidates = []AlbumCandidate{}
-	job.selectedCandidateID = ""
-	job.canRun = false
-	job.planID = ""
-	job.revision = 0
-	working := &batchJob{
-		id: job.id, directory: job.directory, inferredAlbumName: job.inferredAlbumName,
-		source: job.source, audioCount: job.audioCount, status: "loading",
-		matchDescription: "正在加载", issues: []StateIssue{}, candidates: []AlbumCandidate{},
-	}
-	session.mu.Unlock()
-	if previousPlanID != "" {
-		service.planner.discard(previousPlanID)
-	}
-
-	service.loadBatchJob(ctx, session, working)
-
-	service.mu.RLock()
-	current, currentExists := service.sessions[batchID]
-	if !currentExists || current != session {
-		service.mu.RUnlock()
-		if working.planID != "" {
-			service.planner.discard(working.planID)
-		}
-		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
-	}
-	session.mu.Lock()
-	service.mu.RUnlock()
-	defer session.mu.Unlock()
-	if session.running || !job.resolving || job.resolveToken != token {
-		if working.planID != "" {
-			service.planner.discard(working.planID)
-		}
-		return BatchJobPreview{}, fmt.Errorf("专辑加载结果已失效")
-	}
-	working.resolving = false
-	working.resolveToken = ""
-	*job = *working
-	return batchJobPreview(session.root, job), nil
+	return service.updateJob(ctx, batchID, jobID, service.loadBatchJob)
 }
 
-func (service *BatchService) loadBatchJob(
-	ctx context.Context,
-	session *batchSession,
-	job *batchJob,
-) {
-	applicationService, err := service.runtime.service(nil)
-	if err != nil {
-		job.status = "scan-failed"
-		job.matchDescription = "加载失败"
-		job.issues = append(job.issues, failureIssue("load-failed", err))
-		return
-	}
-	scan, err := applicationService.ScanAlbum(ctx, job.directory)
-	if err != nil {
-		job.status = "scan-failed"
-		job.matchDescription = "扫描失败"
-		job.issues = append(job.issues, failureIssue("scan-failed", err))
-		return
-	}
-	job.audioCount = len(scan.AudioFiles)
-	if job.audioCount == 0 {
-		job.status = "no-audio"
-		job.matchDescription = "无音频"
-		return
-	}
-	job.inferredAlbumName, err = application.DefaultAlbumName(job.directory)
-	if err != nil {
-		job.status = "scan-failed"
-		job.matchDescription = "配置解析失败"
-		job.issues = append(job.issues, failureIssue("config-failed", err))
-		return
-	}
-	if scan.MetadataPath != "" {
-		localCandidate := AlbumCandidate{
-			ID:          "local-json",
-			Title:       job.inferredAlbumName,
-			Source:      "local-json",
-			SourceLabel: sourceLabel("local-json"),
-			Artists:     []string{},
-			ExactMatch:  true,
+func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID, jobID, candidateID string) (BatchJobPreview, error) {
+	return service.updateJob(ctx, batchID, jobID, func(ctx context.Context, owner string, job *batchJob) error {
+		for _, candidate := range job.candidates {
+			if candidate.ID != candidateID {
+				continue
+			}
+			job.selectedCandidateID = candidate.ID
+			job.source = candidate.Source
+			plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, owner)
+			job.plan = plan
+			return err
 		}
-		job.candidates = []AlbumCandidate{localCandidate}
-		job.selectedCandidateID = localCandidate.ID
-		job.source = localCandidate.Source
-		job.matchDescription = "精确匹配"
-		service.prepareBatchJob(ctx, session, job, localCandidate, "local-metadata")
-		return
-	}
-	baseConfig := service.runtime.getConfig()
-	baseConfig.Source = job.source
-	resolvedConfig, err := config.ResolveAlbum(job.directory, baseConfig, baseConfig.LyricEnabled)
-	if err != nil {
-		job.status = "scan-failed"
-		job.matchDescription = "配置解析失败"
-		job.issues = append(job.issues, failureIssue("config-failed", err))
-		return
-	}
-	job.source = resolvedConfig.Metadata.Source
-	if !service.runtime.searchableSource(job.source) {
-		job.status = "scan-failed"
-		job.matchDescription = "配置解析失败"
-		job.issues = append(job.issues, errorIssue("config-failed", fmt.Sprintf("数据源 %q 不支持专辑搜索", job.source)))
-		return
-	}
-	candidates, err := service.catalog.search(
-		ctx,
-		service.runtime,
-		session.id,
-		job.directory,
-		job.inferredAlbumName,
-		job.source,
-		false,
-	)
-	if err != nil {
-		job.status = "scan-failed"
-		job.matchDescription = "搜索失败"
-		job.issues = append(job.issues, failureIssue("search-failed", err))
-		return
-	}
-	job.candidates = candidates
-	exact := exactCandidate(candidates)
-	switch {
-	case exact != nil:
-		job.selectedCandidateID = exact.ID
-		job.matchDescription = "精确匹配"
-		service.prepareBatchJob(ctx, session, job, *exact, "ready")
-	case len(candidates) == 0:
-		job.status = "needs-candidate"
-		job.matchDescription = "没有匹配结果"
-		job.issues = append(job.issues, warningIssue("candidate-required", "没有找到匹配专辑，请忽略无法匹配的专辑。"))
-	default:
-		job.status = "needs-candidate"
-		job.matchDescription = fmt.Sprintf("%d 个搜索结果", len(candidates))
-		job.issues = append(job.issues, warningIssue("candidate-required", "写入前需要选择匹配的专辑。"))
-	}
+		return fmt.Errorf("专辑中不存在搜索结果 %q", candidateID)
+	})
 }
 
-func (service *BatchService) prepareBatchJob(
+func (service *BatchService) updateJob(
 	ctx context.Context,
-	session *batchSession,
-	job *batchJob,
-	candidate AlbumCandidate,
-	readyStatus string,
-) {
-	plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, session.id)
-	if err != nil {
-		job.status = "scan-failed"
-		job.issues = append(job.issues, failureIssue("prepare-failed", err))
-		return
-	}
-	job.canRun = plan.CanCommit
-	job.planID = plan.PlanID
-	job.revision = plan.Revision
-	job.issues = append(job.issues, plan.Issues...)
-	if plan.CanCommit {
-		job.status = readyStatus
-	} else {
-		job.status = "track-mismatch"
-	}
-}
-
-func (service *BatchService) ResolveBatchCandidate(
-	ctx context.Context,
-	batchID string,
-	jobID string,
-	candidateID string,
+	batchID, jobID string,
+	load func(context.Context, string, *batchJob) error,
 ) (BatchJobPreview, error) {
 	service.mu.RLock()
 	session, exists := service.sessions[batchID]
@@ -345,89 +164,89 @@ func (service *BatchService) ResolveBatchCandidate(
 	}
 	session.mu.Lock()
 	service.mu.RUnlock()
-	if session.running {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("批量写入期间不能修改搜索结果")
-	}
-	var job *batchJob
-	for _, item := range session.jobs {
-		if item.id == jobID {
-			job = item
-			break
-		}
-	}
+	job := session.findJob(jobID)
 	if job == nil {
 		session.mu.Unlock()
 		return BatchJobPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 	}
-	if job.resolving {
+	if session.running || job.loadID != "" {
 		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("这个专辑正在加载搜索结果，请稍候")
+		return BatchJobPreview{}, fmt.Errorf("这个专辑正在处理，请稍候")
 	}
-	var candidate *AlbumCandidate
-	for index := range job.candidates {
-		if job.candidates[index].ID == candidateID {
-			value := job.candidates[index]
-			candidate = &value
-			break
-		}
-	}
-	if candidate == nil {
-		session.mu.Unlock()
-		return BatchJobPreview{}, fmt.Errorf("专辑中不存在搜索结果 %q", candidateID)
-	}
-	token := newID("resolve")
-	job.resolving = true
-	job.resolveToken = token
-	directory := job.directory
+	working := *job
+	working.plan = nil
+	working.issues = nil
+	working.status = "ready"
+	previousPlan := job.plan
+	token := newID("load")
+	job.loadID = token
 	session.mu.Unlock()
-	plan, err := service.planner.prepareOwnedPlan(
-		ctx,
-		directory,
-		candidate.ID,
-		candidate.Source,
-		session.id,
-	)
-	service.mu.RLock()
-	current, currentExists := service.sessions[batchID]
-	if !currentExists || current != session {
-		service.mu.RUnlock()
-		if err == nil {
-			service.planner.discard(plan.PlanID)
-		}
-		return BatchJobPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
+
+	if previousPlan != nil {
+		service.planner.discard(previousPlan.id)
 	}
+	if err := load(ctx, session.id, &working); err != nil {
+		working.status = "scan-failed"
+		working.issues = []StateIssue{failureIssue("load-failed", err)}
+	}
+
+	service.mu.RLock()
+	current := service.sessions[batchID]
 	session.mu.Lock()
 	service.mu.RUnlock()
 	defer session.mu.Unlock()
-	if session.running || !job.resolving || job.resolveToken != token {
-		if err == nil {
-			service.planner.discard(plan.PlanID)
+	if current != session || session.running || job.loadID != token {
+		if working.plan != nil {
+			service.planner.discard(working.plan.id)
 		}
-		return BatchJobPreview{}, fmt.Errorf("搜索结果已失效")
+		if current != session {
+			service.catalog.discardOwner(session.id)
+		}
+		return BatchJobPreview{}, fmt.Errorf("专辑加载结果已失效，请重新扫描目录")
 	}
-	job.resolving = false
-	job.resolveToken = ""
-	job.canRun = false
-	job.selectedCandidateID = candidate.ID
-	job.source = candidate.Source
-	job.matchDescription = "已选择搜索结果"
-	job.issues = job.issues[:0]
-	if err != nil {
-		job.status = "scan-failed"
-		job.issues = append(job.issues, failureIssue("prepare-failed", err))
-		return batchJobPreview(session.root, job), nil
-	}
-	job.canRun = plan.CanCommit
-	job.planID = plan.PlanID
-	job.revision = plan.Revision
-	job.issues = append(job.issues, plan.Issues...)
-	if plan.CanCommit {
-		job.status = "ready"
-	} else {
-		job.status = "track-mismatch"
-	}
+	*job = working
 	return batchJobPreview(session.root, job), nil
+}
+
+func (service *BatchService) loadBatchJob(ctx context.Context, owner string, job *batchJob) error {
+	base := service.runtime.getConfig()
+	base.Source = job.source
+	album, err := application.OpenAlbum(ctx, job.directory, base)
+	if err != nil {
+		return err
+	}
+	job.inferredAlbumName = album.Name
+	job.audioCount = len(album.Scan.AudioFiles)
+	job.source = album.Config.Metadata.Source
+	job.candidates = nil
+	job.selectedCandidateID = ""
+	if job.audioCount == 0 {
+		job.status = "no-audio"
+		return nil
+	}
+	applicationService, err := service.runtime.albumService(album, "")
+	if err != nil {
+		return err
+	}
+	if album.Scan.MetadataPath != "" {
+		job.candidates = []AlbumCandidate{candidateToDTO(domain.AlbumCandidate{
+			ID: "local-json", Name: album.Name, Source: "local-json",
+		}, album.Name)}
+	} else {
+		job.candidates, err = service.catalog.search(ctx, applicationService, owner, album.Name, false)
+		if err != nil {
+			return err
+		}
+	}
+	candidate := exactCandidate(job.candidates)
+	if candidate == nil {
+		job.status = "needs-candidate"
+		job.issues = []StateIssue{warningIssue("candidate-required", "写入前需要选择匹配的专辑，未匹配的专辑会自动跳过。")}
+		return nil
+	}
+	job.selectedCandidateID = candidate.ID
+	job.plan, err = service.planner.prepareAlbumPlan(ctx, album, applicationService, candidate.ID, owner)
+	return err
 }
 
 func (service *BatchService) RunBatch(
@@ -446,7 +265,7 @@ func (service *BatchService) RunBatch(
 		return OperationStart{}, fmt.Errorf("批量写入正在运行")
 	}
 	for _, job := range session.jobs {
-		if job.resolving || job.status == "loading" {
+		if job.loadID != "" || job.status == "loading" {
 			session.mu.Unlock()
 			return OperationStart{}, fmt.Errorf("仍有专辑数据正在加载，请稍候")
 		}
@@ -455,14 +274,14 @@ func (service *BatchService) RunBatch(
 	previousStatuses := make(map[string]string, len(session.jobs))
 	for _, job := range session.jobs {
 		if failedOnly {
-			if job.status == "failed" && job.canRun {
+			if job.status == "failed" && job.canRun() {
 				selected = append(selected, job.id)
 				previousStatuses[job.id] = job.status
 				job.status = "queued"
 			}
 			continue
 		}
-		if job.canRun {
+		if job.canRun() {
 			selected = append(selected, job.id)
 			previousStatuses[job.id] = job.status
 			job.status = "queued"
@@ -485,11 +304,9 @@ func (service *BatchService) RunBatch(
 	if err != nil {
 		session.mu.Lock()
 		session.running = false
-		for _, selectedID := range selected {
-			for _, job := range session.jobs {
-				if job.id == selectedID && job.status == "queued" {
-					job.status = previousStatuses[selectedID]
-				}
+		for _, id := range selected {
+			if job := session.findJob(id); job != nil && job.status == "queued" {
+				job.status = previousStatuses[id]
 			}
 		}
 		session.mu.Unlock()
@@ -555,8 +372,7 @@ func (service *BatchService) executeBatch(
 		session.mu.Lock()
 		job.status = "running"
 		directory := job.directory
-		planID := job.planID
-		revision := job.revision
+		plan := job.plan
 		session.mu.Unlock()
 		service.ops.emitProgress(OperationProgress{
 			OperationID: operationID,
@@ -566,10 +382,10 @@ func (service *BatchService) executeBatch(
 			Path:        filepath.Base(directory),
 			Message:     fmt.Sprintf("正在处理专辑 %d / %d", index+1, len(selected)),
 		})
-		if !service.planner.claim(planID, revision) {
+		if !service.planner.claim(plan) {
 			service.failJob(session, job, fmt.Errorf("写入内容不可用，请重新加载此专辑"))
 			session.mu.Lock()
-			job.canRun = false
+			job.plan = nil
 			session.mu.Unlock()
 			result.Failed++
 			continue
@@ -577,17 +393,14 @@ func (service *BatchService) executeBatch(
 		commitResult, reusable, commitErr := service.planner.executeCommit(
 			ctx,
 			operationID,
-			planID,
+			plan,
 			service.batchEventSink(operationID, index, len(selected), directory),
 		)
-		session.mu.Lock()
-		job.canRun = commitResult.Plan != nil && commitResult.Plan.CanCommit
-		if commitResult.Plan != nil {
-			job.revision = commitResult.Plan.Revision
-		}
-		session.mu.Unlock()
 		if !reusable {
-			service.planner.delete(planID)
+			service.planner.delete(plan.id)
+			session.mu.Lock()
+			job.plan = nil
+			session.mu.Unlock()
 		}
 		if errors.Is(commitErr, context.Canceled) && reusable {
 			service.cancelRemaining(session, selected[index+1:])
@@ -697,10 +510,8 @@ func (service *BatchService) cancelRemaining(session *batchSession, ids []string
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	for _, id := range ids {
-		for _, job := range session.jobs {
-			if job.id == id && (job.status == "queued" || job.status == "running") {
-				job.status = "cancelled"
-			}
+		if job := session.findJob(id); job != nil && (job.status == "queued" || job.status == "running") {
+			job.status = "cancelled"
 		}
 	}
 }
@@ -717,10 +528,8 @@ func (service *BatchService) lookupJob(
 	}
 	session.mu.Lock()
 	defer session.mu.Unlock()
-	for _, job := range session.jobs {
-		if job.id == jobID {
-			return session, job, nil
-		}
+	if job := session.findJob(jobID); job != nil {
+		return session, job, nil
 	}
 	return nil, nil, fmt.Errorf("批量写入专辑 %q 不存在", jobID)
 }
@@ -755,19 +564,66 @@ func batchJobPreview(root string, job *batchJob) BatchJobPreview {
 	if err != nil {
 		relative = filepath.Base(job.directory)
 	}
+	status := job.status
+	issues := dtoSlice(job.issues)
+	if job.plan != nil {
+		job.plan.mu.Lock()
+		issues = append(issues, job.plan.issues...)
+		if status == "ready" {
+			if !canCommit(job.plan) {
+				status = "blocked"
+			} else if job.source == "local-json" {
+				status = "local-metadata"
+			}
+		}
+		job.plan.mu.Unlock()
+	}
 	return BatchJobPreview{
-		CanRun:              job.canRun && !job.resolving,
+		CanRun:              job.canRun(),
 		ID:                  job.id,
 		RelativePath:        relative,
 		InferredAlbumName:   job.inferredAlbumName,
 		Source:              job.source,
-		MatchDescription:    job.matchDescription,
+		MatchDescription:    batchMatchDescription(job, status),
 		AudioCount:          job.audioCount,
-		Status:              job.status,
-		Issues:              dtoSlice(job.issues),
+		Status:              status,
+		Issues:              issues,
 		Candidates:          dtoSlice(job.candidates),
 		SelectedCandidateID: job.selectedCandidateID,
 	}
+}
+
+func batchMatchDescription(job *batchJob, status string) string {
+	switch status {
+	case "loading":
+		return "正在加载"
+	case "no-audio":
+		return "无音频"
+	case "scan-failed":
+		return "加载失败"
+	case "blocked":
+		return "写入内容存在问题"
+	case "failed":
+		return "写入失败"
+	case "needs-candidate":
+		return fmt.Sprintf("%d 个搜索结果", len(job.candidates))
+	default:
+		for _, candidate := range job.candidates {
+			if candidate.ID == job.selectedCandidateID && !candidate.ExactMatch {
+				return "已选择搜索结果"
+			}
+		}
+		return "精确匹配"
+	}
+}
+
+func (session *batchSession) findJob(id string) *batchJob {
+	for _, job := range session.jobs {
+		if job.id == id {
+			return job
+		}
+	}
+	return nil
 }
 
 func exactCandidate(candidates []AlbumCandidate) *AlbumCandidate {

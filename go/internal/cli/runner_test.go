@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -44,17 +45,18 @@ func TestAlbumOptionsApplyExplicitFalseAndZero(t *testing.T) {
 	options := newOptions(domain.DefaultMetadataConfig())
 	options.Cover = true
 	options.CoverCompressResolution = 1000
-	actual, err := options.forDirectory(directory)
+	resolved, err := config.ResolveAlbum(directory, options.persistedConfig(), options.Lyric)
 	if err != nil {
 		t.Fatal(err)
 	}
+	actual := options.forAlbum(resolved)
 	if actual.Interactive ||
 		actual.Cover ||
-		!actual.Lyric ||
-		actual.LyricType != "mixed" ||
-		actual.LyricTime ||
-		actual.CoverCompressResolution != 0 {
-		t.Fatalf("forDirectory() ignored explicit false/zero: %#v", actual)
+		!actual.Metadata.LyricEnabled ||
+		actual.Metadata.Lyric.Type != domain.LyricMixed ||
+		actual.Metadata.Lyric.Time ||
+		actual.Metadata.CoverCompressResolution != 0 {
+		t.Fatalf("forAlbum() ignored explicit false/zero: %#v", actual)
 	}
 }
 

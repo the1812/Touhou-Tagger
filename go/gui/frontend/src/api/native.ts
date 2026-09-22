@@ -173,6 +173,8 @@ const batchMatchDescription = (job: Wire<BatchJobPreview>) => {
       return t('batch.noAudio')
     case 'scan-failed':
       return t('batch.loadFailed')
+    case 'blocked':
+      return t('batch.status.blocked')
     case 'failed':
       return t('batch.status.failed')
     case 'needs-candidate':
@@ -180,7 +182,10 @@ const batchMatchDescription = (job: Wire<BatchJobPreview>) => {
         ? t('batch.resultCount', { count: job.candidates.length })
         : t('data.candidateRequired')
     default:
-      return t('batch.exactMatch')
+      return job.candidates?.find(candidate => candidate.id === job.selectedCandidateId)
+        ?.exactMatch === false
+        ? job.matchDescription
+        : t('batch.exactMatch')
   }
 }
 

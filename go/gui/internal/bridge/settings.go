@@ -2,7 +2,6 @@ package bridge
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -60,30 +59,14 @@ func (service *SettingsService) ResetSettings() (Settings, error) {
 }
 
 func (service *SettingsService) configFromSettings(settings Settings) (domain.MetadataConfig, error) {
-	if !service.supportsSource(settings.DefaultSource) {
+	if !service.runtime.searchableSource(settings.DefaultSource) {
 		return domain.MetadataConfig{}, fmt.Errorf("不支持的数据源 %q", settings.DefaultSource)
-	}
-	if len(settings.CommentLanguage) != 3 {
-		return domain.MetadataConfig{}, fmt.Errorf("注释语言必须是三位 ISO-639-2 代码")
-	}
-	if strings.TrimSpace(settings.MP3MultiValueSeparator) == "" {
-		return domain.MetadataConfig{}, fmt.Errorf("MP3 多值分隔符不能为空")
 	}
 	if settings.RequestTimeoutSeconds < 1 || settings.RequestTimeoutSeconds > 300 {
 		return domain.MetadataConfig{}, fmt.Errorf("请求超时必须在 1 到 300 秒之间")
 	}
 	if settings.RetryCount < 1 || settings.RetryCount > 10 {
 		return domain.MetadataConfig{}, fmt.Errorf("重试次数必须在 1 到 10 次之间")
-	}
-	if settings.CoverCompressionThresholdKB < 0 || settings.CoverMaxEdge < 0 {
-		return domain.MetadataConfig{}, fmt.Errorf("封面压缩阈值和最大边长不能为负数")
-	}
-	lyricType := domain.LyricType(settings.LyricType)
-	if lyricType != domain.LyricOriginal && lyricType != domain.LyricTranslated && lyricType != domain.LyricMixed {
-		return domain.MetadataConfig{}, fmt.Errorf("不支持的歌词类型 %q", settings.LyricType)
-	}
-	if strings.TrimSpace(settings.MixedLyricSeparator) == "" {
-		return domain.MetadataConfig{}, fmt.Errorf("混合歌词分隔符不能为空")
 	}
 	if settings.LyricCacheSize < 1 || settings.LyricCacheSize > 10000 {
 		return domain.MetadataConfig{}, fmt.Errorf("歌词缓存数量必须在 1 到 10000 之间")
@@ -106,22 +89,16 @@ func (service *SettingsService) configFromSettings(settings Settings) (domain.Me
 		output = domain.LyricLRC
 	}
 	value.Lyric = &domain.LyricConfig{
-		Type:                 lyricType,
+		Type:                 domain.LyricType(settings.LyricType),
 		Output:               output,
 		Time:                 settings.PreserveLyricTimeline,
 		TranslationSeparator: settings.MixedLyricSeparator,
 		MaxCacheSize:         settings.LyricCacheSize,
 	}
-	return value, nil
-}
-
-func (service *SettingsService) supportsSource(value string) bool {
-	for _, option := range service.runtime.getSources() {
-		if option.Value == value && option.SupportsSearch {
-			return true
-		}
+	if err := config.ValidateMetadata(value); err != nil {
+		return domain.MetadataConfig{}, err
 	}
-	return false
+	return value, nil
 }
 
 func settingsFromConfig(value domain.MetadataConfig) Settings {

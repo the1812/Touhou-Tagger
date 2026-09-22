@@ -1,7 +1,6 @@
 package bridge
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,32 +8,6 @@ import (
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
-
-func TestWithoutCompleteEventsDefersOnlyFinalProgress(t *testing.T) {
-	var stages []domain.EventStage
-	sink := withoutCompleteEvents(func(event domain.ProgressEvent) error {
-		stages = append(stages, event.Stage)
-		return nil
-	})
-	if err := sink(domain.ProgressEvent{Stage: domain.StageWrite}); err != nil {
-		t.Fatal(err)
-	}
-	if err := sink(domain.ProgressEvent{Stage: domain.StageComplete}); err != nil {
-		t.Fatal(err)
-	}
-	if len(stages) != 1 || stages[0] != domain.StageWrite {
-		t.Fatalf("forwarded stages = %#v", stages)
-	}
-
-	expected := errors.New("event failure")
-	failing := withoutCompleteEvents(func(domain.ProgressEvent) error { return expected })
-	if err := failing(domain.ProgressEvent{Stage: domain.StageWrite}); !errors.Is(err, expected) {
-		t.Fatalf("forwarded error = %v", err)
-	}
-	if withoutCompleteEvents(nil) != nil {
-		t.Fatal("nil event sink should remain nil")
-	}
-}
 
 func TestInspectPlanOutputsAllowsExistingLRC(t *testing.T) {
 	lyric := domain.DefaultLyricConfig()

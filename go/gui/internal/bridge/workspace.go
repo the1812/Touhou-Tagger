@@ -44,33 +44,16 @@ func (service *WorkspaceService) ScanWorkspace(
 	ctx context.Context,
 	directory string,
 ) (WorkspaceSummary, error) {
-	applicationService, err := service.runtime.service(nil)
+	album, err := coreapp.OpenAlbum(ctx, directory, service.runtime.getConfig())
 	if err != nil {
 		return WorkspaceSummary{}, err
 	}
-	scan, err := applicationService.ScanAlbum(ctx, directory)
-	if err != nil {
+	if _, err := service.runtime.albumService(album, ""); err != nil {
 		return WorkspaceSummary{}, err
 	}
-	storedConfig := service.runtime.getConfig()
-	resolvedConfig, err := config.ResolveAlbum(
-		scan.Directory,
-		storedConfig,
-		storedConfig.LyricEnabled,
-	)
-	if err != nil {
-		return WorkspaceSummary{}, err
-	}
-	effectiveSource := resolvedConfig.Metadata.Source
-	if scan.MetadataPath != "" {
-		effectiveSource = "local-json"
-	} else if !service.runtime.searchableSource(effectiveSource) {
-		return WorkspaceSummary{}, fmt.Errorf("数据源 %q 不支持专辑搜索", effectiveSource)
-	}
-	name, err := coreapp.DefaultAlbumName(scan.Directory)
-	if err != nil {
-		return WorkspaceSummary{}, err
-	}
+	scan := album.Scan
+	effectiveSource := album.Config.Metadata.Source
+	name := album.Name
 	service.planner.discardOwner("workspace")
 	summary := WorkspaceSummary{
 		Directory:         scan.Directory,
@@ -105,15 +88,16 @@ func (service *WorkspaceService) SearchAlbums(
 	query string,
 	sourceName string,
 ) ([]AlbumCandidate, error) {
-	return service.catalog.search(
-		ctx,
-		service.runtime,
-		"workspace",
-		directory,
-		query,
-		sourceName,
-		true,
-	)
+	stored := service.runtime.getConfig()
+	resolved, err := config.ResolveAlbum(directory, stored, stored.LyricEnabled)
+	if err != nil {
+		return nil, err
+	}
+	applicationService, err := service.runtime.albumService(coreapp.Album{Config: resolved}, sourceName)
+	if err != nil {
+		return nil, err
+	}
+	return service.catalog.search(ctx, applicationService, "workspace", query, true)
 }
 
 func (service *WorkspaceService) PreparePlan(
@@ -122,7 +106,13 @@ func (service *WorkspaceService) PreparePlan(
 	candidateID string,
 	sourceName string,
 ) (PlanPreview, error) {
-	return service.planner.prepareOwnedPlan(ctx, directory, candidateID, sourceName, "workspace")
+	session, err := service.planner.prepareOwnedPlan(ctx, directory, candidateID, sourceName, "workspace")
+	if err != nil {
+		return PlanPreview{}, err
+	}
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	return service.planner.previewLocked(session), nil
 }
 
 func (service *WorkspaceService) UpdatePlan(
