@@ -4,7 +4,6 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import RadioButton from 'primevue/radiobutton'
 import Select from 'primevue/select'
-import Skeleton from 'primevue/skeleton'
 import { computed, defineComponent } from 'vue'
 
 import { t } from '../../i18n'
@@ -13,6 +12,7 @@ import { TruncatedText } from '../../shared/TruncatedText'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useSettingsStore } from '../../stores/settings'
 import { useWorkspaceStore } from '../../stores/workspace'
+import { TaggingSearchSkeleton } from './TaggingSearchSkeleton'
 
 export const TaggingSearchStep = defineComponent({
   name: 'TaggingSearchStep',
@@ -97,13 +97,7 @@ export const TaggingSearchStep = defineComponent({
               </Button>
             </div>
 
-            {phase.value === 'searching' && (
-              <div class="mt-4 grid gap-2">
-                {[1, 2, 3].map(index => (
-                  <Skeleton key={index} height="3.25rem" />
-                ))}
-              </div>
-            )}
+            {phase.value === 'searching' && <TaggingSearchSkeleton />}
             {phase.value !== 'searching' && candidates.value.length > 0 && (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
                 {candidates.value.map(candidate => (

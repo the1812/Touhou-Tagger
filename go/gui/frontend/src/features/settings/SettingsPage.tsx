@@ -5,7 +5,6 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
-import Skeleton from 'primevue/skeleton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useConfirm } from 'primevue/useconfirm'
 import { computed, defineComponent, onMounted } from 'vue'
@@ -15,6 +14,7 @@ import { t } from '../../i18n'
 import { FieldLabel, FormField } from '../../shared/FormField'
 import { FormSection } from '../../shared/FormSection'
 import { useSettingsStore } from '../../stores/settings'
+import { SettingsPageSkeleton } from './SettingsPageSkeleton'
 
 export const SettingsPage = defineComponent({
   name: 'SettingsPage',
@@ -92,13 +92,7 @@ export const SettingsPage = defineComponent({
       return (
         <div class="h-full min-h-0">
           {loading.value || !currentDraft ? (
-            <div
-              class={['grid h-full w-full max-w-app-settings gap-4', 'px-app-page-x py-app-page-y']}
-            >
-              <Skeleton height="10rem" />
-              <Skeleton height="8rem" />
-              <Skeleton height="12rem" />
-            </div>
+            <SettingsPageSkeleton />
           ) : (
             <div class="h-full min-h-0 overflow-auto">
               <div class="w-full max-w-app-settings px-app-page-x">
