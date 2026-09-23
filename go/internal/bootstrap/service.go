@@ -24,7 +24,6 @@ const (
 type Options struct {
 	Config         domain.MetadataConfig
 	Events         application.EventSink
-	Warnings       application.WarningSink
 	CoverProcessor tagio.CoverProcessor
 	Client         *http.Client
 	Sources        source.Registry
@@ -67,10 +66,9 @@ func NewService(options Options) (*application.Service, error) {
 		}
 	}
 	return &application.Service{
-		Config:   runtimeConfig,
-		Events:   options.Events,
-		Warnings: options.Warnings,
-		Sources:  sources,
+		Config:  runtimeConfig,
+		Events:  options.Events,
+		Sources: sources,
 		Readers: tagio.Readers{
 			domain.FormatMP3:  id3tag.Reader{},
 			domain.FormatFLAC: flactag.Reader{},

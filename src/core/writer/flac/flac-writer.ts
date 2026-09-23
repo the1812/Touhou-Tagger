@@ -8,9 +8,11 @@ const getVorbisComments = (metadata: Metadata): FlacTagMap => {
     artist: metadata.artists,
     title: metadata.title,
     album: metadata.album,
-    albumSort: metadata.albumOrder,
     trackNumber: metadata.trackNumber,
     discNumber: metadata.discNumber,
+  }
+  if (metadata.albumOrder) {
+    tagMap.albumSort = metadata.albumOrder
   }
   if (metadata.composers) {
     tagMap.composer = metadata.composers

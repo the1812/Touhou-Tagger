@@ -177,12 +177,6 @@ type OperationFailure struct {
 	PlanInvalidated bool         `json:"planInvalidated"`
 }
 
-type ProcessError struct {
-	Error   *ErrorInfo `json:"error,omitempty"`
-	Message string     `json:"message"`
-	Details string     `json:"details,omitempty"`
-}
-
 type BatchJobPreview struct {
 	CanRun              bool             `json:"canRun"`
 	ID                  string           `json:"id"`

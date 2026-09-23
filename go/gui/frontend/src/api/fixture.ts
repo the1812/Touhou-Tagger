@@ -18,13 +18,11 @@ import type {
   OperationProgress,
   OperationResult,
   PlanPatch,
-  ProcessError,
 } from './types'
 
 const progressHandlers = new Set<(progress: OperationProgress) => void>()
 const completeHandlers = new Set<(result: OperationResult | BatchRunResult) => void>()
 const failureHandlers = new Set<(failure: OperationFailure) => void>()
-const processErrorHandlers = new Set<(error: ProcessError) => void>()
 const operationTimers = new Map<string, number>()
 const pendingStarts = new Map<string, { kind: 'workspace' | 'batch'; start: () => void }>()
 const operationCancels = new Map<string, () => void>()
@@ -452,10 +450,5 @@ export const fixtureApi: GUIApi = {
   onFailure(handler) {
     failureHandlers.add(handler)
     return () => failureHandlers.delete(handler)
-  },
-
-  onProcessError(handler) {
-    processErrorHandlers.add(handler)
-    return () => processErrorHandlers.delete(handler)
   },
 }

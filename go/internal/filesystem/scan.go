@@ -100,7 +100,7 @@ func isCoverName(name string) bool {
 		return false
 	}
 	switch strings.TrimPrefix(filepath.Ext(name), ".") {
-	case "jpg", "jpeg", "jpe", "tif", "tiff", "bmp", "png", "webp", "gif":
+	case "jpg", "jpeg", "jpe", "tif", "tiff", "bmp", "png":
 		return true
 	default:
 		return false

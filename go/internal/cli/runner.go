@@ -67,16 +67,16 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	}
 	runner.options = newOptions(stored)
 	root := &cobra.Command{
-		Use:               "thtag [album]",
+		Use:               "thtag",
 		Short:             "Touhou Tagger",
 		Long:              "Touhou Tagger\n\n为音乐文件写入元数据",
 		Version:           runner.build.Version,
 		SilenceErrors:     true,
 		SilenceUsage:      true,
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
-		Args:              cobra.MaximumNArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return runner.runTag(ctx, firstArgument(args))
+		Args:              cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return runner.runTag(ctx)
 		},
 	}
 	root.SetOut(runner.output)
@@ -89,11 +89,11 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 	root.Flags().Lookup("help").Usage = "显示帮助信息"
 	root.Flags().Lookup("version").Usage = "显示版本号"
 	tagCommand := &cobra.Command{
-		Use:   "tag [album]",
+		Use:   "tag",
 		Short: "为音乐文件写入元数据",
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return runner.runTag(ctx, firstArgument(args))
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return runner.runTag(ctx)
 		},
 	}
 	dumpCommand := &cobra.Command{
@@ -148,7 +148,7 @@ func (runner *Runner) bindFlags(command *cobra.Command) {
 	flags.BoolVar(&runner.options.NoInteractive, "no-interactive", false, "禁用终端交互")
 }
 
-func (runner *Runner) runTag(ctx context.Context, albumArgument string) error {
+func (runner *Runner) runTag(ctx context.Context) error {
 	if err := validateOptions(runner.options); err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (runner *Runner) runTag(ctx context.Context, albumArgument string) error {
 	if err != nil {
 		return fmt.Errorf("resolve working directory: %w", err)
 	}
-	return runner.tagDirectory(ctx, directory, albumArgument, false)
+	return runner.tagDirectory(ctx, directory, false)
 }
 
 func (runner *Runner) runBatchTag(ctx context.Context) error {
@@ -180,7 +180,7 @@ func (runner *Runner) runBatchTag(ctx context.Context) error {
 		return err
 	}
 	results := service.RunBatch(ctx, jobs, func(jobContext context.Context, job domain.BatchJob) error {
-		return runner.tagDirectory(jobContext, job.Directory, job.Name, true)
+		return runner.tagDirectory(jobContext, job.Directory, true)
 	})
 	var failures []error
 	for _, result := range results {
@@ -197,7 +197,6 @@ func (runner *Runner) runBatchTag(ctx context.Context) error {
 func (runner *Runner) tagDirectory(
 	ctx context.Context,
 	directory string,
-	albumArgument string,
 	batch bool,
 ) error {
 	if err := runner.reportProgress(domain.ProgressEvent{Stage: domain.StageScan, Directory: directory}); err != nil {
@@ -213,10 +212,7 @@ func (runner *Runner) tagDirectory(
 		return err
 	}
 	scan := album.Scan
-	albumName := albumArgument
-	if albumName == "" {
-		albumName = album.Name
-	}
+	albumName := album.Name
 	if !batch && options.Interactive {
 		answer, err := runner.prompt(fmt.Sprintf("请输入专辑名称(%s): ", albumName))
 		if err != nil {
@@ -366,22 +362,9 @@ func (runner *Runner) service(metadataConfig domain.MetadataConfig) (*applicatio
 	return bootstrap.NewService(bootstrap.Options{
 		Config:         metadataConfig,
 		Events:         runner.reportProgress,
-		Warnings:       runner.reportWarning,
 		CoverProcessor: runner.codec,
 		LyricsCache:    &runner.lyrics,
 	})
-}
-
-func (runner *Runner) reportWarning(warning application.ProcessWarning) error {
-	if _, err := fmt.Fprintf(
-		runner.errors,
-		"警告: %s\n详情: %s\n",
-		warning.Message,
-		warning.Err,
-	); err != nil {
-		return fmt.Errorf("write warning output: %w", err)
-	}
-	return nil
 }
 
 func (runner *Runner) reportProgress(event domain.ProgressEvent) error {
@@ -456,13 +439,6 @@ func (runner *Runner) versionText() string {
 		parts = append(parts, runner.build.Date)
 	}
 	return strings.Join(parts, " ")
-}
-
-func firstArgument(args []string) string {
-	if len(args) == 0 {
-		return ""
-	}
-	return args[0]
 }
 
 func normalizeArgs(args []string, command *cobra.Command) []string {

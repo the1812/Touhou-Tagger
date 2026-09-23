@@ -32,11 +32,10 @@ type Backend struct {
 }
 
 type runtimeState struct {
-	mu       sync.RWMutex
-	config   domain.MetadataConfig
-	factory  ServiceFactory
-	sources  []SourceOption
-	warnings coreapp.WarningSink
+	mu      sync.RWMutex
+	config  domain.MetadataConfig
+	factory ServiceFactory
+	sources []SourceOption
 }
 
 func NewBackend(options BackendOptions) *Backend {
@@ -46,10 +45,9 @@ func NewBackend(options BackendOptions) *Backend {
 	}
 	operations := newOperationManager(ctx)
 	runtime := &runtimeState{
-		config:   options.Config,
-		factory:  options.Factory,
-		sources:  dtoSlice(options.Sources),
-		warnings: operations.emitProcessError,
+		config:  options.Config,
+		factory: options.Factory,
+		sources: dtoSlice(options.Sources),
 	}
 	runtime.config.Source = searchableSourceOrDefault(runtime.config.Source, runtime.sources)
 	plans := newPlanStore()
@@ -115,7 +113,6 @@ func (runtime *runtimeState) serviceWithConfig(
 	if err != nil {
 		return nil, err
 	}
-	service.Warnings = runtime.warnings
 	return service, nil
 }
 

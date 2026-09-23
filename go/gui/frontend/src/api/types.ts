@@ -251,12 +251,6 @@ export interface Settings {
   lyricCacheSize: number
 }
 
-export interface ProcessError {
-  error?: ErrorInfo
-  message: string
-  details?: string
-}
-
 export interface SettingsApi {
   getCapabilities(): Promise<Capabilities>
   loadSettings(): Promise<Settings>
@@ -301,7 +295,6 @@ export interface OperationEventsApi {
   onProgress(handler: (progress: OperationProgress) => void): () => void
   onComplete(handler: (result: OperationResult | BatchRunResult) => void): () => void
   onFailure(handler: (failure: OperationFailure) => void): () => void
-  onProcessError(handler: (error: ProcessError) => void): () => void
 }
 
 export type GUIApi = SettingsApi & WorkspaceApi & DesktopApi & BatchApi & OperationEventsApi

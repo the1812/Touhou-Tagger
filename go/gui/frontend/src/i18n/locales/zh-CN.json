@@ -60,8 +60,7 @@
     "renaming": "重命名",
     "complete": "完成",
     "cancel": "中止",
-    "retryFailedOnly": "仅重试失败项",
-    "incomplete": "操作部分完成"
+    "retryFailedOnly": "仅重试失败项"
   },
   "notifications": {
     "discardPlanFailed": "无法清除上次的专辑信息",

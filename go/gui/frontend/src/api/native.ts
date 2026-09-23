@@ -18,7 +18,6 @@ import type {
   OperationResult,
   PlanPatch,
   PlanPreview,
-  ProcessError,
   ErrorInfo,
   WorkspaceSummary,
 } from './types'
@@ -302,16 +301,6 @@ export const nativeApi: GUIApi = {
         ...failure,
         plan: failure.plan ? normalizePlan(failure.plan) : undefined,
         message: failure.error ? errorMessage(failure.error) : failure.message,
-      })
-    })
-  },
-  onProcessError(handler) {
-    return Events.On('gui:process-error', event => {
-      const error = event.data as ProcessError
-      handler({
-        ...error,
-        message: error.error ? `${error.message}\n${errorMessage(error.error)}` : error.message,
-        details: error.details || error.message,
       })
     })
   },

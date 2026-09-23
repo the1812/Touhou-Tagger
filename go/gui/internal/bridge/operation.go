@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -15,7 +14,6 @@ const (
 	operationProgressEvent = "gui:operation-progress"
 	operationCompleteEvent = "gui:operation-complete"
 	operationFailedEvent   = "gui:operation-failed"
-	processErrorEvent      = "gui:process-error"
 )
 
 type operation struct {
@@ -237,22 +235,6 @@ func (manager *operationManager) emitProgress(progress OperationProgress) {
 	if emitter != nil {
 		emitter(operationProgressEvent, progress)
 	}
-}
-
-func (manager *operationManager) emitProcessError(warning coreapp.ProcessWarning) error {
-	manager.mu.Lock()
-	emitter := manager.emitter
-	manager.mu.Unlock()
-	if emitter == nil {
-		return fmt.Errorf("GUI event emitter is not attached")
-	}
-	info := DescribeError(warning.Err)
-	emitter(processErrorEvent, ProcessError{
-		Error:   &info,
-		Message: warning.Message,
-		Details: info.Details,
-	})
-	return nil
 }
 
 func (manager *operationManager) finish(operationID string, result any, err error) {

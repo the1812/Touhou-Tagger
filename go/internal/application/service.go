@@ -15,21 +15,12 @@ import (
 
 type EventSink func(domain.ProgressEvent) error
 
-type ProcessWarning struct {
-	Err       error
-	Message   string
-	Directory string
-}
-
-type WarningSink func(ProcessWarning) error
-
 type Service struct {
-	Sources  source.Registry
-	Readers  tagio.Readers
-	Writers  tagio.Writers
-	Config   domain.MetadataConfig
-	Events   EventSink
-	Warnings WarningSink
+	Sources source.Registry
+	Readers tagio.Readers
+	Writers tagio.Writers
+	Config  domain.MetadataConfig
+	Events  EventSink
 }
 
 type TagData struct {
@@ -130,40 +121,15 @@ func (service *Service) FetchTagData(
 	if err := service.emit(domain.ProgressEvent{Stage: domain.StageFetch, Directory: scan.Directory, Message: metadataID}); err != nil {
 		return TagData{}, err
 	}
-	var fallbackMetadata []domain.Metadata
-	var partialFetchErr error
 	metadata, err := withRetry(
 		ctx,
 		service.Config,
 		func(attemptContext context.Context) ([]domain.Metadata, error) {
-			value, fetchErr := metadataSource.Fetch(attemptContext, metadataID, cover)
-			var partial *source.PartialFetchError
-			if errors.As(fetchErr, &partial) {
-				fallbackMetadata = value
-				partialFetchErr = fetchErr
-			}
-			return value, fetchErr
+			return metadataSource.Fetch(attemptContext, metadataID, cover)
 		},
 	)
 	if err != nil {
-		if partialFetchErr == nil || errors.Is(err, context.Canceled) {
-			return TagData{}, err
-		}
-		metadata = fallbackMetadata
-		warning := ProcessWarning{
-			Err: err,
-			Message: fmt.Sprintf(
-				"从 %s 下载远程封面失败，已使用无封面继续预览。",
-				metadataSourceName,
-			),
-			Directory: scan.Directory,
-		}
-		if service.Warnings == nil {
-			return TagData{}, fmt.Errorf("%s: %w", warning.Message, warning.Err)
-		}
-		if warningErr := service.Warnings(warning); warningErr != nil {
-			return TagData{}, fmt.Errorf("report process warning: %w", warningErr)
-		}
+		return TagData{}, err
 	}
 	coverSource := "local"
 	if len(cover) == 0 {
