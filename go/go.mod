@@ -157,3 +157,5 @@ require (
 	howett.net/plist v1.0.2-0.20250314012144-ee69052608d9 // indirect
 	mvdan.cc/sh/v3 v3.12.0 // indirect
 )
+
+replace github.com/bogem/id3v2/v2 v2.1.4 => ./third_party/id3v2
