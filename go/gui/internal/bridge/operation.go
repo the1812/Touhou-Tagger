@@ -143,7 +143,7 @@ func (manager *operationManager) progress(operationID string, event domain.Progr
 		return
 	}
 	if item.kind == "workspace" &&
-		(event.Stage == domain.StageCommit || event.Stage == domain.StageRename || event.Stage == domain.StageComplete) {
+		(event.Stage == domain.StageRename || event.Stage == domain.StageComplete) {
 		item.cancellable = false
 	}
 	progress := OperationProgress{
@@ -178,8 +178,6 @@ func operationMessageID(stage domain.EventStage) string {
 		return "plan"
 	case domain.StageWrite:
 		return "write"
-	case domain.StageCommit:
-		return "commit"
 	case domain.StageRename:
 		return "rename"
 	case domain.StageComplete:
@@ -195,8 +193,6 @@ func operationStage(stage domain.EventStage) string {
 		return "preparing"
 	case domain.StageWrite:
 		return "writing"
-	case domain.StageCommit:
-		return "committing"
 	case domain.StageRename:
 		return "renaming"
 	case domain.StageComplete:
@@ -218,8 +214,6 @@ func operationMessage(event domain.ProgressEvent) string {
 		return "正在准备写入内容"
 	case domain.StageWrite:
 		return fmt.Sprintf("正在写入 %d / %d", event.Current, event.Total)
-	case domain.StageCommit:
-		return "正在保存文件，暂时无法取消"
 	case domain.StageRename:
 		return "正在重命名文件"
 	case domain.StageComplete:

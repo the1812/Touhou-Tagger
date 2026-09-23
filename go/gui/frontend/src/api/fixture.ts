@@ -91,17 +91,15 @@ const emitSequence = (
   }
   const stages: OperationProgress['stage'][] =
     kind === 'workspace'
-      ? ['preparing', 'writing', 'writing', 'committing', 'renaming']
-      : ['preparing', 'writing', 'writing', 'writing', 'committing']
+      ? ['preparing', 'renaming', 'writing', 'writing', 'writing']
+      : ['preparing', 'writing', 'writing', 'writing', 'writing']
   let index = 0
 
   const timer = window.setInterval(() => {
     const stage = stages[index]
     const current = Math.min(total, Math.ceil(((index + 1) / stages.length) * total))
     let message = `正在处理 ${String(current)} / ${String(total)}`
-    if (stage === 'committing') {
-      message = '正在保存文件'
-    } else if (stage === 'renaming') {
+    if (stage === 'renaming') {
       message = '正在重命名'
     }
     const progress: OperationProgress = {
@@ -115,7 +113,7 @@ const emitSequence = (
           ? activePlan.items[Math.min(current - 1, activePlan.items.length - 1)]?.sourceName
           : activeBatch.jobs[Math.min(current - 1, activeBatch.jobs.length - 1)]?.relativePath,
       message,
-      cancellable: stage === 'preparing' || stage === 'writing',
+      cancellable: kind === 'batch' || stage === 'preparing',
     }
     progressHandlers.forEach(handler => handler(progress))
     index += 1

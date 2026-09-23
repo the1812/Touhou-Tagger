@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
-	albumfs "github.com/the1812/Touhou-Tagger/go/internal/filesystem"
 )
 
 func Path() (string, error) {
@@ -63,7 +62,7 @@ func Load() (domain.MetadataConfig, error) {
 	return defaults, nil
 }
 
-func Save(value domain.MetadataConfig) (resultErr error) {
+func Save(value domain.MetadataConfig) error {
 	path, err := Path()
 	if err != nil {
 		return err
@@ -75,8 +74,8 @@ func Save(value domain.MetadataConfig) (resultErr error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("create config directory: %w", err)
 	}
-	if err := albumfs.WriteFileAtomic(path, data, 0o600); err != nil {
-		return fmt.Errorf("replace config: %w", err)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		return fmt.Errorf("write config: %w", err)
 	}
 	return nil
 }

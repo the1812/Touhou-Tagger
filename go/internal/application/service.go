@@ -183,81 +183,55 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) (
 	if len(plan.Items) == 0 {
 		return result, fmt.Errorf("tag plan for %q is empty", plan.Directory)
 	}
+	if err := ctx.Err(); err != nil {
+		return result, err
+	}
 	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
 		return result, err
 	}
-	sourceSnapshots, err := snapshotSources(plan.Items)
-	if err != nil {
-		return result, err
-	}
-	prepared := make([]preparedWrite, 0, len(plan.Items))
-	for index, item := range plan.Items {
-		if err := ctx.Err(); err != nil {
-			return result, errors.Join(err, cleanupPrepared(prepared))
-		}
-		writer, exists := service.Writers[item.Format]
-		if !exists {
-			return result, errors.Join(
-				fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath),
-				cleanupPrepared(prepared),
-			)
-		}
-		temporary, err := copyToTemporary(ctx, item.SourcePath, ".thtag-write-*")
-		if err != nil {
-			return result, errors.Join(err, cleanupPrepared(prepared))
-		}
-		prepared = append(prepared, preparedWrite{item: item, temporary: temporary})
-		if err := writer.Write(ctx, temporary, item.Metadata, service.Config); err != nil {
-			return result, errors.Join(
-				fmt.Errorf("write metadata to %q: %w", item.SourcePath, err),
-				cleanupPrepared(prepared),
-			)
-		}
-		if err := service.emit(domain.ProgressEvent{
-			Stage: domain.StageWrite, Directory: plan.Directory, Path: item.SourcePath,
-			Current: index + 1, Total: len(plan.Items),
-		}); err != nil {
-			return result, errors.Join(err, cleanupPrepared(prepared))
+	for _, item := range plan.Items {
+		if _, exists := service.Writers[item.Format]; !exists {
+			return result, fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath)
 		}
 	}
 	if err := service.emit(domain.ProgressEvent{
-		Stage:     domain.StageCommit,
-		Directory: plan.Directory,
-		Current:   len(plan.Items),
-		Total:     len(plan.Items),
+		Stage: domain.StageRename, Directory: plan.Directory, Total: len(plan.Items),
 	}); err != nil {
-		return result, errors.Join(err, cleanupPrepared(prepared))
+		return result, err
 	}
 	if err := ctx.Err(); err != nil {
-		return result, errors.Join(err, cleanupPrepared(prepared))
-	}
-	if err := ValidateTagPlanOutputs(plan, service.Config); err != nil {
-		return result, errors.Join(err, cleanupPrepared(prepared))
-	}
-	if err := validateSourceSnapshots(sourceSnapshots); err != nil {
-		return result, errors.Join(err, cleanupPrepared(prepared))
-	}
-	if err := replaceOriginals(prepared, sourceSnapshots); err != nil {
-		return result, errors.Join(&TagFilesChangedError{Err: err}, cleanupPrepared(prepared))
-	}
-	if err := service.emit(domain.ProgressEvent{
-		Stage:     domain.StageRename,
-		Directory: plan.Directory,
-		Current:   len(plan.Items),
-		Total:     len(plan.Items),
-	}); err != nil {
-		return result, &TagFilesChangedError{Err: err}
+		return result, err
 	}
 	if err := renameTwoPhase(plan.Items); err != nil {
 		return result, &TagFilesChangedError{Err: err}
 	}
 	result.Renamed = true
-	for _, output := range TagPlanOutputs(plan, service.Config) {
-		item := plan.Items[output.ItemIndex]
-		if err := albumfs.WriteFileAtomic(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
-			return result, &TagFilesChangedError{
-				Err: fmt.Errorf("write LRC %q: %w", output.Path, err),
+	defer func() {
+		if err != nil {
+			err = &TagFilesChangedError{Err: err}
+		}
+	}()
+	outputs := TagPlanOutputs(plan, service.Config)
+	outputIndex := 0
+	for index, item := range plan.Items {
+		if err := ctx.Err(); err != nil {
+			return result, err
+		}
+		if err := service.Writers[item.Format].Write(ctx, item.TargetPath, item.Metadata, service.Config); err != nil {
+			return result, fmt.Errorf("write metadata to %q: %w", item.TargetPath, err)
+		}
+		if outputIndex < len(outputs) && outputs[outputIndex].ItemIndex == index {
+			output := outputs[outputIndex]
+			if err := os.WriteFile(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
+				return result, fmt.Errorf("write LRC %q: %w", output.Path, err)
 			}
+			outputIndex++
+		}
+		if err := service.emit(domain.ProgressEvent{
+			Stage: domain.StageWrite, Directory: plan.Directory, Path: item.TargetPath,
+			Current: index + 1, Total: len(plan.Items),
+		}); err != nil {
+			return result, err
 		}
 	}
 	return result, nil

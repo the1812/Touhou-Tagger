@@ -412,8 +412,6 @@ func (runner *Runner) reportProgress(event domain.ProgressEvent) error {
 			action = "读取标签"
 		}
 		message = fmt.Sprintf("%s [%d/%d]: %s", action, event.Current, event.Total, event.Path)
-	case domain.StageCommit:
-		message = fmt.Sprintf("提交文件: %s", event.Directory)
 	case domain.StageRename:
 		message = fmt.Sprintf("重命名文件: %s", event.Directory)
 	case domain.StageComplete:

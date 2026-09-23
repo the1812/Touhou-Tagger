@@ -52,9 +52,8 @@ export const ProgressMockPanel = defineComponent({
   setup() {
     const stages: { label: string; value: OperationStage }[] = [
       { label: '准备', value: 'preparing' },
-      { label: '写入标签', value: 'writing' },
-      { label: '保存文件', value: 'committing' },
       { label: '重命名', value: 'renaming' },
+      { label: '写入标签', value: 'writing' },
     ]
     const stageModel = computed({
       get: () => progressMock.operation.value?.stage,

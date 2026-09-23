@@ -87,7 +87,6 @@ const progressMessage = (progress: OperationProgress) => {
     fetch: 'backend.progress.fetching',
     plan: 'backend.progress.preparing',
     write: 'backend.progress.writing',
-    commit: 'backend.progress.committing',
     rename: 'backend.progress.renaming',
     complete: 'backend.progress.complete',
   }
@@ -106,7 +105,6 @@ const progressMessage = (progress: OperationProgress) => {
   const keys: Partial<Record<OperationProgress['stage'], string>> = {
     preparing: 'backend.progress.preparing',
     writing: 'backend.progress.writing',
-    committing: 'backend.progress.committing',
     renaming: 'backend.progress.renaming',
     complete: 'backend.progress.complete',
   }

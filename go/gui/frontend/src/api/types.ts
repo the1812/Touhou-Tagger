@@ -151,7 +151,6 @@ export type OperationKind = 'workspace' | 'batch'
 export type OperationStage =
   | 'preparing'
   | 'writing'
-  | 'committing'
   | 'renaming'
   | 'complete'
   | 'cancelled'

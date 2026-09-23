@@ -7,7 +7,6 @@ import (
 
 var (
 	ErrNoAudio           = errors.New("no supported audio files found")
-	ErrSourceChanged     = errors.New("source file changed while preparing the tag plan")
 	ErrUnsupportedFormat = errors.New("unsupported audio format")
 )
 

@@ -55,7 +55,6 @@ const (
 	StageFetch    EventStage = "fetch"
 	StagePlan     EventStage = "plan"
 	StageWrite    EventStage = "write"
-	StageCommit   EventStage = "commit"
 	StageRename   EventStage = "rename"
 	StageComplete EventStage = "complete"
 )

@@ -61,8 +61,6 @@ func DescribeError(err error) ErrorInfo {
 		info.Code = "notAlbum"
 	case errors.Is(err, domain.ErrNoAudio):
 		info.Code = "noAudio"
-	case errors.Is(err, domain.ErrSourceChanged):
-		info.Code = "sourceChanged"
 	case errors.Is(err, domain.ErrUnsupportedFormat):
 		info.Code = "unsupportedFormat"
 	case errors.Is(err, context.Canceled):

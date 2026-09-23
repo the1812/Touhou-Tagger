@@ -9,12 +9,12 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
-	albumfs "github.com/the1812/Touhou-Tagger/go/internal/filesystem"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -78,7 +78,7 @@ func (service *Service) DumpMetadata(
 	if err != nil {
 		return nil, fmt.Errorf("encode metadata.json: %w", err)
 	}
-	if err := albumfs.WriteFileAtomic(filepath.Join(scan.Directory, "metadata.json"), data, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(scan.Directory, "metadata.json"), data, 0o644); err != nil {
 		return nil, fmt.Errorf("write metadata.json: %w", err)
 	}
 	if options.Debug {
@@ -86,7 +86,7 @@ func (service *Service) DumpMetadata(
 		if err != nil {
 			return nil, fmt.Errorf("encode metadata.debug.json: %w", err)
 		}
-		if err := albumfs.WriteFileAtomic(filepath.Join(scan.Directory, "metadata.debug.json"), data, 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(scan.Directory, "metadata.debug.json"), data, 0o644); err != nil {
 			return nil, fmt.Errorf("write metadata.debug.json: %w", err)
 		}
 	}
@@ -115,7 +115,7 @@ func SaveCover(directory string, cover []byte) (string, error) {
 }
 
 func SaveCoverAt(path string, cover []byte) (string, error) {
-	if err := albumfs.WriteFileAtomic(path, cover, 0o644); err != nil {
+	if err := os.WriteFile(path, cover, 0o644); err != nil {
 		return "", fmt.Errorf("write cover %q: %w", path, err)
 	}
 	return path, nil
