@@ -92,7 +92,7 @@ func (service *planCoordinator) prepareAlbumPlan(
 		candidate:   dtoToCandidate(candidate),
 		cover:       data.Cover,
 		coverSource: data.CoverSource,
-		saveCover:   len(data.Cover) > 0 && (album.Config.Cover == nil || *album.Config.Cover),
+		saveCover:   len(data.Cover) > 0 && album.Config.Cover != nil && *album.Config.Cover,
 		config:      applicationService.Config,
 	}
 	service.rebuildSession(session)
