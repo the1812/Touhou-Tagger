@@ -12,6 +12,7 @@ type CoverProcessor interface {
 
 type Reader interface {
 	Read(context.Context, string, domain.MetadataConfig) (domain.Metadata, error)
+	ReadRaw(context.Context, string) (any, error)
 }
 
 type Writer interface {

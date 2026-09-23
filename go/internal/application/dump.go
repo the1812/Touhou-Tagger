@@ -10,6 +10,8 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	albumfs "github.com/the1812/Touhou-Tagger/go/internal/filesystem"
@@ -18,15 +20,28 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
+type DumpOptions struct {
+	Cover bool
+	Debug bool
+}
+
 func (service *Service) DumpMetadata(
 	ctx context.Context,
 	scan domain.AlbumScan,
-	writeCover bool,
+	options DumpOptions,
 ) ([]domain.Metadata, error) {
 	if len(scan.AudioFiles) == 0 {
 		return nil, fmt.Errorf("%w in %q", domain.ErrNoAudio, scan.Directory)
 	}
+	scan.AudioFiles = slices.Clone(scan.AudioFiles)
+	slices.SortFunc(scan.AudioFiles, func(left, right domain.AudioFile) int {
+		return strings.Compare(filepath.ToSlash(left.Path), filepath.ToSlash(right.Path))
+	})
 	metadata := make([]domain.Metadata, len(scan.AudioFiles))
+	var rawTags []any
+	if options.Debug {
+		rawTags = make([]any, len(scan.AudioFiles))
+	}
 	var cover []byte
 	for index, audio := range scan.AudioFiles {
 		reader, exists := service.Readers[audio.Format]
@@ -38,6 +53,12 @@ func (service *Service) DumpMetadata(
 			return nil, fmt.Errorf("read metadata from %q: %w", audio.Path, err)
 		}
 		metadata[index] = item
+		if options.Debug {
+			rawTags[index], err = reader.ReadRaw(ctx, audio.Path)
+			if err != nil {
+				return nil, fmt.Errorf("read raw tags from %q: %w", audio.Path, err)
+			}
+		}
 		if len(cover) == 0 && len(item.CoverImage) > 0 {
 			cover = append([]byte(nil), item.CoverImage...)
 		}
@@ -60,7 +81,16 @@ func (service *Service) DumpMetadata(
 	if err := albumfs.WriteFileAtomic(filepath.Join(scan.Directory, "metadata.json"), data, 0o644); err != nil {
 		return nil, fmt.Errorf("write metadata.json: %w", err)
 	}
-	if writeCover && len(cover) > 0 {
+	if options.Debug {
+		data, err := json.MarshalIndent(rawTags, "", "  ")
+		if err != nil {
+			return nil, fmt.Errorf("encode metadata.debug.json: %w", err)
+		}
+		if err := albumfs.WriteFileAtomic(filepath.Join(scan.Directory, "metadata.debug.json"), data, 0o644); err != nil {
+			return nil, fmt.Errorf("write metadata.debug.json: %w", err)
+		}
+	}
+	if options.Cover && len(cover) > 0 {
 		if _, err := SaveCover(scan.Directory, cover); err != nil {
 			return nil, err
 		}

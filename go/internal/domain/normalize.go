@@ -32,6 +32,11 @@ func ExpandMetadata(metadata []Metadata, cover []byte) []Metadata {
 		if index > 0 {
 			fillAlbumFields(item, first)
 		}
+		for _, names := range [][]string{item.Artists, item.Composers, item.Lyricists} {
+			for nameIndex, name := range names {
+				names[nameIndex] = AlternateName(name)
+			}
+		}
 		if len(item.CoverImage) == 0 && len(cover) > 0 {
 			item.CoverImage = cover
 		}

@@ -16,6 +16,7 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/imagecodec"
+	"github.com/the1812/Touhou-Tagger/go/internal/source/thbwiki"
 )
 
 type BuildInfo struct {
@@ -31,6 +32,7 @@ type Runner struct {
 	codec   *imagecodec.Engine
 	build   BuildInfo
 	options Options
+	lyrics  thbwiki.LyricsCache
 }
 
 func Execute(ctx context.Context, args []string, build BuildInfo) error {
@@ -49,7 +51,7 @@ func Execute(ctx context.Context, args []string, build BuildInfo) error {
 	if err != nil {
 		return errors.Join(err, codec.Close(context.WithoutCancel(ctx)))
 	}
-	command.SetArgs(args)
+	command.SetArgs(normalizeArgs(args, command))
 	runErr := command.ExecuteContext(ctx)
 	closeErr := codec.Close(context.WithoutCancel(ctx))
 	return errors.Join(runErr, closeErr)
@@ -215,7 +217,7 @@ func (runner *Runner) tagDirectory(
 	if albumName == "" {
 		albumName = album.Name
 	}
-	if !batch && options.Interactive && scan.MetadataPath == "" {
+	if !batch && options.Interactive {
 		answer, err := runner.prompt(fmt.Sprintf("请输入专辑名称(%s): ", albumName))
 		if err != nil {
 			return err
@@ -243,6 +245,9 @@ func (runner *Runner) tagDirectory(
 	if err != nil {
 		return err
 	}
+	if candidate.Source == "local-json" && len(plan.Items) > 0 {
+		candidate.Name = plan.Items[0].Metadata.Album
+	}
 	commit := application.AlbumCommit{Plan: plan, Candidate: candidate, DefaultAlbumName: album.Name}
 	if options.Cover && len(cover) > 0 {
 		path, err := application.CoverPath(directory, cover)
@@ -254,7 +259,7 @@ func (runner *Runner) tagDirectory(
 	if _, err := service.CommitAlbum(ctx, commit); err != nil {
 		return err
 	}
-	_, err = fmt.Fprintf(runner.output, "成功写入专辑信息: %s\n", candidate.Name)
+	_, err = fmt.Fprintf(runner.errors, "成功写入了专辑信息: %s\n", candidate.Name)
 	return err
 }
 
@@ -348,7 +353,12 @@ func (runner *Runner) dumpDirectory(ctx context.Context, directory string) error
 	if err != nil {
 		return err
 	}
-	_, err = service.DumpMetadata(ctx, album.Scan, options.Cover)
+	if runner.options.Batch != "" {
+		if _, err := fmt.Fprintf(runner.errors, "[%s] 提取中\n", album.Name); err != nil {
+			return err
+		}
+	}
+	_, err = service.DumpMetadata(ctx, album.Scan, application.DumpOptions{Cover: options.Cover, Debug: runner.options.Debug})
 	return err
 }
 
@@ -358,6 +368,7 @@ func (runner *Runner) service(metadataConfig domain.MetadataConfig) (*applicatio
 		Events:         runner.reportProgress,
 		Warnings:       runner.reportWarning,
 		CoverProcessor: runner.codec,
+		LyricsCache:    &runner.lyrics,
 	})
 }
 
@@ -374,6 +385,17 @@ func (runner *Runner) reportWarning(warning application.ProcessWarning) error {
 }
 
 func (runner *Runner) reportProgress(event domain.ProgressEvent) error {
+	if !runner.options.Debug {
+		if event.Stage != domain.StageSearch && event.Stage != domain.StageFetch {
+			return nil
+		}
+		message := "搜索中"
+		if event.Stage == domain.StageFetch {
+			message = "下载专辑信息中"
+		}
+		_, err := fmt.Fprintln(runner.errors, message)
+		return err
+	}
 	var message string
 	switch event.Stage {
 	case domain.StageScan:
@@ -443,4 +465,54 @@ func firstArgument(args []string) string {
 		return ""
 	}
 	return args[0]
+}
+
+func normalizeArgs(args []string, command *cobra.Command) []string {
+	aliases := map[string]string{
+		"bd": "batch-depth", "ccs": "cover-compress-size", "ccr": "cover-compress-resolution",
+		"lt": "lyric-type", "lo": "lyric-output", "lcs": "lyric-cache-size", "ts": "translation-separator",
+	}
+	result := make([]string, 0, len(args))
+	flags := command.PersistentFlags()
+	for index := 0; index < len(args); index++ {
+		argument := args[index]
+		if argument == "--" {
+			result = append(result, args[index:]...)
+			break
+		}
+		name, value, hasValue := strings.Cut(argument, "=")
+		if strings.HasPrefix(name, "-") {
+			if alias, exists := aliases[strings.TrimLeft(name, "-")]; exists {
+				name = "--" + alias
+			}
+		}
+		if strings.HasPrefix(name, "--no-") && name != "--no-interactive" {
+			flag := flags.Lookup(strings.TrimPrefix(name, "--no-"))
+			if flag != nil && flag.Value.Type() == "bool" && !hasValue {
+				result = append(result, "--"+flag.Name+"=false")
+				continue
+			}
+		}
+		flag := flags.Lookup(strings.TrimPrefix(name, "--"))
+		if flag == nil && len(name) == 2 && strings.HasPrefix(name, "-") {
+			flag = flags.ShorthandLookup(name[1:])
+		}
+		if flag != nil && !hasValue && index+1 < len(args) {
+			next := args[index+1]
+			if flag.Value.Type() != "bool" {
+				result = append(result, name, next)
+				index++
+				continue
+			}
+			if next == "true" || next == "false" {
+				value, hasValue = next, true
+				index++
+			}
+		}
+		if hasValue {
+			name += "=" + value
+		}
+		result = append(result, name)
+	}
+	return result
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"unicode/utf16"
 
@@ -75,6 +76,54 @@ func encodeID3v23UTF16LE(value string) []byte {
 
 const albumSortFrameID = "TSOA"
 
+func openTag(path string) (*id3v2.Tag, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	tag, err := id3v2.ParseReader(file, id3v2.Options{Parse: true})
+	if err != nil {
+		return nil, errors.Join(err, file.Close())
+	}
+	return tag, nil
+}
+
+func (Reader) ReadRaw(ctx context.Context, path string) (result any, resultErr error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	tag, err := openTag(path)
+	if err != nil {
+		return nil, fmt.Errorf("open ID3 tag %q: %w", path, err)
+	}
+	defer func() {
+		resultErr = errors.Join(resultErr, tag.Close())
+	}()
+	frames := make(map[string][]any)
+	for id, values := range tag.AllFrames() {
+		for _, value := range values {
+			var raw any = value
+			switch frame := value.(type) {
+			case id3v2.PictureFrame:
+				raw = map[string]any{
+					"encoding": frame.Encoding.Key, "mimeType": frame.MimeType,
+					"pictureType": frame.PictureType, "description": frame.Description,
+					"picture": fmt.Sprintf("<Buffer length=%d>", len(frame.Picture)),
+				}
+			case id3v2.UnknownFrame:
+				raw = map[string]any{"body": fmt.Sprintf("<Buffer length=%d>", len(frame.Body))}
+			case id3v2.UFIDFrame:
+				raw = map[string]any{
+					"ownerIdentifier": frame.OwnerIdentifier,
+					"identifier":      fmt.Sprintf("<Buffer length=%d>", len(frame.Identifier)),
+				}
+			}
+			frames[id] = append(frames[id], raw)
+		}
+	}
+	return map[string]any{"version": tag.Version(), "frames": frames}, nil
+}
+
 func (Reader) Read(
 	ctx context.Context,
 	path string,
@@ -83,7 +132,7 @@ func (Reader) Read(
 	if err := ctx.Err(); err != nil {
 		return domain.Metadata{}, err
 	}
-	tag, err := id3v2.Open(path, id3v2.Options{Parse: true})
+	tag, err := openTag(path)
 	if err != nil {
 		return domain.Metadata{}, fmt.Errorf("open ID3 tag %q: %w", path, err)
 	}
@@ -166,7 +215,7 @@ func (writer Writer) Write(
 	if err != nil {
 		return fmt.Errorf("prepare ID3 cover for %q: %w", path, err)
 	}
-	tag, err := id3v2.Open(path, id3v2.Options{Parse: true})
+	tag, err := openTag(path)
 	if err != nil {
 		return fmt.Errorf("open ID3 tag %q: %w", path, err)
 	}

@@ -20,6 +20,45 @@ type Writer struct {
 	CoverProcessor tagio.CoverProcessor
 }
 
+func (Reader) ReadRaw(ctx context.Context, path string) (any, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	file, err := flacfile.ParseFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("parse FLAC %q: %w", path, err)
+	}
+	blocks := make([]any, 0, len(file.Meta))
+	for _, block := range file.Meta {
+		var data any = fmt.Sprintf("<Buffer length=%d>", len(block.Data))
+		switch block.Type {
+		case flacfile.VorbisComment:
+			comments, err := flacvorbis.ParseFromMetaDataBlock(*block)
+			if err != nil {
+				return nil, fmt.Errorf("parse FLAC comments %q: %w", path, err)
+			}
+			data = map[string]any{"vendor": comments.Vendor, "comments": comments.Comments}
+		case flacfile.Picture:
+			picture, err := flacpicture.ParseFromMetaDataBlock(*block)
+			if err != nil {
+				return nil, fmt.Errorf("parse FLAC picture %q: %w", path, err)
+			}
+			data = map[string]any{
+				"pictureType": picture.PictureType, "mimeType": picture.MIME,
+				"description": picture.Description, "width": picture.Width, "height": picture.Height,
+				"colorDepth": picture.ColorDepth, "indexedColorCount": picture.IndexedColorCount,
+				"imageData": fmt.Sprintf("<Buffer length=%d>", len(picture.ImageData)),
+			}
+		case flacfile.StreamInfo, flacfile.Padding, flacfile.Application, flacfile.SeekTable,
+			flacfile.CueSheet, flacfile.Reserved:
+		case flacfile.Invalid:
+			return nil, fmt.Errorf("parse FLAC %q: invalid metadata block type", path)
+		}
+		blocks = append(blocks, map[string]any{"type": block.Type, "data": data})
+	}
+	return blocks, nil
+}
+
 func (Reader) Read(
 	ctx context.Context,
 	path string,

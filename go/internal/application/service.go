@@ -294,11 +294,15 @@ func withRetry[T any](
 			attemptContext, cancel = context.WithTimeout(ctx, timeout)
 		}
 		value, err := action(attemptContext)
+		timedOut := errors.Is(attemptContext.Err(), context.DeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
 		cancel()
 		if err == nil {
 			return value, nil
 		}
 		failures = append(failures, fmt.Errorf("attempt %d: %w", attempt, err))
+		if !timedOut {
+			return zero, err
+		}
 	}
 	return zero, fmt.Errorf("operation failed after %d attempts: %w", attempts, errors.Join(failures...))
 }

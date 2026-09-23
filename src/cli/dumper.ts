@@ -40,7 +40,13 @@ export class CliDumper extends CliCommandBase {
       .map(readerType => readerType.replace(/^\./, ''))
       .join('|')
     const files = (
-      await glob(`./**/*.@(${globTypes})`, { posix: true, cwd: this.workingDir })
+      await glob([`./*.@(${globTypes})`, `./Disc */*.@(${globTypes})`], {
+        posix: true,
+        cwd: this.workingDir,
+        nocase: true,
+        dot: true,
+        nodir: true,
+      })
     ).sort()
     log({ globTypes })
     log(files)
@@ -50,7 +56,7 @@ export class CliDumper extends CliCommandBase {
     }
     const results: { metadata: Metadata; rawTag: unknown }[] = await Promise.all(
       files.map(async file => {
-        const type = extname(file)
+        const type = extname(file).toLowerCase()
         const reader = readerMappings[type]
         reader.config = getMetadataConfig(this.options)
         const buffer = readFileSync(resolve(this.workingDir, file))

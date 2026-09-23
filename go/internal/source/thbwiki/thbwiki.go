@@ -43,6 +43,10 @@ func New(client *http.Client, base string, config domain.MetadataConfig) (*Sourc
 	return instance, nil
 }
 
+func (wiki *Source) SetLyricsCache(cache *LyricsCache) {
+	wiki.lyrics.cache = cache
+}
+
 func (wiki *Source) Search(
 	ctx context.Context,
 	query string,

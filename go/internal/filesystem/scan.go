@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 func ScanAlbum(ctx context.Context, directory string) (domain.AlbumScan, error) {
@@ -54,8 +56,9 @@ func ScanAlbum(ctx context.Context, directory string) (domain.AlbumScan, error) 
 		}
 		relativePaths[audioFile.Path] = relative
 	}
-	sort.Slice(scan.AudioFiles, func(left, right int) bool {
-		return naturalPathLess(relativePaths[scan.AudioFiles[left].Path], relativePaths[scan.AudioFiles[right].Path])
+	collator := collate.New(language.English)
+	sort.SliceStable(scan.AudioFiles, func(left, right int) bool {
+		return naturalPathLess(relativePaths[scan.AudioFiles[left].Path], relativePaths[scan.AudioFiles[right].Path], collator)
 	})
 	return scan, nil
 }
@@ -104,16 +107,27 @@ func isCoverName(name string) bool {
 	}
 }
 
-func naturalPathLess(left, right string) bool {
+func naturalPathLess(left, right string, collator *collate.Collator) bool {
 	leftParts := strings.FieldsFunc(left, func(value rune) bool { return value == '/' || value == '\\' })
 	rightParts := strings.FieldsFunc(right, func(value rune) bool { return value == '/' || value == '\\' })
+	if len(leftParts) != len(rightParts) {
+		return len(leftParts) < len(rightParts)
+	}
 	for index := 0; index < len(leftParts) && index < len(rightParts); index++ {
 		leftNumber, leftHasNumber := leadingInteger(leftParts[index])
 		rightNumber, rightHasNumber := leadingInteger(rightParts[index])
-		if leftHasNumber && rightHasNumber && leftNumber != rightNumber {
-			return leftNumber < rightNumber
+		if leftHasNumber != rightHasNumber {
+			return leftHasNumber
 		}
-		comparison := strings.Compare(strings.ToLower(leftParts[index]), strings.ToLower(rightParts[index]))
+		if leftHasNumber && rightHasNumber {
+			if leftNumber != rightNumber {
+				return leftNumber < rightNumber
+			}
+			if comparison := collator.CompareString(leftParts[index], rightParts[index]); comparison != 0 {
+				return comparison < 0
+			}
+		}
+		comparison := strings.Compare(leftParts[index], rightParts[index])
 		if comparison != 0 {
 			return comparison < 0
 		}

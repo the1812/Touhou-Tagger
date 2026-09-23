@@ -20,9 +20,13 @@ type cachedLyricsDocument struct {
 
 type lyricsService struct {
 	wiki   *Source
-	mutex  sync.Mutex
-	cache  []cachedLyricsDocument
+	cache  *LyricsCache
 	cdBase *url.URL
+}
+
+type LyricsCache struct {
+	mutex     sync.Mutex
+	documents []cachedLyricsDocument
 }
 
 type lyricRow struct {
@@ -46,7 +50,7 @@ func newLyricsService(wiki *Source) *lyricsService {
 		cdBase.Scheme = "https"
 		cdBase.Host = "cd.thwiki.cc"
 	}
-	return &lyricsService{wiki: wiki, cdBase: &cdBase}
+	return &lyricsService{wiki: wiki, cache: &LyricsCache{}, cdBase: &cdBase}
 }
 
 func (service *lyricsService) Download(
@@ -87,14 +91,14 @@ func (service *lyricsService) document(
 	ctx context.Context,
 	pageURL string,
 ) (*goquery.Document, error) {
-	service.mutex.Lock()
-	for _, cached := range service.cache {
+	service.cache.mutex.Lock()
+	for _, cached := range service.cache.documents {
 		if cached.url == pageURL {
-			service.mutex.Unlock()
+			service.cache.mutex.Unlock()
 			return cached.document, nil
 		}
 	}
-	service.mutex.Unlock()
+	service.cache.mutex.Unlock()
 	data, err := service.wiki.get(ctx, pageURL)
 	if err != nil {
 		return nil, fmt.Errorf("download lyrics page %s: %w", pageURL, err)
@@ -107,12 +111,12 @@ func (service *lyricsService) document(
 	if capacity <= 0 {
 		capacity = domain.DefaultLyricConfig().MaxCacheSize
 	}
-	service.mutex.Lock()
-	service.cache = append(service.cache, cachedLyricsDocument{url: pageURL, document: document})
-	if len(service.cache) > capacity {
-		service.cache = service.cache[len(service.cache)-capacity:]
+	service.cache.mutex.Lock()
+	service.cache.documents = append(service.cache.documents, cachedLyricsDocument{url: pageURL, document: document})
+	if len(service.cache.documents) > capacity {
+		service.cache.documents = service.cache.documents[len(service.cache.documents)-capacity:]
 	}
-	service.mutex.Unlock()
+	service.cache.mutex.Unlock()
 	return document, nil
 }
 

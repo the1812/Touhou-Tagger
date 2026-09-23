@@ -398,7 +398,7 @@ func normalizeNames(values []string, removeRole bool) []string {
 }
 
 func normalizeValue(value string, removeRole bool) string {
-	if replacement, exists := alternateNames[value]; exists {
+	if replacement := domain.AlternateName(value); replacement != value {
 		return replacement
 	}
 	if removeRole {

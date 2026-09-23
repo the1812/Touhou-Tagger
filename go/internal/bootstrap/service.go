@@ -30,6 +30,7 @@ type Options struct {
 	Sources        source.Registry
 	THBWikiURL     string
 	DoujinMetaURL  string
+	LyricsCache    *thbwiki.LyricsCache
 }
 
 func NewService(options Options) (*application.Service, error) {
@@ -51,6 +52,9 @@ func NewService(options Options) (*application.Service, error) {
 		wiki, err := thbwiki.New(client, thbWikiURL, runtimeConfig)
 		if err != nil {
 			return nil, err
+		}
+		if options.LyricsCache != nil {
+			wiki.SetLyricsCache(options.LyricsCache)
 		}
 		doujin, err := doujinmeta.New(client, doujinMetaURL)
 		if err != nil {
