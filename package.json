@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@squoosh/lib": "0.5.3",
-    "axios": "1.7.9",
+    "axios": "1.20.0",
     "flac-tagger": "2.0.0",
     "fuse.js": "6.6.2",
     "glob": "10.2.7",
