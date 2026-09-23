@@ -73,7 +73,7 @@ func TestMetadataRoundTrip(t *testing.T) {
 	}
 }
 
-func TestID3WriterPreservesUnownedFrames(t *testing.T) {
+func TestID3WriterReplacesOwnedFramesAndPreservesUnknown(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "preserve.mp3")
 	if err := os.WriteFile(path, testutil.ReadFixture(t, "media", "mp3", "audio-blank.mp3"), 0o644); err != nil {
 		t.Fatal(err)
@@ -136,18 +136,11 @@ func TestID3WriterPreservesUnownedFrames(t *testing.T) {
 	if !ok || !bytes.Equal(unknown.Body, []byte{0x10, 0x20, 0x30}) {
 		t.Fatalf("unexpected retained unknown frame: %#v", unknownFrames[0])
 	}
-	assertFramePreserved(t, tag.GetFrames(tag.CommonID("Comments")), func(frame id3v2.Framer) bool {
-		comment, ok := frame.(id3v2.CommentFrame)
-		return ok && comment.Language == "eng" && comment.Description == "review" && comment.Text == "keep comment"
-	})
-	assertFramePreserved(t, tag.GetFrames(tag.CommonID("Unsynchronised lyrics/text transcription")), func(frame id3v2.Framer) bool {
-		lyrics, ok := frame.(id3v2.UnsynchronisedLyricsFrame)
-		return ok && lyrics.Language == "eng" && lyrics.ContentDescriptor == "karaoke" && lyrics.Lyrics == "keep lyric"
-	})
-	assertFramePreserved(t, tag.GetFrames(tag.CommonID("Attached picture")), func(frame id3v2.Framer) bool {
-		picture, ok := frame.(id3v2.PictureFrame)
-		return ok && picture.PictureType == id3v2.PTBackCover && picture.Description == "back"
-	})
+	for _, description := range []string{"Comments", "Unsynchronised lyrics/text transcription", "Attached picture"} {
+		if frames := tag.GetFrames(tag.CommonID(description)); len(frames) != 0 {
+			t.Fatalf("retained %d frames for owned field %s", len(frames), description)
+		}
+	}
 }
 
 func TestID3WriterSupportsVersion23AlbumOrder(t *testing.T) {
@@ -211,16 +204,6 @@ func TestID3WriterSupportsVersion23AlbumOrder(t *testing.T) {
 	if actual.AlbumOrder != metadata.AlbumOrder {
 		t.Fatalf("reader album order = %q, want %q", actual.AlbumOrder, metadata.AlbumOrder)
 	}
-}
-
-func assertFramePreserved(t *testing.T, frames []id3v2.Framer, matches func(id3v2.Framer) bool) {
-	t.Helper()
-	for _, frame := range frames {
-		if matches(frame) {
-			return
-		}
-	}
-	t.Fatal("expected ID3 frame was not preserved")
 }
 
 func TestFLACWriterPreservesUnownedComments(t *testing.T) {

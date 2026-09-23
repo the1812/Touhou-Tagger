@@ -164,15 +164,7 @@ func (writer Writer) Write(
 				return fmt.Errorf("parse FLAC comments %q: %w", path, parseErr)
 			}
 			comments = parsed
-		case flacfile.Picture:
-			picture, parseErr := flacpicture.ParseFromMetaDataBlock(*block)
-			if parseErr != nil {
-				return fmt.Errorf("parse FLAC picture %q: %w", path, parseErr)
-			}
-			if picture.PictureType != flacpicture.PictureTypeFrontCover {
-				newMeta = append(newMeta, block)
-			}
-		case flacfile.Padding:
+		case flacfile.Picture, flacfile.Padding:
 		case flacfile.StreamInfo, flacfile.Application, flacfile.SeekTable,
 			flacfile.CueSheet, flacfile.Reserved:
 			newMeta = append(newMeta, block)

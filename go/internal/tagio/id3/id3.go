@@ -226,7 +226,7 @@ func (writer Writer) Write(
 	}
 	tag.SetDefaultEncoding(encoding)
 	lyricLanguage := toID3Language(metadata.LyricLanguage)
-	clearOwnedFrames(tag, config.CommentLanguage, lyricLanguage)
+	clearOwnedFrames(tag)
 	tag.SetTitle(metadata.Title)
 	tag.SetArtist(strings.Join(metadata.Artists, config.Separator))
 	tag.SetAlbum(metadata.Album)
@@ -273,37 +273,16 @@ func (writer Writer) Write(
 	return nil
 }
 
-func clearOwnedFrames(tag *id3v2.Tag, commentLanguage, lyricLanguage string) {
+func clearOwnedFrames(tag *id3v2.Tag) {
 	tag.DeleteFrames(albumSortFrameID)
 	descriptions := []string{
 		"Title", "Artist", "Album/Movie/Show title", "Part of a set",
 		"Track number/Position in set", "Composer", "Content type", "Year",
 		"Lyricist/Text writer", "Band/Orchestra/Accompaniment", "BPM", "Initial key",
+		"Comments", "Unsynchronised lyrics/text transcription", "Attached picture",
 	}
 	for _, description := range descriptions {
 		tag.DeleteFrames(tag.CommonID(description))
-	}
-	retainFrames(tag, tag.CommonID("Comments"), func(frame id3v2.Framer) bool {
-		comment, ok := frame.(id3v2.CommentFrame)
-		return !ok || comment.Language != commentLanguage || comment.Description != ""
-	})
-	retainFrames(tag, tag.CommonID("Unsynchronised lyrics/text transcription"), func(frame id3v2.Framer) bool {
-		lyrics, ok := frame.(id3v2.UnsynchronisedLyricsFrame)
-		return !ok || lyrics.Language != lyricLanguage || lyrics.ContentDescriptor != ""
-	})
-	retainFrames(tag, tag.CommonID("Attached picture"), func(frame id3v2.Framer) bool {
-		picture, ok := frame.(id3v2.PictureFrame)
-		return !ok || picture.PictureType != id3v2.PTFrontCover || picture.Description != ""
-	})
-}
-
-func retainFrames(tag *id3v2.Tag, id string, keep func(id3v2.Framer) bool) {
-	frames := tag.GetFrames(id)
-	tag.DeleteFrames(id)
-	for _, frame := range frames {
-		if keep(frame) {
-			tag.AddFrame(id, frame)
-		}
 	}
 }
 
