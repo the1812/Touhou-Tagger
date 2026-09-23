@@ -29,9 +29,9 @@ func main() {
 	if err == nil {
 		return
 	}
-	_, _ = fmt.Fprintln(os.Stderr, "错误:", err)
 	if errors.Is(err, context.Canceled) {
 		os.Exit(130)
 	}
+	_, _ = fmt.Fprintln(os.Stderr, "错误:", err)
 	os.Exit(1)
 }

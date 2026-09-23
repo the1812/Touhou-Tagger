@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +18,7 @@ func TestSelectCandidateTreatsInvalidInteractiveInputAsCancellation(t *testing.T
 		input:  bufio.NewReader(strings.NewReader("cancel\n")),
 		output: &bytes.Buffer{},
 	}
-	selected, ok, err := runner.selectCandidate([]domain.AlbumCandidate{
+	selected, ok, err := runner.selectCandidate(context.Background(), []domain.AlbumCandidate{
 		{ID: "one", Name: "One"},
 		{ID: "two", Name: "Two"},
 	}, "query", true)

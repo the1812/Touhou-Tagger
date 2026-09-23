@@ -1,7 +1,7 @@
 import rl from 'readline'
 
 export const readline = (question: string) => {
-  return new Promise<string>(resolve => {
+  return new Promise<string | undefined>(resolve => {
     const reader = rl.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -10,6 +10,6 @@ export const readline = (question: string) => {
       resolve(answer)
       reader.close()
     })
-    reader.once('close', () => resolve(''))
+    reader.once('close', () => resolve(undefined))
   })
 }

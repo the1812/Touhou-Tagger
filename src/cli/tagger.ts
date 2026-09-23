@@ -250,6 +250,9 @@ export class CliTagger extends CliCommandBase {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
       console.log(searchResult.map((it, index) => `${String(index + 1)}\t${it}`).join('\n'))
       const answer = await readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ')
+      if (answer === undefined) {
+        return
+      }
       const index = parseInt(answer)
       if (isNaN(index) || index < 1 || index > searchResult.length) {
         return

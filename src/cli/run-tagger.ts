@@ -31,6 +31,9 @@ export const runTagger = async () => {
     await start(defaultAlbumName)
   } else {
     const album = await readline(`请输入专辑名称(${defaultAlbumName}): `)
+    if (album === undefined) {
+      return
+    }
     await start(album || defaultAlbumName)
   }
 }

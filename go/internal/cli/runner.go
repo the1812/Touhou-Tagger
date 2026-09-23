@@ -214,7 +214,7 @@ func (runner *Runner) tagDirectory(
 	scan := album.Scan
 	albumName := album.Name
 	if !batch && options.Interactive {
-		answer, err := runner.prompt(fmt.Sprintf("请输入专辑名称(%s): ", albumName))
+		answer, err := runner.prompt(ctx, fmt.Sprintf("请输入专辑名称(%s): ", albumName))
 		if err != nil {
 			return err
 		}
@@ -229,7 +229,7 @@ func (runner *Runner) tagDirectory(
 			return err
 		}
 		var selected bool
-		candidate, selected, err = runner.selectCandidate(candidates, albumName, options.Interactive)
+		candidate, selected, err = runner.selectCandidate(ctx, candidates, albumName, options.Interactive)
 		if err != nil {
 			return err
 		}
@@ -260,6 +260,7 @@ func (runner *Runner) tagDirectory(
 }
 
 func (runner *Runner) selectCandidate(
+	ctx context.Context,
 	candidates []domain.AlbumCandidate,
 	query string,
 	interactive bool,
@@ -283,7 +284,7 @@ func (runner *Runner) selectCandidate(
 			return domain.AlbumCandidate{}, false, err
 		}
 	}
-	answer, err := runner.prompt("输入序号选择相应条目，或输入其他字符取消: ")
+	answer, err := runner.prompt(ctx, "输入序号选择相应条目，或输入其他字符取消: ")
 	if err != nil {
 		return domain.AlbumCandidate{}, false, err
 	}
@@ -419,15 +420,34 @@ func validateOptions(options Options) error {
 	return nil
 }
 
-func (runner *Runner) prompt(message string) (string, error) {
+func (runner *Runner) prompt(ctx context.Context, message string) (string, error) {
 	if _, err := fmt.Fprint(runner.output, message); err != nil {
 		return "", err
 	}
-	answer, err := runner.input.ReadString('\n')
-	if err != nil && !errors.Is(err, io.EOF) {
-		return "", fmt.Errorf("read terminal input: %w", err)
+	type inputResult struct {
+		answer string
+		err    error
 	}
-	return strings.TrimSpace(answer), nil
+	result := make(chan inputResult, 1)
+	go func() {
+		answer, err := runner.input.ReadString('\n')
+		result <- inputResult{answer: answer, err: err}
+	}()
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case input := <-result:
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
+		if errors.Is(input.err, io.EOF) {
+			return "", context.Canceled
+		}
+		if input.err != nil {
+			return "", fmt.Errorf("read terminal input: %w", input.err)
+		}
+		return strings.TrimSpace(input.answer), nil
+	}
 }
 
 func (runner *Runner) versionText() string {
