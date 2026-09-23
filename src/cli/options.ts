@@ -66,7 +66,7 @@ export const createCliOptionsParser = (argv = hideBin(process.argv)) => {
     })
     .option('comment-language', {
       type: 'string',
-      default: configFile?.commentLanguage ?? 'zho',
+      default: configFile?.commentLanguage ?? 'eng',
       description: '自定义 ID3 Tag 注释的语言 (ISO-639-2)',
     })
     .option('cover-compress-size', {

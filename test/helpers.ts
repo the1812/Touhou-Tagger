@@ -18,7 +18,7 @@ export const cleanTmp = async () => {
 }
 
 export const metadataConfig = (overrides: Partial<MetadataConfig> = {}): MetadataConfig => ({
-  commentLanguage: 'zho',
+  commentLanguage: 'eng',
   coverCompressSize: 0,
   coverCompressResolution: 0,
   separator: ' / ',

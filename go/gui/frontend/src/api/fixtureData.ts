@@ -25,8 +25,9 @@ export const capabilities: Capabilities = {
     { value: 'local-json', label: '本地 metadata.json', supportsSearch: false },
   ],
   commentLanguages: [
-    { value: 'zh-Hans', label: t('data.simplifiedChinese') },
-    { value: 'ja', label: t('data.japanese') },
+    { value: 'zho', label: t('data.chinese') },
+    { value: 'jpn', label: t('data.japanese') },
+    { value: 'eng', label: 'English' },
   ],
   lyricTypes: [
     { value: 'original', label: t('data.original') },
@@ -37,7 +38,7 @@ export const capabilities: Capabilities = {
 
 export const defaultSettings: Settings = {
   defaultSource: 'thb-wiki',
-  commentLanguage: 'zh-Hans',
+  commentLanguage: 'eng',
   mp3MultiValueSeparator: ' / ',
   requestTimeoutSeconds: 20,
   retryCount: 2,

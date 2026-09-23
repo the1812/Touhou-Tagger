@@ -43,7 +43,7 @@ func DefaultMetadataConfig() MetadataConfig {
 	return MetadataConfig{
 		Lyric:                   &lyric,
 		Source:                  DefaultMetadataSource,
-		CommentLanguage:         "zho",
+		CommentLanguage:         "eng",
 		CoverCompressSize:       0,
 		CoverCompressResolution: 0,
 		Separator:               DefaultMetadataSeparator,
