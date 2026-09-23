@@ -96,11 +96,15 @@
   }
 
   & .p-tablist-tab-list {
-    @apply gap-2 border-0 px-2;
+    @apply gap-2 border-0 px-0;
   }
 
   & .p-tab {
     @apply mb-0 inline-flex min-h-app-header items-center gap-2 border-0 px-4 py-0 text-base font-semibold;
+  }
+
+  & .p-tab:first-child {
+    @apply px-app-page-x;
   }
 
   & .p-tablist-active-bar {
@@ -136,10 +140,28 @@
 }
 
 @utility compact-data-table {
-  @apply min-h-60 w-full min-w-0 max-w-full;
+  @apply w-full min-w-0 max-w-full overflow-hidden rounded-[var(--p-button-border-radius)] border border-[var(--p-datatable-border-color)] bg-[var(--p-content-background)];
 
-  &[data-fit-content='true'] {
-    @apply min-h-0;
+  &:not([data-fit-content='true']):has(.p-datatable-empty-message) {
+    @apply min-h-60;
+  }
+
+  &.p-datatable-gridlines .p-datatable-thead > tr > th {
+    border-top-width: 0;
+  }
+
+  &.p-datatable-gridlines .p-datatable-thead > tr > th:first-child,
+  &.p-datatable-gridlines .p-datatable-tbody > tr > td:first-child {
+    border-left-width: 0;
+  }
+
+  &.p-datatable-gridlines .p-datatable-thead > tr > th:last-child,
+  &.p-datatable-gridlines .p-datatable-tbody > tr > td:last-child {
+    border-right-width: 0;
+  }
+
+  &.p-datatable-gridlines:not(:has(.p-virtualscroller)) .p-datatable-tbody > tr:last-child > td {
+    border-bottom-width: 0;
   }
 }
 
