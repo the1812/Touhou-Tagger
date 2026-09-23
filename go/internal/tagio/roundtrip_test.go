@@ -58,10 +58,11 @@ func TestMetadataRoundTrip(t *testing.T) {
 			if err := testCase.writer.Write(context.Background(), path, expected, config); err != nil {
 				t.Fatal(err)
 			}
-			actual, err := testCase.reader.Read(context.Background(), path, config)
+			read, err := testCase.reader.Read(context.Background(), path, config, tagio.ReadOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
+			actual := read.Metadata
 			if testCase.name == "flac" {
 				actual.LyricLanguage = expected.LyricLanguage
 			}
@@ -202,10 +203,11 @@ func TestID3WriterSupportsVersion23AlbumOrder(t *testing.T) {
 	if picture.Encoding.Key != id3v2.EncodingISO.Key || picture.Description != "" {
 		t.Fatalf("front cover encoding = %d and description = %q, want ISO with an empty description", picture.Encoding.Key, picture.Description)
 	}
-	actual, err := (id3tag.Reader{}).Read(context.Background(), path, config)
+	read, err := (id3tag.Reader{}).Read(context.Background(), path, config, tagio.ReadOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
+	actual := read.Metadata
 	if actual.AlbumOrder != metadata.AlbumOrder {
 		t.Fatalf("reader album order = %q, want %q", actual.AlbumOrder, metadata.AlbumOrder)
 	}

@@ -35,6 +35,7 @@ type Options struct {
 }
 
 type Engine struct {
+	initMu          sync.Mutex
 	runtime         wazero.Runtime
 	resizeCompiled  wazero.CompiledModule
 	mozjpegCompiled wazero.CompiledModule
@@ -58,6 +59,9 @@ type poolSlot struct {
 }
 
 func New(ctx context.Context, options Options) (*Engine, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	poolSize := options.PoolSize
 	if poolSize == 0 {
 		poolSize = defaultPoolSize
@@ -66,19 +70,31 @@ func New(ctx context.Context, options Options) (*Engine, error) {
 		return nil, fmt.Errorf("image codec pool size must be positive: %d", poolSize)
 	}
 
-	runtimeConfig := wazero.NewRuntimeConfigCompiler()
-	wasmRuntime := wazero.NewRuntimeWithConfig(ctx, runtimeConfig)
-	engine := &Engine{
-		runtime: wasmRuntime,
-		pool:    make(chan poolSlot, poolSize),
-		done:    make(chan struct{}),
-	}
+	return &Engine{pool: make(chan poolSlot, poolSize), done: make(chan struct{})}, nil
+}
 
-	if err := engine.initialize(ctx, poolSize); err != nil {
-		closeErr := wasmRuntime.Close(ctx)
-		return nil, errors.Join(err, closeErr)
+func (e *Engine) ensureInitialized(ctx context.Context) error {
+	e.initMu.Lock()
+	defer e.initMu.Unlock()
+	if e.closed.Load() {
+		return ErrClosed
 	}
-	return engine, nil
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if e.runtime != nil {
+		return nil
+	}
+	e.runtime = wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigCompiler())
+	if err := e.initialize(ctx, cap(e.pool)); err != nil {
+		closeErr := e.runtime.Close(context.WithoutCancel(ctx))
+		e.runtime, e.resizeCompiled, e.mozjpegCompiled = nil, nil, nil
+		for len(e.pool) > 0 {
+			<-e.pool
+		}
+		return errors.Join(err, closeErr)
+	}
+	return nil
 }
 
 func (e *Engine) initialize(ctx context.Context, poolSize int) error {
@@ -118,6 +134,9 @@ func (e *Engine) Compress(
 	data []byte,
 	options domain.CoverOptions,
 ) ([]byte, error) {
+	if e.closed.Load() {
+		return nil, ErrClosed
+	}
 	if err := context.Cause(ctx); err != nil {
 		return nil, fmt.Errorf("compress cover: %w", err)
 	}
@@ -161,11 +180,13 @@ func (e *Engine) Compress(
 		outputHeight,
 		qualityForSize(len(data)),
 	)
+	if runErr == nil {
+		e.storeCover(digest, options.MaxDimension, output)
+	}
 	releaseErr := e.release(ctx, slot.instance, broken)
 	if err = errors.Join(runErr, releaseErr); err != nil {
 		return nil, err
 	}
-	e.storeCover(digest, options.MaxDimension, output)
 	return output, nil
 }
 
@@ -180,11 +201,14 @@ func (e *Engine) cachedCover(digest [sha256.Size]byte, maxDimension int) ([]byte
 
 func (e *Engine) storeCover(digest [sha256.Size]byte, maxDimension int, output []byte) {
 	e.cacheMu.Lock()
+	defer e.cacheMu.Unlock()
+	if e.closed.Load() {
+		return
+	}
 	e.cache = coverCache{
 		digest: digest, maxDimension: maxDimension,
 		output: append([]byte(nil), output...), valid: true,
 	}
-	e.cacheMu.Unlock()
 }
 
 func (e *Engine) Close(ctx context.Context) error {
@@ -192,6 +216,8 @@ func (e *Engine) Close(ctx context.Context) error {
 		return nil
 	}
 	close(e.done)
+	e.initMu.Lock()
+	defer e.initMu.Unlock()
 	e.cacheMu.Lock()
 	e.cache = coverCache{}
 	e.cacheMu.Unlock()
@@ -203,13 +229,15 @@ func (e *Engine) Close(ctx context.Context) error {
 	if e.mozjpegCompiled != nil {
 		closeErrors = append(closeErrors, e.mozjpegCompiled.Close(ctx))
 	}
-	closeErrors = append(closeErrors, e.runtime.Close(ctx))
+	if e.runtime != nil {
+		closeErrors = append(closeErrors, e.runtime.Close(ctx))
+	}
 	return errors.Join(closeErrors...)
 }
 
 func (e *Engine) acquire(ctx context.Context) (poolSlot, error) {
-	if e.closed.Load() {
-		return poolSlot{}, ErrClosed
+	if err := e.ensureInitialized(ctx); err != nil {
+		return poolSlot{}, err
 	}
 	select {
 	case <-e.done:

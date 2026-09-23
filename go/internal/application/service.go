@@ -211,30 +211,28 @@ func (service *Service) ApplyTagPlan(ctx context.Context, plan domain.TagPlan) (
 			err = &TagFilesChangedError{Err: err}
 		}
 	}()
-	outputs := TagPlanOutputs(plan, service.Config)
-	outputIndex := 0
-	for index, item := range plan.Items {
-		if err := ctx.Err(); err != nil {
-			return result, err
-		}
-		if err := service.Writers[item.Format].Write(ctx, item.TargetPath, item.Metadata, service.Config); err != nil {
-			return result, fmt.Errorf("write metadata to %q: %w", item.TargetPath, err)
-		}
-		if outputIndex < len(outputs) && outputs[outputIndex].ItemIndex == index {
-			output := outputs[outputIndex]
-			if err := os.WriteFile(output.Path, []byte(item.Metadata.Lyric), 0o644); err != nil {
-				return result, fmt.Errorf("write LRC %q: %w", output.Path, err)
-			}
-			outputIndex++
-		}
-		if err := service.emit(domain.ProgressEvent{
-			Stage: domain.StageWrite, Directory: plan.Directory, Path: item.TargetPath,
-			Current: index + 1, Total: len(plan.Items),
-		}); err != nil {
-			return result, err
-		}
+	outputs := make(map[int]string)
+	for _, output := range TagPlanOutputs(plan, service.Config) {
+		outputs[output.ItemIndex] = output.Path
 	}
-	return result, nil
+	err = processFiles(ctx, len(plan.Items), func(index int) error {
+		item := plan.Items[index]
+		if err := service.Writers[item.Format].Write(ctx, item.TargetPath, item.Metadata, service.Config); err != nil {
+			return fmt.Errorf("write metadata to %q: %w", item.TargetPath, err)
+		}
+		if path, exists := outputs[index]; exists {
+			if err := os.WriteFile(path, []byte(item.Metadata.Lyric), 0o644); err != nil {
+				return fmt.Errorf("write LRC %q: %w", path, err)
+			}
+		}
+		return nil
+	}, func(index, completed int) error {
+		return service.emit(domain.ProgressEvent{
+			Stage: domain.StageWrite, Directory: plan.Directory, Path: plan.Items[index].TargetPath,
+			Current: completed, Total: len(plan.Items),
+		})
+	})
+	return result, err
 }
 
 func (service *Service) emit(event domain.ProgressEvent) error {

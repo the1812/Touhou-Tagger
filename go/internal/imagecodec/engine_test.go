@@ -103,6 +103,12 @@ func TestCompressReusesPipelineInstance(t *testing.T) {
 	}
 	t.Cleanup(func() { closeTestEngine(t, engine) })
 
+	if engine.runtime != nil || len(engine.pool) != 0 {
+		t.Fatal("creating an engine initialized WASM before compression")
+	}
+	if err := engine.ensureInitialized(ctx); err != nil {
+		t.Fatal(err)
+	}
 	before := <-engine.pool
 	engine.pool <- before
 	input := loadExampleCover(t)
@@ -138,6 +144,9 @@ func TestCompressCachesIdenticalCover(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := engine.ensureInitialized(ctx); err != nil {
+		t.Fatal(err)
+	}
 	broken := <-engine.pool
 	if err := broken.instance.mozjpeg.module.Close(ctx); err != nil {
 		t.Fatal(err)
@@ -162,6 +171,9 @@ func TestCloseReleasesWASMResources(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := engine.ensureInitialized(ctx); err != nil {
+		t.Fatal(err)
+	}
 	slots := []poolSlot{<-engine.pool, <-engine.pool}
 	for _, slot := range slots {
 		engine.pool <- slot
@@ -187,6 +199,9 @@ func TestWASMFailureDoesNotFallBackAndReplacesInstance(t *testing.T) {
 	}
 	t.Cleanup(func() { closeTestEngine(t, engine) })
 
+	if err := engine.ensureInitialized(ctx); err != nil {
+		t.Fatal(err)
+	}
 	broken := <-engine.pool
 	if err := broken.instance.mozjpeg.module.Close(ctx); err != nil {
 		t.Fatal(err)

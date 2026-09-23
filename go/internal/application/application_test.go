@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -15,6 +16,7 @@ import (
 )
 
 type recordingWriter struct {
+	mu     sync.Mutex
 	writes int
 	failAt int
 }
@@ -28,6 +30,8 @@ func (writer *recordingWriter) Write(
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	writer.mu.Lock()
+	defer writer.mu.Unlock()
 	writer.writes++
 	if writer.writes == writer.failAt {
 		return fmt.Errorf("injected writer failure")
@@ -130,8 +134,22 @@ func TestApplyTagPlanKeepsCompletedWritesOnFailure(t *testing.T) {
 	if err == nil || !result.Renamed || !TagFilesMayHaveChanged(err) {
 		t.Fatalf("ApplyTagPlan() = %#v, %v", result, err)
 	}
-	assertFileContent(t, plan.Items[0].TargetPath, "first:Changed One")
-	assertFileContent(t, plan.Items[1].TargetPath, "second")
+	contents := []string{"first", "second"}
+	completed := 0
+	for index, item := range plan.Items {
+		data, err := os.ReadFile(item.TargetPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(data) == contents[index]+":"+item.Metadata.Title {
+			completed++
+		} else if string(data) != contents[index] {
+			t.Fatalf("unexpected file contents: %q", data)
+		}
+	}
+	if completed != 1 {
+		t.Fatalf("completed writes = %d, want 1", completed)
+	}
 	assertNoTemporaryFiles(t, directory)
 }
 

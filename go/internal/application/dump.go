@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -42,31 +43,35 @@ func (service *Service) DumpMetadata(
 	if options.Debug {
 		rawTags = make([]any, len(scan.AudioFiles))
 	}
-	var cover []byte
-	for index, audio := range scan.AudioFiles {
+	err := processFiles(ctx, len(scan.AudioFiles), func(index int) error {
+		audio := scan.AudioFiles[index]
 		reader, exists := service.Readers[audio.Format]
 		if !exists {
-			return nil, fmt.Errorf("%w: no tag reader registered for %s file %q", domain.ErrUnsupportedFormat, audio.Format, audio.Path)
+			return fmt.Errorf("%w: no tag reader registered for %s file %q", domain.ErrUnsupportedFormat, audio.Format, audio.Path)
 		}
-		item, err := reader.Read(ctx, audio.Path, service.Config)
+		result, err := reader.Read(ctx, audio.Path, service.Config, tagio.ReadOptions{IncludeRaw: options.Debug})
 		if err != nil {
-			return nil, fmt.Errorf("read metadata from %q: %w", audio.Path, err)
+			return fmt.Errorf("read metadata from %q: %w", audio.Path, err)
 		}
-		metadata[index] = item
+		metadata[index] = result.Metadata
 		if options.Debug {
-			rawTags[index], err = reader.ReadRaw(ctx, audio.Path)
-			if err != nil {
-				return nil, fmt.Errorf("read raw tags from %q: %w", audio.Path, err)
-			}
+			rawTags[index] = result.Raw
 		}
-		if len(cover) == 0 && len(item.CoverImage) > 0 {
-			cover = append([]byte(nil), item.CoverImage...)
-		}
-		if err := service.emit(domain.ProgressEvent{
-			Stage: domain.StageWrite, Directory: scan.Directory, Path: audio.Path,
-			Current: index + 1, Total: len(scan.AudioFiles), Message: "read metadata",
-		}); err != nil {
-			return nil, err
+		return nil
+	}, func(index, completed int) error {
+		return service.emit(domain.ProgressEvent{
+			Stage: domain.StageWrite, Directory: scan.Directory, Path: scan.AudioFiles[index].Path,
+			Current: completed, Total: len(scan.AudioFiles), Message: "read metadata",
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+	var cover []byte
+	for _, item := range metadata {
+		if len(item.CoverImage) > 0 {
+			cover = item.CoverImage
+			break
 		}
 	}
 	simplified := domain.SimplifyMetadata(metadata)

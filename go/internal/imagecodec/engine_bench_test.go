@@ -17,6 +17,9 @@ func BenchmarkEngineInitialization(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
+		if err := engine.ensureInitialized(ctx); err != nil {
+			b.Fatal(err)
+		}
 		if err = engine.Close(ctx); err != nil {
 			b.Fatal(err)
 		}
@@ -36,6 +39,9 @@ func BenchmarkResizeWASM(b *testing.B) {
 		b.Fatal(err)
 	}
 	b.Cleanup(func() { closeTestEngine(b, engine) })
+	if err := engine.ensureInitialized(ctx); err != nil {
+		b.Fatal(err)
+	}
 	instance := (<-engine.pool).instance
 	b.ReportAllocs()
 	b.SetBytes(int64(len(rgba.Pix)))
@@ -67,6 +73,9 @@ func BenchmarkMozJPEGWASM(b *testing.B) {
 		b.Fatal(err)
 	}
 	b.Cleanup(func() { closeTestEngine(b, engine) })
+	if err := engine.ensureInitialized(ctx); err != nil {
+		b.Fatal(err)
+	}
 	instance := (<-engine.pool).instance
 	resized, err, _ := instance.resize.run(
 		ctx,

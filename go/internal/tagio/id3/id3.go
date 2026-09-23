@@ -88,17 +88,28 @@ func openTag(path string) (*id3v2.Tag, error) {
 	return tag, nil
 }
 
-func (Reader) ReadRaw(ctx context.Context, path string) (result any, resultErr error) {
+func (Reader) Read(ctx context.Context, path string, config domain.MetadataConfig, options tagio.ReadOptions) (result tagio.ReadResult, resultErr error) {
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return result, err
 	}
 	tag, err := openTag(path)
 	if err != nil {
-		return nil, fmt.Errorf("open ID3 tag %q: %w", path, err)
+		return result, fmt.Errorf("open ID3 tag %q: %w", path, err)
 	}
 	defer func() {
 		resultErr = errors.Join(resultErr, tag.Close())
 	}()
+	result.Metadata, err = readMetadata(tag, path, config)
+	if err != nil {
+		return result, err
+	}
+	if options.IncludeRaw {
+		result.Raw = rawTag(tag)
+	}
+	return result, nil
+}
+
+func rawTag(tag *id3v2.Tag) any {
 	frames := make(map[string][]any)
 	for id, values := range tag.AllFrames() {
 		for _, value := range values {
@@ -121,24 +132,10 @@ func (Reader) ReadRaw(ctx context.Context, path string) (result any, resultErr e
 			frames[id] = append(frames[id], raw)
 		}
 	}
-	return map[string]any{"version": tag.Version(), "frames": frames}, nil
+	return map[string]any{"version": tag.Version(), "frames": frames}
 }
 
-func (Reader) Read(
-	ctx context.Context,
-	path string,
-	config domain.MetadataConfig,
-) (result domain.Metadata, resultErr error) {
-	if err := ctx.Err(); err != nil {
-		return domain.Metadata{}, err
-	}
-	tag, err := openTag(path)
-	if err != nil {
-		return domain.Metadata{}, fmt.Errorf("open ID3 tag %q: %w", path, err)
-	}
-	defer func() {
-		resultErr = errors.Join(resultErr, tag.Close())
-	}()
+func readMetadata(tag *id3v2.Tag, path string, config domain.MetadataConfig) (domain.Metadata, error) {
 	metadata := domain.Metadata{
 		Title:        tag.Title(),
 		Artists:      split(tag.Artist(), config.Separator),
@@ -189,7 +186,7 @@ func (Reader) Read(
 			return domain.Metadata{}, fmt.Errorf("read ID3 picture from %q: unexpected frame type %T", path, frame)
 		}
 		if picture.PictureType == id3v2.PTFrontCover {
-			fallbackCover = append([]byte(nil), picture.Picture...)
+			fallbackCover = picture.Picture
 			if picture.Description == "" {
 				metadata.CoverImage = fallbackCover
 				break

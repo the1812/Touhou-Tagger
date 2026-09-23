@@ -10,9 +10,17 @@ type CoverProcessor interface {
 	Compress(context.Context, []byte, domain.CoverOptions) ([]byte, error)
 }
 
+type ReadOptions struct {
+	IncludeRaw bool
+}
+
+type ReadResult struct {
+	Metadata domain.Metadata
+	Raw      any
+}
+
 type Reader interface {
-	Read(context.Context, string, domain.MetadataConfig) (domain.Metadata, error)
-	ReadRaw(context.Context, string) (any, error)
+	Read(context.Context, string, domain.MetadataConfig, ReadOptions) (ReadResult, error)
 }
 
 type Writer interface {
