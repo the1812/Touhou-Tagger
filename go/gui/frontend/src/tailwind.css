@@ -57,6 +57,14 @@
 }
 
 @utility primevue-defaults {
+  & .p-image-mask.p-overlay-mask-enter-active .p-image-toolbar {
+    animation: image-toolbar-enter var(--p-mask-transition-duration);
+  }
+
+  & .p-image-mask.p-overlay-mask-leave-active .p-image-toolbar {
+    animation: image-toolbar-leave var(--p-mask-transition-duration);
+  }
+
   & .p-button-outlined:not(:enabled:hover):not(:enabled:active) {
     @apply bg-surface-0 dark:bg-surface-900;
   }
@@ -83,6 +91,18 @@
 
   & .app-theme-tooltip .p-tooltip-text {
     @apply whitespace-nowrap;
+  }
+}
+
+@keyframes image-toolbar-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes image-toolbar-leave {
+  to {
+    opacity: 0;
   }
 }
 
