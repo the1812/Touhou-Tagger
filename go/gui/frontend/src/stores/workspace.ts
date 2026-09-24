@@ -175,7 +175,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
-  const scan = async (targetDirectory = directory.value) => {
+  const scan = async (targetDirectory: string) => {
     if (!targetDirectory || isBusy.value || operation.value) {
       return
     }
@@ -183,20 +183,24 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     const requestVersion = contextVersion
     phase.value = 'scanning'
     try {
-      const startsNewWorkspace = targetDirectory !== directory.value
       await discardCurrentPlan()
+      directory.value = targetDirectory
+      summary.value = undefined
+      query.value = ''
+      source.value = defaultSource()
+      clearAfterDirectory()
       const api = await getApi()
       const nextSummary = await api.scanWorkspace(targetDirectory)
       if (requestVersion !== contextVersion) {
         return
       }
-      if (startsNewWorkspace) {
-        source.value = nextSummary.effectiveSource || defaultSource()
-      }
+      source.value =
+        nextSummary.effectiveSource === 'local-json'
+          ? defaultSource()
+          : nextSummary.effectiveSource || defaultSource()
       directory.value = nextSummary.directory
       summary.value = nextSummary
       query.value = nextSummary.inferredAlbumName
-      clearAfterDirectory()
       phase.value = 'scanned'
       if (nextSummary.hasMetadataJson) {
         selectedCandidateId.value = 'local-json'
@@ -209,7 +213,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       if (requestVersion !== contextVersion) {
         return
       }
-      phase.value = summary.value ? 'scanned' : 'idle'
+      phase.value = 'idle'
       notifications.error(t('notifications.scanAlbumFailed'), error)
     }
   }

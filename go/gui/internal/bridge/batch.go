@@ -36,12 +36,13 @@ func (job *batchJob) canRun() bool {
 }
 
 type batchSession struct {
-	mu      sync.Mutex
-	id      string
-	root    string
-	depth   int
-	jobs    []*batchJob
-	running bool
+	mu           sync.Mutex
+	id           string
+	root         string
+	depth        int
+	searchSource string
+	jobs         []*batchJob
+	running      bool
 }
 
 type BatchService struct {
@@ -82,10 +83,11 @@ func (service *BatchService) ScanBatch(
 		return BatchPreview{}, fmt.Errorf("解析批量写入目录: %w", err)
 	}
 	session := &batchSession{
-		id:    newID("batch"),
-		root:  root,
-		depth: depth,
-		jobs:  make([]*batchJob, 0, len(jobs)),
+		id:           newID("batch"),
+		root:         root,
+		depth:        depth,
+		searchSource: sourceName,
+		jobs:         make([]*batchJob, 0, len(jobs)),
 	}
 	for _, discovered := range jobs {
 		job := &batchJob{
@@ -136,14 +138,14 @@ func (service *BatchService) LoadBatchJob(ctx context.Context, batchID, jobID st
 }
 
 func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID, jobID, candidateID string) (BatchJobPreview, error) {
-	return service.updateJob(ctx, batchID, jobID, func(ctx context.Context, owner string, job *batchJob) error {
+	return service.updateJob(ctx, batchID, jobID, func(ctx context.Context, session *batchSession, job *batchJob) error {
 		for _, candidate := range job.candidates {
 			if candidate.ID != candidateID {
 				continue
 			}
 			job.selectedCandidateID = candidate.ID
 			job.source = candidate.Source
-			plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, owner)
+			plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, session.id)
 			job.plan = plan
 			return err
 		}
@@ -154,7 +156,7 @@ func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID,
 func (service *BatchService) updateJob(
 	ctx context.Context,
 	batchID, jobID string,
-	load func(context.Context, string, *batchJob) error,
+	load func(context.Context, *batchSession, *batchJob) error,
 ) (BatchJobPreview, error) {
 	service.mu.RLock()
 	session, exists := service.sessions[batchID]
@@ -185,7 +187,7 @@ func (service *BatchService) updateJob(
 	if previousPlan != nil {
 		service.planner.discard(previousPlan.id)
 	}
-	if err := load(ctx, session.id, &working); err != nil {
+	if err := load(ctx, session, &working); err != nil {
 		working.status = "scan-failed"
 		working.issues = []StateIssue{failureIssue("load-failed", err)}
 	}
@@ -208,9 +210,9 @@ func (service *BatchService) updateJob(
 	return batchJobPreview(session.root, job), nil
 }
 
-func (service *BatchService) loadBatchJob(ctx context.Context, owner string, job *batchJob) error {
+func (service *BatchService) loadBatchJob(ctx context.Context, session *batchSession, job *batchJob) error {
 	base := service.runtime.getConfig()
-	base.Source = job.source
+	base.Source = session.searchSource
 	album, err := application.OpenAlbum(ctx, job.directory, base)
 	if err != nil {
 		return err
@@ -233,7 +235,7 @@ func (service *BatchService) loadBatchJob(ctx context.Context, owner string, job
 			ID: "local-json", Name: album.Name, Source: "local-json",
 		}, album.Name)}
 	} else {
-		job.candidates, err = service.catalog.search(ctx, applicationService, owner, album.Name, false)
+		job.candidates, err = service.catalog.search(ctx, applicationService, session.id, album.Name, false)
 		if err != nil {
 			return err
 		}
@@ -245,7 +247,7 @@ func (service *BatchService) loadBatchJob(ctx context.Context, owner string, job
 		return nil
 	}
 	job.selectedCandidateID = candidate.ID
-	job.plan, err = service.planner.prepareAlbumPlan(ctx, album, applicationService, candidate.ID, owner)
+	job.plan, err = service.planner.prepareAlbumPlan(ctx, album, applicationService, candidate.ID, session.id)
 	return err
 }
 

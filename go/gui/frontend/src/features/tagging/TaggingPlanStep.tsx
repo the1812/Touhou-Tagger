@@ -164,7 +164,9 @@ export const TaggingPlanStep = defineComponent({
                   label={t(isWriting.value ? 'operation.writing' : idleAction)}
                   loading={showSpinner.value}
                   disabled={isBusy.value || (!stale && !canCommit.value)}
-                  onClick={() => void (stale ? workspace.scan() : workspace.commit())}
+                  onClick={() =>
+                    void (stale ? workspace.scan(workspace.directory) : workspace.commit())
+                  }
                 >
                   {{ icon: () => <Play /> }}
                 </Button>

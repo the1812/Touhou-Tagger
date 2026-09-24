@@ -34,10 +34,10 @@ export const TaggingPage = defineComponent({
     usePageCommands({
       openDirectory: directory => workspace.selectDirectory(directory),
       refresh: () => {
-        if (!summary.value?.directory) {
+        if (!workspace.directory) {
           return false
         }
-        void workspace.scan()
+        void workspace.scan(workspace.directory)
         return true
       },
       focusSearch: () => {
@@ -105,7 +105,7 @@ export const TaggingPage = defineComponent({
                               text
                               rounded
                               disabled={isBusy.value}
-                              onClick={() => void workspace.scan()}
+                              onClick={() => void workspace.scan(currentSummary.directory)}
                             >
                               {{ icon: () => <RefreshCw /> }}
                             </Button>
