@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -116,7 +117,7 @@ func ResolveAlbum(
 	}, nil
 }
 
-func SaveDefaultAlbumHint(directory, hint string) error {
+func SaveAlbumSelection(directory, source, hint string) error {
 	path := filepath.Join(directory, "thtag.json")
 	data, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -128,11 +129,41 @@ func SaveDefaultAlbumHint(directory, hint string) error {
 			return &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse album config: %w", err)}
 		}
 	}
-	hintData, err := json.Marshal(hint)
-	if err != nil {
-		return fmt.Errorf("encode default album hint: %w", err)
+	changed := false
+	if source == "" {
+		if _, exists := value["source"]; exists {
+			delete(value, "source")
+			changed = true
+		}
+	} else {
+		sourceData, err := json.Marshal(source)
+		if err != nil {
+			return fmt.Errorf("encode album source: %w", err)
+		}
+		if !bytes.Equal(value["source"], sourceData) {
+			value["source"] = sourceData
+			changed = true
+		}
 	}
-	value["defaultAlbumHint"] = hintData
+	if hint != "" {
+		hintData, err := json.Marshal(hint)
+		if err != nil {
+			return fmt.Errorf("encode default album hint: %w", err)
+		}
+		if !bytes.Equal(value["defaultAlbumHint"], hintData) {
+			value["defaultAlbumHint"] = hintData
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	if len(value) == 0 {
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("remove empty album config: %w", err)
+		}
+		return nil
+	}
 	data, err = json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		return fmt.Errorf("encode album config: %w", err)

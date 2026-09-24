@@ -4,6 +4,8 @@ import { hideBin } from 'yargs/helpers'
 import { DefaultMetadataSeparator, LyricConfig, MetadataConfig } from '../core/core-config.js'
 import { loadConfigFile } from './config-file.js'
 
+export const DefaultMetadataSource = 'thb-wiki'
+
 export type CliOptions = ReturnType<typeof readCliOptionsFromFile>
 
 let cliOptions: CliOptions | undefined
@@ -84,7 +86,7 @@ export const createCliOptionsParser = (argv = hideBin(process.argv)) => {
     .option('source', {
       alias: 's',
       type: 'string',
-      default: 'thb-wiki',
+      default: DefaultMetadataSource,
       choices: ['thb-wiki', 'doujin-meta'],
       description: '设置数据源',
     })

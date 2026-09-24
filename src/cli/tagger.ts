@@ -11,7 +11,7 @@ import { setAlbumOptions } from './album-options.js'
 import { CliCommandBase } from './command-base.js'
 import { getDefaultAlbumName } from './default-album-name.js'
 import { asyncFlatMap } from './helper.js'
-import { getMetadataConfig } from './options.js'
+import { DefaultMetadataSource, getMetadataConfig } from './options.js'
 
 const leadingNumberSort = (a: string, b: string) => {
   const infinityPrase = (str: string) => {
@@ -197,10 +197,11 @@ export class CliTagger extends CliCommandBase {
       const targetFiles = await this.createFiles(metadata)
       this.spinner.text = '写入专辑信息中'
       await this.writeMetadataToFile(metadata, targetFiles)
-      const defaultAlbumName = await getDefaultAlbumName(this.workingDir)
-      if (album !== defaultAlbumName && !localJson) {
+      if (!localJson) {
+        const defaultAlbumName = await getDefaultAlbumName(this.workingDir)
         await setAlbumOptions(this.workingDir, {
-          defaultAlbumHint: album,
+          source: this.options.source === DefaultMetadataSource ? undefined : this.options.source,
+          ...(album !== defaultAlbumName ? { defaultAlbumHint: album } : {}),
         })
       }
       this.spinner.succeed(batch ? '成功写入了专辑信息' : `成功写入了专辑信息: ${album}`)

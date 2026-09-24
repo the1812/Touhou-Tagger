@@ -145,7 +145,7 @@ func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID,
 			}
 			job.selectedCandidateID = candidate.ID
 			job.source = candidate.Source
-			plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, session.id)
+			plan, err := service.planner.prepareOwnedPlan(ctx, job.directory, candidate.ID, candidate.Source, service.runtime.getConfig().Source, session.id)
 			job.plan = plan
 			return err
 		}
@@ -247,7 +247,7 @@ func (service *BatchService) loadBatchJob(ctx context.Context, session *batchSes
 		return nil
 	}
 	job.selectedCandidateID = candidate.ID
-	job.plan, err = service.planner.prepareAlbumPlan(ctx, album, applicationService, candidate.ID, session.id)
+	job.plan, err = service.planner.prepareAlbumPlan(ctx, album, applicationService, candidate.ID, service.runtime.getConfig().Source, session.id)
 	return err
 }
 

@@ -47,9 +47,12 @@ func (service *planCoordinator) prepareOwnedPlan(
 	directory string,
 	candidateID string,
 	sourceName string,
+	defaultSource string,
 	owner string,
 ) (*planSession, error) {
-	album, err := coreapp.OpenAlbum(ctx, directory, service.runtime.getConfig())
+	base := service.runtime.getConfig()
+	base.Source = defaultSource
+	album, err := coreapp.OpenAlbum(ctx, directory, base)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +60,7 @@ func (service *planCoordinator) prepareOwnedPlan(
 	if err != nil {
 		return nil, err
 	}
-	return service.prepareAlbumPlan(ctx, album, applicationService, candidateID, owner)
+	return service.prepareAlbumPlan(ctx, album, applicationService, candidateID, defaultSource, owner)
 }
 
 func (service *planCoordinator) prepareAlbumPlan(
@@ -65,6 +68,7 @@ func (service *planCoordinator) prepareAlbumPlan(
 	album coreapp.Album,
 	applicationService *coreapp.Service,
 	candidateID string,
+	defaultSource string,
 	owner string,
 ) (*planSession, error) {
 	sourceName := applicationService.Config.Source
@@ -83,17 +87,18 @@ func (service *planCoordinator) prepareAlbumPlan(
 		return nil, err
 	}
 	session := &planSession{
-		id:          newID("plan"),
-		owner:       owner,
-		revision:    1,
-		albumName:   album.Name,
-		scan:        album.Scan,
-		metadata:    cloneMetadata(data.Metadata),
-		candidate:   dtoToCandidate(candidate),
-		cover:       data.Cover,
-		coverSource: data.CoverSource,
-		saveCover:   len(data.Cover) > 0 && album.Config.Cover != nil && *album.Config.Cover,
-		config:      applicationService.Config,
+		id:            newID("plan"),
+		owner:         owner,
+		revision:      1,
+		albumName:     album.Name,
+		defaultSource: defaultSource,
+		scan:          album.Scan,
+		metadata:      cloneMetadata(data.Metadata),
+		candidate:     dtoToCandidate(candidate),
+		cover:         data.Cover,
+		coverSource:   data.CoverSource,
+		saveCover:     len(data.Cover) > 0 && album.Config.Cover != nil && *album.Config.Cover,
+		config:        applicationService.Config,
 	}
 	service.rebuildSession(session)
 	service.store.put(session)
@@ -222,7 +227,9 @@ func (service *planCoordinator) executeCommit(
 	session.mu.Lock()
 	configValue := cloneConfig(session.config)
 	metadata := cloneMetadata(session.metadata)
-	commit := coreapp.AlbumCommit{Candidate: session.candidate, DefaultAlbumName: session.albumName}
+	commit := coreapp.AlbumCommit{
+		Candidate: session.candidate, DefaultAlbumName: session.albumName, DefaultSource: session.defaultSource,
+	}
 	scan := session.scan
 	commit.Cover, err = session.coverOutput()
 	session.mu.Unlock()

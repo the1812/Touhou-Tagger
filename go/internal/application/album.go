@@ -40,6 +40,7 @@ type AlbumCommit struct {
 	Plan             domain.TagPlan
 	Candidate        domain.AlbumCandidate
 	DefaultAlbumName string
+	DefaultSource    string
 	Cover            *CoverOutput
 }
 
@@ -81,9 +82,16 @@ func (service *Service) CommitAlbum(ctx context.Context, commit AlbumCommit) (Al
 		result.CoverPath = cover.Path
 		result.CoversSaved = 1
 	}
-	if commit.Candidate.Source != "local-json" && commit.Candidate.Name != "" &&
-		commit.Candidate.Name != commit.DefaultAlbumName {
-		if err := config.SaveDefaultAlbumHint(plan.Directory, commit.Candidate.Name); err != nil {
+	if commit.Candidate.Source != "local-json" {
+		hint := ""
+		if commit.Candidate.Name != "" && commit.Candidate.Name != commit.DefaultAlbumName {
+			hint = commit.Candidate.Name
+		}
+		source := commit.Candidate.Source
+		if source == commit.DefaultSource {
+			source = ""
+		}
+		if err := config.SaveAlbumSelection(plan.Directory, source, hint); err != nil {
 			return result, err
 		}
 	}

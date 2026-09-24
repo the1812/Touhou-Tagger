@@ -28,14 +28,14 @@ func TestSharedConfigRoundTrip(t *testing.T) {
 	}
 }
 
-func TestAlbumHintPreservesUnknownFieldsAndZeroOverrides(t *testing.T) {
+func TestAlbumSelectionPreservesUnknownFieldsAndZeroOverrides(t *testing.T) {
 	directory := t.TempDir()
 	path := filepath.Join(directory, "thtag.json")
-	input := []byte(`{"source":"doujin-meta","coverCompressResolution":0,"future":{"keep":true}}`)
+	input := []byte(`{"source":"thb-wiki","coverCompressResolution":0,"future":{"keep":true}}`)
 	if err := os.WriteFile(path, input, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := SaveDefaultAlbumHint(directory, "Selected Album"); err != nil {
+	if err := SaveAlbumSelection(directory, "doujin-meta", "Selected Album"); err != nil {
 		t.Fatal(err)
 	}
 	data, err := os.ReadFile(path)
@@ -54,8 +54,18 @@ func TestAlbumHintPreservesUnknownFieldsAndZeroOverrides(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if options.DefaultAlbumHint != "Selected Album" || options.CoverCompressResolution == nil || *options.CoverCompressResolution != 0 {
+	if options.DefaultAlbumHint != "Selected Album" || options.Source == nil || *options.Source != "doujin-meta" || options.CoverCompressResolution == nil || *options.CoverCompressResolution != 0 {
 		t.Fatalf("unexpected album options: %#v", options)
+	}
+	if err := SaveAlbumSelection(directory, "", ""); err != nil {
+		t.Fatal(err)
+	}
+	options, err = LoadAlbum(directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if options.DefaultAlbumHint != "Selected Album" || options.Source != nil {
+		t.Fatalf("source-only selection changed the album hint: %#v", options)
 	}
 }
 

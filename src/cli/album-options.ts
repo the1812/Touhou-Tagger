@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, unlink, writeFile } from 'fs/promises'
 import { resolve } from 'path'
 
 import { type CliOptions } from './options.js'
@@ -31,22 +31,19 @@ export const getAlbumOptions = async (
 }
 export const setAlbumOptions = async (workingDir: string, options: Partial<AlbumOptions>) => {
   const albumOptionsPath = resolve(workingDir, AlbumOptionsFileName)
-  try {
-    const albumOptions = JSON.parse(
-      await readFile(albumOptionsPath, { encoding: 'utf-8' }),
-    ) as AlbumOptions
-    await writeFile(
-      albumOptionsPath,
-      JSON.stringify(
-        {
-          ...albumOptions,
-          ...options,
-        },
-        undefined,
-        2,
-      ),
-    )
-  } catch {
-    await writeFile(albumOptionsPath, JSON.stringify(options, undefined, 2))
+  const albumOptions = existsSync(albumOptionsPath)
+    ? (JSON.parse(await readFile(albumOptionsPath, { encoding: 'utf-8' })) as AlbumOptions)
+    : {}
+  const updated = { ...albumOptions, ...options }
+  if (options.source === undefined) {
+    delete updated.source
   }
+  if (JSON.stringify(updated) === JSON.stringify(albumOptions)) {
+    return
+  }
+  if (Object.keys(updated).length === 0) {
+    await unlink(albumOptionsPath)
+    return
+  }
+  await writeFile(albumOptionsPath, JSON.stringify(updated, undefined, 2))
 }

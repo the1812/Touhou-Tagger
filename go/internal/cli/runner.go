@@ -26,13 +26,14 @@ type BuildInfo struct {
 }
 
 type Runner struct {
-	input   *bufio.Reader
-	output  io.Writer
-	errors  io.Writer
-	codec   *imagecodec.Engine
-	build   BuildInfo
-	options Options
-	lyrics  thbwiki.LyricsCache
+	input         *bufio.Reader
+	output        io.Writer
+	errors        io.Writer
+	codec         *imagecodec.Engine
+	build         BuildInfo
+	options       Options
+	defaultSource string
+	lyrics        thbwiki.LyricsCache
 }
 
 func Execute(ctx context.Context, args []string, build BuildInfo) error {
@@ -66,6 +67,7 @@ func (runner *Runner) command(ctx context.Context) (*cobra.Command, error) {
 		return nil, err
 	}
 	runner.options = newOptions(stored)
+	runner.defaultSource = stored.Source
 	root := &cobra.Command{
 		Use:               "thtag",
 		Short:             "Touhou Tagger",
@@ -244,7 +246,9 @@ func (runner *Runner) tagDirectory(
 	if candidate.Source == "local-json" && len(plan.Items) > 0 {
 		candidate.Name = plan.Items[0].Metadata.Album
 	}
-	commit := application.AlbumCommit{Plan: plan, Candidate: candidate, DefaultAlbumName: album.Name}
+	commit := application.AlbumCommit{
+		Plan: plan, Candidate: candidate, DefaultAlbumName: album.Name, DefaultSource: runner.defaultSource,
+	}
 	if options.Cover && len(cover) > 0 {
 		path, err := application.CoverPath(directory, cover)
 		if err != nil {

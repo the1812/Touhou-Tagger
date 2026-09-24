@@ -106,7 +106,7 @@ func (service *WorkspaceService) PreparePlan(
 	candidateID string,
 	sourceName string,
 ) (PlanPreview, error) {
-	session, err := service.planner.prepareOwnedPlan(ctx, directory, candidateID, sourceName, "workspace")
+	session, err := service.planner.prepareOwnedPlan(ctx, directory, candidateID, sourceName, service.runtime.getConfig().Source, "workspace")
 	if err != nil {
 		return PlanPreview{}, err
 	}

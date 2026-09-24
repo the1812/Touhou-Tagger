@@ -10,21 +10,22 @@ import (
 )
 
 type planSession struct {
-	mu          sync.Mutex
-	id          string
-	owner       string
-	revision    int
-	albumName   string
-	scan        domain.AlbumScan
-	metadata    []domain.Metadata
-	plan        domain.TagPlan
-	candidate   domain.AlbumCandidate
-	cover       []byte
-	coverSource string
-	saveCover   bool
-	config      domain.MetadataConfig
-	issues      []StateIssue
-	committing  bool
+	mu            sync.Mutex
+	id            string
+	owner         string
+	revision      int
+	albumName     string
+	defaultSource string
+	scan          domain.AlbumScan
+	metadata      []domain.Metadata
+	plan          domain.TagPlan
+	candidate     domain.AlbumCandidate
+	cover         []byte
+	coverSource   string
+	saveCover     bool
+	config        domain.MetadataConfig
+	issues        []StateIssue
+	committing    bool
 }
 
 type planStore struct {
