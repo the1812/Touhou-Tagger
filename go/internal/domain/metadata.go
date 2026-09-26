@@ -35,9 +35,26 @@ func (metadata Metadata) WithoutCover() Metadata {
 }
 
 type AlbumCandidate struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Source string `json:"source"`
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Source       string   `json:"source"`
+	Artists      []string `json:"artists,omitempty"`
+	ThumbnailURL string   `json:"thumbnailUrl,omitempty"`
+	Description  string   `json:"description,omitempty"`
+}
+
+func MatchingAlbumCandidate(candidates []AlbumCandidate, query string) *AlbumCandidate {
+	var match *AlbumCandidate
+	for index := range candidates {
+		if !candidates[index].MatchesName(query) {
+			continue
+		}
+		if match != nil {
+			return nil
+		}
+		match = &candidates[index]
+	}
+	return match
 }
 
 func (candidate AlbumCandidate) MatchesName(query string) bool {

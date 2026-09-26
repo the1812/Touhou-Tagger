@@ -27,7 +27,6 @@ export const TaggingPlanStep = defineComponent({
     const selectedTrack = ref<PlanItemPreview>()
     const trackDialogVisible = ref(false)
     const albumDialogVisible = ref(false)
-
     const openTrack = (item: PlanItemPreview) => {
       if (isBusy.value || phase.value !== 'ready') {
         return

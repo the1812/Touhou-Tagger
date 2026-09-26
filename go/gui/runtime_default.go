@@ -26,6 +26,8 @@ func runtimeOptions(
 	return factory, []bridge.SourceOption{
 		{Value: "thb-wiki", Label: "THBWiki", SupportsSearch: true},
 		{Value: "doujin-meta", Label: "Doujin Meta", SupportsSearch: true},
+		{Value: "music-brainz", Label: "MusicBrainz", SupportsSearch: true},
+		{Value: "discogs", Label: "Discogs", SupportsSearch: true},
 		{Value: "local-json", Label: "本地 metadata.json", SupportsSearch: false},
 	}, nil
 }

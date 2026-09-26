@@ -82,38 +82,6 @@ describe('THBWiki album contracts', () => {
   }
 })
 
-describe('THBWiki OpenSearch contracts', () => {
-  test.each([
-    {
-      name: 'exact match',
-      query: 'Perfect Album',
-      names: ['Perfect Album', '歌词:Perfect Album', 'Perfect Album/Other'],
-      expected: 'Perfect Album',
-    },
-    {
-      name: 'fuzzy matches',
-      query: 'Fuzzy',
-      names: ['歌词:Fuzzy Song', 'Fuzzy Album', 'Fuzzy Collection'],
-      expected: ['Fuzzy Album', 'Fuzzy Collection'],
-    },
-    {
-      name: 'lyric pages only',
-      query: 'Lyrics',
-      names: ['歌词:Lyrics', '歌词:Lyrics/Version'],
-      expected: [],
-    },
-  ])('handles $name', async contract => {
-    vi.spyOn(axios, 'get').mockResolvedValue({
-      data: [contract.query, contract.names, [], []],
-      status: 200,
-    })
-    const source = new ThbWiki('fixture.invalid')
-    source.config = metadataConfig()
-
-    await expect(source.resolveAlbumName(contract.query)).resolves.toEqual(contract.expected)
-  })
-})
-
 describe('THBWiki lyric contracts', () => {
   for (const name of lyricCases) {
     test(name, async () => {

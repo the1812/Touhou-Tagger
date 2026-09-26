@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
@@ -147,20 +148,25 @@ func (service *WorkspaceService) RevealDirectory(ctx context.Context, directory 
 
 func candidateToDTO(candidate domain.AlbumCandidate, query string) AlbumCandidate {
 	return AlbumCandidate{
-		ID:          candidate.ID,
-		Title:       candidate.Name,
-		Source:      candidate.Source,
-		SourceLabel: sourceLabel(candidate.Source),
-		Artists:     []string{},
-		ExactMatch:  candidate.MatchesName(query),
+		ID:           candidate.ID,
+		Title:        candidate.Name,
+		Source:       candidate.Source,
+		SourceLabel:  sourceLabel(candidate.Source),
+		Artists:      slices.Clone(candidate.Artists),
+		ThumbnailURL: candidate.ThumbnailURL,
+		ExactMatch:   candidate.MatchesName(query),
+		Description:  candidate.Description,
 	}
 }
 
 func dtoToCandidate(candidate AlbumCandidate) domain.AlbumCandidate {
 	return domain.AlbumCandidate{
-		ID:     candidate.ID,
-		Name:   candidate.Title,
-		Source: candidate.Source,
+		ID:           candidate.ID,
+		Name:         candidate.Title,
+		Source:       candidate.Source,
+		Artists:      slices.Clone(candidate.Artists),
+		ThumbnailURL: candidate.ThumbnailURL,
+		Description:  candidate.Description,
 	}
 }
 
@@ -170,6 +176,10 @@ func sourceLabel(sourceName string) string {
 		return "THBWiki"
 	case "doujin-meta":
 		return "Doujin Meta"
+	case "music-brainz":
+		return "MusicBrainz"
+	case "discogs":
+		return "Discogs"
 	case "local-json":
 		return "本地 metadata.json"
 	default:

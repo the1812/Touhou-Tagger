@@ -7,6 +7,8 @@ export { ThbWiki, thbWiki } from './metadata/thb-wiki/thb-wiki.js'
 export { LocalMp3, localMp3 } from './metadata/local-mp3/local-mp3.js'
 export { LocalJson, localJson } from './metadata/local-json/local-json.js'
 export { DoujinMeta, doujinMeta } from './metadata/doujin-meta/doujin-meta.js'
+export { MusicBrainz, musicBrainz } from './metadata/musicbrainz/musicbrainz.js'
+export { Discogs, discogs } from './metadata/discogs/discogs.js'
 
 export * from './writer/metadata-writer.js'
 export * from './writer/writer-mappings.js'

@@ -1,0 +1,66 @@
+import { ExternalLink, FolderOpen } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
+import Button from 'primevue/button'
+import { computed, defineComponent } from 'vue'
+
+import { t } from '../../i18n'
+import { TruncatedText } from '../../shared/TruncatedText'
+import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
+import { useBatchStore } from '../../stores/batch'
+
+export const BatchDirectoryHeader = defineComponent({
+  name: 'BatchDirectoryHeader',
+  setup() {
+    const batch = useBatchStore()
+    const { directory, selecting, scanning, resolvingCount, isWriting } = storeToRefs(batch)
+    const directoryLabel = computed(() => {
+      const parts = directory.value.split(/[\\/]/).filter(Boolean)
+      return parts[parts.length - 1] || t('batch.directoryFallback')
+    })
+    const controlsDisabled = computed(
+      () => selecting.value || scanning.value || resolvingCount.value > 0 || isWriting.value,
+    )
+
+    return () => {
+      const currentDirectory = directory.value
+      return (
+        <div class="workspace-section">
+          <div class="workspace-heading">
+            <div class="min-w-0">
+              <WorkspaceTitle>{directoryLabel.value}</WorkspaceTitle>
+              <TruncatedText
+                tooltip={currentDirectory}
+                class={['mt-1.5 max-w-[min(760px,65vw)]', 'text-base text-muted-color']}
+              >
+                {currentDirectory}
+              </TruncatedText>
+            </div>
+            <div class="flex items-center gap-4.5">
+              <div class="flex items-center gap-1">
+                <Button
+                  v-tooltip={t('common.revealDirectory')}
+                  severity="secondary"
+                  text
+                  rounded
+                  onClick={() => void batch.reveal()}
+                >
+                  {{ icon: () => <ExternalLink /> }}
+                </Button>
+              </div>
+              <Button
+                label={t('common.changeDirectory')}
+                severity="secondary"
+                outlined
+                loading={selecting.value}
+                disabled={controlsDisabled.value}
+                onClick={() => void batch.selectDirectory()}
+              >
+                {{ icon: () => <FolderOpen /> }}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  },
+})

@@ -2,11 +2,10 @@ import coverUrl from '../../../../../fixtures/media/images/cover.jpg?url'
 import multipleDiscFixture from '../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
 import noCoverFixture from '../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
 import singleDiscFixture from '../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
-import { t } from '../i18n'
+import { sourceLabel, t } from '../i18n'
 import type {
   AlbumCandidate,
   AlbumMetadata,
-  BatchJobPreview,
   Capabilities,
   PlanItemPreview,
   PlanPreview,
@@ -21,8 +20,10 @@ export const batchDirectory = 'D:/Music/Touhou'
 
 export const capabilities: Capabilities = {
   sources: [
-    { value: 'thb-wiki', label: 'THBWiki', supportsSearch: true },
-    { value: 'local-json', label: '本地 metadata.json', supportsSearch: false },
+    { value: 'thb-wiki', label: sourceLabel('thb-wiki'), supportsSearch: true },
+    { value: 'music-brainz', label: sourceLabel('music-brainz'), supportsSearch: true },
+    { value: 'discogs', label: sourceLabel('discogs'), supportsSearch: true },
+    { value: 'local-json', label: sourceLabel('local-json'), supportsSearch: false },
   ],
   commentLanguages: [
     { value: 'zho', label: t('data.chinese') },
@@ -60,9 +61,10 @@ const fixtureCandidate = (
   id,
   title: fixture.album.album,
   source: 'thb-wiki',
-  sourceLabel: 'THBWiki',
+  sourceLabel: sourceLabel('thb-wiki'),
   albumOrder: fixture.album.albumOrder,
   artists: fixture.album.albumArtists,
+  thumbnailUrl: fixture.cover ? coverUrl : undefined,
   year: fixture.album.year,
   exactMatch,
   description: `${String(fixture.tracks.length)} 首曲目 · ${fixture.album.genres.join('、')}`,
@@ -79,6 +81,19 @@ const fixtureByCandidate = new Map<string, AlbumFixture>([
   ['fixture:multiple-disc', multipleDiscFixture],
   ['fixture:no-cover', noCoverFixture],
 ])
+
+for (const source of ['music-brainz', 'discogs']) {
+  for (const edition of ['original', 'reissue']) {
+    const id = `fixture:${source}:${edition}`
+    candidates.push({
+      ...fixtureCandidate(singleDiscFixture, id, false),
+      source,
+      sourceLabel: sourceLabel(source),
+      description: `${singleDiscFixture.album.albumArtists.join(' / ')} · ${edition === 'original' ? '2017' : '2020'} · ${singleDiscFixture.album.albumOrder} · CD · ${id}`,
+    })
+    fixtureByCandidate.set(id, singleDiscFixture)
+  }
+}
 
 export const workspaceSummary: WorkspaceSummary = {
   directory: fixtureDirectory,
@@ -148,8 +163,8 @@ export const createPlan = (
     cover: hasCover
       ? {
           url: coverUrl,
-          source: 'thb-wiki',
-          sourceLabel: 'THBWiki 封面',
+          source: candidate.source as PlanPreview['cover']['source'],
+          sourceLabel: sourceLabel(candidate.source),
           width: 600,
           height: 600,
           byteSize: 43246,
@@ -177,50 +192,3 @@ export const createPlan = (
     canCommit: true,
   }
 }
-
-export const batchJobs = (): BatchJobPreview[] => [
-  {
-    id: 'fixture-job-single',
-    relativePath: singleDiscFixture.album.album,
-    inferredAlbumName: singleDiscFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '精确匹配',
-    audioCount: singleDiscFixture.tracks.length,
-    status: 'ready',
-    canRun: true,
-    issues: [],
-    candidates: [candidates[0]],
-    selectedCandidateId: candidates[0].id,
-  },
-  {
-    id: 'fixture-job-multiple',
-    relativePath: multipleDiscFixture.album.album,
-    inferredAlbumName: multipleDiscFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '多个搜索结果',
-    audioCount: multipleDiscFixture.tracks.length,
-    status: 'needs-candidate',
-    canRun: false,
-    issues: [
-      {
-        code: 'candidate-required',
-        message: t('data.candidateRequired'),
-        severity: 'warning',
-      },
-    ],
-    candidates: [candidates[1], candidates[0]],
-  },
-  {
-    id: 'fixture-job-no-cover',
-    relativePath: noCoverFixture.album.album,
-    inferredAlbumName: noCoverFixture.album.album,
-    source: 'thb-wiki',
-    matchDescription: '精确匹配',
-    audioCount: noCoverFixture.tracks.length,
-    status: 'ready',
-    canRun: true,
-    issues: [],
-    candidates: [candidates[2]],
-    selectedCandidateId: candidates[2].id,
-  },
-]

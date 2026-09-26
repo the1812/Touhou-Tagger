@@ -23,7 +23,9 @@ export const CompletionDialog = defineComponent({
         class="w-[min(560px,calc(100vw-2rem))]"
         {...{
           'onUpdate:visible': (visible: boolean) => {
-            if (!visible) emit('close')
+            if (!visible) {
+              emit('close')
+            }
           },
         }}
       >

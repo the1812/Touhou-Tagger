@@ -14,10 +14,14 @@ import { useWorkspaceStore } from '../stores/workspace'
 const restarting = ref(false)
 
 export const initializeProgressMock = async () => {
-  if (restarting.value) return
+  if (restarting.value) {
+    return
+  }
   restarting.value = true
   try {
-    if (progressMock.operation.value) progressMock.finish('cancel')
+    if (progressMock.operation.value) {
+      progressMock.finish('cancel')
+    }
     if (progressMockKind === 'workspace') {
       await router.replace('/tagging')
       const workspace = useWorkspaceStore()
@@ -74,13 +78,18 @@ export const ProgressMockPanel = defineComponent({
     ]
     const tick = () => {
       const operation = progressMock.operation.value
-      if (!operation) return
+      if (!operation) {
+        return
+      }
       if (progressMockKind === 'batch' && operation.current < operation.total) {
         progressMock.update({ current: operation.current + 1 })
       } else {
         const next = stages.at(stages.findIndex(stage => stage.value === operation.stage) + 1)
-        if (next) progressMock.update({ stage: next.value, current: 0, message: next.label })
-        else progressMock.finish('success')
+        if (next) {
+          progressMock.update({ stage: next.value, current: 0, message: next.label })
+        } else {
+          progressMock.finish('success')
+        }
       }
     }
     let elapsed = 0

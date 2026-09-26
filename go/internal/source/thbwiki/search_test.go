@@ -12,11 +12,28 @@ import (
 
 func TestSearchFiltersLyricEntries(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		if request.URL.Query().Get("action") != "opensearch" || request.URL.Query().Get("search") != "Album" {
+		if request.URL.Path != "/api.php" {
+			t.Errorf("unexpected endpoint: %s", request.URL.Path)
+		}
+		var body string
+		switch request.URL.Query().Get("action") {
+		case "opensearch":
+			body = `["Album",["歌词:Album","Album","Another"]]`
+		case "ask":
+			if request.URL.Query().Get("query") != "[[Album]] OR [[Another]]|?制作方|?封面图片|limit=2" {
+				t.Errorf("unexpected semantic query: %s", request.URL.RawQuery)
+			}
+			body = `{"query":{"results":{"Album":{"printouts":{"制作方":[{"fulltext":"Circle A"},{"fulltext":"Circle B"}],"封面图片":[{"fulltext":"File:Album_cover.jpg"}]}},"Another":{"printouts":{}}}}}`
+		case "query":
+			if request.URL.Query().Get("iiurlwidth") != "500" || request.URL.Query().Get("iiurlheight") != "500" {
+				t.Errorf("unexpected thumbnail size: %s", request.URL.RawQuery)
+			}
+			body = `{"query":{"normalized":[{"from":"File:Album_cover.jpg","to":"文件:Album cover.jpg"}],"pages":[{"title":"文件:Album cover.jpg","imageinfo":[{"url":"https://example.test/original.jpg","thumburl":"https://example.test/500px-cover.jpg"}]}]}}`
+		default:
 			http.Error(response, "unexpected query", http.StatusBadRequest)
 			return
 		}
-		if _, err := response.Write([]byte(`["Album",["歌词:Album","Album","Another"]]`)); err != nil {
+		if _, err := response.Write([]byte(body)); err != nil {
 			t.Error(err)
 		}
 	}))
@@ -31,6 +48,9 @@ func TestSearchFiltersLyricEntries(t *testing.T) {
 	}
 	if len(candidates) != 2 || candidates[0].Name != "Album" || candidates[1].Name != "Another" {
 		t.Fatalf("unexpected candidates: %#v", candidates)
+	}
+	if strings.Join(candidates[0].Artists, " / ") != "Circle A / Circle B" || candidates[0].ThumbnailURL != "https://example.test/500px-cover.jpg" || candidates[1].ThumbnailURL != "" {
+		t.Fatalf("unexpected search details: %#v", candidates)
 	}
 }
 

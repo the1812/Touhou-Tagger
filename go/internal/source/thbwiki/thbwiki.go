@@ -81,6 +81,11 @@ func (wiki *Source) Search(
 			ID: name, Name: name, Source: "thb-wiki",
 		})
 	}
+	if len(candidates) > 0 {
+		if err := wiki.loadSearchDetails(ctx, candidates); err != nil {
+			return nil, err
+		}
+	}
 	return candidates, nil
 }
 

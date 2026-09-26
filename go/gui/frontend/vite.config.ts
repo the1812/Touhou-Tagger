@@ -13,9 +13,14 @@ export default defineConfig({
   lint: {
     extends: [lintConfig],
     categories: { correctness: 'off' },
+    jsPlugins: ['./lint/vue-components.js'],
     plugins: ['vue'],
+    rules: {
+      'max-lines': ['error', { max: 200 }],
+      'vue-components/one-per-file': 'error',
+    },
     env: { browser: true },
-    ignorePatterns: ['node_modules/', 'bindings/', 'embed/'],
+    ignorePatterns: ['node_modules/', 'bindings/', 'embed/', 'lint/'],
     options: { typeAware: true, typeCheck: true },
   },
   build: {

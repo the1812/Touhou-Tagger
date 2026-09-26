@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
-    "@the1812/oxc-config": "1.0.1",
+    "@the1812/oxc-config": "1.0.3",
     "@types/node": "25.9.3",
     "@vitejs/plugin-vue-jsx": "5.1.5",
     "tailwindcss": "4.3.3",

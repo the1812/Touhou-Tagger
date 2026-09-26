@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
 type candidateCatalog struct {
@@ -34,12 +35,14 @@ func (catalog *candidateCatalog) search(
 		return nil, err
 	}
 	result := make([]AlbumCandidate, len(candidates))
+	match := domain.MatchingAlbumCandidate(candidates, query)
 	catalog.mu.Lock()
 	if replace || catalog.byOwner[owner] == nil {
 		catalog.byOwner[owner] = make(map[string]AlbumCandidate)
 	}
 	for index, candidate := range candidates {
 		item := candidateToDTO(candidate, query)
+		item.ExactMatch = match != nil && match.ID == candidate.ID && match.Source == candidate.Source
 		result[index] = item
 		catalog.byOwner[owner][candidateKey(item.Source, item.ID)] = item
 	}

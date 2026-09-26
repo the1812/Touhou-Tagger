@@ -269,10 +269,8 @@ func (runner *Runner) selectCandidate(
 	query string,
 	interactive bool,
 ) (domain.AlbumCandidate, bool, error) {
-	for _, candidate := range candidates {
-		if candidate.MatchesName(query) {
-			return candidate, true, nil
-		}
+	if candidate := domain.MatchingAlbumCandidate(candidates, query); candidate != nil {
+		return *candidate, true, nil
 	}
 	if !interactive {
 		if len(candidates) == 1 {
@@ -284,7 +282,11 @@ func (runner *Runner) selectCandidate(
 		return domain.AlbumCandidate{}, false, fmt.Errorf("no matching album found for %q", query)
 	}
 	for index, candidate := range candidates {
-		if _, err := fmt.Fprintf(runner.output, "%d\t%s\n", index+1, candidate.Name); err != nil {
+		label := candidate.Name
+		if candidate.Description != "" {
+			label += " · " + candidate.Description
+		}
+		if _, err := fmt.Fprintf(runner.output, "%d\t%s\n", index+1, label); err != nil {
 			return domain.AlbumCandidate{}, false, err
 		}
 	}
@@ -418,7 +420,7 @@ func validateOptions(options Options) error {
 	if err := config.ValidateMetadata(options.persistedConfig()); err != nil {
 		return err
 	}
-	if options.Source != "thb-wiki" && options.Source != "doujin-meta" {
+	if options.Source != "thb-wiki" && options.Source != "doujin-meta" && options.Source != "music-brainz" && options.Source != "discogs" {
 		return fmt.Errorf("unsupported metadata source %q", options.Source)
 	}
 	return nil

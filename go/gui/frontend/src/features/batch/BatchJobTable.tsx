@@ -5,37 +5,12 @@ import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { defineComponent, type PropType } from 'vue'
 
-import type { BatchJobPreview, BatchJobStatus } from '../../api'
+import type { BatchJobPreview } from '../../api'
 import { t } from '../../i18n'
+import { CandidateOption } from '../../shared/CandidateOption'
 import { cx } from '../../shared/classNames'
 import { TruncatedText } from '../../shared/TruncatedText'
-
-const statusInfo = (status: BatchJobStatus) => {
-  const map: Record<
-    BatchJobStatus,
-    { label: string; severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }
-  > = {
-    loading: { label: t('batch.status.loading'), severity: 'info' },
-    ready: { label: t('batch.status.ready'), severity: 'success' },
-    'needs-candidate': { label: t('batch.status.needsCandidate'), severity: 'warn' },
-    'local-metadata': { label: t('batch.status.localMetadata'), severity: 'info' },
-    blocked: { label: t('batch.status.blocked'), severity: 'danger' },
-    'scan-failed': { label: t('batch.loadFailed'), severity: 'danger' },
-    'no-audio': { label: t('batch.noAudio'), severity: 'secondary' },
-    queued: { label: t('batch.status.queued'), severity: 'secondary' },
-    running: { label: t('batch.status.running'), severity: 'info' },
-    succeeded: { label: t('batch.status.succeeded'), severity: 'success' },
-    failed: { label: t('batch.status.failed'), severity: 'danger' },
-    cancelled: { label: t('batch.status.cancelled'), severity: 'secondary' },
-  }
-  return map[status]
-}
-
-const candidateOptions = (job: BatchJobPreview) =>
-  job.candidates.map(candidate => ({
-    value: candidate.id,
-    label: [candidate.title, candidate.artists.join(' / ')].filter(Boolean).join(' · '),
-  }))
+import { candidateOptions, statusInfo } from './batchJobDisplay'
 
 export const BatchJobTable = defineComponent({
   name: 'BatchJobTable',
@@ -122,6 +97,12 @@ export const BatchJobTable = defineComponent({
             fluid
             loading={props.resolving(job.id)}
             disabled={props.disabled}
+            overlayClass="[&_.p-select-option]:p-0!"
+            v-slots={{
+              option: ({ option }: { option: ReturnType<typeof candidateOptions>[number] }) => (
+                <CandidateOption candidate={option.candidate} />
+              ),
+            }}
           />
         )
       }
@@ -138,7 +119,6 @@ export const BatchJobTable = defineComponent({
         class="compact-data-table"
         rowClass={rowClass}
         virtualScrollerOptions={props.jobs.length > 100 ? { itemSize: 46 } : undefined}
-        pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
           empty: () => <div class="p-8 text-center text-muted-color">{t('batch.empty')}</div>,
         }}

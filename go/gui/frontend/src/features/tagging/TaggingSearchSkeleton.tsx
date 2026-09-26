@@ -7,7 +7,7 @@ export const TaggingSearchSkeleton = defineComponent({
     return () => (
       <div class="mt-4 grid gap-2">
         {[1, 2, 3].map(index => (
-          <Skeleton key={index} height="3.25rem" />
+          <Skeleton key={index} height="5.5rem" />
         ))}
       </div>
     )

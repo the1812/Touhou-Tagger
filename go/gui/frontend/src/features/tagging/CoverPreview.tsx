@@ -1,9 +1,10 @@
-import { Image as ImageIcon, Maximize2 } from 'lucide-vue-next'
+import { Maximize2 } from 'lucide-vue-next'
 import Image from 'primevue/image'
 import { computed, defineComponent, type PropType } from 'vue'
 
 import type { CoverPreview as CoverPreviewData } from '../../api'
 import { t } from '../../i18n'
+import { CoverPlaceholder } from '../../shared/CoverPlaceholder'
 import { Message } from '../../shared/Message'
 
 export const CoverPreview = defineComponent({
@@ -57,16 +58,7 @@ export const CoverPreview = defineComponent({
             </Image>
           </div>
         ) : (
-          <div
-            class={[
-              'relative grid size-app-cover place-items-center overflow-hidden rounded-xl border',
-              'border-surface-200 bg-surface-50 text-muted-color dark:border-surface-700 dark:bg-surface-800',
-              'content-center gap-2 p-5 text-center',
-            ]}
-          >
-            <ImageIcon class="size-[38px]" stroke-width={1.5} />
-            <div class="font-medium">{t('tagging.cover.noCover')}</div>
-          </div>
+          <CoverPlaceholder class="size-app-cover" />
         )}
 
         {props.cover.url && (

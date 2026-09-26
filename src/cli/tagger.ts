@@ -1,34 +1,19 @@
-import { readFile, readdir, rename, writeFile } from 'fs/promises'
-import { extname, resolve as resolvePath } from 'path'
+import { readFile, readdir } from 'fs/promises'
+import { resolve as resolvePath } from 'path'
 
 import { Ora } from 'ora'
 
 import { MetadataConfig } from '../core/core-config.js'
 import { log } from '../core/debug.js'
 import { Metadata } from '../core/index.js'
+import type { AlbumCandidate } from '../core/metadata/metadata-source.js'
 import { readline } from '../core/readline.js'
 import { setAlbumOptions } from './album-options.js'
 import { CliCommandBase } from './command-base.js'
 import { getDefaultAlbumName } from './default-album-name.js'
-import { asyncFlatMap } from './helper.js'
 import { DefaultMetadataSource, getMetadataConfig } from './options.js'
+import { createFiles, writeMetadataToFile } from './tagger-files.js'
 
-const leadingNumberSort = (a: string, b: string) => {
-  const infinityPrase = (str: string) => {
-    const number = parseInt(str)
-    if (Number.isNaN(number)) {
-      return Infinity
-    }
-    return number
-  }
-  const intA = infinityPrase(a)
-  const intB = infinityPrase(b)
-  const intCompare = intA - intB
-  if (intCompare === 0) {
-    return a.localeCompare(b)
-  }
-  return intCompare
-}
 const TimeoutError = new Error('timeout')
 export class CliTagger extends CliCommandBase {
   metadataConfig: MetadataConfig
@@ -74,78 +59,6 @@ export class CliTagger extends CliCommandBase {
     metadataSource.config = this.metadataConfig
     return metadataSource.getMetadata(album, { cover })
   }
-  async createFiles(metadata: Metadata[]) {
-    const { dirname } = await import('path')
-    const { writerMappings } = await import('../core/writer/writer-mappings.js')
-    const fileTypes = Object.keys(writerMappings)
-    const fileTypeFilter = (file: string) => fileTypes.some(type => file.endsWith(type))
-    const dir = (await readdir(this.workingDir)).sort(leadingNumberSort)
-    const discFiles = (
-      await asyncFlatMap(
-        dir.filter(f => f.match(/^Disc (\d+)/)),
-        async f => {
-          return (await readdir(resolvePath(this.workingDir, f)))
-            .sort(leadingNumberSort)
-            .map(inner => `${f}/${inner}`)
-        },
-      )
-    ).filter(fileTypeFilter)
-    const files = dir
-      .filter(fileTypeFilter)
-      .concat(discFiles)
-      .slice(0, metadata.length)
-      .map(f => resolvePath(this.workingDir, f))
-    if (files.length === 0) {
-      const message = '未找到任何支持的音乐文件.'
-      this.spinner.fail(message)
-      throw new Error(message)
-    }
-    const targetFiles = files.map((file, index) => {
-      const maxLength = Math.max(Math.trunc(Math.log10(metadata.length)) + 1, 2)
-      const filename = `${metadata[index].trackNumber.padStart(maxLength, '0')} ${
-        metadata[index].title
-      }${extname(file)}`.replace(/[/\\:*?"<>|]/g, '')
-      return resolvePath(dirname(file), filename)
-    })
-    log(files, targetFiles)
-    await Promise.all(
-      files.map((file, index) => {
-        return rename(file, targetFiles[index])
-      }),
-    )
-    return targetFiles
-  }
-  async writeMetadataToFile(metadata: Metadata[], targetFiles: string[]) {
-    const { writerMappings } = await import('../core/writer/writer-mappings.js')
-    for (let i = 0; i < targetFiles.length; i++) {
-      const file = targetFiles[i]
-      log(file)
-      const type = extname(file)
-      const writer = writerMappings[type]
-      writer.config = this.metadataConfig
-      await writer.write(metadata[i], file)
-      const lyric = metadata[i].lyric
-      if (this.options.lyric && this.options['lyric-output'] === 'lrc' && lyric) {
-        await writeFile(`${file.substring(0, file.lastIndexOf(type))}.lrc`, lyric)
-      }
-    }
-    // FLAC 那个库放 Promise.all 里就只有最后一个会运行???
-    // await Promise.all(targetFiles.map((file, index) => {
-    //   log(file)
-    //   const type = extname(file)
-    //   return writerMappings[type].write(metadata[index], file)
-    // }))
-    const coverBuffer = metadata[0].coverImage
-    if (this.options.cover && coverBuffer) {
-      const { default: imageType } = await import('image-type')
-      const type = imageType(coverBuffer)
-      if (type !== null) {
-        const coverFilename = resolvePath(this.workingDir, `cover.${type.ext}`)
-        log('cover file', coverFilename)
-        await writeFile(coverFilename, coverBuffer)
-      }
-    }
-  }
   async withRetry<T>(action: () => Promise<T>) {
     let retryCount = 0
     while (retryCount < this.options.retry) {
@@ -185,18 +98,25 @@ export class CliTagger extends CliCommandBase {
     }
     throw new Error('发生未知错误')
   }
-  async fetchMetadata(album: string) {
+  async fetchMetadata(candidate: AlbumCandidate) {
+    const album = candidate.name
     return this.withRetry(async () => {
       const { batch } = this.options
       this.spinner.start(batch ? '下载专辑信息中' : `下载专辑信息中: ${album}`)
       const localCover = await this.getLocalCover()
       const localJson = await this.getLocalJson()
-      const metadata = localJson || (await this.downloadMetadata(album, localCover))
+      const metadata = localJson || (await this.downloadMetadata(candidate.id, localCover))
       log('final metadata', metadata)
       this.spinner.text = '创建文件中'
-      const targetFiles = await this.createFiles(metadata)
+      const targetFiles = await createFiles(metadata, this.workingDir, this.spinner)
       this.spinner.text = '写入专辑信息中'
-      await this.writeMetadataToFile(metadata, targetFiles)
+      await writeMetadataToFile(
+        metadata,
+        targetFiles,
+        this.workingDir,
+        this.metadataConfig,
+        this.options,
+      )
       if (!localJson) {
         const defaultAlbumName = await getDefaultAlbumName(this.workingDir)
         await setAlbumOptions(this.workingDir, {
@@ -209,6 +129,7 @@ export class CliTagger extends CliCommandBase {
   }
   async run(album: string) {
     await this.loadAlbumOptions()
+    this.metadataConfig = getMetadataConfig(this.options)
     const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
     const noInteractive = !this.options.interactive
@@ -230,26 +151,38 @@ export class CliTagger extends CliCommandBase {
     const searchResult = await this.withRetry(async () => {
       this.spinner.start('搜索中')
       if (localJson !== undefined && localJson.length > 0) {
-        return localJson[0].album
+        return [{ id: '', name: localJson[0].album }]
       }
-      const remoteResults = await metadataSource.resolveAlbumName(album)
-      const hasOnlyOneResult = Array.isArray(remoteResults) && remoteResults.length === 1
-      if (hasOnlyOneResult && noInteractive) {
-        return remoteResults[0]
-      }
-      return remoteResults
+      return metadataSource.search(album)
     }).catch((error: unknown) => {
       handleError(error)
-      return [] as string[]
+      return [] as AlbumCandidate[]
     })
     log('fetching metadata')
-    if (typeof searchResult === 'string') {
-      await this.fetchMetadata(searchResult).catch(handleError)
+    const normalizeName = (name: string) => name.normalize('NFKC').toLowerCase().trim()
+    const exactMatches = searchResult.filter(
+      candidate => normalizeName(candidate.name) === normalizeName(album),
+    )
+    let selected: AlbumCandidate | undefined
+    if (localJson?.length || (searchResult.length === 1 && noInteractive)) {
+      selected = searchResult[0]
+    } else if (exactMatches.length === 1) {
+      selected = exactMatches[0]
+    }
+    if (selected) {
+      await this.fetchMetadata(selected).catch(handleError)
     } else if (noInteractive) {
       this.spinner.fail('未找到匹配专辑或有多个搜索结果')
     } else if (searchResult.length > 0) {
       this.spinner.fail('未找到匹配专辑, 以下是搜索结果:')
-      console.log(searchResult.map((it, index) => `${String(index + 1)}\t${it}`).join('\n'))
+      console.log(
+        searchResult
+          .map(
+            (it, index) =>
+              `${String(index + 1)}\t${[it.name, it.description].filter(Boolean).join(' · ')}`,
+          )
+          .join('\n'),
+      )
       const answer = await readline('输入序号可选择相应条目, 或输入其他任意字符取消本次操作: ')
       if (answer === undefined) {
         return

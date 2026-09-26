@@ -8,8 +8,10 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
+	"github.com/the1812/Touhou-Tagger/go/internal/source/discogs"
 	"github.com/the1812/Touhou-Tagger/go/internal/source/doujinmeta"
 	"github.com/the1812/Touhou-Tagger/go/internal/source/localjson"
+	"github.com/the1812/Touhou-Tagger/go/internal/source/musicbrainz"
 	"github.com/the1812/Touhou-Tagger/go/internal/source/thbwiki"
 	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
 	flactag "github.com/the1812/Touhou-Tagger/go/internal/tagio/flac"
@@ -60,9 +62,11 @@ func NewService(options Options) (*application.Service, error) {
 			return nil, err
 		}
 		sources = source.Registry{
-			"thb-wiki":    wiki,
-			"doujin-meta": doujin,
-			"local-json":  localjson.Source{},
+			"thb-wiki":     wiki,
+			"doujin-meta":  doujin,
+			"local-json":   localjson.Source{},
+			"music-brainz": musicbrainz.New(client),
+			"discogs":      discogs.New(client),
 		}
 	}
 	return &application.Service{

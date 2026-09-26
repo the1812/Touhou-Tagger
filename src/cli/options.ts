@@ -87,7 +87,7 @@ export const createCliOptionsParser = (argv = hideBin(process.argv)) => {
       alias: 's',
       type: 'string',
       default: DefaultMetadataSource,
-      choices: ['thb-wiki', 'doujin-meta'],
+      choices: ['thb-wiki', 'doujin-meta', 'music-brainz', 'discogs'],
       description: '设置数据源',
     })
     .option('lyric', {

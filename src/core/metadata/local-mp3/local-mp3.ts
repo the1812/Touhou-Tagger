@@ -15,8 +15,9 @@ const dirFilter = async <Result = string>(
   return (await readdir(path, { withFileTypes: true })).filter(predicate).map(it => mapper(it.name))
 }
 export class LocalMp3 extends MetadataSource {
-  async resolveAlbumName(localSource: string) {
-    return resolvePath(localSource)
+  async search(localSource: string) {
+    const path = await resolvePath(localSource)
+    return [{ id: path, name: path }]
   }
   private async getMultipleDiscFiles(path: string): Promise<string[][]> {
     const { join } = await import('path')

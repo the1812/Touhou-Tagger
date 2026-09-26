@@ -3,7 +3,6 @@ package bridge
 import (
 	"errors"
 	"fmt"
-	"syscall"
 	"unsafe"
 
 	wails "github.com/wailsapp/wails/v3/pkg/application"
@@ -18,8 +17,6 @@ const (
 	defaultCaptionColor   = 0xffffffff
 )
 
-var setWindowAttribute = syscall.NewLazyDLL("dwmapi.dll").NewProc("DwmSetWindowAttribute")
-
 func setTitleBarColor(window *wails.WebviewWindow, dark bool) error {
 	if !w32.IsWindowsVersionAtLeast(10, 0, 22000) {
 		return nil
@@ -31,9 +28,6 @@ func setTitleBarColor(window *wails.WebviewWindow, dark bool) error {
 		hwnd := uintptr(window.NativeWindow())
 		if hwnd == 0 {
 			return fmt.Errorf("窗口句柄不可用")
-		}
-		if err := setWindowAttribute.Find(); err != nil {
-			return fmt.Errorf("查找 DwmSetWindowAttribute: %w", err)
 		}
 		caption := uint32(lightCaptionColor)
 		text := uint32(0x00000000)
@@ -52,9 +46,9 @@ func setTitleBarColor(window *wails.WebviewWindow, dark bool) error {
 	})
 }
 
-func setDWMColor(hwnd uintptr, attribute uintptr, color uint32) error {
-	result, _, _ := setWindowAttribute.Call(hwnd, attribute, uintptr(unsafe.Pointer(&color)), unsafe.Sizeof(color))
-	if int32(result) < 0 {
+func setDWMColor(hwnd uintptr, attribute w32.DWMWINDOWATTRIBUTE, color uint32) error {
+	result := w32.DwmSetWindowAttribute(hwnd, attribute, unsafe.Pointer(&color), unsafe.Sizeof(color))
+	if result < 0 {
 		return fmt.Errorf("设置窗口标题栏属性 %d: HRESULT 0x%08x", attribute, uint32(result))
 	}
 	return nil

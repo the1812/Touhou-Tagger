@@ -46,15 +46,16 @@ type WorkspaceSummary struct {
 }
 
 type AlbumCandidate struct {
-	ID          string   `json:"id"`
-	Title       string   `json:"title"`
-	Source      string   `json:"source"`
-	SourceLabel string   `json:"sourceLabel"`
-	AlbumOrder  string   `json:"albumOrder,omitempty"`
-	Artists     []string `json:"artists"`
-	Year        string   `json:"year,omitempty"`
-	ExactMatch  bool     `json:"exactMatch"`
-	Description string   `json:"description,omitempty"`
+	ID           string   `json:"id"`
+	Title        string   `json:"title"`
+	Source       string   `json:"source"`
+	SourceLabel  string   `json:"sourceLabel"`
+	AlbumOrder   string   `json:"albumOrder,omitempty"`
+	Artists      []string `json:"artists"`
+	ThumbnailURL string   `json:"thumbnailUrl,omitempty"`
+	Year         string   `json:"year,omitempty"`
+	ExactMatch   bool     `json:"exactMatch"`
+	Description  string   `json:"description,omitempty"`
 }
 
 type AlbumMetadata struct {

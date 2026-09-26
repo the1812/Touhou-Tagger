@@ -4,6 +4,7 @@ import { computed, ref, toRaw, watch } from 'vue'
 import { getApi, type Capabilities, type Settings } from '../api'
 import { t } from '../i18n'
 import { useNotificationsStore } from './notifications'
+import { validateSettings } from './settingsValidation'
 
 const settingsEqual = (left?: Settings, right?: Settings) =>
   Boolean(left && right && JSON.stringify(left) === JSON.stringify(right))
@@ -25,46 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const saveQueued = ref(false)
 
   const dirty = computed(() => !settingsEqual(saved.value, draft.value))
-  const errors = computed<Record<string, string>>(() => {
-    const { value } = draft
-    if (!value) {
-      return {}
-    }
-    const next: Record<string, string> = {}
-    if (!value.mp3MultiValueSeparator.trim()) {
-      next.mp3MultiValueSeparator = t('validation.separatorRequired')
-    }
-    if (value.requestTimeoutSeconds < 1 || value.requestTimeoutSeconds > 300) {
-      next.requestTimeoutSeconds = t('validation.requestTimeoutRange')
-    }
-    if (value.retryCount < 1 || value.retryCount > 10) {
-      next.retryCount = t('validation.retryCountRange')
-    }
-    if (value.coverCompressionThresholdKb < 0) {
-      next.coverCompressionThresholdKb = t('validation.coverThresholdNonNegative')
-    }
-    if (value.coverMaxEdge < 0) {
-      next.coverMaxEdge = t('validation.coverMaxEdgeNonNegative')
-    }
-    if (value.writeLyricsMetadata && value.writeLrcFiles) {
-      next.lyricDestination = t('validation.lyricDestinationConflict')
-    }
-    if (!value.mixedLyricSeparator.trim()) {
-      next.mixedLyricSeparator = t('validation.mixedLyricSeparatorRequired')
-    }
-    if (value.lyricCacheSize < 1 || value.lyricCacheSize > 10000) {
-      next.lyricCacheSize = t('validation.lyricCacheSizeRange')
-    }
-    if (
-      capabilities.value &&
-      !capabilities.value.sources.some(
-        source => source.supportsSearch && source.value === value.defaultSource,
-      )
-    ) {
-      next.defaultSource = t('validation.searchableSourceRequired')
-    }
-    return next
-  })
+  const errors = computed(() => validateSettings(draft.value, capabilities.value))
   const valid = computed(() => Object.keys(errors.value).length === 0)
 
   const load = () => {

@@ -1,9 +1,8 @@
-import { Ban, ExternalLink, FolderOpen, Play, RefreshCw } from 'lucide-vue-next'
+import { Ban, Play } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
-import InputNumber from 'primevue/inputnumber'
 import ProgressSpinner from 'primevue/progressspinner'
-import { computed, defineComponent } from 'vue'
+import { defineComponent } from 'vue'
 import { Translation } from 'vue-i18n'
 
 import { usePageCommands } from '../../app/pageCommands'
@@ -11,11 +10,10 @@ import { t } from '../../i18n'
 import { CompletionDialog } from '../../shared/CompletionDialog'
 import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
 import { PageActionBar } from '../../shared/PageActionBar'
-import { TruncatedText } from '../../shared/TruncatedText'
 import { useDelayedBusy } from '../../shared/useDelayedBusy'
-import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
 import { useBatchStore } from '../../stores/batch'
-import { BatchJobTable } from './BatchJobTable'
+import { BatchDirectoryHeader } from './BatchDirectoryHeader'
+import { BatchScanSection } from './BatchScanSection'
 
 export const BatchPage = defineComponent({
   name: 'BatchPage',
@@ -23,7 +21,6 @@ export const BatchPage = defineComponent({
     const batch = useBatchStore()
     const {
       directory,
-      depth,
       preview,
       selecting,
       scanning,
@@ -35,19 +32,10 @@ export const BatchPage = defineComponent({
       readyCount,
       skippedCount,
       retryableCount,
-      resolvingCount,
       canRun,
     } = storeToRefs(batch)
 
     const showSpinner = useDelayedBusy(() => isWriting.value)
-    const directoryLabel = computed(() => {
-      const parts = directory.value.split(/[\\/]/).filter(Boolean)
-      return parts[parts.length - 1] || t('batch.directoryFallback')
-    })
-    const controlsDisabled = computed(
-      () => selecting.value || scanning.value || resolvingCount.value > 0 || isWriting.value,
-    )
-    const tableDisabled = computed(() => selecting.value || scanning.value || isWriting.value)
     usePageCommands({
       openDirectory: target => batch.selectDirectory(target),
       refresh: () => {
@@ -74,102 +62,10 @@ export const BatchPage = defineComponent({
             />
           ) : (
             <>
-              <div class="workspace-section">
-                <div class="workspace-heading">
-                  <div class="min-w-0">
-                    <WorkspaceTitle>{directoryLabel.value}</WorkspaceTitle>
-                    <TruncatedText
-                      tooltip={currentDirectory}
-                      class={['mt-1.5 max-w-[min(760px,65vw)]', 'text-base text-muted-color']}
-                    >
-                      {currentDirectory}
-                    </TruncatedText>
-                  </div>
-                  <div class="flex items-center gap-4.5">
-                    <div class="flex items-center gap-1">
-                      <Button
-                        v-tooltip={t('common.revealDirectory')}
-                        severity="secondary"
-                        text
-                        rounded
-                        onClick={() => void batch.reveal()}
-                      >
-                        {{ icon: () => <ExternalLink /> }}
-                      </Button>
-                    </div>
-                    <Button
-                      label={t('common.changeDirectory')}
-                      severity="secondary"
-                      outlined
-                      loading={selecting.value}
-                      disabled={controlsDisabled.value}
-                      onClick={() => void batch.selectDirectory()}
-                    >
-                      {{ icon: () => <FolderOpen /> }}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <BatchDirectoryHeader />
 
               <>
-                <div class="workspace-section grid min-h-[390px] content-start gap-3">
-                  <div class="workspace-heading items-center">
-                    <WorkspaceTitle>{t('batch.scanHeading')}</WorkspaceTitle>
-                    <div class="flex items-center gap-3">
-                      <div class="flex items-center gap-2">
-                        <div class="whitespace-nowrap text-sm font-semibold">
-                          {t('batch.depth')}
-                        </div>
-                        <InputNumber
-                          useGrouping={false}
-                          class="w-28"
-                          modelValue={depth.value}
-                          {...{
-                            'onUpdate:modelValue': (value: number | null) => batch.setDepth(value),
-                          }}
-                          min={1}
-                          max={8}
-                          showButtons
-                          fluid
-                          disabled={controlsDisabled.value}
-                        />
-                      </div>
-                      <Button
-                        class="shrink-0 whitespace-nowrap"
-                        label={t('batch.rescan')}
-                        severity="secondary"
-                        outlined
-                        disabled={controlsDisabled.value}
-                        onClick={() => void batch.scan()}
-                      >
-                        {{
-                          icon: () => <RefreshCw class={{ 'animate-spin': scanning.value }} />,
-                        }}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {scanning.value && !currentPreview ? (
-                    <div class="grid min-h-64 place-items-center content-center gap-4 text-center">
-                      <div
-                        class={[
-                          'size-[46px] animate-spin rounded-full border-[3px]',
-                          'border-primary-200 border-t-primary dark:border-primary-800 dark:border-t-primary',
-                        ]}
-                      />
-                      <div class="text-base font-medium">{t('batch.scanning')}</div>
-                    </div>
-                  ) : (
-                    <BatchJobTable
-                      jobs={currentPreview?.jobs ?? []}
-                      editable
-                      disabled={tableDisabled.value}
-                      resolving={batch.isResolving}
-                      onResolve={(jobId, candidateId) => batch.resolveCandidate(jobId, candidateId)}
-                      onRetry={jobId => batch.loadJob(jobId)}
-                    />
-                  )}
-                </div>
+                <BatchScanSection />
 
                 {currentPreview && !scanning.value && (
                   <PageActionBar>

@@ -264,6 +264,8 @@
     "sources": {
       "thbWiki": "THBWiki",
       "doujinMeta": "Doujin Meta",
+      "musicBrainz": "MusicBrainz",
+      "discogs": "Discogs",
       "localJson": "本地 metadata.json"
     },
     "simplifiedChinese": "简体中文",

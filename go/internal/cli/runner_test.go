@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestSelectCandidateTreatsInvalidInteractiveInputAsCancellation(t *testing.T
 		{ID: "one", Name: "One"},
 		{ID: "two", Name: "Two"},
 	}, "query", true)
-	if err != nil || ok || selected != (domain.AlbumCandidate{}) {
+	if err != nil || ok || !reflect.DeepEqual(selected, domain.AlbumCandidate{}) {
 		t.Fatalf("selectCandidate() = (%#v, %t, %v), want normal cancellation", selected, ok, err)
 	}
 }

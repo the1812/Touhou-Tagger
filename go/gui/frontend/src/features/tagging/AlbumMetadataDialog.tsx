@@ -5,7 +5,8 @@ import { defineComponent, type PropType, reactive, watch } from 'vue'
 
 import type { AlbumMetadata } from '../../api'
 import { t } from '../../i18n'
-import { FieldLabel, FormField } from '../../shared/FormField'
+import { FieldLabel } from '../../shared/FieldLabel'
+import { FormField } from '../../shared/FormField'
 import { MetadataTagsInput } from './MetadataTagsInput'
 
 export const AlbumMetadataDialog = defineComponent({

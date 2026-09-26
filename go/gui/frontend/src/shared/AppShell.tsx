@@ -36,8 +36,9 @@ export const AppShell = defineComponent({
     let disposeDrop: (() => void) | undefined
     let unmounted = false
     const clearDrop = (event: DragEvent) => {
-      if (!event.relatedTarget)
-        (event.currentTarget as HTMLElement).classList.remove('file-drop-target-active')
+      if (!event.relatedTarget) {
+        ;(event.currentTarget as HTMLElement).classList.remove('file-drop-target-active')
+      }
     }
     const { themeMode, nextThemeMode, cycleThemeMode } = useThemeMode()
     const selectedTab = ref('')
@@ -82,10 +83,13 @@ export const AppShell = defineComponent({
     onMounted(async () => {
       window.addEventListener('keydown', onKeydown)
       const api = await getApi()
-      if (!unmounted)
+      if (!unmounted) {
         disposeDrop = api.onDirectoryDrop(directory => {
-          if (canDrop.value) commands.run('openDirectory', directory)
+          if (canDrop.value) {
+            commands.run('openDirectory', directory)
+          }
         })
+      }
     })
 
     onBeforeUnmount(() => {

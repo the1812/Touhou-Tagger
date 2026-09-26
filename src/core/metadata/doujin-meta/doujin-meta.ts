@@ -41,37 +41,16 @@ interface DoujinMetaAlbumDetail {
 }
 
 export class DoujinMeta extends MetadataSource {
-  private readonly albumIds = new Map<string, string>()
-
-  private async search(albumName: string) {
+  async search(albumName: string) {
     const { data } = await doujinMetaApi.get<DoujinMetaSearchResult>('/api/albums', {
       params: { keyword: albumName, limit: MetadataSource.MaxSearchCount },
     })
-    data.items.forEach(album => this.albumIds.set(album.album, album.id))
     return data.items
+      .slice(0, MetadataSource.MaxSearchCount)
+      .map(item => ({ id: item.id, name: item.album }))
   }
 
-  async resolveAlbumName(albumName: string): Promise<string | string[]> {
-    const searchResult = await this.search(albumName)
-    const firstResult = searchResult.at(0)
-    if (
-      firstResult &&
-      firstResult.album.normalize('NFKC').toLowerCase().trim() ===
-        albumName.normalize('NFKC').toLowerCase().trim()
-    ) {
-      return firstResult.album
-    }
-    return searchResult.map(it => it.album).slice(0, MetadataSource.MaxSearchCount)
-  }
-
-  async getMetadata(albumName: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
-    if (!this.albumIds.has(albumName)) {
-      await this.search(albumName)
-    }
-    const albumId = this.albumIds.get(albumName)
-    if (albumId === undefined) {
-      throw new Error(`Doujin Meta album not found: ${albumName}`)
-    }
+  async getMetadata(albumId: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
     const { data: albumDetail } = await doujinMetaApi.get<DoujinMetaAlbumDetail>(
       `/api/albums/${encodeURIComponent(albumId)}`,
     )

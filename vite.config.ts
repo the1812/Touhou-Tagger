@@ -20,6 +20,7 @@ export default defineConfig({
   lint: {
     extends: [lintConfig],
     categories: { correctness: 'off' },
+    rules: { 'max-lines': ['error', { max: 200 }] },
     ignorePatterns: ['dist/', 'node_modules/', 'test-files/', 'patches/', 'go/'],
     options: { typeAware: true, typeCheck: true },
   },

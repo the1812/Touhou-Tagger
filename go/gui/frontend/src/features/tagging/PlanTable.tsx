@@ -55,7 +55,6 @@ export const PlanTable = defineComponent({
         class="compact-data-table"
         data-fit-content="true"
         rowClass={rowClass}
-        pt={{ tableContainer: { class: 'w-full min-w-0 max-w-full' } }}
         v-slots={{
           empty: () => (
             <div class="p-8 text-center text-muted-color">{t('tagging.table.empty')}</div>

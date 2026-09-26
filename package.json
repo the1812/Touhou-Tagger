@@ -54,7 +54,7 @@
     "yargs": "17.5.1"
   },
   "devDependencies": {
-    "@the1812/oxc-config": "1.0.1",
+    "@the1812/oxc-config": "1.0.3",
     "@types/node": "25.9.3",
     "@types/yargs": "17.0.12",
     "typescript": "6.0.3",

@@ -6,7 +6,8 @@ import RadioButton from 'primevue/radiobutton'
 import Select from 'primevue/select'
 import { computed, defineComponent } from 'vue'
 
-import { t } from '../../i18n'
+import { sourceLabel, t } from '../../i18n'
+import { CandidateCover } from '../../shared/CandidateCover'
 import { PageActionBar } from '../../shared/PageActionBar'
 import { TruncatedText } from '../../shared/TruncatedText'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
@@ -36,7 +37,7 @@ export const TaggingSearchStep = defineComponent({
     const sourceOptions = computed(
       () =>
         settings.capabilities?.sources.filter(option => option.supportsSearch) ?? [
-          { value: 'thb-wiki', label: 'THBWiki', supportsSearch: true },
+          { value: 'thb-wiki', label: sourceLabel('thb-wiki'), supportsSearch: true },
         ],
     )
     const selectedSource = computed({
@@ -117,7 +118,19 @@ export const TaggingSearchStep = defineComponent({
                       }}
                       disabled={isBusy.value}
                     />
-                    <TruncatedText class="text-base font-medium">{candidate.title}</TruncatedText>
+                    <CandidateCover
+                      url={candidate.thumbnailUrl}
+                      title={candidate.title}
+                      class="size-16"
+                    />
+                    <div class="min-w-0 flex-1">
+                      <TruncatedText class="text-base font-medium">{candidate.title}</TruncatedText>
+                      {candidate.artists.length > 0 && (
+                        <TruncatedText class="text-sm text-muted-color">
+                          {candidate.artists.join(' / ')}
+                        </TruncatedText>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
