@@ -1,6 +1,7 @@
 import { Events } from '@wailsio/runtime'
 
 import {
+  AppearanceService,
   BatchService,
   SettingsService,
   WorkspaceService,
@@ -199,6 +200,7 @@ const normalizeBatch = (preview: Wire<BatchPreview>): BatchPreview => ({
 })
 
 export const nativeApi: GUIApi = {
+  setDarkMode: dark => AppearanceService.SetDarkMode(dark),
   getCapabilities: async () => {
     const capabilities = await SettingsService.GetCapabilities()
     return {

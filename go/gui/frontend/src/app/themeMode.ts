@@ -1,5 +1,7 @@
 import { computed, readonly, ref, watch } from 'vue'
 
+import { getApi } from '../api'
+
 const themeModes = ['system', 'light', 'dark'] as const
 
 export type ThemeMode = (typeof themeModes)[number]
@@ -10,6 +12,7 @@ const themeMode = ref<ThemeMode>((localStorage.getItem(storageKey) as ThemeMode 
 const systemDark = ref(systemTheme.matches)
 
 export const initializeThemeMode = () => {
+  let appearanceUpdate = Promise.resolve()
   systemTheme.addEventListener('change', event => {
     systemDark.value = event.matches
   })
@@ -20,6 +23,9 @@ export const initializeThemeMode = () => {
       const dark = themeMode.value === 'dark' || (themeMode.value === 'system' && systemDark.value)
       document.documentElement.classList.toggle('app-dark', dark)
       localStorage.setItem(storageKey, themeMode.value)
+      appearanceUpdate = appearanceUpdate
+        .then(async () => (await getApi()).setDarkMode(dark))
+        .catch((error: unknown) => console.error('Failed to update title bar color:', error))
     },
     { immediate: true },
   )

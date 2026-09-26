@@ -133,6 +133,7 @@ const emitSequence = (
 }
 
 export const fixtureApi: GUIApi = {
+  setDarkMode: async () => {},
   async getCapabilities() {
     await wait()
     return clone(capabilities)

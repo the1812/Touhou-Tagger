@@ -21,9 +21,10 @@ type BackendOptions struct {
 }
 
 type Backend struct {
-	Workspace *WorkspaceService
-	Batch     *BatchService
-	Settings  *SettingsService
+	Workspace  *WorkspaceService
+	Batch      *BatchService
+	Settings   *SettingsService
+	Appearance *AppearanceService
 
 	plans   *planStore
 	catalog *candidateCatalog
@@ -77,14 +78,16 @@ func NewBackend(options BackendOptions) *Backend {
 		sessions:  make(map[string]*batchSession),
 	}
 	settings := &SettingsService{runtime: runtime}
+	appearance := &AppearanceService{desktop: desktop}
 	return &Backend{
-		Workspace: workspace,
-		Batch:     batch,
-		Settings:  settings,
-		plans:     plans,
-		catalog:   catalog,
-		desktop:   desktop,
-		ops:       operations,
+		Workspace:  workspace,
+		Batch:      batch,
+		Settings:   settings,
+		Appearance: appearance,
+		plans:      plans,
+		catalog:    catalog,
+		desktop:    desktop,
+		ops:        operations,
 	}
 }
 

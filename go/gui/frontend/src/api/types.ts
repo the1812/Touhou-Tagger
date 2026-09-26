@@ -274,6 +274,7 @@ export interface DesktopApi {
   onDirectoryDrop(handler: (directory: string) => void): () => void
   getStartupDirectory(): Promise<string>
   revealDirectory(directory: string): Promise<void>
+  setDarkMode(dark: boolean): Promise<void>
 }
 
 export interface BatchApi {
