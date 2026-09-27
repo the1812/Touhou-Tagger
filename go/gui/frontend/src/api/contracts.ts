@@ -2,7 +2,6 @@ import type {
   AlbumCandidate,
   BatchJobPreview,
   BatchPreview,
-  BatchRunResult,
   Capabilities,
   OperationFailure,
   OperationProgress,
@@ -10,24 +9,9 @@ import type {
   OperationStart,
   PlanPatch,
   PlanPreview,
+  Settings,
   WorkspaceSummary,
 } from './types'
-
-export interface Settings {
-  defaultSource: string
-  commentLanguage: string
-  mp3MultiValueSeparator: string
-  requestTimeoutSeconds: number
-  retryCount: number
-  coverCompressionThresholdKb: number
-  coverMaxEdge: number
-  lyricType: string
-  writeLyricsMetadata: boolean
-  writeLrcFiles: boolean
-  preserveLyricTimeline: boolean
-  mixedLyricSeparator: string
-  lyricCacheSize: number
-}
 
 export interface SettingsApi {
   getCapabilities(): Promise<Capabilities>
@@ -72,7 +56,7 @@ export interface BatchApi {
 
 export interface OperationEventsApi {
   onProgress(handler: (progress: OperationProgress) => void): () => void
-  onComplete(handler: (result: OperationResult | BatchRunResult) => void): () => void
+  onComplete(handler: (result: OperationResult) => void): () => void
   onFailure(handler: (failure: OperationFailure) => void): () => void
 }
 

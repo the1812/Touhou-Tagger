@@ -1,8 +1,8 @@
-import { t } from '../i18n'
-import { batchJobs } from './fixtureBatchData'
-import { batchDirectory, createPlan } from './fixtureData'
-import { clone, emitSequence, fixtureState, wait } from './fixtureState'
-import type { BatchApi } from './types'
+import { t } from '../../i18n'
+import type { BatchApi } from '../types'
+import { batchJobs } from './batchData'
+import { batchDirectory, createPlan } from './data'
+import { clone, emitSequence, fixtureState, wait } from './state'
 
 export const fixtureBatchApi: BatchApi = {
   async selectBatchDirectory() {
@@ -12,18 +12,17 @@ export const fixtureBatchApi: BatchApi = {
 
   async scanBatch(directory, depth) {
     await wait(220)
+    fixtureState.batchSequence += 1
     fixtureState.activeBatch = {
-      batchId: 'fixture-batch',
+      batchId: `fixture-batch-${String(fixtureState.batchSequence)}`,
       rootDirectory: directory,
       depth,
       jobs: batchJobs().map(job =>
-        job.status === 'no-audio'
+        job.readiness === 'skipped'
           ? job
           : {
               ...job,
-              matchDescription: t('batch.loading'),
-              status: 'loading',
-              canRun: false,
+              readiness: 'pending',
               issues: [],
               candidates: [],
               selectedCandidateId: undefined,
@@ -52,18 +51,18 @@ export const fixtureBatchApi: BatchApi = {
     }
     job.selectedCandidateId = candidateId
     const plan = createPlan(candidateId)
-    job.canRun = job.audioCount === plan.items.length && plan.canCommit
-    job.status = job.canRun ? 'ready' : 'blocked'
-    job.matchDescription = job.canRun ? '已选择搜索结果' : t('batch.status.blocked')
-    job.issues = job.canRun
-      ? []
-      : [
-          {
-            code: 'track-count-mismatch',
-            message: t('backend.issue.trackMismatch'),
-            severity: 'error',
-          },
-        ]
+    job.readiness = job.audioCount === plan.items.length && plan.canCommit ? 'ready' : 'blocked'
+    job.outcome = undefined
+    job.issues =
+      job.readiness === 'ready'
+        ? []
+        : [
+            {
+              code: 'track-count-mismatch',
+              message: t('backend.issue.trackMismatch'),
+              severity: 'error',
+            },
+          ]
     return clone(job)
   },
 
@@ -74,8 +73,28 @@ export const fixtureBatchApi: BatchApi = {
   runBatch(_batchId, failedOnly) {
     const operationId = `fixture-batch-${String(Date.now())}`
     const jobs = failedOnly
-      ? fixtureState.activeBatch.jobs.filter(job => job.status === 'failed' && job.canRun)
-      : fixtureState.activeBatch.jobs.filter(job => job.canRun)
+      ? fixtureState.activeBatch.jobs.filter(
+          job => job.readiness === 'ready' && job.outcome === 'failed',
+        )
+      : fixtureState.activeBatch.jobs.filter(job => job.readiness === 'ready')
+    const cancelledResult = () => {
+      fixtureState.activeBatch.jobs = fixtureState.activeBatch.jobs.map(job =>
+        jobs.some(selected => selected.id === job.id) ? { ...job, outcome: 'cancelled' } : job,
+      )
+      return {
+        operationId,
+        kind: 'batch' as const,
+        succeeded: 0,
+        failed: 0,
+        renamed: 0,
+        coversSaved: 0,
+        lrcFiles: 0,
+        durationMs: 320,
+        cancelled: true,
+        message: '已停止写入后续专辑。',
+        jobs: clone(fixtureState.activeBatch.jobs),
+      }
+    }
     fixtureState.pendingStarts.set(operationId, {
       kind: 'batch',
       start: () =>
@@ -86,7 +105,7 @@ export const fixtureBatchApi: BatchApi = {
           () => {
             fixtureState.activeBatch.jobs = fixtureState.activeBatch.jobs.map(job => ({
               ...job,
-              status: jobs.some(selected => selected.id === job.id) ? 'succeeded' : job.status,
+              outcome: jobs.some(selected => selected.id === job.id) ? 'succeeded' : job.outcome,
             }))
             return {
               operationId,
@@ -102,25 +121,9 @@ export const fixtureBatchApi: BatchApi = {
               jobs: clone(fixtureState.activeBatch.jobs),
             }
           },
-          () => {
-            fixtureState.activeBatch.jobs = fixtureState.activeBatch.jobs.map(job =>
-              jobs.some(selected => selected.id === job.id) ? { ...job, status: 'cancelled' } : job,
-            )
-            return {
-              operationId,
-              kind: 'batch',
-              succeeded: 0,
-              failed: 0,
-              renamed: 0,
-              coversSaved: 0,
-              lrcFiles: 0,
-              durationMs: 320,
-              cancelled: true,
-              message: '已停止写入后续专辑。',
-              jobs: clone(fixtureState.activeBatch.jobs),
-            }
-          },
+          cancelledResult,
         ),
+      cancel: () => fixtureState.completeHandlers.forEach(handler => handler(cancelledResult())),
     })
     return Promise.resolve({ operationId })
   },
@@ -136,7 +139,11 @@ export const fixtureBatchApi: BatchApi = {
   },
 
   cancelBatch(operationId) {
-    if (!fixtureState.pendingStarts.delete(operationId)) {
+    const pending = fixtureState.pendingStarts.get(operationId)
+    if (pending?.kind === 'batch') {
+      fixtureState.pendingStarts.delete(operationId)
+      pending.cancel()
+    } else {
       fixtureState.operationCancels.get(operationId)?.()
     }
     return Promise.resolve()

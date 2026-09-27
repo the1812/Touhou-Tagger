@@ -11,6 +11,7 @@ import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 
+import { issueText } from '../../api/display'
 import { t } from '../../i18n'
 import { Message } from '../../shared/Message'
 import { StatusIcon } from '../../shared/StatusIcon'
@@ -23,15 +24,14 @@ export const TaggingSummary = defineComponent({
   name: 'TaggingSummary',
   setup() {
     const workspace = useWorkspaceStore()
-    const { summary, phase, isBusy } = storeToRefs(workspace)
+    const { summary, activity, stalePlan, isBusy } = storeToRefs(workspace)
 
     return () => {
       const currentSummary = summary.value
-      const currentPhase = phase.value
-      const isScanning = currentPhase === 'scanning'
+      const isOpening = activity.value === 'opening'
       return (
         <div class="workspace-section">
-          {isScanning ? (
+          {isOpening ? (
             <TaggingSummarySkeleton />
           ) : (
             currentSummary && (
@@ -72,7 +72,7 @@ export const TaggingSummary = defineComponent({
                     </div>
                     <Button
                       label={t('common.changeDirectory')}
-                      loading={currentPhase === 'selecting'}
+                      loading={activity.value === 'selecting'}
                       severity="secondary"
                       outlined
                       disabled={isBusy.value}
@@ -98,7 +98,8 @@ export const TaggingSummary = defineComponent({
                     icon={ImageIcon}
                     active={currentSummary.localCover.exists}
                     tooltip={
-                      currentSummary.localCover.issue?.message ||
+                      (currentSummary.localCover.issue &&
+                        issueText(currentSummary.localCover.issue)) ||
                       (currentSummary.localCover.exists
                         ? t('tagging.localCoverFound', {
                             name: currentSummary.localCover.fileName || t('tagging.found'),
@@ -133,11 +134,11 @@ export const TaggingSummary = defineComponent({
                       key={issue.code}
                       severity={issue.severity === 'error' ? 'error' : 'warn'}
                     >
-                      {issue.message}
+                      {issueText(issue)}
                     </Message>
                   ))}
 
-                {currentPhase === 'failed' && (
+                {stalePlan.value && (
                   <Message severity="warn">{t('tagging.planInvalidated')}</Message>
                 )}
               </>

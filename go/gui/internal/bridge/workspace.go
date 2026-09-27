@@ -151,8 +151,7 @@ func candidateToDTO(candidate domain.AlbumCandidate, query string) AlbumCandidat
 		ID:           candidate.ID,
 		Title:        candidate.Name,
 		Source:       candidate.Source,
-		SourceLabel:  sourceLabel(candidate.Source),
-		Artists:      slices.Clone(candidate.Artists),
+		Artists:      dtoSlice(candidate.Artists),
 		ThumbnailURL: candidate.ThumbnailURL,
 		ExactMatch:   candidate.MatchesName(query),
 		Description:  candidate.Description,
@@ -168,47 +167,6 @@ func dtoToCandidate(candidate AlbumCandidate) domain.AlbumCandidate {
 		ThumbnailURL: candidate.ThumbnailURL,
 		Description:  candidate.Description,
 	}
-}
-
-func sourceLabel(sourceName string) string {
-	switch sourceName {
-	case "thb-wiki":
-		return "THBWiki"
-	case "doujin-meta":
-		return "Doujin Meta"
-	case "music-brainz":
-		return "MusicBrainz"
-	case "discogs":
-		return "Discogs"
-	case "local-json":
-		return "本地 metadata.json"
-	default:
-		return sourceName
-	}
-}
-
-func coverSourceLabel(sourceName string) string {
-	if sourceName == "local" {
-		return "本地封面"
-	}
-	if sourceName == "" || sourceName == "none" {
-		return "无封面"
-	}
-	return sourceLabel(sourceName) + " 封面"
-}
-
-func coverCompressionDescription(value domain.MetadataConfig, size int) string {
-	if value.CoverCompressSize <= 0 {
-		return "未启用封面压缩，将保留原始图片"
-	}
-	threshold := int64(value.CoverCompressSize * 1024 * 1024)
-	if int64(size) <= threshold {
-		return fmt.Sprintf("低于 %.0f KB 阈值，将保留原始图片", value.CoverCompressSize*1024)
-	}
-	if value.CoverCompressResolution > 0 {
-		return fmt.Sprintf("写入时将压缩，最大边长 %d px", value.CoverCompressResolution)
-	}
-	return "写入时将压缩封面"
 }
 
 func coverStatus(path string) CoverStatus {

@@ -3,6 +3,7 @@ import Image from 'primevue/image'
 import { computed, defineComponent, type PropType } from 'vue'
 
 import type { CoverPreview as CoverPreviewData } from '../../api'
+import { issueText } from '../../api/display'
 import { t } from '../../i18n'
 import { CoverPlaceholder } from '../../shared/CoverPlaceholder'
 import { Message } from '../../shared/Message'
@@ -67,7 +68,7 @@ export const CoverPreview = defineComponent({
             <div>{fileSize.value}</div>
           </div>
         )}
-        {props.cover.issue && <Message severity="error">{props.cover.issue.message}</Message>}
+        {props.cover.issue && <Message severity="error">{issueText(props.cover.issue)}</Message>}
       </div>
     )
   },

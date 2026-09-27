@@ -21,15 +21,13 @@ export const TaggingSearchStep = defineComponent({
     const workspace = useWorkspaceStore()
     const settings = useSettingsStore()
     const {
-      phase,
+      activity,
       summary,
       query,
       source,
       candidates,
-      hasSearched,
       selectedCandidateId,
       plan,
-      operation,
       isBusy,
       canSearch,
       canPrepare,
@@ -47,13 +45,7 @@ export const TaggingSearchStep = defineComponent({
 
     return () => {
       const currentSummary = summary.value
-      if (
-        !currentSummary ||
-        currentSummary.hasMetadataJson ||
-        phase.value === 'failed' ||
-        plan.value ||
-        operation.value
-      ) {
+      if (!currentSummary || currentSummary.hasMetadataJson || plan.value) {
         return null
       }
 
@@ -90,7 +82,7 @@ export const TaggingSearchStep = defineComponent({
               <Button
                 label={t('common.search')}
                 type="button"
-                loading={phase.value === 'searching'}
+                loading={activity.value === 'searching'}
                 disabled={!canSearch.value}
                 onClick={() => void workspace.search()}
               >
@@ -98,10 +90,10 @@ export const TaggingSearchStep = defineComponent({
               </Button>
             </div>
 
-            {phase.value === 'searching' && <TaggingSearchSkeleton />}
-            {phase.value !== 'searching' && candidates.value.length > 0 && (
+            {activity.value === 'searching' && <TaggingSearchSkeleton />}
+            {activity.value !== 'searching' && (candidates.value?.length ?? 0) > 0 && (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
-                {candidates.value.map(candidate => (
+                {candidates.value?.map(candidate => (
                   <div
                     key={candidate.id}
                     class="candidate-option"
@@ -135,7 +127,7 @@ export const TaggingSearchStep = defineComponent({
                 ))}
               </div>
             )}
-            {phase.value !== 'searching' && candidates.value.length === 0 && hasSearched.value && (
+            {activity.value !== 'searching' && candidates.value?.length === 0 && (
               <div
                 class={[
                   'mt-4 flex flex-1 flex-col items-center justify-center gap-3 border-t py-app-section-y text-center',
@@ -148,12 +140,12 @@ export const TaggingSearchStep = defineComponent({
             )}
           </div>
 
-          {candidates.value.length > 0 && (
+          {(candidates.value?.length ?? 0) > 0 && (
             <PageActionBar end>
               <Button
                 label={t('common.next')}
                 disabled={!canPrepare.value}
-                loading={phase.value === 'preparing'}
+                loading={activity.value === 'preparing'}
                 onClick={() => void workspace.preparePlan()}
               />
             </PageActionBar>

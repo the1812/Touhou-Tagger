@@ -1,71 +1,124 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, shallowRef } from 'vue'
 
 import type {
-  BatchRunResult,
   OperationFailure,
   OperationKind,
   OperationProgress,
   OperationResult,
+  OperationStart,
 } from '../api'
-
-type CompletionResult = OperationResult | BatchRunResult
+import { t } from '../i18n'
+import { useNotificationsStore } from './notifications'
 
 interface OperationHandlers {
-  complete(result: CompletionResult): void
+  complete(result: OperationResult): void
   failure(failure: OperationFailure): void
 }
 
+export interface OperationRunConfig extends OperationHandlers {
+  kind: OperationKind
+  reserve(): Promise<OperationStart>
+  start(operationId: string): Promise<void>
+  cancel(operationId: string): Promise<void>
+  initial(start: OperationStart): OperationProgress
+  onStartFailure?(): void
+}
+
+interface ActiveOperation {
+  kind: OperationKind
+  operationId?: string
+  progress?: OperationProgress
+  cancel(operationId: string): Promise<void>
+}
+
+const operationFailureTitle = (kind: OperationKind, action: 'start' | 'cancel') =>
+  t(`notifications.${action}${kind === 'workspace' ? 'Write' : 'Batch'}Failed`)
+
 export const useOperationsStore = defineStore('operations', () => {
-  const active = ref<Partial<Record<OperationKind, OperationProgress>>>({})
-  const handlers = new Map<string, OperationHandlers>()
+  const active = shallowRef<ActiveOperation>()
+  const notifications = useNotificationsStore()
+  let handlers: OperationHandlers | undefined
 
-  const get = (kind: OperationKind) => active.value[kind]
+  const operation = computed(() => active.value?.progress)
+  const activeKind = computed(() => active.value?.kind)
+  const isActive = computed(() => active.value !== undefined)
 
-  const begin = (operation: OperationProgress, callbacks: OperationHandlers) => {
-    active.value = { ...active.value, [operation.kind]: operation }
-    handlers.set(operation.operationId, callbacks)
+  const cancel = async () => {
+    const current = active.value
+    if (!current?.operationId || !current.progress?.cancellable) {
+      return
+    }
+    try {
+      await current.cancel(current.operationId)
+    } catch (error) {
+      notifications.error(operationFailureTitle(current.kind, 'cancel'), error)
+    }
   }
 
-  const release = (operationId: string) => {
-    const operation = Object.values(active.value).find(item => item.operationId === operationId)
-    if (operation) {
-      const next = { ...active.value }
-      delete next[operation.kind]
-      active.value = next
+  const run = async (config: OperationRunConfig) => {
+    if (active.value) {
+      return
     }
-    handlers.delete(operationId)
+    active.value = { kind: config.kind, cancel: config.cancel }
+    let started: OperationStart
+    try {
+      started = await config.reserve()
+    } catch (error) {
+      active.value = undefined
+      notifications.error(operationFailureTitle(config.kind, 'start'), error)
+      return
+    }
+
+    const { operationId } = started
+    active.value = {
+      kind: config.kind,
+      operationId,
+      progress: config.initial(started),
+      cancel: config.cancel,
+    }
+    handlers = { complete: config.complete, failure: config.failure }
+    try {
+      await config.start(operationId)
+    } catch (error) {
+      config.onStartFailure?.()
+      notifications.error(operationFailureTitle(config.kind, 'start'), error)
+      await cancel()
+    }
   }
 
   const receiveProgress = (progress: OperationProgress) => {
-    if (!handlers.has(progress.operationId)) {
-      return
+    if (active.value?.operationId === progress.operationId) {
+      active.value = { ...active.value, progress }
     }
-    active.value = { ...active.value, [progress.kind]: progress }
   }
 
-  const receiveComplete = (result: CompletionResult) => {
-    const callbacks = handlers.get(result.operationId)
-    if (!callbacks) {
+  const receiveComplete = (result: OperationResult) => {
+    const currentHandlers = handlers
+    if (!currentHandlers || active.value?.operationId !== result.operationId) {
       return
     }
-    release(result.operationId)
-    callbacks.complete(result)
+    active.value = undefined
+    handlers = undefined
+    currentHandlers.complete(result)
   }
 
   const receiveFailure = (failure: OperationFailure) => {
-    const callbacks = handlers.get(failure.operationId)
-    if (!callbacks) {
+    const currentHandlers = handlers
+    if (!currentHandlers || active.value?.operationId !== failure.operationId) {
       return
     }
-    release(failure.operationId)
-    callbacks.failure(failure)
+    active.value = undefined
+    handlers = undefined
+    currentHandlers.failure(failure)
   }
 
   return {
-    get,
-    begin,
-    release,
+    operation,
+    activeKind,
+    isActive,
+    run,
+    cancel,
     receiveProgress,
     receiveComplete,
     receiveFailure,

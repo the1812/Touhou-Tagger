@@ -1,7 +1,7 @@
-import { batchJobs } from './fixtureBatchData'
-import { batchDirectory, createPlan, defaultSettings } from './fixtureData'
-import { attachProgressMock, progressMock, progressMockKind } from './progressMock'
-import type { BatchRunResult, OperationFailure, OperationProgress, OperationResult } from './types'
+import type { BatchRunResult, OperationFailure, OperationProgress, OperationResult } from '../types'
+import { batchJobs } from './batchData'
+import { batchDirectory, createPlan, defaultSettings } from './data'
+import { attachProgressMock, progressMock, progressMockKind } from './progress'
 
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 export const wait = (duration = 80) =>
@@ -14,9 +14,14 @@ export const fixtureState = {
   completeHandlers: new Set<(result: OperationResult | BatchRunResult) => void>(),
   failureHandlers: new Set<(failure: OperationFailure) => void>(),
   operationTimers: new Map<string, number>(),
-  pendingStarts: new Map<string, { kind: 'workspace' | 'batch'; start: () => void }>(),
+  pendingStarts: new Map<
+    string,
+    { kind: 'workspace' | 'batch'; start: () => void; cancel: () => void }
+  >(),
+  batchSequence: 0,
   operationCancels: new Map<string, () => void>(),
   settings: clone(defaultSettings),
+  activeCandidateId: 'fixture:single-disc',
   activePlan: createPlan('fixture:single-disc'),
   activeBatch: {
     batchId: 'fixture-batch',

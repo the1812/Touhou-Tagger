@@ -10,6 +10,7 @@ export const MetadataTagsInput = defineComponent({
   name: 'MetadataTagsInput',
   props: {
     inputId: String,
+    disabled: Boolean,
     modelValue: {
       type: Array as PropType<string[]>,
       required: true,
@@ -29,6 +30,7 @@ export const MetadataTagsInput = defineComponent({
         typeahead={false}
         fluid
         size="small"
+        disabled={props.disabled}
       >
         {{
           chipicon: ({

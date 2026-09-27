@@ -248,6 +248,7 @@
     "loading": "正在加载",
     "noAudio": "无音频",
     "exactMatch": "精确匹配",
+    "selectedCandidate": "已选择搜索结果",
     "resultCount": "{count} 个搜索结果",
     "noSearchResults": "未找到搜索结果",
     "selectAlbum": "选择专辑",

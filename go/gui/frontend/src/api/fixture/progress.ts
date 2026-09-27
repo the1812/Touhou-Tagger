@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-import type { OperationProgress } from './types'
+import type { OperationProgress } from '../types'
 
 export const progressMockKind = new URLSearchParams(window.location.search).get('progress')
 export const progressMock = {

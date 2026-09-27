@@ -26,12 +26,8 @@ export const AppShell = defineComponent({
     const batch = useBatchStore()
     const canDrop = computed(() =>
       route.name === 'tagging'
-        ? !workspace.isBusy && !workspace.operation
-        : route.name === 'batch' &&
-          !batch.selecting &&
-          !batch.scanning &&
-          !batch.isWriting &&
-          batch.resolvingCount === 0,
+        ? workspace.canChangeDirectory
+        : route.name === 'batch' && batch.canChangeDirectory,
     )
     let disposeDrop: (() => void) | undefined
     let unmounted = false

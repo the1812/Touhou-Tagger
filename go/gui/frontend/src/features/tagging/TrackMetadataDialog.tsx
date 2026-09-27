@@ -2,9 +2,10 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
-import { defineComponent, type PropType, reactive, watch } from 'vue'
+import { defineComponent, type PropType } from 'vue'
 
 import type { PlanItemPreview } from '../../api'
+import { issueText } from '../../api/display'
 import { t } from '../../i18n'
 import { FieldLabel } from '../../shared/FieldLabel'
 import { FormField } from '../../shared/FormField'
@@ -15,63 +16,36 @@ import { MetadataTagsInput } from './MetadataTagsInput'
 export const TrackMetadataDialog = defineComponent({
   name: 'TrackMetadataDialog',
   props: {
-    visible: {
-      type: Boolean,
-      required: true,
-    },
+    visible: { type: Boolean, required: true },
     item: Object as PropType<PlanItemPreview>,
+    draft: Object as PropType<
+      Pick<PlanItemPreview, 'discNumber' | 'trackNumber' | 'title' | 'artists' | 'comments'>
+    >,
+    busy: Boolean,
   },
-  emits: ['update:visible', 'save'],
+  emits: ['update:draft', 'close', 'save'],
   setup(props, { emit }) {
-    const draft = reactive({
-      discNumber: '',
-      trackNumber: '',
-      title: '',
-      artists: [] as string[],
-      comments: '',
-    })
-
-    watch(
-      [() => props.visible, () => props.item],
-      ([visible, item]) => {
-        if (!visible || !item) {
-          return
-        }
-        draft.discNumber = item.discNumber
-        draft.trackNumber = item.trackNumber
-        draft.title = item.title
-        draft.artists = [...item.artists]
-        draft.comments = item.comments
-      },
-      { immediate: true },
-    )
-
-    const save = () => {
-      if (!props.item || !draft.title.trim()) {
-        return
+    const update = (
+      patch: Partial<
+        Pick<PlanItemPreview, 'discNumber' | 'trackNumber' | 'title' | 'artists' | 'comments'>
+      >,
+    ) => {
+      if (props.draft) {
+        emit('update:draft', { ...props.draft, ...patch })
       }
-      emit('save', {
-        id: props.item.id,
-        discNumber: draft.discNumber.trim(),
-        trackNumber: draft.trackNumber.trim(),
-        title: draft.title.trim(),
-        artists: draft.artists,
-        comments: draft.comments,
-      })
-      emit('update:visible', false)
     }
-
     return () => (
       <Dialog
         visible={props.visible}
-        {...{ 'onUpdate:visible': (value: boolean) => emit('update:visible', value) }}
+        {...{ 'onUpdate:visible': (value: boolean) => !value && emit('close') }}
         modal
         header={t('tagging.trackDialog.header')}
         class="w-[min(560px,calc(100vw-2rem))]"
       >
         {{
           default: () =>
-            props.item && (
+            props.item &&
+            props.draft && (
               <div class="grid gap-3.5">
                 <div class="grid min-w-0 gap-1.5 text-base">
                   <div class="font-semibold text-color">{t('tagging.trackDialog.localFile')}</div>
@@ -79,42 +53,38 @@ export const TrackMetadataDialog = defineComponent({
                     {props.item.sourceName}
                   </TruncatedText>
                 </div>
-
                 <FormField
-                  error={!draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
+                  error={!props.draft.title.trim() ? t('validation.trackTitleRequired') : undefined}
                 >
                   <FieldLabel for="tagging-trackDialog-title">
                     {t('tagging.trackDialog.title')}
                   </FieldLabel>
                   <InputText
                     id="tagging-trackDialog-title"
-                    v-model={draft.title}
+                    modelValue={props.draft.title}
+                    {...{ 'onUpdate:modelValue': (title: string) => update({ title }) }}
                     autofocus
                     fluid
-                    invalid={!draft.title.trim()}
+                    invalid={!props.draft.title.trim()}
+                    disabled={props.busy}
                   />
                 </FormField>
-
                 <FormField>
                   <FieldLabel for="tagging-trackDialog-artists">
                     {t('tagging.trackDialog.artists')}
                   </FieldLabel>
                   <MetadataTagsInput
                     inputId="tagging-trackDialog-artists"
-                    modelValue={draft.artists}
-                    {...{
-                      'onUpdate:modelValue': (values: string[]) => {
-                        draft.artists = values
-                      },
-                    }}
+                    modelValue={props.draft.artists}
+                    disabled={props.busy}
+                    {...{ 'onUpdate:modelValue': (artists: string[]) => update({ artists }) }}
                   />
-                  {draft.artists.length === 0 && (
+                  {props.draft.artists.length === 0 && (
                     <div class="text-sm font-normal text-amber-700 dark:text-amber-300">
                       {t('tagging.trackDialog.missingArtists')}
                     </div>
                   )}
                 </FormField>
-
                 <div class="grid grid-cols-2 gap-3">
                   <FormField>
                     <FieldLabel for="tagging-trackDialog-trackNumber">
@@ -122,8 +92,12 @@ export const TrackMetadataDialog = defineComponent({
                     </FieldLabel>
                     <InputText
                       id="tagging-trackDialog-trackNumber"
-                      v-model={draft.trackNumber}
+                      modelValue={props.draft.trackNumber}
+                      {...{
+                        'onUpdate:modelValue': (trackNumber: string) => update({ trackNumber }),
+                      }}
                       fluid
+                      disabled={props.busy}
                     />
                   </FormField>
                   <FormField>
@@ -132,29 +106,31 @@ export const TrackMetadataDialog = defineComponent({
                     </FieldLabel>
                     <InputText
                       id="tagging-trackDialog-discNumber"
-                      v-model={draft.discNumber}
+                      modelValue={props.draft.discNumber}
+                      {...{ 'onUpdate:modelValue': (discNumber: string) => update({ discNumber }) }}
                       fluid
+                      disabled={props.busy}
                     />
                   </FormField>
                 </div>
-
                 <FormField>
                   <FieldLabel for="tagging-trackDialog-comments">
                     {t('tagging.trackDialog.comments')}
                   </FieldLabel>
                   <Textarea
                     id="tagging-trackDialog-comments"
-                    v-model={draft.comments}
+                    modelValue={props.draft.comments}
+                    {...{ 'onUpdate:modelValue': (comments: string) => update({ comments }) }}
                     rows={6}
                     fluid
+                    disabled={props.busy}
                   />
                 </FormField>
-
                 {props.item.issues.length > 0 && (
                   <Message severity="warn">
                     <div class="grid gap-1">
                       {props.item.issues.map(issue => (
-                        <div key={issue.code}>{issue.message}</div>
+                        <div key={issue.code}>{issueText(issue)}</div>
                       ))}
                     </div>
                   </Message>
@@ -167,9 +143,13 @@ export const TrackMetadataDialog = defineComponent({
                 label={t('common.cancel')}
                 severity="secondary"
                 text
-                onClick={() => emit('update:visible', false)}
+                onClick={() => emit('close')}
               />
-              <Button label={t('common.save')} disabled={!draft.title.trim()} onClick={save} />
+              <Button
+                label={t('common.save')}
+                disabled={props.busy || !props.draft?.title.trim()}
+                onClick={() => emit('save')}
+              />
             </>
           ),
         }}

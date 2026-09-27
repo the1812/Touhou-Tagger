@@ -1,8 +1,8 @@
-import coverUrl from '../../../../../fixtures/media/images/cover.jpg?url'
-import multipleDiscFixture from '../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
-import noCoverFixture from '../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
-import singleDiscFixture from '../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
-import { sourceLabel, t } from '../i18n'
+import coverUrl from '../../../../../../fixtures/media/images/cover.jpg?url'
+import multipleDiscFixture from '../../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
+import noCoverFixture from '../../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
+import singleDiscFixture from '../../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
+import { sourceLabel, t } from '../../i18n'
 import type {
   AlbumCandidate,
   AlbumMetadata,
@@ -11,7 +11,7 @@ import type {
   PlanPreview,
   Settings,
   WorkspaceSummary,
-} from './types'
+} from '../types'
 
 type AlbumFixture = typeof singleDiscFixture
 
@@ -61,7 +61,6 @@ const fixtureCandidate = (
   id,
   title: fixture.album.album,
   source: 'thb-wiki',
-  sourceLabel: sourceLabel('thb-wiki'),
   albumOrder: fixture.album.albumOrder,
   artists: fixture.album.albumArtists,
   thumbnailUrl: fixture.cover ? coverUrl : undefined,
@@ -88,7 +87,6 @@ for (const source of ['music-brainz', 'discogs']) {
     candidates.push({
       ...fixtureCandidate(singleDiscFixture, id, false),
       source,
-      sourceLabel: sourceLabel(source),
       description: `${singleDiscFixture.album.albumArtists.join(' / ')} · ${edition === 'original' ? '2017' : '2020'} · ${singleDiscFixture.album.albumOrder} · CD · ${id}`,
     })
     fixtureByCandidate.set(id, singleDiscFixture)
@@ -159,27 +157,23 @@ export const createPlan = (
     revision,
     directory: fixtureDirectory,
     album: album ?? albumMetadata(fixture),
-    candidate,
     cover: hasCover
       ? {
           url: coverUrl,
-          source: candidate.source as PlanPreview['cover']['source'],
-          sourceLabel: sourceLabel(candidate.source),
+          source: candidate.source,
           width: 600,
           height: 600,
           byteSize: 43246,
-          compressionDescription: '低于 1500 KB 阈值，将保留原始图片',
         }
       : {
           url: '',
           source: 'none',
-          sourceLabel: t('data.noCover'),
           width: 0,
           height: 0,
           byteSize: 0,
-          compressionDescription: t('data.noCoverWrite'),
         },
     items: planItems,
+    source: candidate.source,
     issues: [],
     options: {
       writeFiles: planItems.length,

@@ -2,11 +2,12 @@ import { Pencil, Play } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 import { Translation } from 'vue-i18n'
 
-import type { TrackMetadataPatch, AlbumMetadataPatch, PlanItemPreview } from '../../api'
-import { t } from '../../i18n'
+import type { PlanItemPreview } from '../../api'
+import { issueText } from '../../api/display'
+import { sourceLabel, t } from '../../i18n'
 import { Message } from '../../shared/Message'
 import { PageActionBar } from '../../shared/PageActionBar'
 import { useDelayedBusy } from '../../shared/useDelayedBusy'
@@ -16,23 +17,20 @@ import { AlbumMetadataDialog } from './AlbumMetadataDialog'
 import { CoverPreview } from './CoverPreview'
 import { PlanTable } from './PlanTable'
 import { TrackMetadataDialog } from './TrackMetadataDialog'
+import { usePlanEditor } from './usePlanEditor'
 
 export const TaggingPlanStep = defineComponent({
   name: 'TaggingPlanStep',
   setup() {
     const workspace = useWorkspaceStore()
-    const { plan, summary, phase, isWriting, isBusy, blockingIssues, canCommit } =
+    const { plan, summary, stalePlan, isWriting, isBusy, blockingIssues, canCommit } =
       storeToRefs(workspace)
     const showSpinner = useDelayedBusy(() => isWriting.value)
-    const selectedTrack = ref<PlanItemPreview>()
-    const trackDialogVisible = ref(false)
-    const albumDialogVisible = ref(false)
+    const editor = usePlanEditor(workspace)
     const openTrack = (item: PlanItemPreview) => {
-      if (isBusy.value || phase.value !== 'ready') {
-        return
+      if (!isBusy.value && !stalePlan.value) {
+        editor.openTrack(item.id)
       }
-      selectedTrack.value = item
-      trackDialogVisible.value = true
     }
 
     return () => {
@@ -41,7 +39,7 @@ export const TaggingPlanStep = defineComponent({
         return null
       }
 
-      const stale = phase.value === 'failed'
+      const stale = stalePlan.value
       const idleAction = stale ? 'tagging.rescan' : 'common.start'
       return (
         <>
@@ -74,7 +72,7 @@ export const TaggingPlanStep = defineComponent({
                   outlined
                   disabled={isBusy.value || stale}
                   onClick={() => {
-                    albumDialogVisible.value = true
+                    editor.openAlbum()
                   }}
                 >
                   {{ icon: () => <Pencil /> }}
@@ -104,7 +102,7 @@ export const TaggingPlanStep = defineComponent({
                 </div>
                 <div class="metadata-row">
                   <div class="font-medium text-color">{t('tagging.plan.source')}</div>
-                  {currentPlan.candidate.sourceLabel}
+                  {sourceLabel(currentPlan.source)}
                 </div>
               </div>
             </div>
@@ -113,7 +111,7 @@ export const TaggingPlanStep = defineComponent({
           <div class="workspace-section grid w-full content-start gap-4">
             {currentPlan.issues.map(issue => (
               <Message key={issue.code} severity={issue.severity === 'error' ? 'error' : 'warn'}>
-                {issue.message}
+                {issueText(issue)}
               </Message>
             ))}
             <PlanTable
@@ -174,24 +172,25 @@ export const TaggingPlanStep = defineComponent({
           </PageActionBar>
 
           <TrackMetadataDialog
-            visible={trackDialogVisible.value}
+            visible={editor.kind.value === 'track'}
+            draft={editor.trackDraft.value}
+            busy={isBusy.value}
+            item={editor.selectedTrack.value}
             {...{
-              'onUpdate:visible': (value: boolean) => {
-                trackDialogVisible.value = value
-              },
+              'onUpdate:draft': editor.updateTrackDraft,
+              onClose: editor.close,
+              onSave: editor.saveTrack,
             }}
-            item={selectedTrack.value}
-            onSave={(track: TrackMetadataPatch) => workspace.updateTrack(track)}
           />
           <AlbumMetadataDialog
-            visible={albumDialogVisible.value}
-            album={currentPlan.album}
+            visible={editor.kind.value === 'album'}
+            draft={editor.albumDraft.value}
+            busy={isBusy.value}
             {...{
-              'onUpdate:visible': (value: boolean) => {
-                albumDialogVisible.value = value
-              },
+              'onUpdate:draft': editor.updateAlbumDraft,
+              onClose: editor.close,
+              onSave: editor.saveAlbum,
             }}
-            onSave={(album: AlbumMetadataPatch) => workspace.updateAlbum(album)}
           />
         </>
       )

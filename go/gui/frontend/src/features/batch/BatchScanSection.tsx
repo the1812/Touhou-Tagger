@@ -2,7 +2,7 @@ import { RefreshCw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
-import { computed, defineComponent } from 'vue'
+import { defineComponent } from 'vue'
 
 import { t } from '../../i18n'
 import { WorkspaceTitle } from '../../shared/WorkspaceTitle'
@@ -13,11 +13,7 @@ export const BatchScanSection = defineComponent({
   name: 'BatchScanSection',
   setup() {
     const batch = useBatchStore()
-    const { depth, preview, selecting, scanning, resolvingCount, isWriting } = storeToRefs(batch)
-    const controlsDisabled = computed(
-      () => selecting.value || scanning.value || resolvingCount.value > 0 || isWriting.value,
-    )
-    const tableDisabled = computed(() => selecting.value || scanning.value || isWriting.value)
+    const { depth, preview, scanning, canChangeDirectory, canEditJobs } = storeToRefs(batch)
 
     return () => {
       const currentPreview = preview.value
@@ -39,7 +35,7 @@ export const BatchScanSection = defineComponent({
                   max={8}
                   showButtons
                   fluid
-                  disabled={controlsDisabled.value}
+                  disabled={!canChangeDirectory.value}
                 />
               </div>
               <Button
@@ -47,7 +43,7 @@ export const BatchScanSection = defineComponent({
                 label={t('batch.rescan')}
                 severity="secondary"
                 outlined
-                disabled={controlsDisabled.value}
+                disabled={!canChangeDirectory.value}
                 onClick={() => void batch.scan()}
               >
                 {{
@@ -71,7 +67,7 @@ export const BatchScanSection = defineComponent({
             <BatchJobTable
               jobs={currentPreview?.jobs ?? []}
               editable
-              disabled={tableDisabled.value}
+              disabled={!canEditJobs.value}
               resolving={batch.isResolving}
               onResolve={(jobId, candidateId) => batch.resolveCandidate(jobId, candidateId)}
               onRetry={jobId => batch.loadJob(jobId)}

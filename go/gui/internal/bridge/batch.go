@@ -102,6 +102,7 @@ func (service *BatchService) ScanBatch(
 		}
 		if discovered.Ignored {
 			job.status = "no-audio"
+			job.issues = []StateIssue{errorIssue("no-audio", "目录中没有支持的 MP3 或 FLAC 文件。")}
 			session.jobs = append(session.jobs, job)
 			continue
 		}
@@ -224,6 +225,7 @@ func (service *BatchService) loadBatchJob(ctx context.Context, session *batchSes
 	job.selectedCandidateID = ""
 	if job.audioCount == 0 {
 		job.status = "no-audio"
+		job.issues = []StateIssue{errorIssue("no-audio", "目录中没有支持的 MP3 或 FLAC 文件。")}
 		return nil
 	}
 	applicationService, err := service.runtime.albumService(album, "")
@@ -567,55 +569,58 @@ func batchJobPreview(root string, job *batchJob) BatchJobPreview {
 		relative = filepath.Base(job.directory)
 	}
 	status := job.status
+	canRun := job.canRun()
 	issues := dtoSlice(job.issues)
 	if job.plan != nil {
 		job.plan.mu.Lock()
 		issues = append(issues, job.plan.issues...)
-		if status == "ready" {
-			if !canCommit(job.plan) {
-				status = "blocked"
-			} else if job.source == "local-json" {
-				status = "local-metadata"
-			}
-		}
 		job.plan.mu.Unlock()
 	}
+	readiness, outcome := batchJobState(status, canRun)
 	return BatchJobPreview{
-		CanRun:              job.canRun(),
 		ID:                  job.id,
 		RelativePath:        relative,
 		InferredAlbumName:   job.inferredAlbumName,
 		Source:              job.source,
-		MatchDescription:    batchMatchDescription(job, status),
 		AudioCount:          job.audioCount,
-		Status:              status,
+		Readiness:           readiness,
+		Outcome:             outcome,
 		Issues:              issues,
 		Candidates:          dtoSlice(job.candidates),
 		SelectedCandidateID: job.selectedCandidateID,
 	}
 }
 
-func batchMatchDescription(job *batchJob, status string) string {
+func batchJobState(status string, canRun bool) (string, string) {
 	switch status {
 	case "loading":
-		return "正在加载"
+		return "pending", ""
 	case "no-audio":
-		return "无音频"
-	case "scan-failed":
-		return "加载失败"
-	case "blocked":
-		return "写入内容存在问题"
+		return "skipped", ""
+	case "scan-failed", "blocked":
+		return "blocked", ""
 	case "failed":
-		return "写入失败"
-	case "needs-candidate":
-		return fmt.Sprintf("%d 个搜索结果", len(job.candidates))
-	default:
-		for _, candidate := range job.candidates {
-			if candidate.ID == job.selectedCandidateID && !candidate.ExactMatch {
-				return "已选择搜索结果"
-			}
+		if canRun {
+			return "ready", "failed"
 		}
-		return "精确匹配"
+		return "blocked", "failed"
+	case "needs-candidate":
+		return "needs-candidate", ""
+	case "succeeded":
+		if canRun {
+			return "ready", "succeeded"
+		}
+		return "blocked", "succeeded"
+	case "cancelled":
+		if canRun {
+			return "ready", "cancelled"
+		}
+		return "blocked", "cancelled"
+	default:
+		if canRun {
+			return "ready", ""
+		}
+		return "blocked", ""
 	}
 }
 

@@ -1,7 +1,7 @@
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
-import { defineComponent, type PropType, reactive, watch } from 'vue'
+import { defineComponent, type PropType } from 'vue'
 
 import type { AlbumMetadata } from '../../api'
 import { t } from '../../i18n'
@@ -13,129 +13,109 @@ export const AlbumMetadataDialog = defineComponent({
   name: 'AlbumMetadataDialog',
   props: {
     visible: Boolean,
-    album: Object as PropType<AlbumMetadata>,
+    draft: Object as PropType<AlbumMetadata>,
+    busy: Boolean,
   },
-  emits: {
-    'update:visible': null,
-    save: null,
-  },
+  emits: ['update:draft', 'close', 'save'],
   setup(props, { emit }) {
-    const draft = reactive({
-      title: '',
-      albumOrder: '',
-      artists: [] as string[],
-      year: '',
-      genres: [] as string[],
-    })
-
-    watch(
-      [() => props.visible, () => props.album],
-      ([visible, album]) => {
-        if (!visible || !album) {
-          return
-        }
-        draft.title = album.title
-        draft.albumOrder = album.albumOrder
-        draft.artists = [...album.artists]
-        draft.year = album.year
-        draft.genres = [...album.genres]
-      },
-      { immediate: true },
-    )
-
-    const save = () => {
-      emit('save', {
-        title: draft.title.trim(),
-        albumOrder: draft.albumOrder.trim(),
-        artists: draft.artists,
-        year: draft.year.trim(),
-        genres: draft.genres,
-      })
-      emit('update:visible', false)
+    const update = (patch: Partial<AlbumMetadata>) => {
+      if (props.draft) {
+        emit('update:draft', { ...props.draft, ...patch })
+      }
     }
-
     return () => (
       <Dialog
         visible={props.visible}
-        {...{
-          'onUpdate:visible': (value: boolean) => emit('update:visible', value),
-        }}
+        {...{ 'onUpdate:visible': (value: boolean) => !value && emit('close') }}
         modal
         header={t('tagging.albumDialog.header')}
         class="w-[min(560px,calc(100vw-2rem))]"
       >
         {{
-          default: () => (
-            <div class="grid gap-3.5">
-              <FormField>
-                <FieldLabel for="tagging-albumDialog-title">
-                  {t('tagging.albumDialog.title')}
-                </FieldLabel>
-                <InputText
-                  id="tagging-albumDialog-title"
-                  v-model={draft.title}
-                  autofocus
-                  fluid
-                  invalid={!draft.title.trim()}
-                />
-              </FormField>
-              <div class="grid grid-cols-2 gap-3">
+          default: () =>
+            props.draft && (
+              <div class="grid gap-3.5">
                 <FormField>
-                  <FieldLabel for="tagging-albumDialog-catalogNumber">
-                    {t('tagging.albumDialog.catalogNumber')}
+                  <FieldLabel for="tagging-albumDialog-title">
+                    {t('tagging.albumDialog.title')}
                   </FieldLabel>
                   <InputText
-                    id="tagging-albumDialog-catalogNumber"
-                    v-model={draft.albumOrder}
+                    id="tagging-albumDialog-title"
+                    modelValue={props.draft.title}
+                    {...{ 'onUpdate:modelValue': (title: string) => update({ title }) }}
+                    autofocus
                     fluid
+                    invalid={!props.draft.title.trim()}
+                    disabled={props.busy}
+                  />
+                </FormField>
+                <div class="grid grid-cols-2 gap-3">
+                  <FormField>
+                    <FieldLabel for="tagging-albumDialog-catalogNumber">
+                      {t('tagging.albumDialog.catalogNumber')}
+                    </FieldLabel>
+                    <InputText
+                      id="tagging-albumDialog-catalogNumber"
+                      modelValue={props.draft.albumOrder}
+                      {...{ 'onUpdate:modelValue': (albumOrder: string) => update({ albumOrder }) }}
+                      fluid
+                      disabled={props.busy}
+                    />
+                  </FormField>
+                  <FormField>
+                    <FieldLabel for="tagging-albumDialog-year">
+                      {t('tagging.albumDialog.year')}
+                    </FieldLabel>
+                    <InputText
+                      id="tagging-albumDialog-year"
+                      modelValue={props.draft.year}
+                      {...{ 'onUpdate:modelValue': (year: string) => update({ year }) }}
+                      fluid
+                      disabled={props.busy}
+                    />
+                  </FormField>
+                </div>
+                <FormField>
+                  <FieldLabel for="tagging-albumDialog-circles">
+                    {t('tagging.albumDialog.circles')}
+                  </FieldLabel>
+                  <MetadataTagsInput
+                    inputId="tagging-albumDialog-circles"
+                    modelValue={props.draft.artists}
+                    disabled={props.busy}
+                    {...{
+                      'onUpdate:modelValue': (artists: string[]) => update({ artists }),
+                    }}
                   />
                 </FormField>
                 <FormField>
-                  <FieldLabel for="tagging-albumDialog-year">
-                    {t('tagging.albumDialog.year')}
+                  <FieldLabel for="tagging-albumDialog-genres">
+                    {t('tagging.albumDialog.genres')}
                   </FieldLabel>
-                  <InputText id="tagging-albumDialog-year" v-model={draft.year} fluid />
+                  <MetadataTagsInput
+                    inputId="tagging-albumDialog-genres"
+                    modelValue={props.draft.genres}
+                    disabled={props.busy}
+                    {...{
+                      'onUpdate:modelValue': (genres: string[]) => update({ genres }),
+                    }}
+                  />
                 </FormField>
               </div>
-              <FormField>
-                <FieldLabel for="tagging-albumDialog-circles">
-                  {t('tagging.albumDialog.circles')}
-                </FieldLabel>
-                <MetadataTagsInput
-                  inputId="tagging-albumDialog-circles"
-                  modelValue={draft.artists}
-                  {...{
-                    'onUpdate:modelValue': (values: string[]) => {
-                      draft.artists = values
-                    },
-                  }}
-                />
-              </FormField>
-              <FormField>
-                <FieldLabel for="tagging-albumDialog-genres">
-                  {t('tagging.albumDialog.genres')}
-                </FieldLabel>
-                <MetadataTagsInput
-                  inputId="tagging-albumDialog-genres"
-                  modelValue={draft.genres}
-                  {...{
-                    'onUpdate:modelValue': (values: string[]) => {
-                      draft.genres = values
-                    },
-                  }}
-                />
-              </FormField>
-            </div>
-          ),
+            ),
           footer: () => (
             <>
               <Button
                 label={t('common.cancel')}
                 severity="secondary"
                 text
-                onClick={() => emit('update:visible', false)}
+                onClick={() => emit('close')}
               />
-              <Button label={t('common.save')} disabled={!draft.title.trim()} onClick={save} />
+              <Button
+                label={t('common.save')}
+                disabled={props.busy || !props.draft?.title.trim()}
+                onClick={() => emit('save')}
+              />
             </>
           ),
         }}

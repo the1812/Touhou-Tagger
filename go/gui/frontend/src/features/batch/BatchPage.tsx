@@ -5,6 +5,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import { defineComponent } from 'vue'
 import { Translation } from 'vue-i18n'
 
+import { failureTitle, issueText, resultTitle } from '../../api/display'
 import { usePageCommands } from '../../app/pageCommands'
 import { t } from '../../i18n'
 import { CompletionDialog } from '../../shared/CompletionDialog'
@@ -26,9 +27,7 @@ export const BatchPage = defineComponent({
       scanning,
       operation,
       isWriting,
-      result,
-      failure,
-      resultOpen,
+      completion,
       readyCount,
       skippedCount,
       retryableCount,
@@ -51,13 +50,23 @@ export const BatchPage = defineComponent({
       const currentDirectory = directory.value
       const currentPreview = preview.value
       const currentOperation = operation.value
-      const currentResult = result.value
+      const currentCompletion = completion.value
+      const result = currentCompletion?.kind === 'result' ? currentCompletion.result : undefined
+      const failure = currentCompletion?.kind === 'failure' ? currentCompletion.failure : undefined
+      let title = ''
+      if (currentCompletion) {
+        title =
+          currentCompletion.kind === 'failure'
+            ? failureTitle(currentCompletion.failure)
+            : resultTitle(currentCompletion.result)
+      }
 
       return (
         <div class="workspace-sections round-icon-buttons grid min-h-full content-start gap-0">
           {!currentDirectory ? (
             <DirectoryPickerEmptyState
               loading={selecting.value}
+              disabled={!batch.canChangeDirectory}
               onSelect={() => batch.selectDirectory()}
             />
           ) : (
@@ -133,27 +142,20 @@ export const BatchPage = defineComponent({
               </>
 
               <CompletionDialog
-                visible={resultOpen.value}
-                title={failure.value?.message ?? currentResult?.message ?? ''}
-                warning={Boolean(
-                  failure.value || currentResult?.failed || currentResult?.cancelled,
-                )}
+                visible={Boolean(currentCompletion)}
+                title={title}
+                warning={Boolean(failure || result?.failed || result?.cancelled)}
                 details={
-                  failure.value?.details ??
-                  currentResult?.jobs
-                    .filter(job => job.status === 'failed')
-                    .map(
-                      job =>
-                        `${job.relativePath}: ${job.issues.map(issue => issue.message).join('；')}`,
-                    )
+                  failure?.details ??
+                  result?.jobs
+                    .filter(job => job.outcome === 'failed')
+                    .map(job => `${job.relativePath}: ${job.issues.map(issueText).join('；')}`)
                     .join('\n')
                 }
                 retryable={retryableCount.value > 0}
                 onReveal={() => batch.reveal()}
                 onRetry={() => batch.run(true)}
-                onClose={() => {
-                  batch.resultOpen = false
-                }}
+                onClose={batch.closeCompletion}
               />
             </>
           )}

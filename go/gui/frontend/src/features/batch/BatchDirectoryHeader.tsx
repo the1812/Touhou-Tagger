@@ -12,14 +12,11 @@ export const BatchDirectoryHeader = defineComponent({
   name: 'BatchDirectoryHeader',
   setup() {
     const batch = useBatchStore()
-    const { directory, selecting, scanning, resolvingCount, isWriting } = storeToRefs(batch)
+    const { directory, selecting, canChangeDirectory } = storeToRefs(batch)
     const directoryLabel = computed(() => {
       const parts = directory.value.split(/[\\/]/).filter(Boolean)
       return parts[parts.length - 1] || t('batch.directoryFallback')
     })
-    const controlsDisabled = computed(
-      () => selecting.value || scanning.value || resolvingCount.value > 0 || isWriting.value,
-    )
 
     return () => {
       const currentDirectory = directory.value
@@ -52,7 +49,7 @@ export const BatchDirectoryHeader = defineComponent({
                 severity="secondary"
                 outlined
                 loading={selecting.value}
-                disabled={controlsDisabled.value}
+                disabled={!canChangeDirectory.value}
                 onClick={() => void batch.selectDirectory()}
               >
                 {{ icon: () => <FolderOpen /> }}

@@ -3,8 +3,8 @@ import { defineComponent } from 'vue'
 import { isFixtureMode } from './api'
 import { providePageCommandRegistry } from './app/pageCommands'
 import { useAppRuntime } from './app/runtime'
+import { ProgressMockLoader } from './features/fixture/ProgressLoader'
 import { AppShell } from './shared/AppShell'
-import { ProgressMockLoader } from './shared/ProgressMockLoader'
 
 const showProgressMock =
   import.meta.env.DEV &&

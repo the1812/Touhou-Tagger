@@ -1,5 +1,5 @@
-import type { Capabilities, Settings } from '../api'
-import { t } from '../i18n'
+import type { Capabilities, Settings } from '../../api'
+import { t } from '../../i18n'
 
 export const validateSettings = (
   value: Settings | undefined,

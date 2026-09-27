@@ -49,7 +49,6 @@ type AlbumCandidate struct {
 	ID           string   `json:"id"`
 	Title        string   `json:"title"`
 	Source       string   `json:"source"`
-	SourceLabel  string   `json:"sourceLabel"`
 	AlbumOrder   string   `json:"albumOrder,omitempty"`
 	Artists      []string `json:"artists"`
 	ThumbnailURL string   `json:"thumbnailUrl,omitempty"`
@@ -67,14 +66,12 @@ type AlbumMetadata struct {
 }
 
 type CoverPreview struct {
-	URL                    string      `json:"url"`
-	Source                 string      `json:"source"`
-	SourceLabel            string      `json:"sourceLabel"`
-	Width                  int         `json:"width"`
-	Height                 int         `json:"height"`
-	ByteSize               int         `json:"byteSize"`
-	CompressionDescription string      `json:"compressionDescription"`
-	Issue                  *StateIssue `json:"issue,omitempty"`
+	URL      string      `json:"url"`
+	Source   string      `json:"source"`
+	Width    int         `json:"width"`
+	Height   int         `json:"height"`
+	ByteSize int         `json:"byteSize"`
+	Issue    *StateIssue `json:"issue,omitempty"`
 }
 
 type PlanItemPreview struct {
@@ -105,7 +102,7 @@ type PlanPreview struct {
 	Revision  int               `json:"revision"`
 	Directory string            `json:"directory"`
 	Album     AlbumMetadata     `json:"album"`
-	Candidate AlbumCandidate    `json:"candidate"`
+	Source    string            `json:"source"`
 	Cover     CoverPreview      `json:"cover"`
 	Items     []PlanItemPreview `json:"items"`
 	Issues    []StateIssue      `json:"issues"`
@@ -179,14 +176,13 @@ type OperationFailure struct {
 }
 
 type BatchJobPreview struct {
-	CanRun              bool             `json:"canRun"`
 	ID                  string           `json:"id"`
 	RelativePath        string           `json:"relativePath"`
 	InferredAlbumName   string           `json:"inferredAlbumName"`
 	Source              string           `json:"source"`
-	MatchDescription    string           `json:"matchDescription"`
 	AudioCount          int              `json:"audioCount"`
-	Status              string           `json:"status"`
+	Readiness           string           `json:"readiness"`
+	Outcome             string           `json:"outcome,omitempty"`
 	Issues              []StateIssue     `json:"issues"`
 	Candidates          []AlbumCandidate `json:"candidates"`
 	SelectedCandidateID string           `json:"selectedCandidateId,omitempty"`

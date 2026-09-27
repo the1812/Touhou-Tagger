@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref, toRaw, watch } from 'vue'
 
-import { getApi, type Capabilities, type Settings } from '../api'
-import { t } from '../i18n'
-import { useNotificationsStore } from './notifications'
-import { validateSettings } from './settingsValidation'
+import { getApi, type Capabilities, type Settings } from '../../api'
+import { t } from '../../i18n'
+import { useNotificationsStore } from '../notifications'
+import { validateSettings } from './validation'
 
 const settingsEqual = (left?: Settings, right?: Settings) =>
   Boolean(left && right && JSON.stringify(left) === JSON.stringify(right))

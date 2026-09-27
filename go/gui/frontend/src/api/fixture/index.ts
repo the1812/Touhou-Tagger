@@ -1,8 +1,8 @@
-import { fixtureBatchApi } from './fixtureBatch'
-import { capabilities, defaultSettings } from './fixtureData'
-import { clone, fixtureState, wait } from './fixtureState'
-import { fixtureWorkspaceApi } from './fixtureWorkspace'
-import type { GUIApi } from './types'
+import type { GUIApi } from '../types'
+import { fixtureBatchApi } from './batch'
+import { capabilities, defaultSettings } from './data'
+import { clone, fixtureState, wait } from './state'
+import { fixtureWorkspaceApi } from './workspace'
 
 export const fixtureApi: GUIApi = {
   ...fixtureWorkspaceApi,

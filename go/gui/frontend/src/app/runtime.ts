@@ -1,6 +1,8 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 
 import { getApi, isFixtureMode } from '../api'
+import { t } from '../i18n'
+import { useNotificationsStore } from '../stores/notifications'
 import { useOperationsStore } from '../stores/operations'
 import { useSettingsStore } from '../stores/settings'
 import { useWorkspaceStore } from '../stores/workspace'
@@ -9,6 +11,7 @@ export const useAppRuntime = () => {
   const operations = useOperationsStore()
   const settings = useSettingsStore()
   const workspace = useWorkspaceStore()
+  const notifications = useNotificationsStore()
   const disposers: Array<() => void> = []
 
   onMounted(async () => {
@@ -26,11 +29,18 @@ export const useAppRuntime = () => {
         new URLSearchParams(window.location.search).get('progress') ?? '',
       )
     ) {
-      const { initializeProgressMock } = await import('../shared/ProgressMockPanel')
+      const { initializeProgressMock } = await import('../features/fixture/ProgressPanel')
       await initializeProgressMock()
     }
     if (!isFixtureMode) {
-      await workspace.loadStartupDirectory()
+      try {
+        const directory = await api.getStartupDirectory()
+        if (directory && !workspace.directory) {
+          await workspace.scan(directory)
+        }
+      } catch (error) {
+        notifications.error(t('notifications.loadStartupDirectoryFailed'), error)
+      }
     }
   })
 

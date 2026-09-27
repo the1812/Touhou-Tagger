@@ -1,6 +1,6 @@
-import { candidates, createPlan, fixtureDirectory, workspaceSummary } from './fixtureData'
-import { clone, emitSequence, fixtureState, wait } from './fixtureState'
-import type { PlanPatch, WorkspaceApi } from './types'
+import type { PlanPatch, WorkspaceApi } from '../types'
+import { candidates, createPlan, fixtureDirectory, workspaceSummary } from './data'
+import { clone, emitSequence, fixtureState, wait } from './state'
 
 export const fixtureWorkspaceApi: WorkspaceApi = {
   async selectAlbumDirectory() {
@@ -29,6 +29,7 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
 
   async preparePlan(_directory, candidateId) {
     await wait(200)
+    fixtureState.activeCandidateId = candidateId
     fixtureState.activePlan = createPlan(candidateId)
     return clone(fixtureState.activePlan)
   },
@@ -36,14 +37,37 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
   async updatePlan(patch: PlanPatch) {
     patch = clone(patch)
     await wait(120)
-    const album = { ...fixtureState.activePlan.album, ...patch.album }
-    const changedTracks = new Map(patch.tracks?.map(track => [track.id, track]) ?? [])
+    const previousAlbum = fixtureState.activePlan.album
+    const album = {
+      ...previousAlbum,
+      ...(patch.album?.title != null ? { title: patch.album.title } : {}),
+      ...(patch.album?.albumOrder != null ? { albumOrder: patch.album.albumOrder } : {}),
+      ...(patch.album?.artists != null ? { artists: patch.album.artists } : {}),
+      ...(patch.album?.year != null ? { year: patch.album.year } : {}),
+      ...(patch.album?.genres != null ? { genres: patch.album.genres } : {}),
+    }
+    const changedTracks = new Map((patch.tracks ?? []).map(track => [track.id, track]))
     const items = fixtureState.activePlan.items.map(item => {
       const change = changedTracks.get(item.id)
       if (!change) {
         return item
       }
-      const updated = { ...item, ...change }
+      const updated = { ...item }
+      if (change.discNumber != null) {
+        updated.discNumber = change.discNumber
+      }
+      if (change.trackNumber != null) {
+        updated.trackNumber = change.trackNumber
+      }
+      if (change.title != null) {
+        updated.title = change.title
+      }
+      if (change.artists != null) {
+        updated.artists = change.artists
+      }
+      if (change.comments != null) {
+        updated.comments = change.comments
+      }
       const prefix =
         updated.discNumber === '1'
           ? updated.trackNumber.padStart(2, '0')
@@ -51,7 +75,7 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
       return { ...updated, targetName: `${prefix}. ${updated.title}.mp3` }
     })
     fixtureState.activePlan = createPlan(
-      fixtureState.activePlan.candidate.id,
+      fixtureState.activeCandidateId,
       fixtureState.activePlan.revision + 1,
       album,
       items,
@@ -113,6 +137,22 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
             plan: clone(fixtureState.activePlan),
           }),
         ),
+      cancel: () =>
+        fixtureState.completeHandlers.forEach(handler =>
+          handler({
+            operationId,
+            kind: 'workspace',
+            succeeded: 0,
+            failed: 0,
+            renamed: 0,
+            coversSaved: 0,
+            lrcFiles: 0,
+            durationMs: 0,
+            cancelled: true,
+            message: '已取消写入。',
+            plan: clone(fixtureState.activePlan),
+          }),
+        ),
     })
     return Promise.resolve({ operationId })
   },
@@ -129,7 +169,10 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
 
   async cancelOperation(operationId) {
     await wait()
-    if (fixtureState.pendingStarts.delete(operationId)) {
+    const pending = fixtureState.pendingStarts.get(operationId)
+    if (pending?.kind === 'workspace') {
+      fixtureState.pendingStarts.delete(operationId)
+      pending.cancel()
       return
     }
     fixtureState.operationCancels.get(operationId)?.()

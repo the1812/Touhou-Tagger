@@ -1,6 +1,7 @@
 import { storeToRefs } from 'pinia'
 import { defineComponent } from 'vue'
 
+import { failureTitle, resultTitle } from '../../api/display'
 import { usePageCommands } from '../../app/pageCommands'
 import { CompletionDialog } from '../../shared/CompletionDialog'
 import { DirectoryPickerEmptyState } from '../../shared/DirectoryPickerEmptyState'
@@ -14,7 +15,7 @@ export const TaggingPage = defineComponent({
   name: 'TaggingPage',
   setup() {
     const workspace = useWorkspaceStore()
-    const { phase, summary, result, failure, resultOpen } = storeToRefs(workspace)
+    const { activity, completion, summary } = storeToRefs(workspace)
 
     usePageCommands({
       openDirectory: directory => workspace.selectDirectory(directory),
@@ -36,21 +37,22 @@ export const TaggingPage = defineComponent({
     })
 
     return () => {
-      const currentSummary = summary.value
-      const currentResult = result.value
-      const currentPhase = phase.value
-      const isScanning = currentPhase === 'scanning'
-      const isInitialSearch = currentPhase === 'searching' && !workspace.hasSearched
-      const canSkipAlbumSelection =
-        currentSummary?.hasMetadataJson || workspace.candidates.length === 1
-      const isAutomaticPreparation = currentPhase === 'preparing' && canSkipAlbumSelection
-      const loadingAlbum = isScanning || isInitialSearch || isAutomaticPreparation
+      const currentCompletion = completion.value
+      const loadingAlbum = activity.value === 'opening'
+      let title = ''
+      if (currentCompletion) {
+        title =
+          currentCompletion.kind === 'failure'
+            ? failureTitle(currentCompletion.failure)
+            : resultTitle(currentCompletion.result)
+      }
 
       return (
         <div class="round-icon-buttons flex min-h-full flex-col">
-          {!currentSummary && (currentPhase === 'idle' || currentPhase === 'selecting') ? (
+          {!summary.value ? (
             <DirectoryPickerEmptyState
-              loading={currentPhase === 'selecting'}
+              loading={activity.value === 'selecting' || loadingAlbum}
+              disabled={!workspace.canChangeDirectory}
               onSelect={() => workspace.selectDirectory()}
             />
           ) : (
@@ -67,16 +69,20 @@ export const TaggingPage = defineComponent({
               )}
 
               <CompletionDialog
-                visible={resultOpen.value}
-                title={failure.value?.message ?? currentResult?.message ?? ''}
+                visible={Boolean(currentCompletion)}
+                title={title}
                 warning={Boolean(
-                  failure.value || currentResult?.cancelled || currentResult?.failed,
+                  currentCompletion?.kind === 'failure' ||
+                  (currentCompletion?.kind === 'result' &&
+                    (currentCompletion.result.cancelled || currentCompletion.result.failed)),
                 )}
-                details={failure.value?.details}
+                details={
+                  currentCompletion?.kind === 'failure'
+                    ? currentCompletion.failure.details
+                    : undefined
+                }
                 onReveal={() => workspace.reveal()}
-                onClose={() => {
-                  workspace.resultOpen = false
-                }}
+                onClose={workspace.closeCompletion}
               />
             </div>
           )}

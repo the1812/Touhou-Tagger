@@ -6,11 +6,12 @@ import Tag from 'primevue/tag'
 import { defineComponent, type PropType } from 'vue'
 
 import type { BatchJobPreview } from '../../api'
+import { batchMatchText, batchStatusInfo, issueText } from '../../api/display'
 import { t } from '../../i18n'
 import { CandidateOption } from '../../shared/CandidateOption'
 import { cx } from '../../shared/classNames'
 import { TruncatedText } from '../../shared/TruncatedText'
-import { candidateOptions, statusInfo } from './batchJobDisplay'
+import { candidateOptions } from './batchJobDisplay'
 
 export const BatchJobTable = defineComponent({
   name: 'BatchJobTable',
@@ -38,30 +39,26 @@ export const BatchJobTable = defineComponent({
     const rowClass = (job: BatchJobPreview) =>
       cx(
         'h-[46px]',
-        ['blocked', 'scan-failed', 'failed'].includes(job.status) &&
+        (job.readiness === 'blocked' || job.outcome === 'failed') &&
           'bg-red-50/60 dark:bg-red-950/30',
-        job.status === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
+        job.readiness === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
       )
     const matchCell = (job: BatchJobPreview) => {
+      const loading = props.resolving(job.id)
       if (!props.editable) {
-        return <TruncatedText class="block">{job.matchDescription}</TruncatedText>
+        return <TruncatedText class="block">{batchMatchText(job, loading)}</TruncatedText>
       }
-      if (job.status === 'loading') {
-        return <div class="text-muted-color">{t('batch.loadingAlbum')}</div>
+      if (loading || job.readiness === 'pending') {
+        return <div class="text-muted-color">{batchMatchText(job, loading)}</div>
       }
-      if (
-        job.status === 'scan-failed' ||
-        (job.status === 'blocked' && job.candidates.length <= 1) ||
-        (job.status === 'failed' && !job.canRun)
-      ) {
+      const canReload =
+        (job.readiness === 'blocked' && job.candidates.length <= 1) ||
+        job.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
+      if (canReload) {
         return (
           <div class="flex items-center justify-between gap-2">
-            <TruncatedText
-              class={
-                job.status === 'scan-failed' ? 'block text-red-600 dark:text-red-300' : 'block'
-              }
-            >
-              {job.matchDescription}
+            <TruncatedText class="block text-red-600 dark:text-red-300">
+              {batchMatchText(job, loading)}
             </TruncatedText>
             <Button
               label={t('common.retry')}
@@ -75,13 +72,13 @@ export const BatchJobTable = defineComponent({
           </div>
         )
       }
-      if (job.status === 'needs-candidate' && job.candidates.length === 0) {
-        return <div class="text-muted-color">{t('batch.noSearchResults')}</div>
+      if (job.readiness === 'skipped' || job.candidates.length === 0) {
+        return <div class="text-muted-color">{batchMatchText(job, loading)}</div>
       }
       if (
         job.candidates.length > 1 ||
         job.candidates.some(candidate => !candidate.exactMatch) ||
-        job.status === 'needs-candidate'
+        job.readiness === 'needs-candidate'
       ) {
         return (
           <Select
@@ -106,7 +103,7 @@ export const BatchJobTable = defineComponent({
           />
         )
       }
-      return <TruncatedText class="block">{job.matchDescription}</TruncatedText>
+      return <TruncatedText class="block">{batchMatchText(job, loading)}</TruncatedText>
     }
     return () => (
       <DataTable
@@ -161,13 +158,13 @@ export const BatchJobTable = defineComponent({
           bodyClass={['compact-table-cell', 'w-28'].join(' ')}
           v-slots={{
             body: bodySlot(job => {
-              const status = statusInfo(job.status)
+              const status = batchStatusInfo(job, props.resolving(job.id))
               const tag = (
                 <Tag class="font-normal!" value={status.label} severity={status.severity} />
               )
-              const issueText = job.issues.map(issue => issue.message).join('；')
-              return issueText ? (
-                <TruncatedText class="inline-flex" tooltip={issueText}>
+              const details = job.issues.map(issueText).join('；')
+              return details ? (
+                <TruncatedText class="inline-flex" tooltip={details}>
                   {tag}
                 </TruncatedText>
               ) : (

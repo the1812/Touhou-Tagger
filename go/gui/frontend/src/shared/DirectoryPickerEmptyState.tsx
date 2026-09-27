@@ -10,6 +10,7 @@ export const DirectoryPickerEmptyState = defineComponent({
   inheritAttrs: false,
   props: {
     loading: Boolean,
+    disabled: Boolean,
     label: String,
   },
   emits: {
@@ -26,6 +27,7 @@ export const DirectoryPickerEmptyState = defineComponent({
               label={props.label || t('common.selectDirectory')}
               size="large"
               loading={props.loading}
+              disabled={props.disabled}
               onClick={() => emit('select')}
             >
               {{ icon: () => <FolderOpen /> }}

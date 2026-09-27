@@ -391,7 +391,7 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 		Revision:  session.revision,
 		Directory: session.scan.Directory,
 		Album:     album,
-		Candidate: candidateToDTO(session.candidate, session.candidate.Name),
+		Source:    session.candidate.Source,
 		Cover:     cover,
 		Items:     items,
 		Issues:    issues,
@@ -410,29 +410,23 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 func (service *planCoordinator) coverPreview(session *planSession) CoverPreview {
 	if len(session.cover) == 0 {
 		return CoverPreview{
-			Source:                 "none",
-			SourceLabel:            "无封面",
-			CompressionDescription: "此专辑不会写入封面",
+			Source: "none",
 		}
 	}
 	width, height, err := decodeCover(session.cover)
 	if err != nil {
 		issue := errorIssue("invalid-cover", fmt.Sprintf("封面图片无法解码：%v", err))
 		return CoverPreview{
-			Source:                 session.coverSource,
-			SourceLabel:            coverSourceLabel(session.coverSource),
-			ByteSize:               len(session.cover),
-			CompressionDescription: "封面无效，不会写入文件",
-			Issue:                  &issue,
+			Source:   session.coverSource,
+			ByteSize: len(session.cover),
+			Issue:    &issue,
 		}
 	}
 	return CoverPreview{
-		URL:                    fmt.Sprintf("/gui/preview/%s/cover?revision=%d", session.id, session.revision),
-		Source:                 session.coverSource,
-		SourceLabel:            coverSourceLabel(session.coverSource),
-		Width:                  width,
-		Height:                 height,
-		ByteSize:               len(session.cover),
-		CompressionDescription: coverCompressionDescription(session.config, len(session.cover)),
+		URL:      fmt.Sprintf("/gui/preview/%s/cover?revision=%d", session.id, session.revision),
+		Source:   session.coverSource,
+		Width:    width,
+		Height:   height,
+		ByteSize: len(session.cover),
 	}
 }

@@ -3,13 +3,13 @@ import Select from 'primevue/select'
 import Slider from 'primevue/slider'
 import { computed, defineComponent, onBeforeUnmount, ref } from 'vue'
 
-import { getApi } from '../api'
-import { batchDirectory, fixtureDirectory } from '../api/fixtureData'
-import { progressMock, progressMockKind } from '../api/progressMock'
-import type { OperationStage } from '../api/types'
-import { router } from '../app/router'
-import { useBatchStore } from '../stores/batch'
-import { useWorkspaceStore } from '../stores/workspace'
+import { getApi } from '../../api'
+import { batchDirectory, fixtureDirectory } from '../../api/fixture/data'
+import { progressMock, progressMockKind } from '../../api/fixture/progress'
+import type { OperationStage } from '../../api/types'
+import { router } from '../../app/router'
+import { useBatchStore } from '../../stores/batch'
+import { useWorkspaceStore } from '../../stores/workspace'
 
 const restarting = ref(false)
 
