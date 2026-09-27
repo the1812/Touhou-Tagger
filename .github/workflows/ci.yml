@@ -38,6 +38,9 @@ jobs:
           version: v2.12.2
           working-directory: go
           args: --config .golangci.yml
+      - name: Check Go architecture
+        working-directory: go
+        run: go run github.com/fe3dback/go-arch-lint@v1.19.0 check --output-color=false
       - name: Test
         working-directory: go
         run: go test ./...

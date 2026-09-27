@@ -1,0 +1,63 @@
+version: 3
+workdir: .
+
+allow:
+  depOnAnyVendor: true
+
+exclude:
+  - third_party
+  - internal/testutil
+
+excludeFiles:
+  - "^.*_test\\.go$"
+
+components:
+  domain: { in: internal/domain }
+  config: { in: internal/config }
+  filesystem: { in: internal/filesystem }
+  imagecodec: { in: internal/imagecodec }
+  source: { in: internal/source }
+  sourceAdapters:
+    in:
+      - internal/source/discogs
+      - internal/source/doujinmeta
+      - internal/source/localjson
+      - internal/source/musicbrainz
+      - internal/source/thbwiki
+  tagio: { in: internal/tagio }
+  tagioAdapters: { in: [internal/tagio/flac, internal/tagio/id3] }
+  useragent: { in: internal/useragent }
+  application: { in: internal/application }
+  bootstrap: { in: internal/bootstrap }
+  cli: { in: internal/cli }
+  guiBridge: { in: gui/internal/bridge }
+  cliMain: { in: cmd/thtag }
+  guiMain: { in: gui }
+
+deps:
+  config:
+    mayDependOn: [domain]
+  filesystem:
+    mayDependOn: [domain]
+  imagecodec:
+    mayDependOn: [domain]
+  source:
+    mayDependOn: [domain, useragent]
+  sourceAdapters:
+    mayDependOn: [domain, source]
+  tagio:
+    mayDependOn: [domain]
+  tagioAdapters:
+    mayDependOn: [domain, tagio]
+  application:
+    mayDependOn: [config, domain, filesystem, source, tagio]
+  bootstrap:
+    mayDependOn: [application, config, domain, source, sourceAdapters, tagio, tagioAdapters]
+  cli:
+    mayDependOn: [application, bootstrap, config, domain, imagecodec, sourceAdapters]
+  guiBridge:
+    mayDependOn: [application, config, domain, source]
+  cliMain:
+    mayDependOn: [cli, useragent]
+  guiMain:
+    mayDependOn: [application, bootstrap, config, domain, guiBridge, imagecodec, source, sourceAdapters, tagio]
