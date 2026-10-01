@@ -17,13 +17,16 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
     await wait(220)
     const normalized = query.trim().toLocaleLowerCase()
     return clone(
-      candidates.filter(
-        candidate =>
-          candidate.source === source &&
-          (!normalized ||
-            candidate.title.toLocaleLowerCase().includes(normalized) ||
-            candidate.exactMatch),
-      ),
+      candidates.filter(candidate => {
+        if (candidate.source !== source) {
+          return false
+        }
+        return (
+          !normalized ||
+          candidate.title.toLocaleLowerCase().includes(normalized) ||
+          candidate.exactMatch
+        )
+      }),
     )
   },
 

@@ -38,13 +38,18 @@ export const TaggingPage = defineComponent({
     return () => {
       const currentCompletion = completion.value
       const loadingAlbum = activity.value === 'opening'
-      let title = ''
-      if (currentCompletion) {
-        title =
-          currentCompletion.kind === 'failure'
-            ? failureTitle(currentCompletion.failure)
-            : resultTitle(currentCompletion.result)
-      }
+      const { title, warning } = (() => {
+        if (!currentCompletion) {
+          return { title: '', warning: false }
+        }
+        if (currentCompletion.kind === 'failure') {
+          return { title: failureTitle(currentCompletion.failure), warning: true }
+        }
+        return {
+          title: resultTitle(currentCompletion.result),
+          warning: Boolean(currentCompletion.result.cancelled || currentCompletion.result.failed),
+        }
+      })()
 
       return (
         <div class="round-icon-buttons flex min-h-full flex-col">
@@ -70,11 +75,7 @@ export const TaggingPage = defineComponent({
               <CompletionDialog
                 visible={Boolean(currentCompletion)}
                 title={title}
-                warning={Boolean(
-                  currentCompletion?.kind === 'failure' ||
-                  (currentCompletion?.kind === 'result' &&
-                    (currentCompletion.result.cancelled || currentCompletion.result.failed)),
-                )}
+                warning={warning}
                 details={
                   currentCompletion?.kind === 'failure'
                     ? currentCompletion.failure.details

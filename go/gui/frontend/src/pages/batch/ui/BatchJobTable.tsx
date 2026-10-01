@@ -35,13 +35,14 @@ export const BatchJobTable = defineComponent({
       (render: (job: BatchJobPreview) => unknown) =>
       ({ data }: { data: BatchJobPreview }) =>
         render(data)
-    const rowClass = (job: BatchJobPreview) =>
-      cx(
+    const rowClass = (job: BatchJobPreview) => {
+      const hasError = job.readiness === 'blocked' || job.outcome === 'failed'
+      return cx(
         'h-[46px]',
-        (job.readiness === 'blocked' || job.outcome === 'failed') &&
-          'bg-red-50/60 dark:bg-red-950/30',
+        hasError && 'bg-red-50/60 dark:bg-red-950/30',
         job.readiness === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
       )
+    }
     const matchCell = (job: BatchJobPreview) => {
       const loading = props.resolving(job.id)
       if (!props.editable) {
@@ -50,8 +51,9 @@ export const BatchJobTable = defineComponent({
       if (loading || job.readiness === 'pending') {
         return <div class="text-muted-color">{batchMatchText(job, loading)}</div>
       }
+      const blockedWithoutAlternatives = job.readiness === 'blocked' && job.candidates.length <= 1
       const canReload =
-        (job.readiness === 'blocked' && job.candidates.length <= 1) ||
+        blockedWithoutAlternatives ||
         job.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
       if (canReload) {
         return (

@@ -42,7 +42,7 @@ export const CompletionDialog = defineComponent({
           ),
           default: () =>
             props.details ? (
-              <div class="max-h-64 overflow-auto whitespace-pre-wrap break-words text-sm text-muted-color">
+              <div class="max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word text-sm text-muted-color">
                 {props.details}
               </div>
             ) : null,

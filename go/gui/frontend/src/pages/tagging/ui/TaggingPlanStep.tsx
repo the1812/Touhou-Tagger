@@ -39,6 +39,7 @@ export const TaggingPlanStep = defineComponent({
 
       const stale = stalePlan.value
       const idleAction = stale ? 'tagging.rescan' : 'common.start'
+      const cannotCommit = !stale && !canCommit.value
       return (
         <>
           <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
@@ -158,7 +159,7 @@ export const TaggingPlanStep = defineComponent({
                   class="min-w-28"
                   label={t(isWriting.value ? 'operation.writing' : idleAction)}
                   loading={showSpinner.value}
-                  disabled={isBusy.value || (!stale && !canCommit.value)}
+                  disabled={isBusy.value || cannotCommit}
                   onClick={() =>
                     void (stale ? workspace.scan(workspace.directory) : workspace.commit())
                   }

@@ -42,7 +42,8 @@ export const simplifyCommonFieldsPlugin: MetadataNormalizePlugin = () => {
   }
   const deleteEmptyField = (metadata: Partial<Metadata>, field: keyof Metadata) => {
     const value = metadata[field]
-    if ((Array.isArray(value) && value.length === 0) || value === '') {
+    const isEmptyArray = Array.isArray(value) && value.length === 0
+    if (isEmptyArray || value === '') {
       delete metadata[field]
     }
   }

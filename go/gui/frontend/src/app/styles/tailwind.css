@@ -128,7 +128,7 @@
   }
 
   & .p-tablist-active-bar {
-    @apply h-[2px] rounded-t bg-primary;
+    @apply h-[2px] rounded-t-sm bg-primary;
     inset-block-end: 0;
   }
 }
@@ -160,7 +160,7 @@
 }
 
 @utility compact-data-table {
-  @apply w-full min-w-0 max-w-full overflow-hidden rounded-[var(--p-button-border-radius)] border border-[var(--p-datatable-border-color)] bg-[var(--p-content-background)];
+  @apply w-full min-w-0 max-w-full overflow-hidden rounded-(--p-button-border-radius) border border-(--p-datatable-border-color) bg-(--p-content-background);
 
   & .p-datatable-table-container {
     @apply w-full min-w-0 max-w-full;
@@ -204,10 +204,10 @@
 }
 
 @utility candidate-option {
-  @apply grid min-h-[4.5rem] cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-[inherit] last:border-b-0 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-app-hover-dark;
+  @apply grid min-h-18 cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-3 border-0 border-b border-surface-200 bg-transparent px-4 py-3 text-left font-[inherit] text-inherit last:border-b-0 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-app-hover-dark;
 
   &[data-cover='true'] {
-    @apply min-h-[5.5rem] grid-cols-[1.5rem_4rem_minmax(0,1fr)];
+    @apply min-h-22 grid-cols-[1.5rem_4rem_minmax(0,1fr)];
   }
 
   &[data-selected='true'] {

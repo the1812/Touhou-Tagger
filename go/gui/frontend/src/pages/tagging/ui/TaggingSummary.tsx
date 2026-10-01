@@ -26,6 +26,8 @@ export const TaggingSummary = defineComponent({
     return () => {
       const currentSummary = summary.value
       const isOpening = activity.value === 'opening'
+      const coverIssue = currentSummary?.localCover.issue
+      const coverIssueText = coverIssue && issueText(coverIssue)
       return (
         <div class="workspace-section">
           {isOpening ? (
@@ -95,8 +97,7 @@ export const TaggingSummary = defineComponent({
                     icon={ImageIcon}
                     active={currentSummary.localCover.exists}
                     tooltip={
-                      (currentSummary.localCover.issue &&
-                        issueText(currentSummary.localCover.issue)) ||
+                      coverIssueText ||
                       (currentSummary.localCover.exists
                         ? t('tagging.localCoverFound', {
                             name: currentSummary.localCover.fileName || t('tagging.found'),

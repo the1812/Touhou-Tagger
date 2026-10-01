@@ -48,16 +48,13 @@ export abstract class LyricParser {
       const [originalData, translatedData] = [...row.querySelectorAll('td:not(.tt-time)')]
       const originalText = readCellText(originalData)
       const translatedText = readCellText(translatedData)
-      let finalData: Element
-      let finalText: string
       const hasTranslatedData = translatedText !== ''
-      if (!hasTranslatedData) {
-        finalData = originalData
-        finalText = originalText
-      } else {
-        finalData = translatedData
-        finalText = translatedText
-      }
+      const { finalData, finalText } = (() => {
+        if (!hasTranslatedData) {
+          return { finalData: originalData, finalText: originalText }
+        }
+        return { finalData: translatedData, finalText: translatedText }
+      })()
       const timeText = readCellText(time)
       return {
         time: timeText ? `[${timeText}] ` : '',
@@ -134,17 +131,16 @@ class MixedLyricParser extends LyricParser {
   }
   readLyricRow(row: Element): string {
     const { originalText, translatedText, hasTranslatedData, time } = this.getRowData(row)
-    let lyric = originalText
-    if (hasTranslatedData) {
-      lyric += this.config.translationSeparator + translatedText
-    }
-    if (this.config.time) {
-      lyric = lyric
-        .split('\n')
-        .map(it => time + it)
-        .join('\n')
+    const lyric = hasTranslatedData
+      ? originalText + this.config.translationSeparator + translatedText
+      : originalText
+    if (!this.config.time) {
+      return lyric
     }
     return lyric
+      .split('\n')
+      .map(it => time + it)
+      .join('\n')
   }
   getLrcFileSuffix(): string {
     return '.all'

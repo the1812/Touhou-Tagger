@@ -48,13 +48,15 @@ export const useWorkspacePlan = (state: {
       state.stalePlan.value = false
       return true
     } catch (error) {
-      let title = 'notifications.updateCoverOptionFailed'
-      if (patch.album) {
-        title = 'notifications.updateAlbumFailed'
-      }
-      if (patch.tracks) {
-        title = 'notifications.updateTrackFailed'
-      }
+      const title = (() => {
+        if (patch.tracks) {
+          return 'notifications.updateTrackFailed'
+        }
+        if (patch.album) {
+          return 'notifications.updateAlbumFailed'
+        }
+        return 'notifications.updateCoverOptionFailed'
+      })()
       notifications.error(t(title), error)
       return false
     } finally {

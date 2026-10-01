@@ -25,9 +25,8 @@ const downloadLrcLyrics = async (title: string, index: number, config: MetadataC
     title,
   )}${indexString}${languageSuffix}.lrc`
   log(url)
-  let response: AxiosResponse<string>
   try {
-    response = await axios.get(url, {
+    const response = await axios.get<string>(url, {
       ...getHttpRequestOptions(config),
       responseType: 'text',
     })
@@ -69,12 +68,14 @@ export const downloadLyrics = async (
       lyricDocumentCache.shift()
     }
   }
-  let lyricTable: HTMLTableElement
   const tables = [
     ...document.querySelectorAll('.wikitable[class*="tt-type-lyric"]'),
   ] as HTMLTableElement[]
   log('tables length: ', tables.length)
-  if (tables.length > 1) {
+  const lyricTable = (() => {
+    if (tables.length <= 1) {
+      return tables[0]
+    }
     // 歌词可能有多个版本
     const titles = tables.map(table =>
       (table.closest('[data-mw-tabber-title]')?.getAttribute('data-mw-tabber-title') ?? '')
@@ -86,15 +87,10 @@ export const downloadLyrics = async (
     // 反转了一下让后面的优先匹配
     const matchIndex = [...titles].reverse().findIndex(t => t !== '' && title.includes(t))
     log(matchIndex, tables.length - matchIndex - 1)
-    if (matchIndex !== -1) {
-      lyricTable = tables[tables.length - matchIndex - 1]
-    } else {
-      lyricTable = tables[0]
-    }
-    log(lyricTable)
-  } else {
-    lyricTable = tables[0]
-  }
+    const table = matchIndex !== -1 ? tables[tables.length - matchIndex - 1] : tables[0]
+    log(table)
+    return table
+  })()
   lyricParser = getLyricParser(lyricTable, config.lyric)
   switch (config.lyric.output) {
     case 'lrc': {

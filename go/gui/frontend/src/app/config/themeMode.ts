@@ -20,7 +20,8 @@ export const initializeThemeMode = () => {
   watch(
     [themeMode, systemDark],
     () => {
-      const dark = themeMode.value === 'dark' || (themeMode.value === 'system' && systemDark.value)
+      const followSystemDark = themeMode.value === 'system' && systemDark.value
+      const dark = themeMode.value === 'dark' || followSystemDark
       document.documentElement.classList.toggle('app-dark', dark)
       localStorage.setItem(storageKey, themeMode.value)
       appearanceUpdate = appearanceUpdate

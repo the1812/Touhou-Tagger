@@ -139,7 +139,10 @@ export class MusicBrainz extends MetadataSource {
         {
           ...getHttpRequestOptions(this.config),
           responseType: 'arraybuffer',
-          validateStatus: status => status === 404 || (status >= 200 && status < 300),
+          validateStatus: status => {
+            const isSuccess = status >= 200 && status < 300
+            return status === 404 || isSuccess
+          },
         },
       )
       if (response.status !== 404) {

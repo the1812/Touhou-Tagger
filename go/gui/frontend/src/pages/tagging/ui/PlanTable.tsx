@@ -30,7 +30,7 @@ export const PlanTable = defineComponent({
       const hasError = item.issues.some(issue => issue.severity === 'error')
       const hasWarning = item.issues.length > 0 && !hasError
       return cx(
-        'h-[42px]',
+        'h-12',
         props.disabled
           ? 'cursor-default'
           : 'cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-950',

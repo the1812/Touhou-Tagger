@@ -164,7 +164,8 @@ export class CliTagger extends CliCommandBase {
     const hasSingleResult = searchResult.length === 1
     const isExactMatch =
       hasSingleResult && normalizeName(searchResult[0].name) === normalizeName(album)
-    const canAutoSelect = hasSingleResult && (noInteractive || isExactMatch)
+    const skipSelection = noInteractive || isExactMatch
+    const canAutoSelect = hasSingleResult && skipSelection
     let selected: AlbumCandidate | undefined
     if (hasLocalMetadata || canAutoSelect) {
       selected = searchResult[0]
