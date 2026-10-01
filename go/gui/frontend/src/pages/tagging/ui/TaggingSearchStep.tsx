@@ -8,6 +8,7 @@ import { computed, defineComponent } from 'vue'
 
 import { useSettingsStore } from '../../../entities/session'
 import { useWorkspaceStore } from '../../../features/workspace'
+import { metadataSources } from '../../../shared/config'
 import { sourceLabel, t } from '../../../shared/i18n'
 import { CandidateCover, PageActionBar, TruncatedText, WorkspaceTitle } from '../../../shared/ui'
 import { TaggingSearchSkeleton } from './TaggingSearchSkeleton'
@@ -39,6 +40,7 @@ export const TaggingSearchStep = defineComponent({
       get: () => source.value,
       set: (value: string) => workspace.changeSource(value),
     })
+    const showCover = computed(() => metadataSources[source.value]?.supportsSearchCover ?? false)
 
     return () => {
       const currentSummary = summary.value
@@ -87,7 +89,9 @@ export const TaggingSearchStep = defineComponent({
               </Button>
             </div>
 
-            {activity.value === 'searching' && <TaggingSearchSkeleton />}
+            {activity.value === 'searching' && (
+              <TaggingSearchSkeleton showCover={showCover.value} />
+            )}
             {activity.value !== 'searching' && (candidates.value?.length ?? 0) > 0 && (
               <div class="mt-4 grid gap-0 border-t border-surface-200 dark:border-surface-700">
                 {candidates.value?.map(candidate => (
@@ -95,6 +99,7 @@ export const TaggingSearchStep = defineComponent({
                     key={candidate.id}
                     class="candidate-option"
                     data-selected={selectedCandidateId.value === candidate.id}
+                    data-cover={showCover.value}
                     onClick={() => workspace.selectCandidate(candidate.id)}
                   >
                     <RadioButton
@@ -107,11 +112,13 @@ export const TaggingSearchStep = defineComponent({
                       }}
                       disabled={isBusy.value}
                     />
-                    <CandidateCover
-                      url={candidate.thumbnailUrl}
-                      title={candidate.title}
-                      class="size-16"
-                    />
+                    {showCover.value && (
+                      <CandidateCover
+                        url={candidate.thumbnailUrl}
+                        title={candidate.title}
+                        class="size-16"
+                      />
+                    )}
                     <div class="min-w-0 flex-1">
                       <TruncatedText class="text-base font-medium">{candidate.title}</TruncatedText>
                       {candidate.artists.length > 0 && (
@@ -137,16 +144,14 @@ export const TaggingSearchStep = defineComponent({
             )}
           </div>
 
-          {(candidates.value?.length ?? 0) > 0 && (
-            <PageActionBar end>
-              <Button
-                label={t('common.next')}
-                disabled={!canPrepare.value}
-                loading={activity.value === 'preparing'}
-                onClick={() => void workspace.preparePlan()}
-              />
-            </PageActionBar>
-          )}
+          <PageActionBar end>
+            <Button
+              label={t('common.next')}
+              disabled={!canPrepare.value}
+              loading={activity.value === 'preparing'}
+              onClick={() => void workspace.preparePlan()}
+            />
+          </PageActionBar>
         </>
       )
     }

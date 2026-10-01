@@ -11,6 +11,7 @@ import type {
   Settings,
   WorkspaceSummary,
 } from '../api/types'
+import { metadataSources } from '../config'
 import { sourceLabel, t } from '../i18n'
 
 type AlbumFixture = typeof singleDiscFixture
@@ -87,6 +88,7 @@ for (const source of ['music-brainz', 'discogs']) {
     candidates.push({
       ...fixtureCandidate(singleDiscFixture, id, false),
       source,
+      thumbnailUrl: metadataSources[source]?.supportsSearchCover ? coverUrl : undefined,
       description: `${singleDiscFixture.album.albumArtists.join(' / ')} · ${edition === 'original' ? '2017' : '2020'} · ${singleDiscFixture.album.albumOrder} · CD · ${id}`,
     })
     fixtureByCandidate.set(id, singleDiscFixture)

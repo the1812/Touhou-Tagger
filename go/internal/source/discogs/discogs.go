@@ -18,7 +18,7 @@ import (
 
 var (
 	requests      = source.NewRequestLimiter(3 * time.Second)
-	artistSuffix  = regexp.MustCompile(` \(\d+\)$`)
+	nameSuffix    = regexp.MustCompile(` \(\d+\)$`)
 	trackPosition = regexp.MustCompile(`(?i)^(?:(?:CD)?(\d+)[-.])?(\d+)$`)
 	roleDetail    = regexp.MustCompile(`\[[^\]]*\]`)
 	trackRange    = regexp.MustCompile(`(?i)\s+to\s+`)
@@ -51,6 +51,7 @@ type release struct {
 	Artists      []artist `json:"artists"`
 	ExtraArtists []artist `json:"extraartists"`
 	Labels       []struct {
+		Name  string `json:"name"`
 		Catno string `json:"catno"`
 	} `json:"labels"`
 	Genres    []string `json:"genres"`
@@ -79,6 +80,7 @@ func (provider *Source) Search(ctx context.Context, query string) ([]domain.Albu
 			Country    string   `json:"country"`
 			Catno      string   `json:"catno"`
 			Format     []string `json:"format"`
+			Label      []string `json:"label"`
 			CoverImage string   `json:"cover_image"`
 		} `json:"results"`
 	}
@@ -89,19 +91,22 @@ func (provider *Source) Search(ctx context.Context, query string) ([]domain.Albu
 	}
 	candidates := make([]domain.AlbumCandidate, 0, len(result.Results))
 	for _, item := range result.Results {
-		artist, title, found := strings.Cut(item.Title, " - ")
+		_, title, found := strings.Cut(item.Title, " - ")
 		if !found {
-			title, artist = item.Title, ""
+			title = item.Title
 		}
-		var artists []string
-		if artist != "" {
-			artists = []string{artistSuffix.ReplaceAllString(artist, "")}
+		var labels []string
+		for _, name := range item.Label {
+			name = nameSuffix.ReplaceAllString(name, "")
+			if !slices.Contains(labels, name) {
+				labels = append(labels, name)
+			}
 		}
 		id := strconv.Itoa(item.ID)
-		parts := []string{artist, item.Year, item.Catno, item.Country, strings.Join(item.Format, " / "), id}
+		parts := []string{strings.Join(labels, " / "), item.Year, item.Catno, item.Country, strings.Join(item.Format, " / "), id}
 		parts = slices.DeleteFunc(parts, func(value string) bool { return value == "" })
 		candidates = append(candidates, domain.AlbumCandidate{
-			ID: id, Name: title, Source: "discogs", Artists: artists, Description: strings.Join(parts, " · "),
+			ID: id, Name: title, Source: "discogs", Artists: labels, Description: strings.Join(parts, " · "),
 			ThumbnailURL: item.CoverImage,
 		})
 	}
@@ -125,7 +130,12 @@ func (provider *Source) Fetch(ctx context.Context, id string, cover []byte) ([]d
 		return nil, fmt.Errorf("discogs release %q has no audio tracks", id)
 	}
 	var catalogs []string
+	var albumArtists []string
 	for _, label := range album.Labels {
+		name := nameSuffix.ReplaceAllString(label.Name, "")
+		if !slices.Contains(albumArtists, name) {
+			albumArtists = append(albumArtists, name)
+		}
 		if label.Catno != "" && !strings.EqualFold(label.Catno, "none") && !slices.Contains(catalogs, label.Catno) {
 			catalogs = append(catalogs, label.Catno)
 		}
@@ -172,7 +182,7 @@ func (provider *Source) Fetch(ctx context.Context, id string, cover []byte) ([]d
 			artists = album.Artists
 		}
 		metadata = append(metadata, domain.Metadata{
-			Album: album.Title, AlbumOrder: strings.Join(catalogs, " / "), AlbumArtists: artistNames(album.Artists),
+			Album: album.Title, AlbumOrder: strings.Join(catalogs, " / "), AlbumArtists: slices.Clone(albumArtists),
 			Year: year, Title: item.Title, DiscNumber: disc, TrackNumber: number,
 			Artists: artistNames(artists), Genres: slices.Clone(genres),
 			Composers: creditNames(credits, []string{"composed by", "music by"}),
@@ -203,7 +213,7 @@ func artistNames(artists []artist) []string {
 	for _, item := range artists {
 		name := item.ANV
 		if name == "" {
-			name = artistSuffix.ReplaceAllString(item.Name, "")
+			name = nameSuffix.ReplaceAllString(item.Name, "")
 		}
 		names = append(names, name)
 	}

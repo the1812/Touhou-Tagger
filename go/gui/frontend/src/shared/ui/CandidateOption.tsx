@@ -2,6 +2,7 @@ import type { TooltipOptions } from 'primevue/tooltip'
 import { computed, defineComponent, withDirectives, type PropType } from 'vue'
 
 import type { AlbumCandidate } from '../api'
+import { metadataSources } from '../config'
 import { t } from '../i18n'
 import { Tooltip } from '../lib/tooltip'
 import { coverPlaceholderHTML } from './CoverPlaceholder'
@@ -14,6 +15,9 @@ export const CandidateOption = defineComponent({
   },
   setup(props) {
     const tooltip = computed<TooltipOptions>(() => {
+      if (!metadataSources[props.candidate.source]?.supportsSearchCover) {
+        return { disabled: true }
+      }
       if (!props.candidate.thumbnailUrl) {
         return {
           value: coverPlaceholderHTML('size-60 max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)]'),

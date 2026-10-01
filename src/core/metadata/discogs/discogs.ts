@@ -26,7 +26,7 @@ interface Release {
   year?: number
   artists?: Artist[]
   extraartists?: Artist[]
-  labels?: { catno: string }[]
+  labels?: { name: string; catno: string }[]
   genres?: string[]
   styles?: string[]
   tracklist: Track[]
@@ -34,6 +34,7 @@ interface Release {
 }
 interface SearchItem {
   cover_image?: string
+  label?: string[]
   id: number
   title: string
   year?: string
@@ -42,7 +43,8 @@ interface SearchItem {
   format?: string[]
 }
 
-const artistName = (artist: Artist) => artist.anv || artist.name.replace(/ \(\d+\)$/, '')
+const entityName = (name: string) => name.replace(/ \(\d+\)$/, '')
+const artistName = (artist: Artist) => artist.anv || entityName(artist.name)
 
 const appliesToTrack = (scope: string | undefined, position: string, positions: string[]) => {
   if (!scope?.trim()) {
@@ -81,14 +83,14 @@ export class Discogs extends MetadataSource {
     })
     return data.results.map(release => {
       const separator = release.title.indexOf(' - ')
-      const artist = separator < 0 ? '' : release.title.slice(0, separator)
+      const labels = [...new Set(release.label?.map(entityName))]
       return {
         id: String(release.id),
         name: separator < 0 ? release.title : release.title.slice(separator + 3),
-        artists: artist ? [artistName({ name: artist })] : [],
+        artists: labels,
         thumbnailUrl: release.cover_image || undefined,
         description: [
-          artist,
+          labels.join(' / '),
           release.year,
           release.catno,
           release.country,
@@ -111,7 +113,7 @@ export class Discogs extends MetadataSource {
       throw new Error(`Discogs release ${id} has no audio tracks`)
     }
     const positions = tracks.map(track => track.position)
-    const albumArtists = (release.artists ?? []).map(artistName)
+    const albumArtists = [...new Set(release.labels?.map(label => entityName(label.name)))]
     const metadata = tracks.map(track => {
       const position = /^(?:(?:CD)?(\d+)[-.])?(\d+)$/i.exec(track.position)
       if (!position || track.type_ !== 'track' || track.sub_tracks?.length) {
