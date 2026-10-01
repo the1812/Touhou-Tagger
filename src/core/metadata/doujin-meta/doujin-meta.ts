@@ -14,6 +14,7 @@ const doujinMetaApi = axios.create({
 interface DoujinMetaSearchItem {
   id: string
   album: string
+  links: { cover?: string }
 }
 interface DoujinMetaSearchResult {
   items: DoujinMetaSearchItem[]
@@ -45,9 +46,13 @@ export class DoujinMeta extends MetadataSource {
     const { data } = await doujinMetaApi.get<DoujinMetaSearchResult>('/api/albums', {
       params: { keyword: albumName, limit: MetadataSource.MaxSearchCount },
     })
-    return data.items
-      .slice(0, MetadataSource.MaxSearchCount)
-      .map(item => ({ id: item.id, name: item.album }))
+    return data.items.slice(0, MetadataSource.MaxSearchCount).map(item => ({
+      id: item.id,
+      name: item.album,
+      thumbnailUrl: item.links.cover
+        ? new URL(item.links.cover, doujinMetaApi.defaults.baseURL).href
+        : undefined,
+    }))
   }
 
   async getMetadata(albumId: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {

@@ -20,6 +20,9 @@ type Source struct {
 type searchItem struct {
 	ID    string `json:"id"`
 	Album string `json:"album"`
+	Links struct {
+		Cover string `json:"cover"`
+	} `json:"links"`
 }
 
 type searchResult struct {
@@ -69,6 +72,13 @@ func (sourceClient *Source) Search(
 			ID:     item.ID,
 			Name:   item.Album,
 			Source: "doujin-meta",
+		}
+		if item.Links.Cover != "" {
+			coverURL, err := sourceClient.baseURL.Parse(item.Links.Cover)
+			if err != nil {
+				return nil, fmt.Errorf("resolve Doujin Meta cover URL: %w", err)
+			}
+			candidates[index].ThumbnailURL = coverURL.String()
 		}
 	}
 	return candidates, nil
