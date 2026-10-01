@@ -43,7 +43,7 @@ export const useWorkspaceSearch = (state: {
       candidates.value = found
       const exact = found.length === 1 ? found[0] : found.find(candidate => candidate.exactMatch)
       selectedCandidateId.value = exact?.id ?? ''
-      if (found.length === 1 && exact) {
+      if (opening && found.length === 1 && exact) {
         await state.prepareFor(exact.id, source.value, opening)
       }
     } catch (error) {
