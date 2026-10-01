@@ -275,9 +275,11 @@ func (writer Writer) Write(
 
 func clearOwnedFrames(tag *id3v2.Tag) {
 	tag.DeleteFrames(albumSortFrameID)
+	tag.DeleteFrames("TYER")
+	tag.DeleteFrames("TDRC")
 	descriptions := []string{
 		"Title", "Artist", "Album/Movie/Show title", "Part of a set",
-		"Track number/Position in set", "Composer", "Content type", "Year",
+		"Track number/Position in set", "Composer", "Content type",
 		"Lyricist/Text writer", "Band/Orchestra/Accompaniment", "BPM", "Initial key",
 		"Comments", "Unsynchronised lyrics/text transcription", "Attached picture",
 	}
