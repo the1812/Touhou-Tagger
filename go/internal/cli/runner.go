@@ -269,14 +269,11 @@ func (runner *Runner) selectCandidate(
 	query string,
 	interactive bool,
 ) (domain.AlbumCandidate, bool, error) {
-	if candidate := domain.MatchingAlbumCandidate(candidates, query); candidate != nil {
-		return *candidate, true, nil
+	if len(candidates) == 1 && (!interactive || candidates[0].MatchesName(query)) {
+		return candidates[0], true, nil
 	}
 	if !interactive {
-		if len(candidates) == 1 {
-			return candidates[0], true, nil
-		}
-		return domain.AlbumCandidate{}, false, fmt.Errorf("album search returned %d non-exact matches", len(candidates))
+		return domain.AlbumCandidate{}, false, fmt.Errorf("album search returned %d candidates; expected one", len(candidates))
 	}
 	if len(candidates) == 0 {
 		return domain.AlbumCandidate{}, false, fmt.Errorf("no matching album found for %q", query)

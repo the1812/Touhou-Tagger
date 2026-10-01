@@ -160,14 +160,14 @@ export class CliTagger extends CliCommandBase {
     })
     log('fetching metadata')
     const normalizeName = (name: string) => name.normalize('NFKC').toLowerCase().trim()
-    const exactMatches = searchResult.filter(
-      candidate => normalizeName(candidate.name) === normalizeName(album),
-    )
+    const hasLocalMetadata = Boolean(localJson?.length)
+    const hasSingleResult = searchResult.length === 1
+    const isExactMatch =
+      hasSingleResult && normalizeName(searchResult[0].name) === normalizeName(album)
+    const canAutoSelect = hasSingleResult && (noInteractive || isExactMatch)
     let selected: AlbumCandidate | undefined
-    if (localJson?.length || (searchResult.length === 1 && noInteractive)) {
+    if (hasLocalMetadata || canAutoSelect) {
       selected = searchResult[0]
-    } else if (exactMatches.length === 1) {
-      selected = exactMatches[0]
     }
     if (selected) {
       await this.fetchMetadata(selected).catch(handleError)
