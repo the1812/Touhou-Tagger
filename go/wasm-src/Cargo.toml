@@ -1,0 +1,26 @@
+[package]
+name = "touhou-tagger-imagecodec"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.88"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "=1.0.104"
+bytemuck = "=1.14.0"
+extism-pdk = { version = "=1.4.1", default-features = false }
+resize = "=0.5.5"
+rgb = "=0.8.25"
+
+[build-dependencies]
+bindgen = { version = "=0.71.1", default-features = false, features = ["runtime"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

@@ -12,6 +12,8 @@ jobs:
   package-go:
     name: Package Go CLI
     runs-on: windows-2025
+    env:
+      CGO_ENABLED: '0'
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: actions/setup-go@v6.5.0

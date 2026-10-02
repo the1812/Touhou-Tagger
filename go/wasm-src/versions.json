@@ -1,21 +1,24 @@
 {
-  "abiVersion": 1,
   "squoosh": {
     "package": "@squoosh/lib",
     "version": "0.5.3",
     "gitCommit": "918c596cba36a46ff3d7aa8ffd69580bd22528e2"
   },
   "resize": {
-    "rust": "1.88.0",
-    "dockerDigest": "sha256:a6cab604fa016ac022e78c24038497eb7617ab59150ca4c3dd2ede0fbd514d4b",
     "crate": "resize",
     "crateVersion": "0.5.5"
   },
   "mozjpeg": {
     "version": "3.3.1",
     "sourceUrl": "https://codeload.github.com/mozilla/mozjpeg/tar.gz/refs/tags/v3.3.1",
-    "sourceSha256": "aebbea60ea038a84a2d1ed3de38fdbca34027e2e54ee2b7d08a97578be72599d",
-    "emscripten": "2.0.23",
-    "dockerDigest": "sha256:5871ba43a788243cbf890e2cb1a95e33e9cb72dcf52e1d2077ca39f2171f8b07"
+    "sourceSha256": "aebbea60ea038a84a2d1ed3de38fdbca34027e2e54ee2b7d08a97578be72599d"
+  },
+  "rust": {
+    "version": "1.88.0",
+    "dockerDigest": "sha256:a6cab604fa016ac022e78c24038497eb7617ab59150ca4c3dd2ede0fbd514d4b"
+  },
+  "wasiSdk": {
+    "version": "25",
+    "dockerDigest": "sha256:fdebde86990902087ecc470bf993ffec4d646e8fbd2e68c290a44120437622d0"
   }
 }

@@ -3,12 +3,20 @@ name: WASM
 on:
   push:
     paths:
+      - .github/workflows/wasm.yml
+      - example.jpg
+      - go/go.mod
+      - go/go.sum
       - go/wasm-src/**
-      - go/internal/imagecodec/assets/**
+      - go/internal/imagecodec/**
   pull_request:
     paths:
+      - .github/workflows/wasm.yml
+      - example.jpg
+      - go/go.mod
+      - go/go.sum
       - go/wasm-src/**
-      - go/internal/imagecodec/assets/**
+      - go/internal/imagecodec/**
   workflow_dispatch:
 
 permissions:
@@ -18,6 +26,8 @@ jobs:
   wasm:
     name: WASM
     runs-on: ubuntu-24.04
+    env:
+      CGO_ENABLED: '0'
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: actions/setup-go@v6.5.0

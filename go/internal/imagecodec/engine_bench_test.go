@@ -47,13 +47,16 @@ func BenchmarkResizeWASM(b *testing.B) {
 	b.SetBytes(int64(len(rgba.Pix)))
 	b.ResetTimer()
 	for b.Loop() {
-		if _, err, _ = instance.resize.run(
+		if _, err, _ = callCodec(
 			ctx,
+			instance,
+			"resize",
 			rgba.Pix,
 			rgba.Bounds().Dx(),
 			rgba.Bounds().Dy(),
 			1000,
 			670,
+			0,
 		); err != nil {
 			b.Fatal(err)
 		}
@@ -77,13 +80,16 @@ func BenchmarkMozJPEGWASM(b *testing.B) {
 		b.Fatal(err)
 	}
 	instance := (<-engine.pool).instance
-	resized, err, _ := instance.resize.run(
+	resized, err, _ := callCodec(
 		ctx,
+		instance,
+		"resize",
 		rgba.Pix,
 		rgba.Bounds().Dx(),
 		rgba.Bounds().Dy(),
 		1000,
 		670,
+		0,
 	)
 	if err != nil {
 		b.Fatal(err)
@@ -92,7 +98,7 @@ func BenchmarkMozJPEGWASM(b *testing.B) {
 	b.SetBytes(int64(len(resized)))
 	b.ResetTimer()
 	for b.Loop() {
-		if _, err, _ = instance.mozjpeg.run(ctx, resized, 1000, 670, qualityForSize(len(input))); err != nil {
+		if _, err, _ = callCodec(ctx, instance, "compress", resized, 1000, 670, 1000, 670, qualityForSize(len(input))); err != nil {
 			b.Fatal(err)
 		}
 	}

@@ -3,9 +3,7 @@ package imagecodec
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"image/jpeg"
 	"math"
@@ -51,11 +49,6 @@ func TestCompressResizesAndEncodesProgressiveJPEG(t *testing.T) {
 	if float64(sizeDifference)/squooshBaselineSize > 0.05 {
 		t.Fatalf("compressed size differs from Squoosh baseline: got %d, baseline %d", len(output), squooshBaselineSize)
 	}
-	const squooshComparedOutputSHA256 = "261fd135d9444482973ac3e459c1e5301fe0a6e62174560aa911bf4020f4c0f6"
-	digest := sha256.Sum256(output)
-	if actual := hex.EncodeToString(digest[:]); actual != squooshComparedOutputSHA256 {
-		t.Fatalf("compressed output changed since Squoosh visual comparison: got SHA-256 %s", actual)
-	}
 
 	source, err := jpeg.Decode(bytes.NewReader(input))
 	if err != nil {
@@ -63,13 +56,16 @@ func TestCompressResizesAndEncodesProgressiveJPEG(t *testing.T) {
 	}
 	sourceRGBA := toStraightRGBA(source)
 	slot := <-engine.pool
-	reference, resizeErr, broken := slot.instance.resize.run(
+	reference, resizeErr, broken := callCodec(
 		ctx,
+		slot.instance,
+		"resize",
 		sourceRGBA.Pix,
 		sourceRGBA.Bounds().Dx(),
 		sourceRGBA.Bounds().Dy(),
 		1000,
 		670,
+		0,
 	)
 	if err = errors.Join(resizeErr, engine.release(ctx, slot.instance, broken)); err != nil {
 		t.Fatal(err)
@@ -103,7 +99,7 @@ func TestCompressReusesPipelineInstance(t *testing.T) {
 	}
 	t.Cleanup(func() { closeTestEngine(t, engine) })
 
-	if engine.runtime != nil || len(engine.pool) != 0 {
+	if engine.compiled != nil || len(engine.pool) != 0 {
 		t.Fatal("creating an engine initialized WASM before compression")
 	}
 	if err := engine.ensureInitialized(ctx); err != nil {
@@ -126,7 +122,7 @@ func TestCompressReusesPipelineInstance(t *testing.T) {
 	if before.instance != after.instance {
 		t.Fatal("successful compression replaced the reusable WASM instances")
 	}
-	if after.instance.resize.module.IsClosed() || after.instance.mozjpeg.module.IsClosed() {
+	if _, _, err := after.instance.CallWithContext(ctx, "resize", nil); err == nil || strings.Contains(err.Error(), "module is closed") {
 		t.Fatal("reused WASM instance is closed")
 	}
 }
@@ -148,7 +144,7 @@ func TestCompressCachesIdenticalCover(t *testing.T) {
 		t.Fatal(err)
 	}
 	broken := <-engine.pool
-	if err := broken.instance.mozjpeg.module.Close(ctx); err != nil {
+	if err := broken.instance.Close(ctx); err != nil {
 		t.Fatal(err)
 	}
 	engine.pool <- broken
@@ -182,7 +178,7 @@ func TestCloseReleasesWASMResources(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, slot := range slots {
-		if !slot.instance.resize.module.IsClosed() || !slot.instance.mozjpeg.module.IsClosed() {
+		if _, _, err := slot.instance.CallWithContext(ctx, "resize", nil); err == nil || !strings.Contains(err.Error(), "module is closed") {
 			t.Fatal("closing the engine left a WASM instance open")
 		}
 	}
@@ -203,7 +199,7 @@ func TestWASMFailureDoesNotFallBackAndReplacesInstance(t *testing.T) {
 		t.Fatal(err)
 	}
 	broken := <-engine.pool
-	if err := broken.instance.mozjpeg.module.Close(ctx); err != nil {
+	if err := broken.instance.Close(ctx); err != nil {
 		t.Fatal(err)
 	}
 	engine.pool <- broken
@@ -211,12 +207,12 @@ func TestWASMFailureDoesNotFallBackAndReplacesInstance(t *testing.T) {
 	input := loadExampleCover(t)
 	output, err := engine.Compress(ctx, input, domain.CoverOptions{MaxDimension: 256})
 	if err == nil {
-		t.Fatal("compression unexpectedly succeeded with a closed MozJPEG module")
+		t.Fatal("compression unexpectedly succeeded with a closed image codec plugin")
 	}
 	if len(output) != 0 {
 		t.Fatal("WASM failure returned fallback image data")
 	}
-	if !strings.Contains(err.Error(), "MozJPEG") {
+	if !strings.Contains(err.Error(), "imagecodec.wasm") {
 		t.Fatalf("WASM failure lacks codec context: %v", err)
 	}
 

@@ -15,18 +15,15 @@ import (
 	"sync"
 	"sync/atomic"
 
+	extism "github.com/extism/go-sdk"
 	"github.com/tetratelabs/wazero"
-	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
 )
 
-const (
-	defaultPoolSize = 1
-	wasmABIVersion  = 1
-)
+const defaultPoolSize = 1
 
 var ErrClosed = errors.New("image codec engine is closed")
 
@@ -35,15 +32,13 @@ type Options struct {
 }
 
 type Engine struct {
-	initMu          sync.Mutex
-	runtime         wazero.Runtime
-	resizeCompiled  wazero.CompiledModule
-	mozjpegCompiled wazero.CompiledModule
-	pool            chan poolSlot
-	done            chan struct{}
-	closed          atomic.Bool
-	cacheMu         sync.Mutex
-	cache           coverCache
+	initMu   sync.Mutex
+	compiled *extism.CompiledPlugin
+	pool     chan poolSlot
+	done     chan struct{}
+	closed   atomic.Bool
+	cacheMu  sync.Mutex
+	cache    coverCache
 }
 
 type coverCache struct {
@@ -54,7 +49,7 @@ type coverCache struct {
 }
 
 type poolSlot struct {
-	instance *pipelineInstance
+	instance *extism.Plugin
 	err      error
 }
 
@@ -82,13 +77,15 @@ func (e *Engine) ensureInitialized(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if e.runtime != nil {
+	if e.compiled != nil {
 		return nil
 	}
-	e.runtime = wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigCompiler())
 	if err := e.initialize(ctx, cap(e.pool)); err != nil {
-		closeErr := e.runtime.Close(context.WithoutCancel(ctx))
-		e.runtime, e.resizeCompiled, e.mozjpegCompiled = nil, nil, nil
+		var closeErr error
+		if e.compiled != nil {
+			closeErr = e.compiled.Close(context.WithoutCancel(ctx))
+		}
+		e.compiled = nil
 		for len(e.pool) > 0 {
 			<-e.pool
 		}
@@ -98,31 +95,20 @@ func (e *Engine) ensureInitialized(ctx context.Context) error {
 }
 
 func (e *Engine) initialize(ctx context.Context, poolSize int) error {
-	if _, err := wasi_snapshot_preview1.Instantiate(ctx, e.runtime); err != nil {
-		return fmt.Errorf("instantiate WASI host module: %w", err)
-	}
-	if _, err := e.runtime.NewHostModuleBuilder("env").
-		NewFunctionBuilder().
-		WithFunc(func(context.Context, uint32) {}).
-		Export("emscripten_notify_memory_growth").
-		Instantiate(ctx); err != nil {
-		return fmt.Errorf("instantiate Emscripten memory-growth host module: %w", err)
-	}
-
 	var err error
-	e.resizeCompiled, err = e.runtime.CompileModule(ctx, resizeWASM)
+	e.compiled, err = extism.NewCompiledPlugin(ctx,
+		extism.Manifest{Wasm: []extism.Wasm{extism.WasmData{Data: imagecodecWASM}}},
+		extism.PluginConfig{
+			EnableWasi:    true,
+			RuntimeConfig: wazero.NewRuntimeConfigCompiler().WithCloseOnContextDone(true),
+		}, nil)
 	if err != nil {
-		return fmt.Errorf("compile resize.wasm: %w", err)
+		return fmt.Errorf("compile imagecodec.wasm: %w", err)
 	}
-	e.mozjpegCompiled, err = e.runtime.CompileModule(ctx, mozjpegWASM)
-	if err != nil {
-		return fmt.Errorf("compile mozjpeg.wasm: %w", err)
-	}
-
 	for range poolSize {
-		instance, instantiateErr := e.instantiatePipeline(ctx)
-		if instantiateErr != nil {
-			return instantiateErr
+		instance, err := e.compiled.Instance(ctx, extism.PluginInstanceConfig{})
+		if err != nil {
+			return fmt.Errorf("instantiate imagecodec.wasm: %w", err)
 		}
 		e.pool <- poolSlot{instance: instance}
 	}
@@ -171,8 +157,10 @@ func (e *Engine) Compress(
 	inputHeight := rgba.Bounds().Dy()
 	outputWidth, outputHeight := targetDimensions(inputWidth, inputHeight, options.MaxDimension)
 
-	output, runErr, broken := slot.instance.compress(
+	output, runErr, broken := callCodec(
 		ctx,
+		slot.instance,
+		"compress",
 		rgba.Pix,
 		inputWidth,
 		inputHeight,
@@ -222,17 +210,10 @@ func (e *Engine) Close(ctx context.Context) error {
 	e.cache = coverCache{}
 	e.cacheMu.Unlock()
 
-	var closeErrors []error
-	if e.resizeCompiled != nil {
-		closeErrors = append(closeErrors, e.resizeCompiled.Close(ctx))
+	if e.compiled != nil {
+		return e.compiled.Close(ctx)
 	}
-	if e.mozjpegCompiled != nil {
-		closeErrors = append(closeErrors, e.mozjpegCompiled.Close(ctx))
-	}
-	if e.runtime != nil {
-		closeErrors = append(closeErrors, e.runtime.Close(ctx))
-	}
-	return errors.Join(closeErrors...)
+	return nil
 }
 
 func (e *Engine) acquire(ctx context.Context) (poolSlot, error) {
@@ -253,14 +234,14 @@ func (e *Engine) acquire(ctx context.Context) (poolSlot, error) {
 	}
 }
 
-func (e *Engine) release(ctx context.Context, instance *pipelineInstance, broken bool) error {
+func (e *Engine) release(ctx context.Context, instance *extism.Plugin, broken bool) error {
 	cleanupCtx := context.WithoutCancel(ctx)
 	if broken {
-		closeErr := instance.close(cleanupCtx)
+		closeErr := instance.Close(cleanupCtx)
 		if e.closed.Load() {
 			return closeErr
 		}
-		replacement, err := e.instantiatePipeline(cleanupCtx)
+		replacement, err := e.compiled.Instance(cleanupCtx, extism.PluginInstanceConfig{})
 		if err != nil {
 			wrapped := fmt.Errorf("replace failed image codec instance: %w", err)
 			e.pool <- poolSlot{err: wrapped}
@@ -271,7 +252,7 @@ func (e *Engine) release(ctx context.Context, instance *pipelineInstance, broken
 
 	select {
 	case <-e.done:
-		return instance.close(cleanupCtx)
+		return instance.Close(cleanupCtx)
 	case e.pool <- poolSlot{instance: instance}:
 		return nil
 	}
