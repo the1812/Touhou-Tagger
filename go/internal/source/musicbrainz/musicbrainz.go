@@ -83,7 +83,7 @@ func New(client *http.Client) *Source {
 	return &Source{client: api, images: source.NewHTTPClient(client)}
 }
 
-func (provider *Source) Search(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
+func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
 	phrase := `"` + strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(query) + `"`
 	var result struct {
 		Releases []release `json:"releases"`
@@ -112,7 +112,7 @@ func (provider *Source) Search(ctx context.Context, query string) ([]domain.Albu
 	return candidates, nil
 }
 
-func (provider *Source) Fetch(ctx context.Context, id string, cover []byte) ([]domain.Metadata, error) {
+func (provider *Source) GetMetadata(ctx context.Context, id string, cover []byte) ([]domain.Metadata, error) {
 	var album release
 	if _, err := provider.client.R().SetContext(ctx).SetQueryParams(map[string]string{
 		"fmt": "json",

@@ -47,7 +47,7 @@ func (wiki *Source) SetLyricsCache(cache *LyricsCache) {
 	wiki.lyrics.cache = cache
 }
 
-func (wiki *Source) Search(
+func (wiki *Source) SearchCandidates(
 	ctx context.Context,
 	query string,
 ) ([]domain.AlbumCandidate, error) {
@@ -89,7 +89,7 @@ func (wiki *Source) Search(
 	return candidates, nil
 }
 
-func (wiki *Source) Fetch(
+func (wiki *Source) GetMetadata(
 	ctx context.Context,
 	id string,
 	cover []byte,

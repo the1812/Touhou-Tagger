@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -214,13 +215,13 @@ func (service *BatchService) updateJob(
 func (service *BatchService) loadBatchJob(ctx context.Context, session *batchSession, job *batchJob) error {
 	base := service.runtime.getConfig()
 	base.Source = session.searchSource
-	album, err := application.OpenAlbum(ctx, job.directory, base)
+	album, err := application.OpenAlbum(ctx, job.directory, config.RuntimeAlbumOptions{Metadata: base})
 	if err != nil {
 		return err
 	}
 	job.inferredAlbumName = album.Name
 	job.audioCount = len(album.Scan.AudioFiles)
-	job.source = album.Config.Metadata.Source
+	job.source = album.Options.Metadata.Source
 	job.candidates = nil
 	job.selectedCandidateID = ""
 	if job.audioCount == 0 {

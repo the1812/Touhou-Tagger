@@ -11,7 +11,7 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
-type AlbumOptions struct {
+type AlbumOverrides struct {
 	DefaultAlbumHint        string   `json:"defaultAlbumHint,omitempty"`
 	Source                  *string  `json:"source,omitempty"`
 	Interactive             *bool    `json:"interactive,omitempty"`
@@ -30,46 +30,46 @@ type AlbumOptions struct {
 	Retry                   *int     `json:"retry,omitempty"`
 }
 
-type ResolvedAlbumConfig struct {
+type RuntimeAlbumOptions struct {
 	Metadata         domain.MetadataConfig
 	DefaultAlbumHint string
-	Interactive      *bool
-	Cover            *bool
+	Interactive      bool
+	Cover            bool
 }
 
-func LoadAlbum(directory string) (AlbumOptions, error) {
+func LoadAlbum(directory string) (AlbumOverrides, error) {
 	data, err := os.ReadFile(filepath.Join(directory, "thtag.json"))
 	if errors.Is(err, os.ErrNotExist) {
-		return AlbumOptions{}, nil
+		return AlbumOverrides{}, nil
 	}
 	if err != nil {
-		return AlbumOptions{}, fmt.Errorf("read album config: %w", err)
+		return AlbumOverrides{}, fmt.Errorf("read album config: %w", err)
 	}
-	var value AlbumOptions
+	var value AlbumOverrides
 	if err := json.Unmarshal(data, &value); err != nil {
-		return AlbumOptions{}, &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse album config: %w", err)}
+		return AlbumOverrides{}, &domain.ParseError{Kind: domain.ConfigData, Err: fmt.Errorf("parse album config: %w", err)}
 	}
 	return value, nil
 }
 
 func ResolveAlbum(
 	directory string,
-	base domain.MetadataConfig,
-	lyricEnabled bool,
-) (ResolvedAlbumConfig, error) {
+	base RuntimeAlbumOptions,
+) (RuntimeAlbumOptions, error) {
 	album, err := LoadAlbum(directory)
 	if err != nil {
-		return ResolvedAlbumConfig{}, err
+		return RuntimeAlbumOptions{}, err
 	}
+	metadata := base.Metadata
 	lyric := domain.DefaultLyricConfig()
-	if base.Lyric != nil {
-		lyric = *base.Lyric
+	if metadata.Lyric != nil {
+		lyric = *metadata.Lyric
 	}
 	if album.Source != nil {
-		base.Source = *album.Source
+		metadata.Source = *album.Source
 	}
 	if album.Lyric != nil {
-		lyricEnabled = *album.Lyric
+		metadata.LyricEnabled = *album.Lyric
 	}
 	if album.LyricType != nil {
 		lyric.Type = domain.LyricType(*album.LyricType)
@@ -87,34 +87,38 @@ func ResolveAlbum(
 		lyric.TranslationSeparator = *album.TranslationSeparator
 	}
 	if album.CommentLanguage != nil {
-		base.CommentLanguage = *album.CommentLanguage
+		metadata.CommentLanguage = *album.CommentLanguage
 	}
 	if album.CoverCompressSize != nil {
-		base.CoverCompressSize = *album.CoverCompressSize
+		metadata.CoverCompressSize = *album.CoverCompressSize
 	}
 	if album.CoverCompressResolution != nil {
-		base.CoverCompressResolution = *album.CoverCompressResolution
+		metadata.CoverCompressResolution = *album.CoverCompressResolution
 	}
 	if album.Separator != nil {
-		base.Separator = *album.Separator
+		metadata.Separator = *album.Separator
 	}
 	if album.Timeout != nil {
-		base.Timeout = *album.Timeout
+		metadata.Timeout = *album.Timeout
 	}
 	if album.Retry != nil {
-		base.Retry = *album.Retry
+		metadata.Retry = *album.Retry
 	}
-	base.Lyric = &lyric
-	base.LyricEnabled = lyricEnabled
-	if err := ValidateMetadata(base); err != nil {
-		return ResolvedAlbumConfig{}, fmt.Errorf("validate album config: %w", err)
+	metadata.Lyric = &lyric
+	if err := ValidateMetadata(metadata); err != nil {
+		return RuntimeAlbumOptions{}, fmt.Errorf("validate album config: %w", err)
 	}
-	return ResolvedAlbumConfig{
-		Metadata:         base,
-		DefaultAlbumHint: album.DefaultAlbumHint,
-		Interactive:      album.Interactive,
-		Cover:            album.Cover,
-	}, nil
+	base.Metadata = metadata
+	if album.DefaultAlbumHint != "" {
+		base.DefaultAlbumHint = album.DefaultAlbumHint
+	}
+	if album.Interactive != nil {
+		base.Interactive = *album.Interactive
+	}
+	if album.Cover != nil {
+		base.Cover = *album.Cover
+	}
+	return base, nil
 }
 
 func SaveAlbumSelection(directory, source, hint string) error {

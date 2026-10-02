@@ -1,31 +1,19 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
 type Options struct {
-	Cover                   bool
-	Debug                   bool
-	Batch                   string
-	BatchDepth              int
-	CommentLanguage         string
-	CoverCompressSize       float64
-	CoverCompressResolution int
-	Source                  string
-	Lyric                   bool
-	LyricEnabled            bool
-	LyricType               string
-	LyricOutput             string
-	LyricCacheSize          int
-	TranslationSeparator    string
-	LyricTime               bool
-	Separator               string
-	Timeout                 int
-	Retry                   int
-	Interactive             bool
-	NoInteractive           bool
+	config.RuntimeAlbumOptions
+	Debug           bool
+	Batch           string
+	BatchDepth      int
+	NoInteractive   bool
+	lyricPreference bool
 }
 
 func newOptions(value domain.MetadataConfig) Options {
@@ -33,71 +21,33 @@ func newOptions(value domain.MetadataConfig) Options {
 	if value.Lyric != nil {
 		lyric = *value.Lyric
 	}
+	value.Lyric = &lyric
+	preference := value.LyricEnabled
+	value.LyricEnabled = false
 	return Options{
-		BatchDepth:              1,
-		CommentLanguage:         value.CommentLanguage,
-		CoverCompressSize:       value.CoverCompressSize,
-		CoverCompressResolution: value.CoverCompressResolution,
-		Source:                  value.Source,
-		LyricEnabled:            value.LyricEnabled,
-		LyricType:               string(lyric.Type),
-		LyricOutput:             string(lyric.Output),
-		LyricCacheSize:          lyric.MaxCacheSize,
-		TranslationSeparator:    lyric.TranslationSeparator,
-		LyricTime:               lyric.Time,
-		Separator:               value.Separator,
-		Timeout:                 value.Timeout,
-		Retry:                   value.Retry,
-		Interactive:             true,
+		RuntimeAlbumOptions: config.RuntimeAlbumOptions{Metadata: value, Interactive: true},
+		BatchDepth:          1,
+		lyricPreference:     preference,
 	}
-}
-
-func (options Options) metadataConfig() domain.MetadataConfig {
-	return config.RuntimeMetadata(options.config(options.Lyric))
 }
 
 func (options Options) persistedConfig() domain.MetadataConfig {
-	return options.config(options.LyricEnabled)
-}
-
-func (options Options) config(lyricEnabled bool) domain.MetadataConfig {
-	return domain.MetadataConfig{
-		Lyric:                   options.lyricConfig(),
-		LyricEnabled:            lyricEnabled,
-		Source:                  options.Source,
-		CommentLanguage:         options.CommentLanguage,
-		CoverCompressSize:       options.CoverCompressSize,
-		CoverCompressResolution: options.CoverCompressResolution,
-		Separator:               options.Separator,
-		Timeout:                 options.Timeout,
-		Retry:                   options.Retry,
-	}
-}
-
-func (options Options) lyricConfig() *domain.LyricConfig {
-	return &domain.LyricConfig{
-		Type:                 domain.LyricType(options.LyricType),
-		Output:               domain.LyricOutput(options.LyricOutput),
-		Time:                 options.LyricTime,
-		TranslationSeparator: options.TranslationSeparator,
-		MaxCacheSize:         options.LyricCacheSize,
-	}
-}
-
-type albumOptions struct {
-	Metadata    domain.MetadataConfig
-	Cover       bool
-	Interactive bool
-}
-
-func (options Options) forAlbum(resolved config.ResolvedAlbumConfig) albumOptions {
-	value := albumOptions{Metadata: resolved.Metadata, Cover: options.Cover, Interactive: options.Interactive}
-	if resolved.Cover != nil {
-		value.Cover = *resolved.Cover
-	}
-	if resolved.Interactive != nil {
-		value.Interactive = *resolved.Interactive
-	}
-	value.Interactive = value.Interactive && !options.NoInteractive
+	value := options.Metadata
+	value.LyricEnabled = options.lyricPreference
 	return value
+}
+
+func validateOptions(options Options) error {
+	if options.BatchDepth < 1 {
+		return fmt.Errorf("batch depth must be at least 1")
+	}
+	if err := config.ValidateMetadata(options.Metadata); err != nil {
+		return err
+	}
+	switch options.Metadata.Source {
+	case "thb-wiki", "doujin-meta", "music-brainz", "discogs":
+		return nil
+	default:
+		return fmt.Errorf("unsupported metadata source %q", options.Metadata.Source)
+	}
 }

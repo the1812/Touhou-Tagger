@@ -22,7 +22,7 @@ func TestFetchJSONCAndExpand(t *testing.T) {
 	if err := os.WriteFile(path, []byte(data), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	metadata, err := (Source{}).Fetch(context.Background(), path, []byte("cover"))
+	metadata, err := (Source{}).GetMetadata(context.Background(), path, []byte("cover"))
 	if err != nil {
 		t.Fatal(err)
 	}

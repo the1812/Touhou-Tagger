@@ -9,8 +9,8 @@ import (
 const MaxSearchCount = 20
 
 type MetadataSource interface {
-	Search(context.Context, string) ([]domain.AlbumCandidate, error)
-	Fetch(context.Context, string, []byte) ([]domain.Metadata, error)
+	SearchCandidates(context.Context, string) ([]domain.AlbumCandidate, error)
+	GetMetadata(context.Context, string, []byte) ([]domain.Metadata, error)
 }
 
 type Registry map[string]MetadataSource

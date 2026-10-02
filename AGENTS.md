@@ -30,29 +30,26 @@
 - Do not add hand-written accessibility markers in GUI markup. Remove manual `aria-*`, `role`, and `tabindex` attributes, and do not override accessibility attributes generated internally by UI-library components.
 - Hand-written TSX may use only native `div` elements, except that shared form-field components may use `label` to preserve native control focus behavior. Use shared components or PrimeVue components for controls and media; do not use other semantic native elements. When repeated styling previously depended on a semantic element's browser defaults, extract a shared component with explicit classes and preserve attribute passthrough.
 
-# GUI verification
+# GUI debugging
 
-- For layout and interaction work, start the Vite frontend and use `http://127.0.0.1:9245/?fixture=1`. Fixture mode must remain offline and must not modify real music files.
-- For browser-based GUI inspection, explicitly select the connected Chrome plugin/extension. Chrome control belongs to Browser Use, not Computer Use. Do not use automatic browser selection or the built-in app Browser unless the user explicitly requests it.
-- If the Chrome plugin is unavailable, disabled, disconnected, or cannot control the target tab, stop browser verification and report the problem. Do not fall back to the built-in app Browser or Computer Use without explicit user approval.
-- Do not launch standalone Playwright or install it for GUI verification. Browser Use's structured page inspection API is allowed because it operates through the selected Chrome connection.
-- Use Computer Use only for native desktop applications, operating-system UI, cross-application workflows, or when the user explicitly requests it.
-- Inspect GUI behavior with targeted DOM/state reads and scoped screenshots; avoid full-page snapshots that embed large cover images.
-- Use the native Wails app when validating file dialogs, window state, generated bindings, native events, or real filesystem behavior. Do not claim native behavior is verified from fixture mode alone.
-- If the Wails `server` build tag is needed for browser-bridge validation, do not rely on a native Windows server build with the current Wails alpha. Cross-build the server target for Linux and run it through WSL, using the repository fixtures and the `THTAG_GUI_FIXTURES_ROOT` / `THTAG_GUI_FIXTURE_DIR` environment variables.
+1. Connect through Chrome to inspect and debug the running GUI WebView. Explicitly select the connected Chrome plugin/extension and use Browser Use for Chrome control.
+2. Use Computer Use to inspect and interact with the native GUI, including file dialogs and window behavior.
+
+Both methods are optional debugging tools, not completion requirements. Choose either when useful; neither method nor both together are required to finish a task. If a tool, connection, or runtime fails, report the observed result, the limitation, and what remains unverified. Do not work around debugging failures through WSL, Linux cross-builds, or a separate Wails server/browser bridge. Do not substitute the built-in app Browser or standalone Playwright.
 
 # GUI debugging safety
 
-- Reuse an existing Vite, Wails, browser-bridge debug process, Chrome connection, and relevant Chrome tab when one is already running. Do not launch duplicate instances, terminate unrelated processes, or use broad process-kill commands; track and stop only the exact processes started for the current check.
+- Reuse an existing GUI process, Chrome connection, and relevant Chrome tab when one is already running. Do not launch duplicate instances, terminate unrelated processes, or use broad process-kill commands; track and stop only the exact processes started for the current check.
 - Keep Chrome inspection scoped to the relevant DOM subtree, state, console entries, and screenshots. Do not export full-page DOM or capture large pages containing embedded `data:image` cover art because the payload can destabilize the browser route and debugging session.
 - Never pass Vue or Pinia reactive proxies directly to `structuredClone`; unwrap them with `toRaw` or construct a plain DTO first. TypeScript compilation will not catch the resulting runtime `DataCloneError`.
-- After changing stores, async operations, routing guards, loading states, or dialogs, exercise the real interaction in fixture mode and inspect fresh Chrome console entries. Include rapid repeated actions and immediate navigation when relevant; a successful frontend build alone is not sufficient runtime validation.
+- When debugging stores, async operations, routing guards, loading states, or dialogs, exercise the relevant interaction and inspect fresh console entries when available. Include rapid repeated actions and immediate navigation when relevant. Report build checks and observed runtime behavior separately; a successful build does not establish runtime correctness.
+- Fixture mode must remain offline and must not modify real music files. Do not claim native behavior is verified from fixture mode alone.
 
 # Validation
 
-- Run only the checks relevant to the changed surface, but do not stop at compilation.
+- Run only the checks relevant to the changed surface, including existing tests and lint where applicable. Interactive GUI debugging remains optional as described above.
 - Root Node package: `pnpm run build`, `pnpm run test`, `pnpm run lint`, and `pnpm run format:check`.
 - Go module, from `go/`: `go test ./...`, `golangci-lint run --config .golangci.yml`, and `go build -trimpath -o ./bin/thtag.exe ./cmd/thtag`.
 - GUI frontend, from `go/gui/frontend/`: `pnpm run build`.
-- Full Windows GUI, from `go/gui/`: `& './.task/bin/wails3.exe' task build`; verify `go/bin/TouhouTagger.exe` exists and launch it when native behavior changed.
+- Full Windows GUI, from `go/gui/`: `& './.task/bin/wails3.exe' task build`; verify `go/bin/TouhouTagger.exe` exists. Launch it when useful for optional native GUI debugging.
 - WASM changes: rebuild through `go/wasm-src/build.ps1`, then validate behavior with `go build ./cmd/thtag` and `go test ./internal/imagecodec/...`. Do not use generated WASM hash equality as the sole acceptance criterion.

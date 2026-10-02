@@ -46,7 +46,7 @@ func (writer *recordingWriter) Write(
 	return file.Close()
 }
 
-func TestApplyTagPlanSupportsFilenameSwaps(t *testing.T) {
+func TestPlanExecuteSupportsFilenameSwaps(t *testing.T) {
 	directory := t.TempDir()
 	first := filepath.Join(directory, "01 B.mp3")
 	second := filepath.Join(directory, "02 A.mp3")
@@ -60,19 +60,20 @@ func TestApplyTagPlanSupportsFilenameSwaps(t *testing.T) {
 		{Title: "A", Artists: []string{}, TrackNumber: "2", DiscNumber: "1"},
 		{Title: "B", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
 	}
-	plan, err := BuildTagPlan(scan, metadata)
-	if err != nil {
-		t.Fatal(err)
-	}
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
-	plan.Items[0].Metadata.Lyric = "first lyric"
+	metadata[0].Lyric = "first lyric"
 	writer := &recordingWriter{}
 	service := Service{
 		Config:  domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true},
 		Writers: tagio.Writers{domain.FormatMP3: writer},
 	}
-	if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+	plan, err := service.CreatePlan(context.Background(), scan, metadata, PlanOptions{Candidate: domain.AlbumCandidate{Source: "local-json"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := plan.Execute(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	assertFileContent(t, second, "first:A")
@@ -87,7 +88,7 @@ func TestRenameTwoPhaseRestoresSwapAfterCommitFailure(t *testing.T) {
 	second := filepath.Join(directory, "B.mp3")
 	writeTestFile(t, first, "first")
 	writeTestFile(t, second, "second")
-	items := []domain.TagPlanItem{
+	items := []domain.PlanItem{
 		{SourcePath: first, TargetPath: second},
 		{SourcePath: second, TargetPath: first},
 	}
@@ -109,7 +110,7 @@ func TestRenameTwoPhaseRestoresSwapAfterCommitFailure(t *testing.T) {
 	assertNoTemporaryFiles(t, directory)
 }
 
-func TestApplyTagPlanKeepsCompletedWritesOnFailure(t *testing.T) {
+func TestPlanExecuteKeepsCompletedWritesOnFailure(t *testing.T) {
 	directory := t.TempDir()
 	first := filepath.Join(directory, "01 One.mp3")
 	second := filepath.Join(directory, "02 Two.mp3")
@@ -119,24 +120,26 @@ func TestApplyTagPlanKeepsCompletedWritesOnFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan, err := BuildTagPlan(scan, []domain.Metadata{
-		{Title: "Changed One", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
-		{Title: "Changed Two", Artists: []string{}, TrackNumber: "2", DiscNumber: "1"},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	service := Service{
 		Config:  domain.DefaultMetadataConfig(),
 		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{failAt: 2}},
 	}
-	result, err := service.ApplyTagPlan(context.Background(), plan)
-	if err == nil || !result.Renamed || !TagFilesMayHaveChanged(err) {
-		t.Fatalf("ApplyTagPlan() = %#v, %v", result, err)
+	plan, err := service.CreatePlan(context.Background(), scan, []domain.Metadata{
+		{Title: "Changed One", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
+		{Title: "Changed Two", Artists: []string{}, TrackNumber: "2", DiscNumber: "1"},
+	}, PlanOptions{Candidate: domain.AlbumCandidate{Source: "local-json"}})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := plan.Execute(context.Background())
+	if err == nil || !result.PathsUpdated || result.Written != 1 {
+		t.Fatalf("PlanExecute() = %#v, %v", result, err)
 	}
 	contents := []string{"first", "second"}
 	completed := 0
-	for index, item := range plan.Items {
+	for index, item := range plan.Preview().Items {
 		data, err := os.ReadFile(item.TargetPath)
 		if err != nil {
 			t.Fatal(err)
@@ -153,21 +156,12 @@ func TestApplyTagPlanKeepsCompletedWritesOnFailure(t *testing.T) {
 	assertNoTemporaryFiles(t, directory)
 }
 
-func TestApplyTagPlanDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
+func TestPlanExecuteDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
 	directory := t.TempDir()
 	source := filepath.Join(directory, "01 Old.mp3")
 	target := filepath.Join(directory, "01 New.mp3")
 	writeTestFile(t, source, "audio")
 	scan, err := albumfs.ScanAlbum(context.Background(), directory)
-	if err != nil {
-		t.Fatal(err)
-	}
-	plan, err := BuildTagPlan(scan, []domain.Metadata{{
-		Title:       "New",
-		Artists:     []string{},
-		TrackNumber: "1",
-		DiscNumber:  "1",
-	}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,9 +175,20 @@ func TestApplyTagPlanDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
 			return os.WriteFile(target, []byte("external target"), 0o644)
 		},
 	}
-	_, err = service.ApplyTagPlan(context.Background(), plan)
-	if err == nil || !TagFilesMayHaveChanged(err) {
-		t.Fatalf("ApplyTagPlan() error = %v", err)
+	plan, err := service.CreatePlan(context.Background(), scan, []domain.Metadata{{
+		Title:       "New",
+		Artists:     []string{},
+		TrackNumber: "1",
+		DiscNumber:  "1",
+	}}, PlanOptions{Candidate: domain.AlbumCandidate{Source: "local-json"}})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := plan.Execute(context.Background())
+	if err == nil || result.Reusable {
+		t.Fatalf("PlanExecute() error = %v", err)
 	}
 	assertFileContent(t, target, "external target")
 	assertFileContent(t, source, "audio")
@@ -208,7 +213,7 @@ func TestRenameRollbackDoesNotReplaceReappearedSource(t *testing.T) {
 		}
 		return renameNoReplace(oldPath, newPath)
 	}
-	err := renameTwoPhaseWith([]domain.TagPlanItem{{
+	err := renameTwoPhaseWith([]domain.PlanItem{{
 		SourcePath: source,
 		TargetPath: target,
 	}}, move)
@@ -230,7 +235,7 @@ func TestRenameRollbackDoesNotReplaceReappearedSource(t *testing.T) {
 	}
 }
 
-func TestApplyTagPlanAppliesCaseOnlyFilenameChanges(t *testing.T) {
+func TestPlanExecuteAppliesCaseOnlyFilenameChanges(t *testing.T) {
 	directory := t.TempDir()
 	source := filepath.Join(directory, "01 song.mp3")
 	writeTestFile(t, source, "audio")
@@ -238,17 +243,19 @@ func TestApplyTagPlanAppliesCaseOnlyFilenameChanges(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan, err := BuildTagPlan(scan, []domain.Metadata{
-		{Title: "Song", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	service := Service{
 		Config:  domain.DefaultMetadataConfig(),
 		Writers: tagio.Writers{domain.FormatMP3: &recordingWriter{}},
 	}
-	if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+	plan, err := service.CreatePlan(context.Background(), scan, []domain.Metadata{
+		{Title: "Song", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
+	}, PlanOptions{Candidate: domain.AlbumCandidate{Source: "local-json"}})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := plan.Execute(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	entries, err := os.ReadDir(directory)
@@ -264,20 +271,21 @@ func TestApplyTagPlanAppliesCaseOnlyFilenameChanges(t *testing.T) {
 	t.Fatalf("case-only rename was not applied: %#v", entries)
 }
 
-func TestBuildTagPlanValidatesTrackCountAndConflicts(t *testing.T) {
+func TestCreatePlanValidatesTrackCountAndConflicts(t *testing.T) {
 	directory := t.TempDir()
 	writeTestFile(t, filepath.Join(directory, "01 One.mp3"), "first")
 	scan, err := albumfs.ScanAlbum(context.Background(), directory)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := BuildTagPlan(scan, nil); err == nil || !strings.Contains(err.Error(), "track count mismatch") {
+	service := Service{}
+	if _, err := service.CreatePlan(context.Background(), scan, nil, PlanOptions{}); err == nil || !strings.Contains(err.Error(), "track count mismatch") {
 		t.Fatalf("unexpected track-count result: %v", err)
 	}
 	writeTestFile(t, filepath.Join(directory, "01 Existing.mp3"), "occupied")
-	if _, err := BuildTagPlan(scan, []domain.Metadata{
+	if _, err := service.CreatePlan(context.Background(), scan, []domain.Metadata{
 		{Title: "Existing", Artists: []string{}, TrackNumber: "1", DiscNumber: "1"},
-	}); err == nil || !strings.Contains(err.Error(), "already exists") {
+	}, PlanOptions{}); err == nil || !strings.Contains(err.Error(), "already exists") {
 		t.Fatalf("unexpected conflict result: %v", err)
 	}
 }

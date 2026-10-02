@@ -71,7 +71,7 @@ func New(client *http.Client) *Source {
 	return &Source{client: api, images: source.NewHTTPClient(client)}
 }
 
-func (provider *Source) Search(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
+func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
 	var result struct {
 		Results []struct {
 			ID         int      `json:"id"`
@@ -113,7 +113,7 @@ func (provider *Source) Search(ctx context.Context, query string) ([]domain.Albu
 	return candidates, nil
 }
 
-func (provider *Source) Fetch(ctx context.Context, id string, cover []byte) ([]domain.Metadata, error) {
+func (provider *Source) GetMetadata(ctx context.Context, id string, cover []byte) ([]domain.Metadata, error) {
 	var album release
 	if _, err := provider.client.R().SetContext(ctx).SetResult(&album).Get("/releases/" + url.PathEscape(id)); err != nil {
 		return nil, fmt.Errorf("fetch Discogs release %q: %w", id, err)

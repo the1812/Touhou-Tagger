@@ -9,7 +9,7 @@ import (
 )
 
 func canCommit(session *planSession) bool {
-	if len(session.plan.Items) == 0 || session.committing {
+	if session.plan == nil || session.committing {
 		return false
 	}
 	for _, issue := range session.issues {
@@ -59,30 +59,9 @@ func applyTrackPatch(metadata *domain.Metadata, patch TrackMetadataPatch) {
 	}
 }
 
-func inspectPlanOutputs(
-	plan domain.TagPlan,
-	configValue domain.MetadataConfig,
-	directory string,
-	cover []byte,
-	saveCover bool,
-	existingCoverPath string,
-) []StateIssue {
-	outputs, err := plannedOutputs(
-		plan,
-		configValue,
-		directory,
-		cover,
-		saveCover,
-		existingCoverPath,
-	)
-	if err != nil {
-		return []StateIssue{errorIssue(
-			"cover-target-invalid",
-			fmt.Sprintf("无法确定封面保存位置：%v", err),
-		)}
-	}
+func inspectPlanOutputs(conflicts []coreapp.PlanOutputConflict) []StateIssue {
 	issues := make([]StateIssue, 0)
-	for _, conflict := range coreapp.InspectPlanOutputs(outputs) {
+	for _, conflict := range conflicts {
 		switch conflict.Kind {
 		case coreapp.OutputConflictDuplicate:
 			message := fmt.Sprintf(
@@ -97,9 +76,6 @@ func inspectPlanOutputs(
 				outputStateIssue(conflict.Other, "output-target-conflict", message),
 			)
 		case coreapp.OutputConflictExists:
-			if isCoverOverwrite(conflict.Output, existingCoverPath) {
-				continue
-			}
 			issues = append(issues, outputStateIssue(
 				conflict.Output,
 				conflict.Output.Kind+"-target-exists",
@@ -124,39 +100,6 @@ func inspectPlanOutputs(
 	return issues
 }
 
-func plannedOutputs(
-	plan domain.TagPlan,
-	configValue domain.MetadataConfig,
-	directory string,
-	cover []byte,
-	saveCover bool,
-	existingCoverPath string,
-) ([]coreapp.PlanOutput, error) {
-	outputs := coreapp.TagPlanOutputs(plan, configValue)
-	if !saveCover {
-		return outputs, nil
-	}
-	path := existingCoverPath
-	if path == "" {
-		var err error
-		path, err = coreapp.CoverPath(directory, cover)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return append(outputs, coreapp.PlanOutput{
-		Kind:      coreapp.OutputCover,
-		Path:      path,
-		ItemIndex: -1,
-	}), nil
-}
-
-func isCoverOverwrite(output coreapp.PlanOutput, existingCoverPath string) bool {
-	return output.Kind == coreapp.OutputCover &&
-		existingCoverPath != "" &&
-		equalPath(output.Path, existingCoverPath)
-}
-
 func outputStateIssue(output coreapp.PlanOutput, code, message string) StateIssue {
 	if output.ItemIndex >= 0 {
 		return itemError(code, message, trackID(output.ItemIndex))
@@ -174,19 +117,7 @@ func outputLabel(kind string) string {
 func cloneMetadata(metadata []domain.Metadata) []domain.Metadata {
 	result := make([]domain.Metadata, len(metadata))
 	for index, item := range metadata {
-		result[index] = item
-		result[index].AlbumArtists = append([]string(nil), item.AlbumArtists...)
-		result[index].Genres = append([]string(nil), item.Genres...)
-		result[index].CoverImage = item.CoverImage
-		result[index].Artists = append([]string(nil), item.Artists...)
-		result[index].Composers = append([]string(nil), item.Composers...)
-		result[index].Lyricists = append([]string(nil), item.Lyricists...)
-		if item.ExtraData != nil {
-			result[index].ExtraData = make(map[string]any, len(item.ExtraData))
-			for key, value := range item.ExtraData {
-				result[index].ExtraData[key] = value
-			}
-		}
+		result[index] = item.Clone()
 	}
 	return result
 }

@@ -45,7 +45,7 @@ func (service *WorkspaceService) ScanWorkspace(
 	ctx context.Context,
 	directory string,
 ) (WorkspaceSummary, error) {
-	album, err := coreapp.OpenAlbum(ctx, directory, service.runtime.getConfig())
+	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
 	if err != nil {
 		return WorkspaceSummary{}, err
 	}
@@ -53,7 +53,7 @@ func (service *WorkspaceService) ScanWorkspace(
 		return WorkspaceSummary{}, err
 	}
 	scan := album.Scan
-	effectiveSource := album.Config.Metadata.Source
+	effectiveSource := album.Options.Metadata.Source
 	name := album.Name
 	service.planner.discardOwner("workspace")
 	summary := WorkspaceSummary{
@@ -90,11 +90,11 @@ func (service *WorkspaceService) SearchAlbums(
 	sourceName string,
 ) ([]AlbumCandidate, error) {
 	stored := service.runtime.getConfig()
-	resolved, err := config.ResolveAlbum(directory, stored, stored.LyricEnabled)
+	resolved, err := config.ResolveAlbum(directory, config.RuntimeAlbumOptions{Metadata: stored})
 	if err != nil {
 		return nil, err
 	}
-	applicationService, err := service.runtime.albumService(coreapp.Album{Config: resolved}, sourceName)
+	applicationService, err := service.runtime.albumService(coreapp.Album{Options: resolved}, sourceName)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -18,12 +19,12 @@ type planSession struct {
 	defaultSource string
 	scan          domain.AlbumScan
 	metadata      []domain.Metadata
-	plan          domain.TagPlan
+	plan          *coreapp.Plan
+	service       *coreapp.Service
 	candidate     domain.AlbumCandidate
 	cover         []byte
 	coverSource   string
 	saveCover     bool
-	config        domain.MetadataConfig
 	issues        []StateIssue
 	committing    bool
 }

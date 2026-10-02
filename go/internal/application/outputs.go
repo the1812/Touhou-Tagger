@@ -25,6 +25,7 @@ type PlanOutput struct {
 	Kind      string
 	Path      string
 	ItemIndex int
+	Replace   bool
 }
 
 type PlanOutputConflict struct {
@@ -52,7 +53,7 @@ func PlanOutputsChanged(err error) bool {
 	return errors.As(err, &conflict)
 }
 
-func TagPlanOutputs(plan domain.TagPlan, config domain.MetadataConfig) []PlanOutput {
+func lyricOutputs(plan PlanPreview, config domain.MetadataConfig) []PlanOutput {
 	if !config.LyricEnabled || config.Lyric == nil || config.Lyric.Output != domain.LyricLRC {
 		return nil
 	}
@@ -85,7 +86,7 @@ func InspectPlanOutputs(outputs []PlanOutput) []PlanOutputConflict {
 			seen[key] = output
 		}
 		if info, err := os.Stat(output.Path); err == nil {
-			if output.Kind == OutputLRC && info.Mode().IsRegular() {
+			if (output.Kind == OutputLRC || output.Replace) && info.Mode().IsRegular() {
 				continue
 			}
 			conflicts = append(conflicts, PlanOutputConflict{
@@ -103,8 +104,8 @@ func InspectPlanOutputs(outputs []PlanOutput) []PlanOutputConflict {
 	return conflicts
 }
 
-func ValidateTagPlanOutputs(plan domain.TagPlan, config domain.MetadataConfig) error {
-	conflicts := InspectPlanOutputs(TagPlanOutputs(plan, config))
+func validatePlanOutputs(outputs []PlanOutput) error {
+	conflicts := InspectPlanOutputs(outputs)
 	if len(conflicts) == 0 {
 		return nil
 	}

@@ -21,16 +21,11 @@ type AlbumScan struct {
 	MetadataPath string
 }
 
-type TagPlanItem struct {
+type PlanItem struct {
 	SourcePath string
 	TargetPath string
 	Format     AudioFormat
 	Metadata   Metadata
-}
-
-type TagPlan struct {
-	Directory string
-	Items     []TagPlanItem
 }
 
 type BatchJob struct {

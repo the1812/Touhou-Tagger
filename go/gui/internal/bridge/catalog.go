@@ -30,7 +30,7 @@ func (catalog *candidateCatalog) search(
 	if query == "" {
 		return nil, fmt.Errorf("专辑名称不能为空")
 	}
-	candidates, err := applicationService.SearchAlbums(ctx, query, applicationService.Config.Source)
+	candidates, err := applicationService.SearchCandidates(ctx, query, applicationService.Config.Source)
 	if err != nil {
 		return nil, err
 	}

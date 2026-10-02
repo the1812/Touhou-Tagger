@@ -9,6 +9,7 @@ import (
 	"time"
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -52,7 +53,7 @@ func (service *planCoordinator) prepareOwnedPlan(
 ) (*planSession, error) {
 	base := service.runtime.getConfig()
 	base.Source = defaultSource
-	album, err := coreapp.OpenAlbum(ctx, directory, base)
+	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: base})
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +83,7 @@ func (service *planCoordinator) prepareAlbumPlan(
 	if !exists {
 		return nil, fmt.Errorf("专辑搜索结果已失效，请重新搜索")
 	}
-	data, err := applicationService.FetchTagData(ctx, album.Scan, dtoToCandidate(candidate))
+	data, err := applicationService.GetAlbumMetadata(ctx, album.Scan, dtoToCandidate(candidate))
 	if err != nil {
 		return nil, err
 	}
@@ -97,16 +98,16 @@ func (service *planCoordinator) prepareAlbumPlan(
 		candidate:     dtoToCandidate(candidate),
 		cover:         data.Cover,
 		coverSource:   data.CoverSource,
-		saveCover:     len(data.Cover) > 0 && album.Config.Cover != nil && *album.Config.Cover,
-		config:        applicationService.Config,
+		saveCover:     len(data.Cover) > 0 && album.Options.Cover,
+		service:       applicationService,
 	}
-	service.rebuildSession(session)
+	service.rebuildSession(ctx, session)
 	service.store.put(session)
 	return session, nil
 }
 
 func (service *planCoordinator) updatePlan(
-	_ context.Context,
+	ctx context.Context,
 	patch PlanPatch,
 ) (PlanPreview, error) {
 	session, exists := service.store.get(patch.PlanID)
@@ -148,7 +149,7 @@ func (service *planCoordinator) updatePlan(
 	}
 	session.metadata = metadata
 	session.revision++
-	service.rebuildSession(session)
+	service.rebuildSession(ctx, session)
 	return service.previewLocked(session), nil
 }
 
@@ -217,7 +218,7 @@ func (service *planCoordinator) executeCommit(
 		session.committing = false
 		if reusable {
 			session.revision++
-			service.rebuildSession(session)
+			service.rebuildSession(context.WithoutCancel(ctx), session)
 			if session.owner == "workspace" {
 				preview := service.previewLocked(session)
 				result.Plan = &preview
@@ -225,37 +226,24 @@ func (service *planCoordinator) executeCommit(
 		}
 	}()
 	session.mu.Lock()
-	configValue := cloneConfig(session.config)
-	metadata := cloneMetadata(session.metadata)
-	commit := coreapp.AlbumCommit{
-		Candidate: session.candidate, DefaultAlbumName: session.albumName, DefaultSource: session.defaultSource,
-	}
-	scan := session.scan
-	commit.Cover, err = session.coverOutput()
+	plan := session.plan
+	plan.Events = events
+	candidate := session.candidate
 	session.mu.Unlock()
-	if err != nil {
-		return OperationResult{}, true, err
-	}
-	applicationService, err := service.runtime.serviceWithConfig(configValue, events)
-	if err != nil {
-		return OperationResult{}, true, err
-	}
-	commit.Plan, err = coreapp.BuildTagPlan(scan, metadata)
-	if err != nil {
-		return OperationResult{}, true, fmt.Errorf("准备写入内容: %w", err)
-	}
-	applied, err := applicationService.CommitAlbum(ctx, commit)
+	preview := plan.Preview()
+	applied, err := plan.Execute(ctx)
+
 	session.mu.Lock()
-	if applied.AudioRenamed {
-		for index, item := range commit.Plan.Items {
+	if applied.PathsUpdated {
+		for index, item := range preview.Items {
 			session.scan.AudioFiles[index].Path = item.TargetPath
 		}
 	}
 	if applied.CoverPath != "" {
 		session.scan.CoverPath = applied.CoverPath
 	}
-	if err == nil && commit.Candidate.Source != "local-json" && commit.Candidate.Name != "" {
-		session.albumName = commit.Candidate.Name
+	if err == nil && candidate.Source != "local-json" && candidate.Name != "" {
+		session.albumName = candidate.Name
 	}
 	session.mu.Unlock()
 	return OperationResult{
@@ -270,15 +258,21 @@ func (service *planCoordinator) executeCommit(
 	}, applied.Reusable, err
 }
 
-func (service *planCoordinator) rebuildSession(session *planSession) {
+func (service *planCoordinator) rebuildSession(ctx context.Context, session *planSession) {
 	session.issues = session.issues[:0]
-	plan, err := coreapp.BuildTagPlan(session.scan, session.metadata)
-	if err != nil {
-		session.plan = domain.TagPlan{}
-		session.issues = append(session.issues, planBuildIssue(err))
-	} else {
-		session.plan = plan
+	options := coreapp.PlanOptions{
+		Candidate: session.candidate, DefaultAlbumName: session.albumName, DefaultSource: session.defaultSource,
 	}
+	cover, err := session.coverOutput()
+	session.plan = nil
+	if err == nil {
+		options.Cover = cover
+		session.plan, err = session.service.CreatePlan(ctx, session.scan, session.metadata, options)
+	}
+	if err != nil {
+		session.issues = append(session.issues, planBuildIssue(err))
+	}
+
 	if len(session.cover) > 0 {
 		if _, _, err := decodeCover(session.cover); err != nil {
 			session.issues = append(session.issues, errorIssue(
@@ -287,15 +281,10 @@ func (service *planCoordinator) rebuildSession(session *planSession) {
 			))
 		}
 	}
-	outputIssues := inspectPlanOutputs(
-		session.plan,
-		session.config,
-		session.scan.Directory,
-		session.cover,
-		session.saveCover,
-		session.scan.CoverPath,
-	)
-	session.issues = append(session.issues, outputIssues...)
+	if session.plan != nil {
+		session.issues = append(session.issues, inspectPlanOutputs(session.plan.Preview().Conflicts)...)
+	}
+
 	for index, metadata := range session.metadata {
 		itemID := trackID(index)
 		if strings.TrimSpace(metadata.Title) == "" {
@@ -316,6 +305,10 @@ func (service *planCoordinator) rebuildSession(session *planSession) {
 }
 
 func (service *planCoordinator) previewLocked(session *planSession) PlanPreview {
+	preview := coreapp.PlanPreview{}
+	if session.plan != nil {
+		preview = session.plan.Preview()
+	}
 	metadataCount := len(session.metadata)
 	audioCount := len(session.scan.AudioFiles)
 	count := max(metadataCount, audioCount)
@@ -339,8 +332,8 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 			item.Artists = dtoSlice(metadata.Artists)
 			item.Comments = metadata.Comments
 		}
-		if index < len(session.plan.Items) {
-			planItem := session.plan.Items[index]
+		if index < len(preview.Items) {
+			planItem := preview.Items[index]
 			item.TargetName = filepath.Base(planItem.TargetPath)
 			item.WillRename = planItem.SourcePath != planItem.TargetPath
 		}
@@ -376,9 +369,14 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 			renamed++
 		}
 	}
-	lrcFiles := len(coreapp.TagPlanOutputs(session.plan, session.config))
-	compressCover := session.config.CoverCompressSize > 0 &&
-		float64(len(session.cover)) > session.config.CoverCompressSize*1024*1024
+	lrcFiles := 0
+	for _, output := range preview.Outputs {
+		if output.Kind == coreapp.OutputLRC {
+			lrcFiles++
+		}
+	}
+	compressCover := session.service.Config.CoverCompressSize > 0 &&
+		float64(len(session.cover)) > session.service.Config.CoverCompressSize*1024*1024
 	canSaveCover := len(session.cover) > 0
 	issues := make([]StateIssue, 0, len(session.issues))
 	for _, issue := range session.issues {
@@ -396,7 +394,7 @@ func (service *planCoordinator) previewLocked(session *planSession) PlanPreview 
 		Items:     items,
 		Issues:    issues,
 		Options: PlanOptions{
-			WriteFiles:    len(session.plan.Items),
+			WriteFiles:    len(preview.Items),
 			RenameFiles:   renamed,
 			CanSaveCover:  canSaveCover,
 			SaveCover:     canSaveCover && session.saveCover,

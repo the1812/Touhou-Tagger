@@ -50,7 +50,7 @@ func New(client *http.Client, base string) (*Source, error) {
 	return &Source{client: source.NewHTTPClient(client), baseURL: parsed}, nil
 }
 
-func (sourceClient *Source) Search(
+func (sourceClient *Source) SearchCandidates(
 	ctx context.Context,
 	query string,
 ) ([]domain.AlbumCandidate, error) {
@@ -84,7 +84,7 @@ func (sourceClient *Source) Search(
 	return candidates, nil
 }
 
-func (sourceClient *Source) Fetch(
+func (sourceClient *Source) GetMetadata(
 	ctx context.Context,
 	id string,
 	cover []byte,

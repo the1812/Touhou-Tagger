@@ -11,20 +11,20 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
 )
 
-func TestValidateTagPlanOutputsAllowsUpdatesAndRejectsConflicts(t *testing.T) {
+func TestValidatePlanOutputsAllowsUpdatesAndRejectsConflicts(t *testing.T) {
 	directory := t.TempDir()
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
 	config := domain.MetadataConfig{Lyric: &lyric, LyricEnabled: true}
 	target := filepath.Join(directory, "01 Song.mp3")
-	plan := domain.TagPlan{Items: []domain.TagPlanItem{{
+	plan := PlanPreview{Items: []domain.PlanItem{{
 		TargetPath: target,
 		Metadata:   domain.Metadata{Lyric: "lyrics"},
 	}}}
 	if err := os.WriteFile(LRCPath(target), []byte("existing"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateTagPlanOutputs(plan, config); err != nil {
+	if err := validatePlanOutputs(lyricOutputs(plan, config)); err != nil {
 		t.Fatalf("existing LRC cannot be updated: %v", err)
 	}
 	if err := os.Remove(LRCPath(target)); err != nil {
@@ -33,17 +33,17 @@ func TestValidateTagPlanOutputsAllowsUpdatesAndRejectsConflicts(t *testing.T) {
 	if err := os.Mkdir(LRCPath(target), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateTagPlanOutputs(plan, config); err == nil ||
+	if err := validatePlanOutputs(lyricOutputs(plan, config)); err == nil ||
 		!strings.Contains(err.Error(), "already exists") ||
 		!PlanOutputsChanged(err) {
-		t.Fatalf("ValidateTagPlanOutputs() error = %v", err)
+		t.Fatalf("validatePlanOutputs() error = %v", err)
 	}
 
-	plan.Items = append(plan.Items, domain.TagPlanItem{
+	plan.Items = append(plan.Items, domain.PlanItem{
 		TargetPath: filepath.Join(directory, "01 Song.flac"),
 		Metadata:   domain.Metadata{Lyric: "other lyrics"},
 	})
-	conflicts := InspectPlanOutputs(TagPlanOutputs(plan, config))
+	conflicts := InspectPlanOutputs(lyricOutputs(plan, config))
 	foundDuplicate := false
 	for _, conflict := range conflicts {
 		foundDuplicate = foundDuplicate || conflict.Kind == OutputConflictDuplicate
@@ -53,19 +53,19 @@ func TestValidateTagPlanOutputsAllowsUpdatesAndRejectsConflicts(t *testing.T) {
 	}
 }
 
-func TestTagPlanOutputsIgnoresDisabledLyricPreference(t *testing.T) {
+func TestLyricOutputsIgnoresDisabledLyricPreference(t *testing.T) {
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
-	plan := domain.TagPlan{Items: []domain.TagPlanItem{{
+	plan := PlanPreview{Items: []domain.PlanItem{{
 		TargetPath: "01 Song.mp3",
 		Metadata:   domain.Metadata{Lyric: "lyrics"},
 	}}}
-	if outputs := TagPlanOutputs(plan, domain.MetadataConfig{Lyric: &lyric}); len(outputs) != 0 {
-		t.Fatalf("TagPlanOutputs() = %#v with lyrics disabled", outputs)
+	if outputs := lyricOutputs(plan, domain.MetadataConfig{Lyric: &lyric}); len(outputs) != 0 {
+		t.Fatalf("lyricOutputs() = %#v with lyrics disabled", outputs)
 	}
 }
 
-func TestApplyTagPlanUpdatesExistingLRC(t *testing.T) {
+func TestPlanExecuteUpdatesExistingLRC(t *testing.T) {
 	directory := t.TempDir()
 	audioPath := filepath.Join(directory, "01 Song.mp3")
 	if err := os.WriteFile(audioPath, []byte("audio"), 0o644); err != nil {
@@ -73,15 +73,9 @@ func TestApplyTagPlanUpdatesExistingLRC(t *testing.T) {
 	}
 	lyric := domain.DefaultLyricConfig()
 	lyric.Output = domain.LyricLRC
-	plan := domain.TagPlan{
-		Directory: directory,
-		Items: []domain.TagPlanItem{{
-			SourcePath: audioPath,
-			TargetPath: audioPath,
-			Format:     domain.FormatMP3,
-			Metadata:   domain.Metadata{Lyric: "lyrics"},
-		}},
-	}
+	scan := domain.AlbumScan{Directory: directory, AudioFiles: []domain.AudioFile{{Path: audioPath, Format: domain.FormatMP3}}}
+	metadata := []domain.Metadata{{Title: "Song", TrackNumber: "1", DiscNumber: "1"}}
+
 	if err := os.WriteFile(LRCPath(audioPath), []byte("existing"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -91,8 +85,12 @@ func TestApplyTagPlanUpdatesExistingLRC(t *testing.T) {
 		Writers: tagio.Writers{domain.FormatMP3: writer},
 	}
 	for _, lyric := range []string{"first update", "second update"} {
-		plan.Items[0].Metadata.Lyric = lyric
-		if _, err := service.ApplyTagPlan(context.Background(), plan); err != nil {
+		metadata[0].Lyric = lyric
+		plan, err := service.CreatePlan(context.Background(), scan, metadata, PlanOptions{Candidate: domain.AlbumCandidate{Source: "local-json"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := plan.Execute(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 		actual, err := os.ReadFile(LRCPath(audioPath))

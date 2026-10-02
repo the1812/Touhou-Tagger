@@ -14,7 +14,7 @@ import (
 
 type Source struct{}
 
-func (Source) Search(
+func (Source) SearchCandidates(
 	ctx context.Context,
 	query string,
 ) ([]domain.AlbumCandidate, error) {
@@ -31,7 +31,7 @@ func (Source) Search(
 	return []domain.AlbumCandidate{{ID: path, Name: filepath.Base(path), Source: "local-json"}}, nil
 }
 
-func (Source) Fetch(
+func (Source) GetMetadata(
 	ctx context.Context,
 	id string,
 	cover []byte,

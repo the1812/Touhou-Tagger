@@ -15,7 +15,7 @@ import (
 )
 
 func TestSelectCandidateTreatsInvalidInteractiveInputAsCancellation(t *testing.T) {
-	runner := Runner{
+	runner := terminal{
 		input:  bufio.NewReader(strings.NewReader("cancel\n")),
 		output: &bytes.Buffer{},
 	}
@@ -46,19 +46,18 @@ func TestAlbumOptionsApplyExplicitFalseAndZero(t *testing.T) {
 	}
 	options := newOptions(domain.DefaultMetadataConfig())
 	options.Cover = true
-	options.CoverCompressResolution = 1000
-	resolved, err := config.ResolveAlbum(directory, options.persistedConfig(), options.Lyric)
+	options.Metadata.CoverCompressResolution = 1000
+	actual, err := config.ResolveAlbum(directory, options.RuntimeAlbumOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
-	actual := options.forAlbum(resolved)
 	if actual.Interactive ||
 		actual.Cover ||
 		!actual.Metadata.LyricEnabled ||
 		actual.Metadata.Lyric.Type != domain.LyricMixed ||
 		actual.Metadata.Lyric.Time ||
 		actual.Metadata.CoverCompressResolution != 0 {
-		t.Fatalf("forAlbum() ignored explicit false/zero: %#v", actual)
+		t.Fatalf("ResolveAlbum() ignored explicit false/zero: %#v", actual)
 	}
 }
 
@@ -66,14 +65,14 @@ func TestCLISeparatesLyricPreferenceFromRunFlag(t *testing.T) {
 	stored := domain.DefaultMetadataConfig()
 	stored.LyricEnabled = false
 	options := newOptions(stored)
-	if options.Lyric || options.LyricEnabled {
+	if options.Metadata.LyricEnabled || options.lyricPreference {
 		t.Fatalf("newOptions() enabled lyrics: %#v", options)
 	}
-	if options.metadataConfig().Lyric != nil {
+	if config.RuntimeMetadata(options.Metadata).Lyric != nil {
 		t.Fatal("runtime config kept disabled lyric preferences")
 	}
-	options.Lyric = true
-	runtimeConfig := options.metadataConfig()
+	options.Metadata.LyricEnabled = true
+	runtimeConfig := config.RuntimeMetadata(options.Metadata)
 	if !runtimeConfig.LyricEnabled || runtimeConfig.Lyric == nil {
 		t.Fatal("runtime config ignored --lyric")
 	}
@@ -84,7 +83,7 @@ func TestCLISeparatesLyricPreferenceFromRunFlag(t *testing.T) {
 
 	stored.LyricEnabled = true
 	options = newOptions(stored)
-	if options.Lyric || !options.LyricEnabled {
+	if options.Metadata.LyricEnabled || !options.lyricPreference {
 		t.Fatalf("newOptions() reused stored preference as a run flag: %#v", options)
 	}
 	if !options.persistedConfig().LyricEnabled {

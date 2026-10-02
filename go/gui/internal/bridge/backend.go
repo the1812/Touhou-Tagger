@@ -120,7 +120,7 @@ func (runtime *runtimeState) serviceWithConfig(
 }
 
 func (runtime *runtimeState) albumService(album coreapp.Album, sourceName string) (*coreapp.Service, error) {
-	value := album.Config.Metadata
+	value := album.Options.Metadata
 	if sourceName != "" && album.Scan.MetadataPath == "" {
 		value.Source = sourceName
 	}

@@ -33,14 +33,14 @@ func TestSearchAndFetch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidates, err := source.Search(context.Background(), "Test Album")
+	candidates, err := source.SearchCandidates(context.Background(), "Test Album")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(candidates) != 1 || candidates[0].ID != "01k3z4p8q9r0s1t2v3w4x5y6z7" || candidates[0].Name != "Test Album" {
 		t.Fatalf("unexpected candidates: %#v", candidates)
 	}
-	metadata, err := source.Fetch(context.Background(), candidates[0].ID, nil)
+	metadata, err := source.GetMetadata(context.Background(), candidates[0].ID, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestHTTPFailureIsExplicit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := source.Search(context.Background(), "album"); err == nil {
+	if _, err := source.SearchCandidates(context.Background(), "album"); err == nil {
 		t.Fatal("expected HTTP status error")
 	}
 }

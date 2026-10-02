@@ -98,13 +98,13 @@ func TestResolveAlbumAppliesMetadataAndRunOverrides(t *testing.T) {
 	base := domain.DefaultMetadataConfig()
 	base.CoverCompressSize = 2
 	base.CoverCompressResolution = 1000
-	actual, err := ResolveAlbum(directory, base, false)
+	actual, err := ResolveAlbum(directory, RuntimeAlbumOptions{Metadata: base, Interactive: true, Cover: true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if actual.DefaultAlbumHint != "Selected Album" ||
-		actual.Interactive == nil || *actual.Interactive ||
-		actual.Cover == nil || *actual.Cover {
+		actual.Interactive ||
+		actual.Cover {
 		t.Fatalf("unexpected run options: %#v", actual)
 	}
 	if actual.Metadata.Source != "doujin-meta" ||
@@ -135,7 +135,8 @@ func TestResolveAlbumCanDisableLyrics(t *testing.T) {
 	base := domain.DefaultMetadataConfig()
 	lyric := domain.DefaultLyricConfig()
 	base.Lyric = &lyric
-	actual, err := ResolveAlbum(directory, base, true)
+	base.LyricEnabled = true
+	actual, err := ResolveAlbum(directory, RuntimeAlbumOptions{Metadata: base})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +157,7 @@ func TestResolveAlbumRejectsExplicitInvalidOverrides(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(directory, "thtag.json"), []byte(input), 0o644); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := ResolveAlbum(directory, domain.DefaultMetadataConfig(), false); err == nil {
+			if _, err := ResolveAlbum(directory, RuntimeAlbumOptions{Metadata: domain.DefaultMetadataConfig()}); err == nil {
 				t.Fatal("ResolveAlbum() accepted invalid album config")
 			}
 		})

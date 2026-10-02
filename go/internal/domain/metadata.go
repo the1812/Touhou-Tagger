@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"maps"
+	"slices"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -27,6 +29,16 @@ type Metadata struct {
 	Lyricists     []string       `json:"lyricists,omitempty"`
 	BPM           string         `json:"bpm,omitempty"`
 	Key           string         `json:"key,omitempty"`
+}
+
+func (metadata Metadata) Clone() Metadata {
+	metadata.AlbumArtists = slices.Clone(metadata.AlbumArtists)
+	metadata.Genres = slices.Clone(metadata.Genres)
+	metadata.Artists = slices.Clone(metadata.Artists)
+	metadata.Composers = slices.Clone(metadata.Composers)
+	metadata.Lyricists = slices.Clone(metadata.Lyricists)
+	metadata.ExtraData = maps.Clone(metadata.ExtraData)
+	return metadata
 }
 
 func (metadata Metadata) WithoutCover() Metadata {

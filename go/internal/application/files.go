@@ -10,7 +10,7 @@ import (
 )
 
 type stagedRename struct {
-	item      domain.TagPlanItem
+	item      domain.PlanItem
 	temporary string
 	state     ownedFileState
 	completed bool
@@ -57,11 +57,11 @@ func fileIdentity(path string) (_ os.FileInfo, resultErr error) {
 	return file.Stat()
 }
 
-func renameTwoPhase(items []domain.TagPlanItem) error {
+func renameTwoPhase(items []domain.PlanItem) error {
 	return renameTwoPhaseWith(items, renameNoReplace)
 }
 
-func renameTwoPhaseWith(items []domain.TagPlanItem, move moveFile) error {
+func renameTwoPhaseWith(items []domain.PlanItem, move moveFile) error {
 	staged := make([]stagedRename, 0, len(items))
 	for _, item := range items {
 		if normalizedPath(item.SourcePath) == normalizedPath(item.TargetPath) {

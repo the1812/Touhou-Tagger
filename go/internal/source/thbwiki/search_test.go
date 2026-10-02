@@ -42,7 +42,7 @@ func TestSearchFiltersLyricEntries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidates, err := wiki.Search(context.Background(), "Album")
+	candidates, err := wiki.SearchCandidates(context.Background(), "Album")
 	if err != nil {
 		t.Fatal(err)
 	}
