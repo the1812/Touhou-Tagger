@@ -22,6 +22,7 @@ export const batchDirectory = 'D:/Music/Touhou'
 export const capabilities: Capabilities = {
   sources: [
     { value: 'thb-wiki', label: sourceLabel('thb-wiki'), supportsSearch: true },
+    { value: 'doujin-meta', label: sourceLabel('doujin-meta'), supportsSearch: true },
     { value: 'music-brainz', label: sourceLabel('music-brainz'), supportsSearch: true },
     { value: 'discogs', label: sourceLabel('discogs'), supportsSearch: true },
     { value: 'local-json', label: sourceLabel('local-json'), supportsSearch: false },

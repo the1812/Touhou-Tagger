@@ -262,6 +262,7 @@
     }
   },
   "data": {
+    "sourceMissingFields": "选择此数据源将无法获取到原曲信息和歌词",
     "sources": {
       "thbWiki": "THBWiki",
       "doujinMeta": "Doujin Meta",

@@ -3,14 +3,20 @@ import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import RadioButton from 'primevue/radiobutton'
-import Select from 'primevue/select'
 import { computed, defineComponent } from 'vue'
 
 import { useSettingsStore } from '../../../entities/session'
 import { useWorkspaceStore } from '../../../features/workspace'
 import { metadataSources } from '../../../shared/config'
 import { sourceLabel, t } from '../../../shared/i18n'
-import { CandidateCover, PageActionBar, TruncatedText, WorkspaceTitle } from '../../../shared/ui'
+import {
+  CandidateCover,
+  PageActionBar,
+  SourceSelect,
+  SourceWarning,
+  TruncatedText,
+  WorkspaceTitle,
+} from '../../../shared/ui'
 import { TaggingSearchSkeleton } from './TaggingSearchSkeleton'
 
 export const TaggingSearchStep = defineComponent({
@@ -36,10 +42,6 @@ export const TaggingSearchStep = defineComponent({
           { value: 'thb-wiki', label: sourceLabel('thb-wiki'), supportsSearch: true },
         ],
     )
-    const selectedSource = computed({
-      get: () => source.value,
-      set: (value: string) => workspace.changeSource(value),
-    })
     const showCover = computed(() => metadataSources[source.value]?.supportsSearchCover ?? false)
 
     return () => {
@@ -63,11 +65,10 @@ export const TaggingSearchStep = defineComponent({
                 }
               }}
             >
-              <Select
-                v-model={selectedSource.value}
+              <SourceSelect
+                modelValue={source.value}
+                {...{ 'onUpdate:modelValue': workspace.changeSource }}
                 options={sourceOptions.value}
-                optionLabel="label"
-                optionValue="value"
                 disabled={isBusy.value}
               />
               <InputText
@@ -88,6 +89,7 @@ export const TaggingSearchStep = defineComponent({
                 {{ icon: () => <Search /> }}
               </Button>
             </div>
+            <SourceWarning source={source.value} class="mt-1.5" />
 
             {activity.value === 'searching' && (
               <TaggingSearchSkeleton showCover={showCover.value} />

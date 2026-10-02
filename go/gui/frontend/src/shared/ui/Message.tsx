@@ -6,6 +6,7 @@ export const Message = defineComponent({
   name: 'Message',
   inheritAttrs: false,
   props: {
+    variant: String as PropType<MessageProps['variant']>,
     severity: {
       type: String as PropType<MessageProps['severity']>,
       default: 'info',
@@ -24,7 +25,7 @@ export const Message = defineComponent({
       const Icon = icons[props.severity]
 
       return (
-        <PrimeMessage closable={false} {...attrs} severity={props.severity} size={props.size}>
+        <PrimeMessage closable={false} {...attrs} {...props}>
           {{
             ...slots,
             ...(Icon && {

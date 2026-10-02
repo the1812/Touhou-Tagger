@@ -6,7 +6,7 @@ import { computed, defineComponent } from 'vue'
 
 import { useSettingsStore } from '../../../entities/session'
 import { t } from '../../../shared/i18n'
-import { FieldLabel, FormField, FormSection } from '../../../shared/ui'
+import { FieldLabel, FormField, FormSection, SourceSelect, SourceWarning } from '../../../shared/ui'
 
 export const SettingsGeneral = defineComponent({
   name: 'SettingsGeneral',
@@ -27,15 +27,17 @@ export const SettingsGeneral = defineComponent({
               <FieldLabel for="settings-defaultSource" help={t('settings.defaultSourceHelp')}>
                 {t('settings.defaultSource')}
               </FieldLabel>
-              <Select
+              <SourceSelect
                 labelId="settings-defaultSource"
-                v-model={currentDraft.defaultSource}
+                modelValue={currentDraft.defaultSource}
+                {...{
+                  'onUpdate:modelValue': (value: string) => (currentDraft.defaultSource = value),
+                }}
                 options={searchableSources.value}
-                optionLabel="label"
-                optionValue="value"
                 size="small"
                 fluid
               />
+              <SourceWarning source={currentDraft.defaultSource} />
             </FormField>
             <FormField variant="settings">
               <FieldLabel for="settings-commentLanguage" help={t('settings.commentLanguageHelp')}>
