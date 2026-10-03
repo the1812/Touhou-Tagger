@@ -141,14 +141,10 @@ func (runtime *runtimeState) setConfig(config domain.MetadataConfig) {
 }
 
 func (runtime *runtimeState) getSources() []SourceOption {
-	runtime.mu.RLock()
-	defer runtime.mu.RUnlock()
 	return dtoSlice(runtime.sources)
 }
 
 func (runtime *runtimeState) searchableSource(value string) bool {
-	runtime.mu.RLock()
-	defer runtime.mu.RUnlock()
 	for _, option := range runtime.sources {
 		if option.Value == value {
 			return option.SupportsSearch

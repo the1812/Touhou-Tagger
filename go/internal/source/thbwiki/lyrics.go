@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -25,7 +24,6 @@ type lyricsService struct {
 }
 
 type LyricsCache struct {
-	mutex     sync.Mutex
 	documents []cachedLyricsDocument
 }
 
@@ -91,14 +89,11 @@ func (service *lyricsService) document(
 	ctx context.Context,
 	pageURL string,
 ) (*goquery.Document, error) {
-	service.cache.mutex.Lock()
 	for _, cached := range service.cache.documents {
 		if cached.url == pageURL {
-			service.cache.mutex.Unlock()
 			return cached.document, nil
 		}
 	}
-	service.cache.mutex.Unlock()
 	data, err := service.wiki.get(ctx, pageURL)
 	if err != nil {
 		return nil, fmt.Errorf("download lyrics page %s: %w", pageURL, err)
@@ -111,12 +106,10 @@ func (service *lyricsService) document(
 	if capacity <= 0 {
 		capacity = domain.DefaultLyricConfig().MaxCacheSize
 	}
-	service.cache.mutex.Lock()
 	service.cache.documents = append(service.cache.documents, cachedLyricsDocument{url: pageURL, document: document})
 	if len(service.cache.documents) > capacity {
 		service.cache.documents = service.cache.documents[len(service.cache.documents)-capacity:]
 	}
-	service.cache.mutex.Unlock()
 	return document, nil
 }
 

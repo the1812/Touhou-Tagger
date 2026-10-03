@@ -31,16 +31,14 @@ func newDesktopService() *desktopService {
 }
 
 func (service *desktopService) attach(app *wails.App, window *wails.WebviewWindow) {
-	service.mu.Lock()
 	service.app = app
 	service.window = window
-	service.mu.Unlock()
 }
 
 func (service *desktopService) selectDirectory(title string, kind directoryKind) (string, error) {
-	service.mu.Lock()
 	app := service.app
 	window := service.window
+	service.mu.Lock()
 	initial := service.lastDirectories[kind]
 	service.mu.Unlock()
 	if app == nil {
@@ -81,6 +79,10 @@ func (service *desktopService) selectDirectory(title string, kind directoryKind)
 	service.lastDirectories[kind] = absolute
 	service.mu.Unlock()
 	return absolute, nil
+}
+
+func (service *desktopService) setDarkMode(dark bool) error {
+	return setTitleBarColor(service.window, dark)
 }
 
 func (service *desktopService) revealDirectory(ctx context.Context, directory string) error {

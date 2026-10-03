@@ -5,8 +5,5 @@ type AppearanceService struct {
 }
 
 func (service *AppearanceService) SetDarkMode(dark bool) error {
-	service.desktop.mu.Lock()
-	window := service.desktop.window
-	service.desktop.mu.Unlock()
-	return setTitleBarColor(window, dark)
+	return service.desktop.setDarkMode(dark)
 }

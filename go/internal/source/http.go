@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -14,29 +13,36 @@ import (
 )
 
 type RequestLimiter struct {
-	mu       sync.Mutex
+	slot     chan struct{}
 	next     time.Time
 	interval time.Duration
 }
 
 func NewRequestLimiter(interval time.Duration) *RequestLimiter {
-	return &RequestLimiter{interval: interval}
+	return &RequestLimiter{slot: make(chan struct{}, 1), interval: interval}
 }
 
 func (limiter *RequestLimiter) Wait(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	limiter.mu.Lock()
-	defer limiter.mu.Unlock()
+	select {
+	case limiter.slot <- struct{}{}:
+		defer func() { <-limiter.slot }()
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	timer := time.NewTimer(time.Until(limiter.next))
 	defer timer.Stop()
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-timer.C:
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		limiter.next = time.Now().Add(limiter.interval)
-		return ctx.Err()
+		return nil
 	}
 }
 

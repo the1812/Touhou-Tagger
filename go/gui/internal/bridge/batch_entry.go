@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"sync"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
@@ -13,7 +12,6 @@ import (
 )
 
 type batchEntry struct {
-	mu                  sync.Mutex
 	planner             *planCoordinator
 	owner               string
 	searchSource        string
@@ -54,9 +52,7 @@ func (entry *batchEntry) resolveCandidate(ctx context.Context, candidateID strin
 }
 
 func (entry *batchEntry) update(load func() error) {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
-	entry.discardPlanLocked()
+	entry.discardPlan()
 	entry.issues = nil
 	entry.status = "ready"
 	if err := load(); err != nil {
@@ -66,29 +62,21 @@ func (entry *batchEntry) update(load func() error) {
 }
 
 func (entry *batchEntry) discardPlan() {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
-	entry.discardPlanLocked()
-}
-
-func (entry *batchEntry) discardPlanLocked() {
 	if entry.plan != nil {
 		entry.planner.discard(entry.plan.id)
 		entry.plan = nil
 	}
 }
 
-func (entry *batchEntry) canRunLocked() bool {
+func (entry *batchEntry) canRun() bool {
 	return entry.plan != nil && entry.plan.canExecute()
 }
 
 func (entry *batchEntry) queue(failedOnly bool) bool {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
 	if failedOnly && entry.status != "failed" {
 		return false
 	}
-	if !entry.canRunLocked() {
+	if !entry.canRun() {
 		return false
 	}
 	entry.status = "queued"
@@ -96,18 +84,14 @@ func (entry *batchEntry) queue(failedOnly bool) bool {
 }
 
 func (entry *batchEntry) cancel() {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
 	entry.status = "cancelled"
 }
 
 func (entry *batchEntry) execute(ctx context.Context, operationID string, events application.EventSink) (WriteOperationResult, error) {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
 	entry.status = "running"
 	result, reusable, err := entry.plan.execute(ctx, operationID, events)
 	if !reusable {
-		entry.discardPlanLocked()
+		entry.discardPlan()
 	}
 	if errors.Is(err, context.Canceled) && reusable {
 		entry.status = "cancelled"
@@ -181,14 +165,12 @@ func (entry *batchEntry) chooseCandidate(ctx context.Context, candidateID string
 }
 
 func (entry *batchEntry) preview(root string) BatchEntryPreview {
-	entry.mu.Lock()
-	defer entry.mu.Unlock()
 	relative, err := filepath.Rel(root, entry.directory)
 	if err != nil {
 		relative = filepath.Base(entry.directory)
 	}
 	status := entry.status
-	canRun := entry.canRunLocked()
+	canRun := entry.canRun()
 	issues := dtoSlice(entry.issues)
 	if entry.plan != nil {
 		issues = append(issues, entry.plan.stateIssues()...)
