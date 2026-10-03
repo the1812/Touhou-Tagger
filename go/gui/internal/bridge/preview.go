@@ -43,8 +43,8 @@ func (backend *Backend) servePreview(response http.ResponseWriter, request *http
 		http.NotFound(response, request)
 		return
 	}
-	session, exists := backend.plans.get(parts[2])
-	if !exists {
+	session := backend.plans.get(parts[2])
+	if session == nil {
 		http.NotFound(response, request)
 		return
 	}

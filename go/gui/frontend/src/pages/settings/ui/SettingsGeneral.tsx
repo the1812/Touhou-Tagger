@@ -23,21 +23,21 @@ export const SettingsGeneral = defineComponent({
       return (
         <FormSection title={t('settings.general')}>
           <div class="grid justify-items-start gap-y-3.5">
-            <FormField variant="settings" error={errors.value.defaultSource}>
+            <FormField variant="settings" error={errors.value.source}>
               <FieldLabel for="settings-defaultSource" help={t('settings.defaultSourceHelp')}>
                 {t('settings.defaultSource')}
               </FieldLabel>
               <SourceSelect
                 labelId="settings-defaultSource"
-                modelValue={currentDraft.defaultSource}
+                modelValue={currentDraft.source}
                 {...{
-                  'onUpdate:modelValue': (value: string) => (currentDraft.defaultSource = value),
+                  'onUpdate:modelValue': (value: string) => (currentDraft.source = value),
                 }}
                 options={searchableSources.value}
                 size="small"
                 fluid
               />
-              <SourceWarning source={currentDraft.defaultSource} />
+              <SourceWarning source={currentDraft.source} />
             </FormField>
             <FormField variant="settings">
               <FieldLabel for="settings-commentLanguage" help={t('settings.commentLanguageHelp')}>
@@ -53,48 +53,48 @@ export const SettingsGeneral = defineComponent({
                 fluid
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.mp3MultiValueSeparator}>
+            <FormField variant="settings" error={errors.value.separator}>
               <FieldLabel for="settings-mp3Separator" help={t('settings.mp3SeparatorHelp')}>
                 {t('settings.mp3Separator')}
               </FieldLabel>
               <InputText
                 id="settings-mp3Separator"
-                v-model={currentDraft.mp3MultiValueSeparator}
-                invalid={Boolean(errors.value.mp3MultiValueSeparator)}
+                v-model={currentDraft.separator}
+                invalid={Boolean(errors.value.separator)}
                 size="small"
                 fluid
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.requestTimeoutSeconds}>
+            <FormField variant="settings" error={errors.value.timeout}>
               <FieldLabel for="settings-requestTimeout" help={t('settings.requestTimeoutHelp')}>
                 {t('settings.requestTimeout')}
               </FieldLabel>
               <InputNumber
                 inputId="settings-requestTimeout"
                 useGrouping={false}
-                v-model={currentDraft.requestTimeoutSeconds}
+                v-model={currentDraft.timeout}
                 min={1}
                 max={300}
                 showButtons
                 size="small"
                 fluid
-                invalid={Boolean(errors.value.requestTimeoutSeconds)}
+                invalid={Boolean(errors.value.timeout)}
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.retryCount}>
+            <FormField variant="settings" error={errors.value.retry}>
               <FieldLabel for="settings-retryCount" help={t('settings.retryCountHelp')}>
                 {t('settings.retryCount')}
               </FieldLabel>
               <InputNumber
                 inputId="settings-retryCount"
                 useGrouping={false}
-                v-model={currentDraft.retryCount}
+                v-model={currentDraft.retry}
                 min={1}
                 max={10}
                 showButtons
                 size="small"
                 fluid
-                invalid={Boolean(errors.value.retryCount)}
+                invalid={Boolean(errors.value.retry)}
               />
             </FormField>
           </div>

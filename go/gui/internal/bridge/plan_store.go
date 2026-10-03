@@ -27,11 +27,11 @@ func (store *planStore) put(session *planSession) {
 	store.mu.Unlock()
 }
 
-func (store *planStore) get(id string) (*planSession, bool) {
+func (store *planStore) get(id string) *planSession {
 	store.mu.RLock()
-	session, exists := store.sessions[id]
+	session := store.sessions[id]
 	store.mu.RUnlock()
-	return session, exists
+	return session
 }
 
 func (store *planStore) discard(id string) bool {

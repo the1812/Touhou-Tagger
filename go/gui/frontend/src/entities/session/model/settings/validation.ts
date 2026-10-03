@@ -1,45 +1,40 @@
-import type { Capabilities, Settings } from '../../../../shared/api'
+import type { Capabilities, MetadataConfig } from '../../../../shared/api'
 import { t } from '../../../../shared/i18n'
 
 export const validateSettings = (
-  value: Settings | undefined,
+  value: MetadataConfig | undefined,
   capabilities: Capabilities | undefined,
 ): Record<string, string> => {
   if (!value) {
     return {}
   }
   const next: Record<string, string> = {}
-  if (!value.mp3MultiValueSeparator.trim()) {
-    next.mp3MultiValueSeparator = t('validation.separatorRequired')
+  if (!value.separator.trim()) {
+    next['separator'] = t('validation.separatorRequired')
   }
-  if (value.requestTimeoutSeconds < 1 || value.requestTimeoutSeconds > 300) {
-    next.requestTimeoutSeconds = t('validation.requestTimeoutRange')
+  if (value.timeout < 1 || value.timeout > 300) {
+    next['timeout'] = t('validation.requestTimeoutRange')
   }
-  if (value.retryCount < 1 || value.retryCount > 10) {
-    next.retryCount = t('validation.retryCountRange')
+  if (value.retry < 1 || value.retry > 10) {
+    next['retry'] = t('validation.retryCountRange')
   }
-  if (value.coverCompressionThresholdKb < 0) {
-    next.coverCompressionThresholdKb = t('validation.coverThresholdNonNegative')
+  if (value.coverCompressSize < 0) {
+    next['coverCompressSize'] = t('validation.coverThresholdNonNegative')
   }
-  if (value.coverMaxEdge < 0) {
-    next.coverMaxEdge = t('validation.coverMaxEdgeNonNegative')
+  if (value.coverCompressResolution < 0) {
+    next['coverCompressResolution'] = t('validation.coverMaxEdgeNonNegative')
   }
-  if (value.writeLyricsMetadata && value.writeLrcFiles) {
-    next.lyricDestination = t('validation.lyricDestinationConflict')
+  if (!value.lyric.translationSeparator.trim()) {
+    next['lyric.translationSeparator'] = t('validation.mixedLyricSeparatorRequired')
   }
-  if (!value.mixedLyricSeparator.trim()) {
-    next.mixedLyricSeparator = t('validation.mixedLyricSeparatorRequired')
-  }
-  if (value.lyricCacheSize < 1 || value.lyricCacheSize > 10000) {
-    next.lyricCacheSize = t('validation.lyricCacheSizeRange')
+  if (value.lyric.maxCacheSize < 1 || value.lyric.maxCacheSize > 10000) {
+    next['lyric.maxCacheSize'] = t('validation.lyricCacheSizeRange')
   }
   if (
     capabilities &&
-    !capabilities.sources.some(
-      source => source.supportsSearch && source.value === value.defaultSource,
-    )
+    !capabilities.sources.some(source => source.supportsSearch && source.value === value.source)
   ) {
-    next.defaultSource = t('validation.searchableSourceRequired')
+    next['source'] = t('validation.searchableSourceRequired')
   }
   return next
 }

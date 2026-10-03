@@ -17,7 +17,6 @@ export const errorInfo = (value: unknown): ErrorInfo => {
     code: info?.code || 'unknown',
     params: info?.params,
     plan: info?.plan,
-    planInvalidated: info?.planInvalidated,
     message,
     details: info?.details || message,
   }

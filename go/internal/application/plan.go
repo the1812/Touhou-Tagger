@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"maps"
 	"slices"
 
@@ -35,7 +34,6 @@ type Plan struct {
 	options PlanOptions
 	config  domain.MetadataConfig
 	writers tagio.Writers
-	files   map[string]ownedFileState
 }
 
 func (service *Service) CreatePlan(
@@ -70,14 +68,6 @@ func (service *Service) CreatePlan(
 		})
 	}
 	preview.Conflicts = InspectPlanOutputs(preview.Outputs)
-	files := make(map[string]ownedFileState, len(preview.Items))
-	for _, item := range preview.Items {
-		state, err := captureOwnedFile(item.SourcePath)
-		if err != nil {
-			return nil, fmt.Errorf("inspect planned file %q: %w", item.SourcePath, err)
-		}
-		files[item.SourcePath] = state
-	}
 	if err := service.emit(domain.ProgressEvent{
 		Stage: domain.StagePlan, Directory: scan.Directory, Total: len(preview.Items),
 	}); err != nil {
@@ -85,7 +75,7 @@ func (service *Service) CreatePlan(
 	}
 	return &Plan{
 		preview: preview, options: options, config: value,
-		writers: maps.Clone(service.Writers), files: files,
+		writers: maps.Clone(service.Writers),
 	}, nil
 }
 
@@ -98,17 +88,4 @@ func (plan *Plan) Preview() PlanPreview {
 	preview.Outputs = slices.Clone(preview.Outputs)
 	preview.Conflicts = slices.Clone(preview.Conflicts)
 	return preview
-}
-
-func (plan *Plan) checkFiles() error {
-	for path, state := range plan.files {
-		matches, err := matchesOwnedFile(state, path)
-		if err != nil {
-			return fmt.Errorf("inspect planned file %q: %w", path, err)
-		}
-		if !matches {
-			return fmt.Errorf("file changed since preview: %q", path)
-		}
-	}
-	return nil
 }

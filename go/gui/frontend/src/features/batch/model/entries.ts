@@ -33,31 +33,28 @@ export const useBatchEntries = (state: {
     resolving.value = new Set(resolving.value).add(entryId)
     try {
       const updated = await request(batchId)
-      if (state.preview.value?.batchId !== batchId) {
-        return
-      }
+      const preview = state.preview.value as BatchPreview
       state.preview.value = {
-        ...state.preview.value,
-        entries: state.preview.value.entries.map(entry => (entry.id === entryId ? updated : entry)),
+        ...preview,
+        entries: preview.entries.map(entry => (entry.id === entryId ? updated : entry)),
       }
     } catch (error) {
-      if (state.preview.value?.batchId === batchId) {
-        const issues = [
-          {
-            code: 'load-failed',
-            message: error instanceof Error ? error.message : String(error),
-            severity: 'error' as const,
-          },
-        ]
-        state.preview.value = {
-          ...state.preview.value,
-          entries: state.preview.value.entries.map(entry =>
-            entry.id === entryId ? { ...entry, readiness: 'blocked', issues } : entry,
-          ),
-        }
-        if (notifyFailure) {
-          notifications.error(failureTitle, error)
-        }
+      const preview = state.preview.value as BatchPreview
+      const issues = [
+        {
+          code: 'load-failed',
+          message: error instanceof Error ? error.message : String(error),
+          severity: 'error' as const,
+        },
+      ]
+      state.preview.value = {
+        ...preview,
+        entries: preview.entries.map(entry =>
+          entry.id === entryId ? { ...entry, readiness: 'blocked', issues } : entry,
+        ),
+      }
+      if (notifyFailure) {
+        notifications.error(failureTitle, error)
       }
     } finally {
       const next = new Set(resolving.value)

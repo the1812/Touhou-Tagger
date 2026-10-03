@@ -1,4 +1,4 @@
-import type { PlanPatch, WorkspaceApi, WorkspaceWriteOperationResult } from '../api/types'
+import type { WorkspaceApi, WorkspaceWriteOperationResult } from '../api/types'
 import { candidates, createPlan, fixtureDirectory, workspaceSummary } from './data'
 import { clone, executeSequence, fixtureState, wait } from './state'
 
@@ -13,7 +13,7 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
     return { ...clone(workspaceSummary), directory }
   },
 
-  async searchAlbums(_directory, query, source = fixtureState.settings.defaultSource) {
+  async searchAlbums(_directory, query, source = fixtureState.settings.source) {
     await wait(220)
     const normalized = query.trim().toLocaleLowerCase()
     return clone(
@@ -37,40 +37,25 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
     return clone(fixtureState.activePlan)
   },
 
-  async updatePlan(patch: PlanPatch) {
-    patch = clone(patch)
+  async updateAlbum(_planId, album) {
     await wait(120)
-    const previousAlbum = fixtureState.activePlan.album
-    const album = {
-      ...previousAlbum,
-      ...(patch.album?.title != null ? { title: patch.album.title } : {}),
-      ...(patch.album?.albumOrder != null ? { albumOrder: patch.album.albumOrder } : {}),
-      ...(patch.album?.artists != null ? { artists: patch.album.artists } : {}),
-      ...(patch.album?.year != null ? { year: patch.album.year } : {}),
-      ...(patch.album?.genres != null ? { genres: patch.album.genres } : {}),
-    }
-    const changedTracks = new Map((patch.tracks ?? []).map(track => [track.id, track]))
+    fixtureState.activePlan = createPlan(
+      fixtureState.activeCandidateId,
+      fixtureState.activePlan.revision + 1,
+      clone(album),
+      fixtureState.activePlan.items,
+      fixtureState.activePlan.options.saveCover,
+    )
+    return clone(fixtureState.activePlan)
+  },
+
+  async updateTrack(_planId, trackId, track) {
+    await wait(120)
     const items = fixtureState.activePlan.items.map(item => {
-      const change = changedTracks.get(item.id)
-      if (!change) {
+      if (item.id !== trackId) {
         return item
       }
-      const updated = { ...item }
-      if (change.discNumber != null) {
-        updated.discNumber = change.discNumber
-      }
-      if (change.trackNumber != null) {
-        updated.trackNumber = change.trackNumber
-      }
-      if (change.title != null) {
-        updated.title = change.title
-      }
-      if (change.artists != null) {
-        updated.artists = change.artists
-      }
-      if (change.comments != null) {
-        updated.comments = change.comments
-      }
+      const updated = { ...item, ...clone(track) }
       const prefix =
         updated.discNumber === '1'
           ? updated.trackNumber.padStart(2, '0')
@@ -80,9 +65,21 @@ export const fixtureWorkspaceApi: WorkspaceApi = {
     fixtureState.activePlan = createPlan(
       fixtureState.activeCandidateId,
       fixtureState.activePlan.revision + 1,
-      album,
+      fixtureState.activePlan.album,
       items,
-      patch.saveCover ?? fixtureState.activePlan.options.saveCover,
+      fixtureState.activePlan.options.saveCover,
+    )
+    return clone(fixtureState.activePlan)
+  },
+
+  async setSaveCover(_planId, enabled) {
+    await wait(120)
+    fixtureState.activePlan = createPlan(
+      fixtureState.activeCandidateId,
+      fixtureState.activePlan.revision + 1,
+      fixtureState.activePlan.album,
+      fixtureState.activePlan.items,
+      enabled,
     )
     return clone(fixtureState.activePlan)
   },

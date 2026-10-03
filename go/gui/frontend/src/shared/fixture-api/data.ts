@@ -8,9 +8,10 @@ import type {
   Capabilities,
   PlanItemPreview,
   PlanPreview,
-  Settings,
+  MetadataConfig,
   WorkspaceSummary,
 } from '../api/types'
+import { LyricOutput, LyricType } from '../api/types'
 import { metadataSources } from '../config'
 import { sourceLabel, t } from '../i18n'
 
@@ -39,20 +40,22 @@ export const capabilities: Capabilities = {
   ],
 }
 
-export const defaultSettings: Settings = {
-  defaultSource: 'thb-wiki',
+export const defaultSettings: MetadataConfig = {
+  source: 'thb-wiki',
   commentLanguage: 'eng',
-  mp3MultiValueSeparator: ' / ',
-  requestTimeoutSeconds: 20,
-  retryCount: 2,
-  coverCompressionThresholdKb: 1500,
-  coverMaxEdge: 2000,
-  lyricType: 'mixed',
-  writeLyricsMetadata: true,
-  writeLrcFiles: false,
-  preserveLyricTimeline: true,
-  mixedLyricSeparator: ' / ',
-  lyricCacheSize: 128,
+  separator: ' / ',
+  timeout: 20,
+  retry: 2,
+  coverCompressSize: 1500 / 1024,
+  coverCompressResolution: 2000,
+  lyricEnabled: true,
+  lyric: {
+    type: LyricType.LyricMixed,
+    output: LyricOutput.LyricMetadata,
+    time: true,
+    translationSeparator: ' / ',
+    maxCacheSize: 128,
+  },
 }
 
 const fixtureCandidate = (

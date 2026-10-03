@@ -27,100 +27,50 @@ func (service *SettingsService) GetCapabilities() Capabilities {
 	}
 }
 
-func (service *SettingsService) LoadSettings() (Settings, error) {
+func (service *SettingsService) LoadSettings() (domain.MetadataConfig, error) {
 	value, err := config.Load()
 	if err != nil {
-		return Settings{}, err
+		return domain.MetadataConfig{}, err
 	}
 	value.Source = searchableSourceOrDefault(value.Source, service.runtime.getSources())
 	service.runtime.setConfig(value)
-	return settingsFromConfig(value), nil
-}
-
-func (service *SettingsService) SaveSettings(settings Settings) (Settings, error) {
-	value, err := service.configFromSettings(settings)
-	if err != nil {
-		return Settings{}, err
-	}
-	if err := config.Save(value); err != nil {
-		return Settings{}, err
-	}
-	service.runtime.setConfig(value)
-	return settingsFromConfig(value), nil
-}
-
-func (service *SettingsService) ResetSettings() (Settings, error) {
-	value := domain.DefaultMetadataConfig()
-	if err := config.Save(value); err != nil {
-		return Settings{}, err
-	}
-	service.runtime.setConfig(value)
-	return settingsFromConfig(value), nil
-}
-
-func (service *SettingsService) configFromSettings(settings Settings) (domain.MetadataConfig, error) {
-	if !service.runtime.searchableSource(settings.DefaultSource) {
-		return domain.MetadataConfig{}, fmt.Errorf("不支持的数据源 %q", settings.DefaultSource)
-	}
-	if settings.RequestTimeoutSeconds < 1 || settings.RequestTimeoutSeconds > 300 {
-		return domain.MetadataConfig{}, fmt.Errorf("请求超时必须在 1 到 300 秒之间")
-	}
-	if settings.RetryCount < 1 || settings.RetryCount > 10 {
-		return domain.MetadataConfig{}, fmt.Errorf("重试次数必须在 1 到 10 次之间")
-	}
-	if settings.LyricCacheSize < 1 || settings.LyricCacheSize > 10000 {
-		return domain.MetadataConfig{}, fmt.Errorf("歌词缓存数量必须在 1 到 10000 之间")
-	}
-	if settings.WriteLyricsMetadata && settings.WriteLRCFiles {
-		return domain.MetadataConfig{}, fmt.Errorf("歌词不能同时写入文件元数据和 LRC")
-	}
-	value := domain.MetadataConfig{
-		LyricEnabled:            settings.WriteLyricsMetadata || settings.WriteLRCFiles,
-		Source:                  settings.DefaultSource,
-		CommentLanguage:         settings.CommentLanguage,
-		CoverCompressSize:       settings.CoverCompressionThresholdKB / 1024,
-		CoverCompressResolution: settings.CoverMaxEdge,
-		Separator:               settings.MP3MultiValueSeparator,
-		Timeout:                 settings.RequestTimeoutSeconds,
-		Retry:                   settings.RetryCount,
-	}
-	output := domain.LyricMetadata
-	if settings.WriteLRCFiles {
-		output = domain.LyricLRC
-	}
-	value.Lyric = &domain.LyricConfig{
-		Type:                 domain.LyricType(settings.LyricType),
-		Output:               output,
-		Time:                 settings.PreserveLyricTimeline,
-		TranslationSeparator: settings.MixedLyricSeparator,
-		MaxCacheSize:         settings.LyricCacheSize,
-	}
-	if err := config.ValidateMetadata(value); err != nil {
-		return domain.MetadataConfig{}, err
-	}
 	return value, nil
 }
 
-func settingsFromConfig(value domain.MetadataConfig) Settings {
-	lyric := domain.DefaultLyricConfig()
-	if value.Lyric != nil {
-		lyric = *value.Lyric
+func (service *SettingsService) SaveSettings(value domain.MetadataConfig) (domain.MetadataConfig, error) {
+	if err := service.validate(value); err != nil {
+		return domain.MetadataConfig{}, err
 	}
-	return Settings{
-		DefaultSource:               value.Source,
-		CommentLanguage:             value.CommentLanguage,
-		MP3MultiValueSeparator:      value.Separator,
-		RequestTimeoutSeconds:       value.Timeout,
-		RetryCount:                  value.Retry,
-		CoverCompressionThresholdKB: value.CoverCompressSize * 1024,
-		CoverMaxEdge:                value.CoverCompressResolution,
-		LyricType:                   string(lyric.Type),
-		WriteLyricsMetadata:         value.LyricEnabled && lyric.Output == domain.LyricMetadata,
-		WriteLRCFiles:               value.LyricEnabled && lyric.Output == domain.LyricLRC,
-		PreserveLyricTimeline:       lyric.Time,
-		MixedLyricSeparator:         lyric.TranslationSeparator,
-		LyricCacheSize:              lyric.MaxCacheSize,
+	if err := config.Save(value); err != nil {
+		return domain.MetadataConfig{}, err
 	}
+	service.runtime.setConfig(value)
+	return value, nil
+}
+
+func (service *SettingsService) ResetSettings() (domain.MetadataConfig, error) {
+	value := domain.DefaultMetadataConfig()
+	if err := config.Save(value); err != nil {
+		return domain.MetadataConfig{}, err
+	}
+	service.runtime.setConfig(value)
+	return value, nil
+}
+
+func (service *SettingsService) validate(value domain.MetadataConfig) error {
+	if !service.runtime.searchableSource(value.Source) {
+		return fmt.Errorf("不支持的数据源 %q", value.Source)
+	}
+	if value.Timeout < 1 || value.Timeout > 300 {
+		return fmt.Errorf("请求超时必须在 1 到 300 秒之间")
+	}
+	if value.Retry < 1 || value.Retry > 10 {
+		return fmt.Errorf("重试次数必须在 1 到 10 次之间")
+	}
+	if value.Lyric.MaxCacheSize < 1 || value.Lyric.MaxCacheSize > 10000 {
+		return fmt.Errorf("歌词缓存数量必须在 1 到 10000 之间")
+	}
+	return config.ValidateMetadata(value)
 }
 
 func searchableSourceOrDefault(value string, sources []SourceOption) string {

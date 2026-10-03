@@ -61,7 +61,7 @@ export const useBatchStore = defineStore('batch', () => {
       readyCount.value > 0 &&
       !isBusy.value,
   )
-  const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
+  const defaultSource = () => settings.saved?.source ?? 'thb-wiki'
 
   const discardCurrentPreview = async () => {
     const batchId = preview.value?.batchId

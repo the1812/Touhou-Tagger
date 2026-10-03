@@ -36,7 +36,7 @@ export const useWorkspaceWriting = (state: {
     if (failure.plan) {
       plan.value = failure.plan
     }
-    stalePlan.value = failure.planInvalidated || !plan.value
+    stalePlan.value = !failure.plan
     completion.value = { kind: 'failure', failure }
   }
 

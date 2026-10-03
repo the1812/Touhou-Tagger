@@ -49,34 +49,47 @@ func newPlanSession(ctx context.Context, album coreapp.Album, applicationService
 	return session
 }
 
-func (session *planSession) update(ctx context.Context, patch PlanPatch) (PlanPreview, error) {
+func (session *planSession) updateAlbum(ctx context.Context, album AlbumMetadata) PlanPreview {
 	session.mu.Lock()
 	defer session.mu.Unlock()
-	for _, trackPatch := range patch.Tracks {
-		_, valid := trackIndex(trackPatch.ID, len(session.metadata))
-		if !valid {
-			return PlanPreview{}, fmt.Errorf("写入内容中不存在曲目 %q", trackPatch.ID)
-		}
+	for index := range session.metadata {
+		item := &session.metadata[index]
+		item.Album = album.Title
+		item.AlbumOrder = album.AlbumOrder
+		item.AlbumArtists = dtoSlice(album.Artists)
+		item.Year = album.Year
+		item.Genres = dtoSlice(album.Genres)
 	}
-	if patch.SaveCover != nil {
-		canSaveCover := len(session.cover) > 0
-		if *patch.SaveCover && !canSaveCover {
-			return PlanPreview{}, fmt.Errorf("当前写入内容没有可保存的封面")
-		}
-		session.saveCover = *patch.SaveCover
+	return session.refresh(ctx)
+}
+
+func (session *planSession) updateTrack(ctx context.Context, trackID string, track TrackMetadata) (PlanPreview, error) {
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	index := trackIndex(trackID, len(session.metadata))
+	if index < 0 {
+		return PlanPreview{}, fmt.Errorf("该文件没有对应的专辑曲目")
 	}
-	metadata := cloneMetadata(session.metadata)
-	if patch.Album != nil {
-		applyAlbumPatch(metadata, *patch.Album)
-	}
-	for _, trackPatch := range patch.Tracks {
-		index, _ := trackIndex(trackPatch.ID, len(metadata))
-		applyTrackPatch(&metadata[index], trackPatch)
-	}
-	session.metadata = metadata
+	item := &session.metadata[index]
+	item.DiscNumber = track.DiscNumber
+	item.TrackNumber = track.TrackNumber
+	item.Title = track.Title
+	item.Artists = dtoSlice(track.Artists)
+	item.Comments = track.Comments
+	return session.refresh(ctx), nil
+}
+
+func (session *planSession) setSaveCover(ctx context.Context, enabled bool) PlanPreview {
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	session.saveCover = enabled
+	return session.refresh(ctx)
+}
+
+func (session *planSession) refresh(ctx context.Context) PlanPreview {
 	session.revision++
 	session.rebuild(ctx)
-	return session.previewLocked(), nil
+	return session.previewLocked()
 }
 
 func (session *planSession) execute(
@@ -84,9 +97,6 @@ func (session *planSession) execute(
 	operationID string,
 	events coreapp.EventSink,
 ) (result WriteOperationResult, reusable bool, err error) {
-	if !session.canExecute() {
-		return result, true, fmt.Errorf("写入内容仍有未解决的问题")
-	}
 	started := time.Now()
 	defer func() {
 		session.mu.Lock()

@@ -48,9 +48,6 @@ func (manager *writeOperationManager) begin(operationID, kind string) (context.C
 	if manager.closed {
 		return nil, nil, fmt.Errorf("应用正在关闭")
 	}
-	if manager.active != nil {
-		return nil, nil, fmt.Errorf("已有写入操作正在运行")
-	}
 	ctx, cancel := context.WithCancel(manager.ctx)
 	manager.active = &writeOperation{id: operationID, kind: kind, cancel: cancel, cancellable: true}
 	manager.wg.Add(1)

@@ -1,4 +1,5 @@
 import type * as Native from '../../../bindings/github.com/the1812/Touhou-Tagger/go/gui/internal/bridge/models.js'
+import type * as Domain from '../../../bindings/github.com/the1812/Touhou-Tagger/go/internal/domain/models.js'
 
 export type NarrowSlices<T> =
   Exclude<T, null> extends readonly (infer Item)[]
@@ -22,10 +23,8 @@ export type PlanItemPreview = NarrowSlices<Native.PlanItemPreview>
 export type PlanOptions = NarrowSlices<Native.PlanOptions>
 export type PlanPreview = NarrowSlices<Native.PlanPreview>
 
-export type AlbumMetadataPatch = Native.AlbumMetadataPatch
-export type TrackMetadataPatch = Native.TrackMetadataPatch
-export type PlanPatch = Native.PlanPatch
-export type Settings = NarrowSlices<Native.Settings>
+export type TrackMetadata = NarrowSlices<Native.TrackMetadata>
+export type MetadataConfig = Omit<Domain.MetadataConfig, 'lyric'> & { lyric: Domain.LyricConfig }
 
 export type WriteOperationKind = 'workspace' | 'batch'
 
@@ -80,7 +79,6 @@ export interface WriteOperationFailure {
   kind: WriteOperationKind
   message: string
   details?: string
-  planInvalidated: boolean
 }
 
 export type BatchEntryReadiness = 'pending' | 'ready' | 'needs-candidate' | 'blocked' | 'skipped'
@@ -99,3 +97,8 @@ export type BatchPreview = Omit<NarrowSlices<Native.BatchPreview>, 'entries'> & 
 }
 
 export type * from './contracts'
+
+export {
+  LyricOutput,
+  LyricType,
+} from '../../../bindings/github.com/the1812/Touhou-Tagger/go/internal/domain/models.js'

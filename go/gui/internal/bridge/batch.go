@@ -73,36 +73,22 @@ func (service *BatchService) LoadBatchEntry(ctx context.Context, batchID, entryI
 	case <-ctx.Done():
 		return BatchEntryPreview{}, ctx.Err()
 	}
-	return service.updateEntry(ctx, batchID, entryID, func(ctx context.Context, entry *batchEntry) { entry.load(ctx) })
+	return service.updateEntry(ctx, batchID, entryID, func(ctx context.Context, entry *batchEntry) { entry.load(ctx) }), nil
 }
 
-func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID, entryID, candidateID string) (BatchEntryPreview, error) {
+func (service *BatchService) ResolveBatchCandidate(ctx context.Context, batchID, entryID, candidateID string) BatchEntryPreview {
 	return service.updateEntry(ctx, batchID, entryID, func(ctx context.Context, entry *batchEntry) {
 		entry.resolveCandidate(ctx, candidateID)
 	})
 }
 
-func (service *BatchService) updateEntry(ctx context.Context, batchID, entryID string, update func(context.Context, *batchEntry)) (BatchEntryPreview, error) {
+func (service *BatchService) updateEntry(ctx context.Context, batchID, entryID string, update func(context.Context, *batchEntry)) BatchEntryPreview {
 	service.mu.RLock()
-	session, exists := service.sessions[batchID]
+	session := service.sessions[batchID]
 	service.mu.RUnlock()
-	if !exists {
-		return BatchEntryPreview{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
-	}
 	entry := session.findEntry(entryID)
-	if entry == nil {
-		return BatchEntryPreview{}, fmt.Errorf("批量写入专辑 %q 不存在", entryID)
-	}
 	update(ctx, entry)
-	service.mu.RLock()
-	current := service.sessions[batchID]
-	service.mu.RUnlock()
-	if current != session {
-		entry.discardPlan()
-		service.catalog.discardOwner(session.id)
-		return BatchEntryPreview{}, fmt.Errorf("专辑加载结果已失效，请重新扫描目录")
-	}
-	return entry.preview(session.root), nil
+	return entry.preview(session.root)
 }
 
 func (service *BatchService) ExecuteBatch(batchID string, failedOnly bool, operationID string) (BatchRunResult, error) {
@@ -112,15 +98,9 @@ func (service *BatchService) ExecuteBatch(batchID string, failedOnly bool, opera
 	}
 	defer finish()
 	service.mu.RLock()
-	session, exists := service.sessions[batchID]
+	session := service.sessions[batchID]
 	service.mu.RUnlock()
-	if !exists {
-		return BatchRunResult{}, fmt.Errorf("批量任务已失效，请重新扫描目录")
-	}
 	selected := session.selectEntries(failedOnly)
-	if len(selected) == 0 {
-		return BatchRunResult{}, fmt.Errorf("没有可以写入的专辑")
-	}
 	return service.executeBatch(ctx, operationID, session, selected)
 }
 

@@ -137,7 +137,7 @@ export const TaggingSummary = defineComponent({
                   ))}
 
                 {stalePlan.value && (
-                  <Message severity="warn">{t('tagging.planInvalidated')}</Message>
+                  <Message severity="warn">{t('tagging.planUnavailable')}</Message>
                 )}
               </>
             )

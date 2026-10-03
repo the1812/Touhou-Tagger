@@ -54,11 +54,10 @@ func (catalog *candidateCatalog) get(
 	owner string,
 	sourceName string,
 	candidateID string,
-) (AlbumCandidate, bool) {
+) AlbumCandidate {
 	catalog.mu.RLock()
 	defer catalog.mu.RUnlock()
-	candidate, exists := catalog.byOwner[owner][candidateKey(sourceName, candidateID)]
-	return candidate, exists
+	return catalog.byOwner[owner][candidateKey(sourceName, candidateID)]
 }
 
 func (catalog *candidateCatalog) discardOwner(owner string) {

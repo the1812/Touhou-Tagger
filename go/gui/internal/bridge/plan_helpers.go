@@ -8,52 +8,13 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
-func applyAlbumPatch(metadata []domain.Metadata, patch AlbumMetadataPatch) {
-	for index := range metadata {
-		item := &metadata[index]
-		if patch.Title != nil {
-			item.Album = *patch.Title
-		}
-		if patch.AlbumOrder != nil {
-			item.AlbumOrder = *patch.AlbumOrder
-		}
-		if patch.Artists != nil {
-			item.AlbumArtists = append([]string(nil), (*patch.Artists)...)
-		}
-		if patch.Year != nil {
-			item.Year = *patch.Year
-		}
-		if patch.Genres != nil {
-			item.Genres = append([]string(nil), (*patch.Genres)...)
-		}
-	}
-}
-
-func applyTrackPatch(metadata *domain.Metadata, patch TrackMetadataPatch) {
-	if patch.DiscNumber != nil {
-		metadata.DiscNumber = *patch.DiscNumber
-	}
-	if patch.TrackNumber != nil {
-		metadata.TrackNumber = *patch.TrackNumber
-	}
-	if patch.Title != nil {
-		metadata.Title = *patch.Title
-	}
-	if patch.Artists != nil {
-		metadata.Artists = append([]string(nil), (*patch.Artists)...)
-	}
-	if patch.Comments != nil {
-		metadata.Comments = *patch.Comments
-	}
-}
-
 func inspectPlanOutputs(conflicts []coreapp.PlanOutputConflict) []StateIssue {
 	issues := make([]StateIssue, 0)
 	for _, conflict := range conflicts {
 		switch conflict.Kind {
 		case coreapp.OutputConflictDuplicate:
 			message := fmt.Sprintf(
-				"附加文件目标冲突：曲目 %d 与曲目 %d 都会写入 %q。",
+				"曲目 %d 与曲目 %d 都会写入文件 %q。",
 				conflict.Other.ItemIndex+1,
 				conflict.Output.ItemIndex+1,
 				filepath.Base(conflict.Output.Path),
@@ -68,7 +29,7 @@ func inspectPlanOutputs(conflicts []coreapp.PlanOutputConflict) []StateIssue {
 				conflict.Output,
 				conflict.Output.Kind+"-target-exists",
 				fmt.Sprintf(
-					"%s目标文件 %q 已存在；请移走后重新准备写入内容，避免覆盖。",
+					"%s文件 %q 已存在，请移走后重新扫描目录。",
 					outputLabel(conflict.Output.Kind),
 					filepath.Base(conflict.Output.Path),
 				),

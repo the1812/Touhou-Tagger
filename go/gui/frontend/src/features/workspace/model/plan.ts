@@ -3,7 +3,9 @@ import { computed, type Ref } from 'vue'
 import { useNotificationsStore } from '../../../entities/session'
 import {
   getApi,
-  type PlanPatch,
+  type AlbumMetadata,
+  type TrackMetadata,
+  type WorkspaceApi,
   type PlanPreview,
   type WorkspaceSummary,
 } from '../../../shared/api'
@@ -30,38 +32,42 @@ export const useWorkspacePlan = (state: {
     () => Boolean(state.plan.value?.canExecute) && !state.stalePlan.value && !state.isBusy.value,
   )
 
-  const updatePlan = async (patch: Omit<PlanPatch, 'planId'>) => {
+  const update = async (
+    request: (api: WorkspaceApi, planId: string) => Promise<PlanPreview>,
+    failureTitle: string,
+  ) => {
     const current = state.plan.value
     if (!current || state.isBusy.value || state.stalePlan.value) {
       return false
     }
     state.activity.value = 'editing'
     try {
-      const next = await (
-        await getApi()
-      ).updatePlan({
-        planId: current.planId,
-        ...patch,
-      })
+      const next = await request(await getApi(), current.planId)
       state.plan.value = next
       state.stalePlan.value = false
       return true
     } catch (error) {
-      const title = (() => {
-        if (patch.tracks) {
-          return 'notifications.updateTrackFailed'
-        }
-        if (patch.album) {
-          return 'notifications.updateAlbumFailed'
-        }
-        return 'notifications.updateCoverOptionFailed'
-      })()
-      notifications.error(t(title), error)
+      notifications.error(failureTitle, error)
       return false
     } finally {
       state.activity.value = undefined
     }
   }
 
-  return { blockingIssues, canExecute, updatePlan }
+  return {
+    blockingIssues,
+    canExecute,
+    updateAlbum: (album: AlbumMetadata) =>
+      update((api, id) => api.updateAlbum(id, album), t('notifications.updateAlbumFailed')),
+    updateTrack: (trackId: string, track: TrackMetadata) =>
+      update(
+        (api, id) => api.updateTrack(id, trackId, track),
+        t('notifications.updateTrackFailed'),
+      ),
+    setSaveCover: (enabled: boolean) =>
+      update(
+        (api, id) => api.setSaveCover(id, enabled),
+        t('notifications.updateCoverOptionFailed'),
+      ),
+  }
 }

@@ -60,7 +60,6 @@ export const executeSequence = <Result extends WriteOperationResult>(
                   code: 'permissionDenied',
                   message: '模拟写入失败',
                   details: '无法写入文件：文件正被其他程序使用。',
-                  planInvalidated: false,
                   plan: kind === 'workspace' ? clone(fixtureState.activePlan) : undefined,
                 },
               }),

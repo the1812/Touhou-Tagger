@@ -12,6 +12,7 @@ import type {
   BatchPreview,
   Capabilities,
   GUIApi,
+  MetadataConfig,
   WriteOperationProgress,
   WorkspaceWriteOperationResult,
   BatchRunResult,
@@ -31,7 +32,12 @@ export const nativeApi: GUIApi = {
     (await WorkspaceService.SearchAlbums(directory, query, source)) as AlbumCandidate[],
   preparePlan: async (directory, candidateId, source) =>
     (await WorkspaceService.PreparePlan(directory, candidateId, source)) as PlanPreview,
-  updatePlan: async patch => (await WorkspaceService.UpdatePlan(patch)) as PlanPreview,
+  updateAlbum: async (planId, album) =>
+    (await WorkspaceService.UpdateAlbum(planId, album)) as PlanPreview,
+  updateTrack: async (planId, trackId, track) =>
+    (await WorkspaceService.UpdateTrack(planId, trackId, track)) as PlanPreview,
+  setSaveCover: async (planId, enabled) =>
+    (await WorkspaceService.SetSaveCover(planId, enabled)) as PlanPreview,
   async discardPlan(planId) {
     await WorkspaceService.DiscardPlan(planId)
   },
@@ -54,9 +60,9 @@ export const nativeApi: GUIApi = {
   async cancelBatch(operationId) {
     await BatchService.CancelBatch(operationId)
   },
-  loadSettings: () => SettingsService.LoadSettings(),
-  saveSettings: settings => SettingsService.SaveSettings(settings),
-  resetSettings: () => SettingsService.ResetSettings(),
+  loadSettings: async () => (await SettingsService.LoadSettings()) as MetadataConfig,
+  saveSettings: async settings => (await SettingsService.SaveSettings(settings)) as MetadataConfig,
+  resetSettings: async () => (await SettingsService.ResetSettings()) as MetadataConfig,
   onProgress(handler) {
     return Events.On('gui:write-operation-progress', event =>
       handler(event.data as WriteOperationProgress),

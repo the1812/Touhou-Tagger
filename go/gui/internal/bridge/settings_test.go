@@ -11,51 +11,31 @@ func TestSettingsKeepDisabledLyricPreferences(t *testing.T) {
 		Value:          domain.DefaultMetadataSource,
 		SupportsSearch: true,
 	}}}}
-	settings := Settings{
-		DefaultSource:               domain.DefaultMetadataSource,
-		CommentLanguage:             "zho",
-		MP3MultiValueSeparator:      domain.DefaultMetadataSeparator,
-		RequestTimeoutSeconds:       30,
-		RetryCount:                  3,
-		CoverCompressionThresholdKB: 0,
-		CoverMaxEdge:                0,
-		LyricType:                   string(domain.LyricMixed),
-		PreserveLyricTimeline:       false,
-		MixedLyricSeparator:         " | ",
-		LyricCacheSize:              32,
-	}
-	value, err := service.configFromSettings(settings)
-	if err != nil {
+	value := domain.DefaultMetadataConfig()
+	value.CommentLanguage = "zho"
+	value.Lyric.Type = domain.LyricMixed
+	value.Lyric.Time = false
+	value.Lyric.TranslationSeparator = " | "
+	value.Lyric.MaxCacheSize = 32
+	if err := service.validate(value); err != nil {
 		t.Fatal(err)
 	}
-	if value.LyricEnabled || value.Lyric == nil {
-		t.Fatalf("configFromSettings() = %#v", value)
+	service.runtime.setConfig(value)
+	actual := service.runtime.getConfig()
+	if actual.LyricEnabled || actual.Lyric == nil {
+		t.Fatalf("disabled lyrics: %#v", actual)
 	}
-	if value.Lyric.Type != domain.LyricMixed ||
-		value.Lyric.TranslationSeparator != " | " ||
-		value.Lyric.MaxCacheSize != 32 {
-		t.Fatalf("lyric preferences were not preserved: %#v", value.Lyric)
+	if actual.Lyric.Type != value.Lyric.Type || actual.Lyric.TranslationSeparator != " | " || actual.Lyric.MaxCacheSize != 32 {
+		t.Fatalf("lyric preferences were not preserved: %#v", actual.Lyric)
 	}
-	actual := settingsFromConfig(value)
-	if actual.WriteLyricsMetadata || actual.WriteLRCFiles {
-		t.Fatalf("settingsFromConfig() enabled lyric output: %#v", actual)
-	}
-	if actual.LyricType != settings.LyricType ||
-		actual.MixedLyricSeparator != settings.MixedLyricSeparator ||
-		actual.LyricCacheSize != settings.LyricCacheSize {
-		t.Fatalf("settingsFromConfig() lost lyric preferences: %#v", actual)
-	}
-
-	settings.WriteLRCFiles = true
-	value, err = service.configFromSettings(settings)
-	if err != nil {
+	value.LyricEnabled = true
+	value.Lyric.Output = domain.LyricLRC
+	if err := service.validate(value); err != nil {
 		t.Fatal(err)
 	}
-	if !value.LyricEnabled || value.Lyric == nil || value.Lyric.Output != domain.LyricLRC {
-		t.Fatalf("configFromSettings() ignored LRC output: %#v", value)
-	}
-	actual = settingsFromConfig(value)
-	if !actual.WriteLRCFiles || actual.WriteLyricsMetadata {
-		t.Fatalf("settingsFromConfig() lost LRC output: %#v", actual)
+	service.runtime.setConfig(value)
+	actual = service.runtime.getConfig()
+	if !actual.LyricEnabled || actual.Lyric.Output != domain.LyricLRC {
+		t.Fatalf("LRC output: %#v", actual)
 	}
 }

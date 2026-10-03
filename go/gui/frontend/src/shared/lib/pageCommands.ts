@@ -36,13 +36,7 @@ export const providePageCommandRegistry = (): PageCommandRegistry => {
   return registry
 }
 
-export const usePageCommandRegistry = () => {
-  const registry = inject(pageCommandRegistryKey)
-  if (!registry) {
-    throw new Error('Page command registry is unavailable')
-  }
-  return registry
-}
+export const usePageCommandRegistry = () => inject(pageCommandRegistryKey) as PageCommandRegistry
 
 export const usePageCommands = (commands: PageCommands) => {
   const registry = usePageCommandRegistry()

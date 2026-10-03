@@ -6,6 +6,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { computed, defineComponent } from 'vue'
 
 import { useSettingsStore } from '../../../entities/session'
+import { LyricOutput } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
 import { FieldLabel, FormField, FormSection } from '../../../shared/ui'
 
@@ -15,22 +16,24 @@ export const SettingsLyrics = defineComponent({
     const { draft, capabilities, errors } = storeToRefs(useSettingsStore())
     const lyricDestinations = [
       { label: t('settings.lyricDestination.none'), value: 'none' },
-      { label: t('settings.lyricDestination.metadata'), value: 'metadata' },
-      { label: t('settings.lyricDestination.lrc'), value: 'lrc' },
+      { label: t('settings.lyricDestination.metadata'), value: LyricOutput.LyricMetadata },
+      { label: t('settings.lyricDestination.lrc'), value: LyricOutput.LyricLRC },
     ]
     const lyricDestination = computed({
       get: () => {
-        if (!draft.value?.writeLyricsMetadata && !draft.value?.writeLrcFiles) {
+        if (!draft.value?.lyricEnabled) {
           return 'none'
         }
-        return draft.value.writeLrcFiles ? 'lrc' : 'metadata'
+        return draft.value.lyric.output
       },
-      set: (value: string) => {
+      set: (value: 'none' | LyricOutput) => {
         if (!draft.value) {
           return
         }
-        draft.value.writeLyricsMetadata = value === 'metadata'
-        draft.value.writeLrcFiles = value === 'lrc'
+        draft.value.lyricEnabled = value !== 'none'
+        if (value !== 'none') {
+          draft.value.lyric.output = value
+        }
       },
     })
 
@@ -42,7 +45,7 @@ export const SettingsLyrics = defineComponent({
       return (
         <FormSection title={t('settings.lyrics')}>
           <div class="grid justify-items-start gap-y-3.5">
-            <FormField variant="settings" error={errors.value.lyricDestination}>
+            <FormField variant="settings">
               <FieldLabel
                 for="settings-outputDestination"
                 help={t('settings.outputDestinationHelp')}
@@ -65,7 +68,7 @@ export const SettingsLyrics = defineComponent({
               </FieldLabel>
               <Select
                 labelId="settings-lyricType"
-                v-model={currentDraft.lyricType}
+                v-model={currentDraft.lyric.type}
                 options={capabilities.value?.lyricTypes}
                 optionLabel="label"
                 optionValue="value"
@@ -74,7 +77,7 @@ export const SettingsLyrics = defineComponent({
                 disabled={lyricDestination.value === 'none'}
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.mixedLyricSeparator}>
+            <FormField variant="settings" error={errors.value['lyric.translationSeparator']}>
               <FieldLabel
                 for="settings-mixedLyricSeparator"
                 help={t('settings.mixedLyricSeparatorHelp')}
@@ -83,11 +86,11 @@ export const SettingsLyrics = defineComponent({
               </FieldLabel>
               <InputText
                 id="settings-mixedLyricSeparator"
-                v-model={currentDraft.mixedLyricSeparator}
+                v-model={currentDraft.lyric.translationSeparator}
                 size="small"
                 fluid
                 disabled={lyricDestination.value === 'none'}
-                invalid={Boolean(errors.value.mixedLyricSeparator)}
+                invalid={Boolean(errors.value['lyric.translationSeparator'])}
               />
             </FormField>
             <FormField variant="settings" class="min-w-0 justify-items-start">
@@ -100,25 +103,25 @@ export const SettingsLyrics = defineComponent({
               </FieldLabel>
               <ToggleSwitch
                 inputId="settings-preserveTimeline"
-                v-model={currentDraft.preserveLyricTimeline}
+                v-model={currentDraft.lyric.time}
                 disabled={lyricDestination.value === 'none'}
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.lyricCacheSize}>
+            <FormField variant="settings" error={errors.value['lyric.maxCacheSize']}>
               <FieldLabel for="settings-lyricCacheSize" help={t('settings.lyricCacheSizeHelp')}>
                 {t('settings.lyricCacheSize')}
               </FieldLabel>
               <InputNumber
                 inputId="settings-lyricCacheSize"
                 useGrouping={false}
-                v-model={currentDraft.lyricCacheSize}
+                v-model={currentDraft.lyric.maxCacheSize}
                 min={1}
                 max={10000}
                 showButtons
                 size="small"
                 fluid
                 disabled={lyricDestination.value === 'none'}
-                invalid={Boolean(errors.value.lyricCacheSize)}
+                invalid={Boolean(errors.value['lyric.maxCacheSize'])}
               />
             </FormField>
           </div>

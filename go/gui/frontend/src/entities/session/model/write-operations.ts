@@ -73,7 +73,6 @@ export const useWriteOperationsStore = defineStore('write-operations', () => {
         message: info.message,
         details: info.details,
         plan: info.plan,
-        planInvalidated: info.planInvalidated ?? false,
       })
     } finally {
       active.value = undefined

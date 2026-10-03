@@ -3,8 +3,8 @@ package bridge
 import (
 	"context"
 	"errors"
-	"fmt"
 	"path/filepath"
+	"slices"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
@@ -151,17 +151,13 @@ func (entry *batchEntry) loadAlbum(ctx context.Context) error {
 }
 
 func (entry *batchEntry) chooseCandidate(ctx context.Context, candidateID string) error {
-	for _, candidate := range entry.candidates {
-		if candidate.ID != candidateID {
-			continue
-		}
-		entry.selectedCandidateID = candidate.ID
-		entry.source = candidate.Source
-		plan, err := entry.planner.prepareOwnedPlan(ctx, entry.directory, candidate.ID, candidate.Source, entry.planner.runtime.getConfig().Source, entry.owner)
-		entry.plan = plan
-		return err
-	}
-	return fmt.Errorf("专辑中不存在搜索结果 %q", candidateID)
+	index := slices.IndexFunc(entry.candidates, func(candidate AlbumCandidate) bool { return candidate.ID == candidateID })
+	candidate := entry.candidates[index]
+	entry.selectedCandidateID = candidate.ID
+	entry.source = candidate.Source
+	plan, err := entry.planner.prepareOwnedPlan(ctx, entry.directory, candidate.ID, candidate.Source, entry.planner.runtime.getConfig().Source, entry.owner)
+	entry.plan = plan
+	return err
 }
 
 func (entry *batchEntry) preview(root string) BatchEntryPreview {

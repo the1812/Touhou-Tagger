@@ -21,9 +21,6 @@ func setTitleBarColor(window *wails.WebviewWindow, dark bool) error {
 	if !w32.IsWindowsVersionAtLeast(10, 0, 22000) {
 		return nil
 	}
-	if window == nil {
-		return fmt.Errorf("窗口尚未初始化")
-	}
 	return wails.InvokeSyncWithError(func() error {
 		hwnd := uintptr(window.NativeWindow())
 		if hwnd == 0 {

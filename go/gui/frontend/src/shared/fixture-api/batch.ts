@@ -1,4 +1,4 @@
-import type { BatchApi, BatchRunResult } from '../api/types'
+import type { BatchApi, BatchEntryPreview, BatchRunResult } from '../api/types'
 import { t } from '../i18n'
 import { batchEntries } from './batchData'
 import { batchDirectory, createPlan } from './data'
@@ -34,21 +34,17 @@ export const fixtureBatchApi: BatchApi = {
 
   async loadBatchEntry(_batchId, entryId) {
     await wait(240)
-    const loaded = batchEntries().find(entry => entry.id === entryId)
+    const loaded = batchEntries().find(entry => entry.id === entryId) as BatchEntryPreview
     const index = fixtureState.activeBatch.entries.findIndex(entry => entry.id === entryId)
-    if (!loaded || index < 0) {
-      throw new Error('批量写入专辑不存在。')
-    }
     fixtureState.activeBatch.entries[index] = loaded
     return clone(loaded)
   },
 
   async resolveBatchCandidate(_batchId, entryId, candidateId) {
     await wait(120)
-    const entry = fixtureState.activeBatch.entries.find(item => item.id === entryId)
-    if (!entry) {
-      throw new Error('批量写入专辑不存在。')
-    }
+    const entry = fixtureState.activeBatch.entries.find(
+      item => item.id === entryId,
+    ) as BatchEntryPreview
     entry.selectedCandidateId = candidateId
     const plan = createPlan(candidateId)
     entry.readiness =

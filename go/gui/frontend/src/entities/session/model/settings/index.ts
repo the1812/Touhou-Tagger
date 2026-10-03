@@ -1,21 +1,21 @@
 import { defineStore } from 'pinia'
 import { computed, ref, toRaw, watch } from 'vue'
 
-import { getApi, type Capabilities, type Settings } from '../../../../shared/api'
+import { getApi, type Capabilities, type MetadataConfig } from '../../../../shared/api'
 import { t } from '../../../../shared/i18n'
 import { useNotificationsStore } from '../notifications'
 import { validateSettings } from './validation'
 
-const settingsEqual = (left?: Settings, right?: Settings) =>
+const settingsEqual = (left?: MetadataConfig, right?: MetadataConfig) =>
   Boolean(left && right && JSON.stringify(left) === JSON.stringify(right))
 
-const cloneSettings = (settings: Settings) => structuredClone(toRaw(settings))
+const cloneSettings = (settings: MetadataConfig) => structuredClone(toRaw(settings))
 
 const autoSaveDelay = 400
 
 export const useSettingsStore = defineStore('settings', () => {
-  const saved = ref<Settings>()
-  const draft = ref<Settings>()
+  const saved = ref<MetadataConfig>()
+  const draft = ref<MetadataConfig>()
   const capabilities = ref<Capabilities>()
   const loading = ref(false)
   const saving = ref(false)

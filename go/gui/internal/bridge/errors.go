@@ -16,18 +16,6 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
-type planInvalidatedError struct {
-	err error
-}
-
-func (err *planInvalidatedError) Error() string {
-	return "文件可能已发生变化，写入内容已失效，请重新扫描：" + err.err.Error()
-}
-
-func (err *planInvalidatedError) Unwrap() error {
-	return err.err
-}
-
 type planExecutionError struct {
 	err  error
 	plan *PlanPreview
@@ -42,12 +30,11 @@ type ErrorParams struct {
 }
 
 type ErrorInfo struct {
-	Plan            *PlanPreview `json:"plan,omitempty"`
-	PlanInvalidated bool         `json:"planInvalidated,omitempty"`
-	Code            string       `json:"code"`
-	Params          *ErrorParams `json:"params,omitempty"`
-	Message         string       `json:"message"`
-	Details         string       `json:"details"`
+	Plan    *PlanPreview `json:"plan,omitempty"`
+	Code    string       `json:"code"`
+	Params  *ErrorParams `json:"params,omitempty"`
+	Message string       `json:"message"`
+	Details string       `json:"details"`
 }
 
 func DescribeError(err error) ErrorInfo {
@@ -65,7 +52,6 @@ func DescribeError(err error) ErrorInfo {
 	var connection *net.OpError
 	var dns *net.DNSError
 	var request *url.Error
-	var invalidated *planInvalidatedError
 	switch {
 	case errors.As(err, &mismatch):
 		info.Code = "trackMismatch"
@@ -117,8 +103,6 @@ func DescribeError(err error) ErrorInfo {
 		if parse.Kind == domain.RemoteResponse {
 			info.Code = "invalidResponse"
 		}
-	case errors.As(err, &invalidated):
-		info.Code = "planInvalidated"
 	default:
 		if code := platformErrorCode(err); code != "" {
 			info.Code = code
@@ -128,7 +112,6 @@ func DescribeError(err error) ErrorInfo {
 	if errors.As(err, &execution) {
 		info.Plan = execution.plan
 	}
-	info.PlanInvalidated = errors.As(err, &invalidated)
 	return info
 }
 

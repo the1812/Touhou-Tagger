@@ -110,28 +110,12 @@ type PlanPreview struct {
 	CanExecute bool              `json:"canExecute"`
 }
 
-type AlbumMetadataPatch struct {
-	Title      *string   `json:"title,omitempty"`
-	AlbumOrder *string   `json:"albumOrder,omitempty"`
-	Artists    *[]string `json:"artists,omitempty"`
-	Year       *string   `json:"year,omitempty"`
-	Genres     *[]string `json:"genres,omitempty"`
-}
-
-type TrackMetadataPatch struct {
-	ID          string    `json:"id"`
-	DiscNumber  *string   `json:"discNumber,omitempty"`
-	TrackNumber *string   `json:"trackNumber,omitempty"`
-	Title       *string   `json:"title,omitempty"`
-	Artists     *[]string `json:"artists,omitempty"`
-	Comments    *string   `json:"comments,omitempty"`
-}
-
-type PlanPatch struct {
-	PlanID    string               `json:"planId"`
-	Album     *AlbumMetadataPatch  `json:"album,omitempty"`
-	Tracks    []TrackMetadataPatch `json:"tracks,omitempty"`
-	SaveCover *bool                `json:"saveCover,omitempty"`
+type TrackMetadata struct {
+	DiscNumber  string   `json:"discNumber"`
+	TrackNumber string   `json:"trackNumber"`
+	Title       string   `json:"title"`
+	Artists     []string `json:"artists"`
+	Comments    string   `json:"comments"`
 }
 
 type WriteOperationProgress struct {
@@ -192,22 +176,6 @@ type BatchRunResult struct {
 	Cancelled   bool                `json:"cancelled"`
 	Message     string              `json:"message"`
 	Entries     []BatchEntryPreview `json:"entries"`
-}
-
-type Settings struct {
-	DefaultSource               string  `json:"defaultSource"`
-	CommentLanguage             string  `json:"commentLanguage"`
-	MP3MultiValueSeparator      string  `json:"mp3MultiValueSeparator"`
-	RequestTimeoutSeconds       int     `json:"requestTimeoutSeconds"`
-	RetryCount                  int     `json:"retryCount"`
-	CoverCompressionThresholdKB float64 `json:"coverCompressionThresholdKb"`
-	CoverMaxEdge                int     `json:"coverMaxEdge"`
-	LyricType                   string  `json:"lyricType"`
-	WriteLyricsMetadata         bool    `json:"writeLyricsMetadata"`
-	WriteLRCFiles               bool    `json:"writeLrcFiles"`
-	PreserveLyricTimeline       bool    `json:"preserveLyricTimeline"`
-	MixedLyricSeparator         string  `json:"mixedLyricSeparator"`
-	LyricCacheSize              int     `json:"lyricCacheSize"`
 }
 
 func dtoSlice[T any](values []T) []T {

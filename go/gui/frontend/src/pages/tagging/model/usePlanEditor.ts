@@ -1,15 +1,11 @@
 import { computed, ref, watch } from 'vue'
 
 import { useWorkspaceStore } from '../../../features/workspace'
-import type { AlbumMetadata, PlanItemPreview } from '../../../shared/api'
+import type { AlbumMetadata, TrackMetadata } from '../../../shared/api'
 
-type TrackDraft = Pick<
-  PlanItemPreview,
-  'discNumber' | 'trackNumber' | 'title' | 'artists' | 'comments'
->
 type EditorDraft =
   | { kind: 'album'; value: AlbumMetadata }
-  | { kind: 'track'; trackId: string; value: TrackDraft }
+  | { kind: 'track'; trackId: string; value: TrackMetadata }
 
 export const usePlanEditor = (workspace: ReturnType<typeof useWorkspaceStore>) => {
   const draft = ref<EditorDraft>()
@@ -57,7 +53,7 @@ export const usePlanEditor = (workspace: ReturnType<typeof useWorkspaceStore>) =
       draft.value.value = value
     }
   }
-  const updateTrackDraft = (value: TrackDraft) => {
+  const updateTrackDraft = (value: TrackMetadata) => {
     if (draft.value?.kind === 'track') {
       draft.value.value = value
     }
@@ -66,8 +62,10 @@ export const usePlanEditor = (workspace: ReturnType<typeof useWorkspaceStore>) =
     const album = albumDraft.value
     if (
       album &&
-      (await workspace.updatePlan({
-        album: { ...album, artists: [...album.artists], genres: [...album.genres] },
+      (await workspace.updateAlbum({
+        ...album,
+        artists: [...album.artists],
+        genres: [...album.genres],
       }))
     ) {
       close()
@@ -77,8 +75,9 @@ export const usePlanEditor = (workspace: ReturnType<typeof useWorkspaceStore>) =
     const current = draft.value
     if (
       current?.kind === 'track' &&
-      (await workspace.updatePlan({
-        tracks: [{ id: current.trackId, ...current.value, artists: [...current.value.artists] }],
+      (await workspace.updateTrack(current.trackId, {
+        ...current.value,
+        artists: [...current.value.artists],
       }))
     ) {
       close()

@@ -41,9 +41,6 @@ func (service *desktopService) selectDirectory(title string, kind directoryKind)
 	service.mu.Lock()
 	initial := service.lastDirectories[kind]
 	service.mu.Unlock()
-	if app == nil {
-		return "", fmt.Errorf("原生目录对话框尚未初始化")
-	}
 	dialog := app.Dialog.OpenFile().
 		CanChooseDirectories(true).
 		CanChooseFiles(false).
@@ -51,9 +48,7 @@ func (service *desktopService) selectDirectory(title string, kind directoryKind)
 	if initial != "" && fileExists(initial) {
 		dialog.SetDirectory(initial)
 	}
-	if window != nil {
-		dialog.AttachToWindow(window)
-	}
+	dialog.AttachToWindow(window)
 	selected, err := dialog.PromptForSingleSelection()
 	if err != nil {
 		if err.Error() == dialogCancelledError {

@@ -25,7 +25,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const isWriting = computed(() => operations.activeKind === 'workspace')
   const isBusy = computed(() => activity.value !== undefined || operations.isActive)
   const canChangeDirectory = computed(() => !isBusy.value)
-  const defaultSource = () => settings.saved?.defaultSource ?? 'thb-wiki'
+  const defaultSource = () => settings.saved?.source ?? 'thb-wiki'
   const discardPlan = async () => {
     const current = plan.value
     plan.value = undefined
@@ -173,8 +173,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     selectCandidate: searchSession.selectCandidate,
     changeSource: searchSession.changeSource,
     backToSearch,
-    updatePlan: planEditor.updatePlan,
-    updateSaveCover: (saveCover: boolean) => planEditor.updatePlan({ saveCover }),
+    updateAlbum: planEditor.updateAlbum,
+    updateTrack: planEditor.updateTrack,
+    updateSaveCover: planEditor.setSaveCover,
     ...writer,
   }
 })

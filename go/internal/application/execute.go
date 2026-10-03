@@ -24,10 +24,6 @@ func (plan *Plan) Execute(ctx context.Context, events EventSink) (ExecutionResul
 	if err := ctx.Err(); err != nil {
 		return result, err
 	}
-	if err := plan.checkFiles(); err != nil {
-		result.Reusable = false
-		return result, err
-	}
 	if err := validatePlanOutputs(plan.preview.Outputs); err != nil {
 		return result, err
 	}

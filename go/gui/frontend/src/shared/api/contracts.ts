@@ -6,17 +6,18 @@ import type {
   WriteOperationProgress,
   WorkspaceWriteOperationResult,
   BatchRunResult,
-  PlanPatch,
+  AlbumMetadata,
+  TrackMetadata,
   PlanPreview,
-  Settings,
+  MetadataConfig,
   WorkspaceSummary,
 } from './types'
 
 export interface SettingsApi {
   getCapabilities(): Promise<Capabilities>
-  loadSettings(): Promise<Settings>
-  saveSettings(settings: Settings): Promise<Settings>
-  resetSettings(): Promise<Settings>
+  loadSettings(): Promise<MetadataConfig>
+  saveSettings(settings: MetadataConfig): Promise<MetadataConfig>
+  resetSettings(): Promise<MetadataConfig>
 }
 
 export interface WorkspaceApi {
@@ -24,7 +25,9 @@ export interface WorkspaceApi {
   scanWorkspace(directory: string): Promise<WorkspaceSummary>
   searchAlbums(directory: string, query: string, source: string): Promise<AlbumCandidate[]>
   preparePlan(directory: string, candidateId: string, source: string): Promise<PlanPreview>
-  updatePlan(patch: PlanPatch): Promise<PlanPreview>
+  updateAlbum(planId: string, album: AlbumMetadata): Promise<PlanPreview>
+  updateTrack(planId: string, trackId: string, track: TrackMetadata): Promise<PlanPreview>
+  setSaveCover(planId: string, enabled: boolean): Promise<PlanPreview>
   discardPlan(planId: string): Promise<void>
   executePlan(planId: string, operationId: string): Promise<WorkspaceWriteOperationResult>
   cancelWriteOperation(operationId: string): Promise<void>

@@ -99,11 +99,16 @@ func (service *WorkspaceService) PreparePlan(
 	return session.preview(), nil
 }
 
-func (service *WorkspaceService) UpdatePlan(
-	ctx context.Context,
-	patch PlanPatch,
-) (PlanPreview, error) {
-	return service.planner.updatePlan(ctx, patch)
+func (service *WorkspaceService) UpdateAlbum(ctx context.Context, planID string, album AlbumMetadata) PlanPreview {
+	return service.planner.store.get(planID).updateAlbum(ctx, album)
+}
+
+func (service *WorkspaceService) UpdateTrack(ctx context.Context, planID, trackID string, track TrackMetadata) (PlanPreview, error) {
+	return service.planner.store.get(planID).updateTrack(ctx, trackID, track)
+}
+
+func (service *WorkspaceService) SetSaveCover(ctx context.Context, planID string, enabled bool) PlanPreview {
+	return service.planner.store.get(planID).setSaveCover(ctx, enabled)
 }
 
 func (service *WorkspaceService) ExecutePlan(
@@ -209,13 +214,13 @@ func trackID(index int) string {
 	return fmt.Sprintf("track-%d", index+1)
 }
 
-func trackIndex(id string, count int) (int, bool) {
+func trackIndex(id string, count int) int {
 	for index := 0; index < count; index++ {
 		if id == trackID(index) {
-			return index, true
+			return index
 		}
 	}
-	return 0, false
+	return -1
 }
 
 func candidateKey(sourceName, id string) string {

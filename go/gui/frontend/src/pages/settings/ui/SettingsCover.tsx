@@ -18,34 +18,39 @@ export const SettingsCover = defineComponent({
       return (
         <FormSection title={t('settings.cover')}>
           <div class="grid justify-items-start gap-y-3.5">
-            <FormField variant="settings" error={errors.value.coverCompressionThresholdKb}>
+            <FormField variant="settings" error={errors.value.coverCompressSize}>
               <FieldLabel for="settings-coverThreshold" help={t('settings.coverThresholdHelp')}>
                 {t('settings.coverThreshold')}
               </FieldLabel>
               <InputNumber
                 inputId="settings-coverThreshold"
                 useGrouping={false}
-                v-model={currentDraft.coverCompressionThresholdKb}
+                modelValue={currentDraft.coverCompressSize * 1024}
+                {...{
+                  'onUpdate:modelValue': (value: number | null) => {
+                    currentDraft.coverCompressSize = (value ?? 0) / 1024
+                  },
+                }}
                 min={0}
                 showButtons
                 size="small"
                 fluid
-                invalid={Boolean(errors.value.coverCompressionThresholdKb)}
+                invalid={Boolean(errors.value.coverCompressSize)}
               />
             </FormField>
-            <FormField variant="settings" error={errors.value.coverMaxEdge}>
+            <FormField variant="settings" error={errors.value.coverCompressResolution}>
               <FieldLabel for="settings-coverMaxEdge" help={t('settings.coverMaxEdgeHelp')}>
                 {t('settings.coverMaxEdge')}
               </FieldLabel>
               <InputNumber
                 inputId="settings-coverMaxEdge"
                 useGrouping={false}
-                v-model={currentDraft.coverMaxEdge}
+                v-model={currentDraft.coverCompressResolution}
                 min={0}
                 showButtons
                 size="small"
                 fluid
-                invalid={Boolean(errors.value.coverMaxEdge)}
+                invalid={Boolean(errors.value.coverCompressResolution)}
               />
             </FormField>
           </div>
