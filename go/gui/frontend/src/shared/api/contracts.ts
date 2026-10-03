@@ -1,12 +1,11 @@
 import type {
   AlbumCandidate,
-  BatchJobPreview,
+  BatchEntryPreview,
   BatchPreview,
   Capabilities,
-  OperationFailure,
-  OperationProgress,
-  OperationResult,
-  OperationStart,
+  WriteOperationProgress,
+  WorkspaceWriteOperationResult,
+  BatchRunResult,
   PlanPatch,
   PlanPreview,
   Settings,
@@ -27,14 +26,12 @@ export interface WorkspaceApi {
   preparePlan(directory: string, candidateId: string, source: string): Promise<PlanPreview>
   updatePlan(patch: PlanPatch): Promise<PlanPreview>
   discardPlan(planId: string): Promise<void>
-  commitPlan(planId: string, revision: number): Promise<OperationStart>
-  startOperation(operationId: string): Promise<void>
-  cancelOperation(operationId: string): Promise<void>
+  executePlan(planId: string, operationId: string): Promise<WorkspaceWriteOperationResult>
+  cancelWriteOperation(operationId: string): Promise<void>
 }
 
 export interface DesktopApi {
   onDirectoryDrop(handler: (directory: string) => void): () => void
-  getStartupDirectory(): Promise<string>
   revealDirectory(directory: string): Promise<void>
   setDarkMode(dark: boolean): Promise<void>
 }
@@ -42,22 +39,19 @@ export interface DesktopApi {
 export interface BatchApi {
   selectBatchDirectory(title: string): Promise<string>
   scanBatch(directory: string, depth: number, source: string): Promise<BatchPreview>
-  loadBatchJob(batchId: string, jobId: string): Promise<BatchJobPreview>
+  loadBatchEntry(batchId: string, entryId: string): Promise<BatchEntryPreview>
   resolveBatchCandidate(
     batchId: string,
-    jobId: string,
+    entryId: string,
     candidateId: string,
-  ): Promise<BatchJobPreview>
+  ): Promise<BatchEntryPreview>
   discardBatch(batchId: string): Promise<void>
-  runBatch(batchId: string, failedOnly: boolean): Promise<OperationStart>
-  startBatch(operationId: string): Promise<void>
+  executeBatch(batchId: string, failedOnly: boolean, operationId: string): Promise<BatchRunResult>
   cancelBatch(operationId: string): Promise<void>
 }
 
-export interface OperationEventsApi {
-  onProgress(handler: (progress: OperationProgress) => void): () => void
-  onComplete(handler: (result: OperationResult) => void): () => void
-  onFailure(handler: (failure: OperationFailure) => void): () => void
+export interface WriteOperationEventsApi {
+  onProgress(handler: (progress: WriteOperationProgress) => void): () => void
 }
 
-export type GUIApi = SettingsApi & WorkspaceApi & DesktopApi & BatchApi & OperationEventsApi
+export type GUIApi = SettingsApi & WorkspaceApi & DesktopApi & BatchApi & WriteOperationEventsApi

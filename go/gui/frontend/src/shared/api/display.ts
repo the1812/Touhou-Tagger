@@ -1,10 +1,10 @@
 import { t } from '../i18n'
 import { errorMessage } from './errorMessage'
 import type {
-  BatchJobPreview,
-  OperationFailure,
-  OperationProgress,
-  OperationResult,
+  BatchEntryPreview,
+  WriteOperationFailure,
+  WriteOperationProgress,
+  WriteOperationResult,
   StateIssue,
 } from './types'
 
@@ -31,7 +31,7 @@ export const issueText = (issue: StateIssue) =>
     ? errorMessage(issue.error)
     : issue.message || t(issueKeys[issue.code] ?? 'backend.issue.generic')
 
-export const progressText = (progress: OperationProgress) => {
+export const progressText = (progress: WriteOperationProgress) => {
   const keys: Record<string, string> = {
     search: 'backend.progress.searching',
     fetch: 'backend.progress.fetching',
@@ -50,7 +50,7 @@ export const progressText = (progress: OperationProgress) => {
       total: progress.total,
     })
   }
-  const stageKeys: Partial<Record<OperationProgress['stage'], string>> = {
+  const stageKeys: Partial<Record<WriteOperationProgress['stage'], string>> = {
     preparing: 'backend.progress.preparing',
     writing: 'backend.progress.writing',
     renaming: 'backend.progress.renaming',
@@ -62,7 +62,7 @@ export const progressText = (progress: OperationProgress) => {
     : progress.message
 }
 
-export const resultTitle = (result: OperationResult) => {
+export const resultTitle = (result: WriteOperationResult) => {
   if (result.cancelled) {
     return t(result.kind === 'batch' ? 'backend.result.batchCancelled' : 'backend.result.cancelled')
   }
@@ -71,30 +71,30 @@ export const resultTitle = (result: OperationResult) => {
     : t('backend.result.writeComplete', { count: result.succeeded })
 }
 
-export const failureTitle = (failure: OperationFailure) =>
+export const failureTitle = (failure: WriteOperationFailure) =>
   failure.error ? errorMessage(failure.error) : failure.message
 
-export const batchStatusInfo = (job: BatchJobPreview, loading: boolean) => {
-  if (loading || job.readiness === 'pending') {
+export const batchStatusInfo = (entry: BatchEntryPreview, loading: boolean) => {
+  if (loading || entry.readiness === 'pending') {
     return { label: t('batch.status.loading'), severity: 'info' as const }
   }
-  if (job.outcome === 'succeeded') {
+  if (entry.outcome === 'succeeded') {
     return { label: t('batch.status.succeeded'), severity: 'success' as const }
   }
-  if (job.outcome === 'failed') {
+  if (entry.outcome === 'failed') {
     return { label: t('batch.status.failed'), severity: 'danger' as const }
   }
-  if (job.outcome === 'cancelled') {
+  if (entry.outcome === 'cancelled') {
     return { label: t('batch.status.cancelled'), severity: 'secondary' as const }
   }
-  if (job.readiness === 'skipped') {
+  if (entry.readiness === 'skipped') {
     return { label: t('batch.noAudio'), severity: 'secondary' as const }
   }
-  if (job.readiness === 'needs-candidate') {
+  if (entry.readiness === 'needs-candidate') {
     return { label: t('batch.status.needsCandidate'), severity: 'warn' as const }
   }
-  if (job.readiness === 'blocked') {
-    const scanIssue = job.issues.some(
+  if (entry.readiness === 'blocked') {
+    const scanIssue = entry.issues.some(
       issue => issue.code === 'scan-failed' || issue.code === 'load-failed',
     )
     return scanIssue
@@ -104,23 +104,23 @@ export const batchStatusInfo = (job: BatchJobPreview, loading: boolean) => {
   return { label: t('batch.status.ready'), severity: 'success' as const }
 }
 
-export const batchMatchText = (job: BatchJobPreview, loading: boolean) => {
-  if (loading || job.readiness === 'pending') {
+export const batchMatchText = (entry: BatchEntryPreview, loading: boolean) => {
+  if (loading || entry.readiness === 'pending') {
     return t('batch.loadingAlbum')
   }
-  if (job.readiness === 'skipped') {
+  if (entry.readiness === 'skipped') {
     return t('batch.noAudio')
   }
-  if (job.readiness === 'blocked') {
-    return job.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
+  if (entry.readiness === 'blocked') {
+    return entry.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
       ? t('batch.loadFailed')
       : t('batch.status.blocked')
   }
-  if (job.readiness === 'needs-candidate') {
-    return job.candidates.length
-      ? t('batch.resultCount', { count: job.candidates.length })
+  if (entry.readiness === 'needs-candidate') {
+    return entry.candidates.length
+      ? t('batch.resultCount', { count: entry.candidates.length })
       : t('batch.noSearchResults')
   }
-  const selected = job.candidates.find(candidate => candidate.id === job.selectedCandidateId)
+  const selected = entry.candidates.find(candidate => candidate.id === entry.selectedCandidateId)
   return selected?.exactMatch === false ? t('batch.selectedCandidate') : t('batch.exactMatch')
 }

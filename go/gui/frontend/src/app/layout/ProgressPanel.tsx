@@ -6,7 +6,7 @@ import { computed, defineComponent, onBeforeUnmount, ref } from 'vue'
 import { useBatchStore } from '../../features/batch'
 import { useWorkspaceStore } from '../../features/workspace'
 import { getApi } from '../../shared/api'
-import type { OperationStage } from '../../shared/api'
+import type { WriteOperationStage } from '../../shared/api'
 import {
   batchDirectory,
   fixtureDirectory,
@@ -25,6 +25,7 @@ export const initializeProgressMock = async () => {
   try {
     if (progressMock.operation.value) {
       progressMock.finish('cancel')
+      await Promise.resolve()
     }
     if (progressMockKind === 'workspace') {
       await router.replace('/tagging')
@@ -34,22 +35,22 @@ export const initializeProgressMock = async () => {
         workspace.selectCandidate('fixture:single-disc')
         await workspace.preparePlan()
       }
-      await workspace.commit()
+      void workspace.execute()
     } else if (progressMockKind === 'batch') {
       await router.replace('/batch')
       const api = await getApi()
       const batch = useBatchStore()
       batch.directory = batchDirectory
       const preview = await api.scanBatch(batchDirectory, batch.depth, 'thb-wiki')
-      for (const job of preview.jobs) {
-        const loaded = await api.loadBatchJob(preview.batchId, job.id)
+      for (const entry of preview.entries) {
+        const loaded = await api.loadBatchEntry(preview.batchId, entry.id)
         Object.assign(
-          job,
-          await api.resolveBatchCandidate(preview.batchId, job.id, loaded.candidates[0].id),
+          entry,
+          await api.resolveBatchCandidate(preview.batchId, entry.id, loaded.candidates[0].id),
         )
       }
       batch.preview = preview
-      await batch.run()
+      void batch.run()
     }
   } finally {
     restarting.value = false
@@ -58,14 +59,14 @@ export const initializeProgressMock = async () => {
 
 export const ProgressMockPanel = defineComponent({
   setup() {
-    const stages: { label: string; value: OperationStage }[] = [
+    const stages: { label: string; value: WriteOperationStage }[] = [
       { label: '准备', value: 'preparing' },
       { label: '重命名', value: 'renaming' },
       { label: '写入标签', value: 'writing' },
     ]
     const stageModel = computed({
       get: () => progressMock.operation.value?.stage,
-      set: (stage: OperationStage) =>
+      set: (stage: WriteOperationStage) =>
         progressMock.update({
           stage,
           message: stages.find(item => item.value === stage)?.label ?? stage,

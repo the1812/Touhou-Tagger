@@ -73,7 +73,7 @@ func TestPlanExecuteSupportsFilenameSwaps(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := plan.Execute(context.Background()); err != nil {
+	if _, err := plan.Execute(context.Background(), service.Events); err != nil {
 		t.Fatal(err)
 	}
 	assertFileContent(t, second, "first:A")
@@ -133,7 +133,7 @@ func TestPlanExecuteKeepsCompletedWritesOnFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := plan.Execute(context.Background())
+	result, err := plan.Execute(context.Background(), service.Events)
 	if err == nil || !result.PathsUpdated || result.Written != 1 {
 		t.Fatalf("PlanExecute() = %#v, %v", result, err)
 	}
@@ -186,7 +186,7 @@ func TestPlanExecuteDoesNotReplaceTargetCreatedAtRenameStage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := plan.Execute(context.Background())
+	result, err := plan.Execute(context.Background(), service.Events)
 	if err == nil || result.Reusable {
 		t.Fatalf("PlanExecute() error = %v", err)
 	}
@@ -255,7 +255,7 @@ func TestPlanExecuteAppliesCaseOnlyFilenameChanges(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := plan.Execute(context.Background()); err != nil {
+	if _, err := plan.Execute(context.Background(), service.Events); err != nil {
 		t.Fatal(err)
 	}
 	entries, err := os.ReadDir(directory)
@@ -304,18 +304,18 @@ func TestBatchContinuesAfterAlbumPreflightFailure(t *testing.T) {
 	writeTestFile(t, filepath.Join(broken, "thtag.json"), "{")
 	writeTestFile(t, filepath.Join(valid, "01 Track.mp3"), "valid")
 	service := Service{}
-	jobs, err := service.ScanBatch(context.Background(), root, 1)
+	entries, err := service.ScanBatch(context.Background(), root, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(jobs) != 2 || jobs[0].PreflightErr == nil || jobs[1].PreflightErr != nil {
-		t.Fatalf("unexpected batch jobs: %#v", jobs)
+	if len(entries) != 2 || entries[0].PreflightErr == nil || entries[1].PreflightErr != nil {
+		t.Fatalf("unexpected batch entries: %#v", entries)
 	}
 	runs := 0
-	results := service.RunBatch(context.Background(), jobs, func(_ context.Context, job domain.BatchJob) error {
+	results := service.RunBatch(context.Background(), entries, func(_ context.Context, entry domain.BatchScanEntry) error {
 		runs++
-		if job.Directory != valid {
-			t.Fatalf("unexpected executed job: %#v", job)
+		if entry.Directory != valid {
+			t.Fatalf("unexpected executed entry: %#v", entry)
 		}
 		return nil
 	})

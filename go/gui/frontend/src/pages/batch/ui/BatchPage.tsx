@@ -81,7 +81,7 @@ export const BatchPage = defineComponent({
                         scope="global"
                         v-slots={{
                           count: () => (
-                            <div class="inline text-color">{currentPreview.jobs.length}</div>
+                            <div class="inline text-color">{currentPreview.entries.length}</div>
                           ),
                         }}
                       />
@@ -144,9 +144,11 @@ export const BatchPage = defineComponent({
                 warning={Boolean(failure || result?.failed || result?.cancelled)}
                 details={
                   failure?.details ??
-                  result?.jobs
-                    .filter(job => job.outcome === 'failed')
-                    .map(job => `${job.relativePath}: ${job.issues.map(issueText).join('；')}`)
+                  result?.entries
+                    .filter(entry => entry.outcome === 'failed')
+                    .map(
+                      entry => `${entry.relativePath}: ${entry.issues.map(issueText).join('；')}`,
+                    )
                     .join('\n')
                 }
                 retryable={retryableCount.value > 0}

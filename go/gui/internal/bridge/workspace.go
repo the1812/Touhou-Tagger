@@ -15,26 +15,11 @@ import (
 )
 
 type WorkspaceService struct {
-	runtime          *runtimeState
-	planner          *planCoordinator
-	catalog          *candidateCatalog
-	desktop          *desktopService
-	ops              *operationManager
-	startupDirectory string
-}
-
-func (service *WorkspaceService) GetStartupDirectory() (string, error) {
-	if service.startupDirectory == "" {
-		return "", nil
-	}
-	info, err := os.Stat(service.startupDirectory)
-	if err != nil {
-		return "", fmt.Errorf("检查启动目录: %w", err)
-	}
-	if !info.IsDir() {
-		return "", fmt.Errorf("启动目录 %q 不是文件夹", service.startupDirectory)
-	}
-	return service.startupDirectory, nil
+	runtime *runtimeState
+	planner *planCoordinator
+	catalog *candidateCatalog
+	desktop *desktopService
+	ops     *writeOperationManager
 }
 
 func (service *WorkspaceService) SelectAlbumDirectory(title string) (string, error) {
@@ -111,9 +96,7 @@ func (service *WorkspaceService) PreparePlan(
 	if err != nil {
 		return PlanPreview{}, err
 	}
-	session.mu.Lock()
-	defer session.mu.Unlock()
-	return service.planner.previewLocked(session), nil
+	return session.preview(), nil
 }
 
 func (service *WorkspaceService) UpdatePlan(
@@ -123,19 +106,15 @@ func (service *WorkspaceService) UpdatePlan(
 	return service.planner.updatePlan(ctx, patch)
 }
 
-func (service *WorkspaceService) CommitPlan(
+func (service *WorkspaceService) ExecutePlan(
 	planID string,
-	revision int,
-) (OperationStart, error) {
-	return service.planner.commitPlan(planID, revision)
+	operationID string,
+) (WriteOperationResult, error) {
+	return service.planner.executePlan(planID, operationID)
 }
 
-func (service *WorkspaceService) CancelOperation(operationID string) {
-	service.ops.cancelOperation(operationID)
-}
-
-func (service *WorkspaceService) StartOperation(operationID string) error {
-	return service.ops.release(operationID, "workspace")
+func (service *WorkspaceService) CancelWriteOperation(operationID string) {
+	service.ops.cancelWriteOperation(operationID)
 }
 
 func (service *WorkspaceService) DiscardPlan(planID string) bool {

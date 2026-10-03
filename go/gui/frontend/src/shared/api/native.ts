@@ -8,13 +8,13 @@ import {
 } from '../../../bindings/github.com/the1812/Touhou-Tagger/go/gui/internal/bridge/index.js'
 import type {
   AlbumCandidate,
-  BatchJobPreview,
+  BatchEntryPreview,
   BatchPreview,
   Capabilities,
   GUIApi,
-  OperationFailure,
-  OperationProgress,
-  OperationResult,
+  WriteOperationProgress,
+  WorkspaceWriteOperationResult,
+  BatchRunResult,
   PlanPreview,
   WorkspaceSummary,
 } from './types'
@@ -24,7 +24,6 @@ export const nativeApi: GUIApi = {
   getCapabilities: async () => (await SettingsService.GetCapabilities()) as Capabilities,
   onDirectoryDrop: handler =>
     Events.On('gui:directory-dropped', event => handler(event.data as string)),
-  getStartupDirectory: () => WorkspaceService.GetStartupDirectory(),
   selectAlbumDirectory: title => WorkspaceService.SelectAlbumDirectory(title),
   scanWorkspace: async directory =>
     (await WorkspaceService.ScanWorkspace(directory)) as WorkspaceSummary,
@@ -36,22 +35,22 @@ export const nativeApi: GUIApi = {
   async discardPlan(planId) {
     await WorkspaceService.DiscardPlan(planId)
   },
-  commitPlan: async (planId, revision) => WorkspaceService.CommitPlan(planId, revision),
-  startOperation: operationId => WorkspaceService.StartOperation(operationId),
-  async cancelOperation(operationId) {
-    await WorkspaceService.CancelOperation(operationId)
+  executePlan: async (planId, operationId) =>
+    (await WorkspaceService.ExecutePlan(planId, operationId)) as WorkspaceWriteOperationResult,
+  async cancelWriteOperation(operationId) {
+    await WorkspaceService.CancelWriteOperation(operationId)
   },
   revealDirectory: directory => WorkspaceService.RevealDirectory(directory),
   selectBatchDirectory: title => BatchService.SelectBatchDirectory(title),
   scanBatch: async (directory, depth, source) =>
     (await BatchService.ScanBatch(directory, depth, source)) as BatchPreview,
-  loadBatchJob: async (batchId, jobId) =>
-    (await BatchService.LoadBatchJob(batchId, jobId)) as BatchJobPreview,
-  resolveBatchCandidate: async (batchId, jobId, candidateId) =>
-    (await BatchService.ResolveBatchCandidate(batchId, jobId, candidateId)) as BatchJobPreview,
+  loadBatchEntry: async (batchId, entryId) =>
+    (await BatchService.LoadBatchEntry(batchId, entryId)) as BatchEntryPreview,
+  resolveBatchCandidate: async (batchId, entryId, candidateId) =>
+    (await BatchService.ResolveBatchCandidate(batchId, entryId, candidateId)) as BatchEntryPreview,
   discardBatch: batchId => BatchService.DiscardBatch(batchId),
-  runBatch: async (batchId, failedOnly) => BatchService.RunBatch(batchId, failedOnly),
-  startBatch: operationId => BatchService.StartBatch(operationId),
+  executeBatch: async (batchId, failedOnly, operationId) =>
+    (await BatchService.ExecuteBatch(batchId, failedOnly, operationId)) as BatchRunResult,
   async cancelBatch(operationId) {
     await BatchService.CancelBatch(operationId)
   },
@@ -59,12 +58,8 @@ export const nativeApi: GUIApi = {
   saveSettings: settings => SettingsService.SaveSettings(settings),
   resetSettings: () => SettingsService.ResetSettings(),
   onProgress(handler) {
-    return Events.On('gui:operation-progress', event => handler(event.data as OperationProgress))
-  },
-  onComplete(handler) {
-    return Events.On('gui:operation-complete', event => handler(event.data as OperationResult))
-  },
-  onFailure(handler) {
-    return Events.On('gui:operation-failed', event => handler(event.data as OperationFailure))
+    return Events.On('gui:write-operation-progress', event =>
+      handler(event.data as WriteOperationProgress),
+    )
   },
 }

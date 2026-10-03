@@ -48,14 +48,11 @@ func (backend *Backend) servePreview(response http.ResponseWriter, request *http
 		http.NotFound(response, request)
 		return
 	}
-	session.mu.Lock()
-	if session.revision != revision || len(session.cover) == 0 {
-		session.mu.Unlock()
+	cover := session.coverData(revision)
+	if len(cover) == 0 {
 		http.NotFound(response, request)
 		return
 	}
-	cover := append([]byte(nil), session.cover...)
-	session.mu.Unlock()
 	cover, contentType, err := browserCover(cover)
 	if err != nil {
 		http.NotFound(response, request)

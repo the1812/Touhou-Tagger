@@ -90,7 +90,7 @@ func TestPlanExecuteUpdatesExistingLRC(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := plan.Execute(context.Background()); err != nil {
+		if _, err := plan.Execute(context.Background(), service.Events); err != nil {
 			t.Fatal(err)
 		}
 		actual, err := os.ReadFile(LRCPath(audioPath))

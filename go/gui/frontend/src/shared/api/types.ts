@@ -26,11 +26,10 @@ export type AlbumMetadataPatch = Native.AlbumMetadataPatch
 export type TrackMetadataPatch = Native.TrackMetadataPatch
 export type PlanPatch = Native.PlanPatch
 export type Settings = NarrowSlices<Native.Settings>
-export type OperationStart = Native.OperationStart
 
-export type OperationKind = 'workspace' | 'batch'
+export type WriteOperationKind = 'workspace' | 'batch'
 
-export type OperationStage =
+export type WriteOperationStage =
   | 'preparing'
   | 'writing'
   | 'renaming'
@@ -38,10 +37,10 @@ export type OperationStage =
   | 'cancelled'
   | 'failed'
 
-export interface OperationProgress {
+export interface WriteOperationProgress {
   operationId: string
-  kind: OperationKind
-  stage: OperationStage
+  kind: WriteOperationKind
+  stage: WriteOperationStage
   current: number
   total: number
   path?: string
@@ -50,7 +49,7 @@ export interface OperationProgress {
   cancellable: boolean
 }
 
-interface OperationCounts {
+interface WriteOperationCounts {
   operationId: string
   succeeded: number
   failed: number
@@ -62,41 +61,41 @@ interface OperationCounts {
   message: string
 }
 
-export interface WorkspaceOperationResult extends OperationCounts {
+export interface WorkspaceWriteOperationResult extends WriteOperationCounts {
   kind: 'workspace'
   plan?: PlanPreview | null
 }
 
-export interface BatchRunResult extends OperationCounts {
+export interface BatchRunResult extends WriteOperationCounts {
   kind: 'batch'
-  jobs: BatchJobPreview[]
+  entries: BatchEntryPreview[]
 }
 
-export type OperationResult = WorkspaceOperationResult | BatchRunResult
+export type WriteOperationResult = WorkspaceWriteOperationResult | BatchRunResult
 
-export interface OperationFailure {
+export interface WriteOperationFailure {
   plan?: PlanPreview | null
   error?: ErrorInfo | null
   operationId: string
-  kind: OperationKind
+  kind: WriteOperationKind
   message: string
   details?: string
   planInvalidated: boolean
 }
 
-export type BatchJobReadiness = 'pending' | 'ready' | 'needs-candidate' | 'blocked' | 'skipped'
-export type BatchJobOutcome = 'succeeded' | 'failed' | 'cancelled'
+export type BatchEntryReadiness = 'pending' | 'ready' | 'needs-candidate' | 'blocked' | 'skipped'
+export type BatchEntryOutcome = 'succeeded' | 'failed' | 'cancelled'
 
-export type BatchJobPreview = Omit<
-  NarrowSlices<Native.BatchJobPreview>,
+export type BatchEntryPreview = Omit<
+  NarrowSlices<Native.BatchEntryPreview>,
   'readiness' | 'outcome'
 > & {
-  readiness: BatchJobReadiness
-  outcome?: BatchJobOutcome
+  readiness: BatchEntryReadiness
+  outcome?: BatchEntryOutcome
 }
 
-export type BatchPreview = Omit<NarrowSlices<Native.BatchPreview>, 'jobs'> & {
-  jobs: BatchJobPreview[]
+export type BatchPreview = Omit<NarrowSlices<Native.BatchPreview>, 'entries'> & {
+  entries: BatchEntryPreview[]
 }
 
 export type * from './contracts'

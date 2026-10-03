@@ -5,29 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sync"
-
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
-	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
-
-type planSession struct {
-	mu            sync.Mutex
-	id            string
-	owner         string
-	revision      int
-	albumName     string
-	defaultSource string
-	scan          domain.AlbumScan
-	metadata      []domain.Metadata
-	plan          *coreapp.Plan
-	service       *coreapp.Service
-	candidate     domain.AlbumCandidate
-	cover         []byte
-	coverSource   string
-	saveCover     bool
-	issues        []StateIssue
-	committing    bool
-}
 
 type planStore struct {
 	mu       sync.RWMutex
@@ -41,14 +19,7 @@ func newPlanStore() *planStore {
 func (store *planStore) put(session *planSession) {
 	store.mu.Lock()
 	for id, existing := range store.sessions {
-		existing.mu.Lock()
-		sameOwner := existing.owner == session.owner
-		sameDirectory := equalPath(existing.scan.Directory, session.scan.Directory)
-		committing := existing.committing
-		existing.mu.Unlock()
-		replaceWorkspace := session.owner == "workspace" && sameOwner
-		replaceBatchJob := session.owner != "workspace" && sameOwner && sameDirectory
-		if (replaceWorkspace || replaceBatchJob) && !committing {
+		if session.replaces(existing) {
 			delete(store.sessions, id)
 		}
 	}
@@ -63,22 +34,11 @@ func (store *planStore) get(id string) (*planSession, bool) {
 	return session, exists
 }
 
-func (store *planStore) delete(id string) {
-	store.mu.Lock()
-	delete(store.sessions, id)
-	store.mu.Unlock()
-}
-
 func (store *planStore) discard(id string) bool {
 	store.mu.Lock()
 	defer store.mu.Unlock()
-	session, exists := store.sessions[id]
+	_, exists := store.sessions[id]
 	if !exists {
-		return false
-	}
-	session.mu.Lock()
-	defer session.mu.Unlock()
-	if session.committing {
 		return false
 	}
 	delete(store.sessions, id)
@@ -88,11 +48,7 @@ func (store *planStore) discard(id string) bool {
 func (store *planStore) discardOwner(owner string) {
 	store.mu.Lock()
 	for id, session := range store.sessions {
-		session.mu.Lock()
-		matches := session.owner == owner
-		committing := session.committing
-		session.mu.Unlock()
-		if matches && !committing {
+		if session.owner == owner {
 			delete(store.sessions, id)
 		}
 	}

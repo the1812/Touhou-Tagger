@@ -21,7 +21,7 @@ export const TaggingPlanStep = defineComponent({
   name: 'TaggingPlanStep',
   setup() {
     const workspace = useWorkspaceStore()
-    const { plan, summary, stalePlan, isWriting, isBusy, blockingIssues, canCommit } =
+    const { plan, summary, stalePlan, isWriting, isBusy, blockingIssues, canExecute } =
       storeToRefs(workspace)
     const showSpinner = useDelayedBusy(() => isWriting.value)
     const editor = usePlanEditor(workspace)
@@ -39,7 +39,7 @@ export const TaggingPlanStep = defineComponent({
 
       const stale = stalePlan.value
       const idleAction = stale ? 'tagging.rescan' : 'common.start'
-      const cannotCommit = !stale && !canCommit.value
+      const cannotExecute = !stale && !canExecute.value
       return (
         <>
           <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
@@ -159,9 +159,9 @@ export const TaggingPlanStep = defineComponent({
                   class="min-w-28"
                   label={t(isWriting.value ? 'operation.writing' : idleAction)}
                   loading={showSpinner.value}
-                  disabled={isBusy.value || cannotCommit}
+                  disabled={isBusy.value || cannotExecute}
                   onClick={() =>
-                    void (stale ? workspace.scan(workspace.directory) : workspace.commit())
+                    void (stale ? workspace.scan(workspace.directory) : workspace.execute())
                   }
                 >
                   {{ icon: () => <Play /> }}

@@ -16,16 +16,38 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
+type planInvalidatedError struct {
+	err error
+}
+
+func (err *planInvalidatedError) Error() string {
+	return "文件可能已发生变化，写入内容已失效，请重新扫描：" + err.err.Error()
+}
+
+func (err *planInvalidatedError) Unwrap() error {
+	return err.err
+}
+
+type planExecutionError struct {
+	err  error
+	plan *PlanPreview
+}
+
+func (err *planExecutionError) Error() string { return err.err.Error() }
+func (err *planExecutionError) Unwrap() error { return err.err }
+
 type ErrorParams struct {
 	Files  int `json:"files"`
 	Tracks int `json:"tracks"`
 }
 
 type ErrorInfo struct {
-	Code    string       `json:"code"`
-	Params  *ErrorParams `json:"params,omitempty"`
-	Message string       `json:"message"`
-	Details string       `json:"details"`
+	Plan            *PlanPreview `json:"plan,omitempty"`
+	PlanInvalidated bool         `json:"planInvalidated,omitempty"`
+	Code            string       `json:"code"`
+	Params          *ErrorParams `json:"params,omitempty"`
+	Message         string       `json:"message"`
+	Details         string       `json:"details"`
 }
 
 func DescribeError(err error) ErrorInfo {
@@ -102,6 +124,11 @@ func DescribeError(err error) ErrorInfo {
 			info.Code = code
 		}
 	}
+	var execution *planExecutionError
+	if errors.As(err, &execution) {
+		info.Plan = execution.plan
+	}
+	info.PlanInvalidated = errors.As(err, &invalidated)
 	return info
 }
 

@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 
 import {
   useNotificationsStore,
-  useOperationsStore,
+  useWriteOperationsStore,
   useSettingsStore,
 } from '../../../entities/session'
 import { getApi, type PlanPreview, type WorkspaceSummary } from '../../../shared/api'
@@ -19,7 +19,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const stalePlan = ref(false)
   const activity = ref<WorkspaceActivity>()
   const notifications = useNotificationsStore()
-  const operations = useOperationsStore()
+  const operations = useWriteOperationsStore()
   const settings = useSettingsStore()
 
   const isWriting = computed(() => operations.activeKind === 'workspace')
@@ -71,7 +71,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     plan,
     stalePlan,
     directory,
-    canCommit: planEditor.canCommit,
+    canExecute: planEditor.canExecute,
   })
 
   const preparePlan = async (sourceOverride = source.value) => {
@@ -165,7 +165,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     canPrepare,
     canChangeDirectory,
     blockingIssues: planEditor.blockingIssues,
-    canCommit: planEditor.canCommit,
+    canExecute: planEditor.canExecute,
     search: searchSession.search,
     preparePlan,
     scan,

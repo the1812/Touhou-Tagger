@@ -74,10 +74,8 @@
     "writeCancelled": "写入已取消",
     "writeFailed": "写入失败",
     "preparingWrite": "正在准备写入",
-    "startWriteFailed": "无法开始写入",
     "cancelWriteFailed": "取消写入失败",
     "revealDirectoryFailed": "无法在资源管理器中打开目录",
-    "loadStartupDirectoryFailed": "无法加载启动目录",
     "loadSettingsFailed": "加载设置失败",
     "autoSaveSettingsFailed": "自动保存设置失败",
     "settingsReset": "已恢复默认设置",
@@ -92,7 +90,6 @@
     "batchCompletedWithFailuresDetail": "{count} 个专辑失败，详情已保留在专辑列表中。",
     "batchWriteFailed": "批量写入失败",
     "preparingBatchWrite": "正在准备批量写入",
-    "startBatchFailed": "无法开始批量写入",
     "cancelBatchFailed": "停止批量写入失败"
   },
   "validation": {

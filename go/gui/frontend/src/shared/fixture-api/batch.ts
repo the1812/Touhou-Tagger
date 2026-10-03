@@ -1,8 +1,8 @@
-import type { BatchApi } from '../api/types'
+import type { BatchApi, BatchRunResult } from '../api/types'
 import { t } from '../i18n'
-import { batchJobs } from './batchData'
+import { batchEntries } from './batchData'
 import { batchDirectory, createPlan } from './data'
-import { clone, emitSequence, fixtureState, wait } from './state'
+import { clone, executeSequence, fixtureState, wait } from './state'
 
 export const fixtureBatchApi: BatchApi = {
   async selectBatchDirectory() {
@@ -17,11 +17,11 @@ export const fixtureBatchApi: BatchApi = {
       batchId: `fixture-batch-${String(fixtureState.batchSequence)}`,
       rootDirectory: directory,
       depth,
-      jobs: batchJobs().map(job =>
-        job.readiness === 'skipped'
-          ? job
+      entries: batchEntries().map(entry =>
+        entry.readiness === 'skipped'
+          ? entry
           : {
-              ...job,
+              ...entry,
               readiness: 'pending',
               issues: [],
               candidates: [],
@@ -32,29 +32,30 @@ export const fixtureBatchApi: BatchApi = {
     return clone(fixtureState.activeBatch)
   },
 
-  async loadBatchJob(_batchId, jobId) {
+  async loadBatchEntry(_batchId, entryId) {
     await wait(240)
-    const loaded = batchJobs().find(job => job.id === jobId)
-    const index = fixtureState.activeBatch.jobs.findIndex(job => job.id === jobId)
+    const loaded = batchEntries().find(entry => entry.id === entryId)
+    const index = fixtureState.activeBatch.entries.findIndex(entry => entry.id === entryId)
     if (!loaded || index < 0) {
       throw new Error('批量写入专辑不存在。')
     }
-    fixtureState.activeBatch.jobs[index] = loaded
+    fixtureState.activeBatch.entries[index] = loaded
     return clone(loaded)
   },
 
-  async resolveBatchCandidate(_batchId, jobId, candidateId) {
+  async resolveBatchCandidate(_batchId, entryId, candidateId) {
     await wait(120)
-    const job = fixtureState.activeBatch.jobs.find(item => item.id === jobId)
-    if (!job) {
+    const entry = fixtureState.activeBatch.entries.find(item => item.id === entryId)
+    if (!entry) {
       throw new Error('批量写入专辑不存在。')
     }
-    job.selectedCandidateId = candidateId
+    entry.selectedCandidateId = candidateId
     const plan = createPlan(candidateId)
-    job.readiness = job.audioCount === plan.items.length && plan.canCommit ? 'ready' : 'blocked'
-    job.outcome = undefined
-    job.issues =
-      job.readiness === 'ready'
+    entry.readiness =
+      entry.audioCount === plan.items.length && plan.canExecute ? 'ready' : 'blocked'
+    entry.outcome = undefined
+    entry.issues =
+      entry.readiness === 'ready'
         ? []
         : [
             {
@@ -63,23 +64,24 @@ export const fixtureBatchApi: BatchApi = {
               severity: 'error',
             },
           ]
-    return clone(job)
+    return clone(entry)
   },
 
   async discardBatch() {
     await wait()
   },
 
-  runBatch(_batchId, failedOnly) {
-    const operationId = `fixture-batch-${String(Date.now())}`
-    const jobs = failedOnly
-      ? fixtureState.activeBatch.jobs.filter(
-          job => job.readiness === 'ready' && job.outcome === 'failed',
+  executeBatch(_batchId, failedOnly, operationId) {
+    const entries = failedOnly
+      ? fixtureState.activeBatch.entries.filter(
+          entry => entry.readiness === 'ready' && entry.outcome === 'failed',
         )
-      : fixtureState.activeBatch.jobs.filter(job => job.readiness === 'ready')
+      : fixtureState.activeBatch.entries.filter(entry => entry.readiness === 'ready')
     const cancelledResult = () => {
-      fixtureState.activeBatch.jobs = fixtureState.activeBatch.jobs.map(job =>
-        jobs.some(selected => selected.id === job.id) ? { ...job, outcome: 'cancelled' } : job,
+      fixtureState.activeBatch.entries = fixtureState.activeBatch.entries.map(entry =>
+        entries.some(selected => selected.id === entry.id)
+          ? { ...entry, outcome: 'cancelled' }
+          : entry,
       )
       return {
         operationId,
@@ -92,59 +94,39 @@ export const fixtureBatchApi: BatchApi = {
         durationMs: 320,
         cancelled: true,
         message: '已停止写入后续专辑。',
-        jobs: clone(fixtureState.activeBatch.jobs),
+        entries: clone(fixtureState.activeBatch.entries),
       }
     }
-    fixtureState.pendingStarts.set(operationId, {
-      kind: 'batch',
-      start: () =>
-        emitSequence(
+    return executeSequence<BatchRunResult>(
+      operationId,
+      'batch',
+      Math.max(entries.length, 1),
+      () => {
+        fixtureState.activeBatch.entries = fixtureState.activeBatch.entries.map(entry => ({
+          ...entry,
+          outcome: entries.some(selected => selected.id === entry.id) ? 'succeeded' : entry.outcome,
+        }))
+        return {
           operationId,
-          'batch',
-          Math.max(jobs.length, 1),
-          () => {
-            fixtureState.activeBatch.jobs = fixtureState.activeBatch.jobs.map(job => ({
-              ...job,
-              outcome: jobs.some(selected => selected.id === job.id) ? 'succeeded' : job.outcome,
-            }))
-            return {
-              operationId,
-              kind: 'batch',
-              succeeded: jobs.length,
-              failed: 0,
-              renamed: 25,
-              coversSaved: 2,
-              lrcFiles: 0,
-              durationMs: 2830,
-              cancelled: false,
-              message: '批量写入完成。',
-              jobs: clone(fixtureState.activeBatch.jobs),
-            }
-          },
-          cancelledResult,
-        ),
-      cancel: () => fixtureState.completeHandlers.forEach(handler => handler(cancelledResult())),
-    })
-    return Promise.resolve({ operationId })
-  },
-
-  startBatch(operationId) {
-    const pending = fixtureState.pendingStarts.get(operationId)
-    if (!pending || pending.kind !== 'batch') {
-      return Promise.reject(new Error('批量写入操作不存在或已经开始。'))
-    }
-    fixtureState.pendingStarts.delete(operationId)
-    pending.start()
-    return Promise.resolve()
+          kind: 'batch',
+          succeeded: entries.length,
+          failed: 0,
+          renamed: 25,
+          coversSaved: 2,
+          lrcFiles: 0,
+          durationMs: 2830,
+          cancelled: false,
+          message: '批量写入完成。',
+          entries: clone(fixtureState.activeBatch.entries),
+        }
+      },
+      cancelledResult,
+    )
   },
 
   cancelBatch(operationId) {
-    const pending = fixtureState.pendingStarts.get(operationId)
-    if (pending?.kind === 'batch') {
-      fixtureState.pendingStarts.delete(operationId)
-      pending.cancel()
-    } else {
-      fixtureState.operationCancels.get(operationId)?.()
+    if (fixtureState.operationCancel?.id === operationId) {
+      fixtureState.operationCancel.cancel()
     }
     return Promise.resolve()
   },

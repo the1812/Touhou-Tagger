@@ -1,5 +1,3 @@
-//go:build !server
-
 package main
 
 import (
@@ -12,7 +10,7 @@ import (
 
 func runtimeOptions(
 	coverProcessor tagio.CoverProcessor,
-) (bridge.ServiceFactory, []bridge.SourceOption, error) {
+) (bridge.ServiceFactory, []bridge.SourceOption) {
 	factory := func(
 		config domain.MetadataConfig,
 		events coreapp.EventSink,
@@ -29,9 +27,5 @@ func runtimeOptions(
 		{Value: "music-brainz", Label: "MusicBrainz", SupportsSearch: true},
 		{Value: "discogs", Label: "Discogs", SupportsSearch: true},
 		{Value: "local-json", Label: "本地 metadata.json", SupportsSearch: false},
-	}, nil
-}
-
-func startupDirectory() string {
-	return ""
+	}
 }

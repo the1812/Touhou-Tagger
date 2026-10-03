@@ -1,13 +1,13 @@
 import multipleDiscFixture from '../../../../../../fixtures/thb-wiki/albums/multiple-disc/expected.json'
 import noCoverFixture from '../../../../../../fixtures/thb-wiki/albums/no-cover/expected.json'
 import singleDiscFixture from '../../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
-import type { BatchJobPreview } from '../api/types'
+import type { BatchEntryPreview } from '../api/types'
 import { t } from '../i18n'
 import { candidates } from './data'
 
-export const batchJobs = (): BatchJobPreview[] => [
+export const batchEntries = (): BatchEntryPreview[] => [
   {
-    id: 'fixture-job-single',
+    id: 'fixture-entry-single',
     relativePath: singleDiscFixture.album.album,
     inferredAlbumName: singleDiscFixture.album.album,
     source: 'thb-wiki',
@@ -18,7 +18,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     selectedCandidateId: candidates[0].id,
   },
   {
-    id: 'fixture-job-multiple',
+    id: 'fixture-entry-multiple',
     relativePath: multipleDiscFixture.album.album,
     inferredAlbumName: multipleDiscFixture.album.album,
     source: 'thb-wiki',
@@ -34,7 +34,7 @@ export const batchJobs = (): BatchJobPreview[] => [
     candidates: [candidates[1], candidates[0]],
   },
   {
-    id: 'fixture-job-no-cover',
+    id: 'fixture-entry-no-cover',
     relativePath: noCoverFixture.album.album,
     inferredAlbumName: noCoverFixture.album.album,
     source: 'thb-wiki',

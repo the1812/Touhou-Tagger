@@ -86,7 +86,7 @@ func (runner *Runner) tagDirectory(
 	if err != nil {
 		return err
 	}
-	if _, err := plan.Execute(ctx); err != nil {
+	if _, err := plan.Execute(ctx, service.Events); err != nil {
 		return err
 	}
 

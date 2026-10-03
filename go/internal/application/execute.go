@@ -19,7 +19,7 @@ type ExecutionResult struct {
 	CoverPath    string
 }
 
-func (plan *Plan) Execute(ctx context.Context) (ExecutionResult, error) {
+func (plan *Plan) Execute(ctx context.Context, events EventSink) (ExecutionResult, error) {
 	result := ExecutionResult{Reusable: true}
 	if err := ctx.Err(); err != nil {
 		return result, err
@@ -31,7 +31,7 @@ func (plan *Plan) Execute(ctx context.Context) (ExecutionResult, error) {
 	if err := validatePlanOutputs(plan.preview.Outputs); err != nil {
 		return result, err
 	}
-	if err := plan.tag(ctx, &result); err != nil {
+	if err := plan.tag(ctx, &result, events); err != nil {
 		return result, err
 	}
 	if cover := plan.options.Cover; cover != nil {
@@ -61,14 +61,14 @@ func (plan *Plan) Execute(ctx context.Context) (ExecutionResult, error) {
 			return result, err
 		}
 	}
-	err := plan.emit(domain.ProgressEvent{
+	err := events.emit(domain.ProgressEvent{
 		Stage: domain.StageComplete, Directory: plan.preview.Directory,
 		Current: len(plan.preview.Items), Total: len(plan.preview.Items),
 	})
 	return result, err
 }
 
-func (plan *Plan) tag(ctx context.Context, result *ExecutionResult) error {
+func (plan *Plan) tag(ctx context.Context, result *ExecutionResult, events EventSink) error {
 	items := plan.preview.Items
 	if len(items) == 0 {
 		return fmt.Errorf("write plan for %q is empty", plan.preview.Directory)
@@ -78,7 +78,7 @@ func (plan *Plan) tag(ctx context.Context, result *ExecutionResult) error {
 			return fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath)
 		}
 	}
-	if err := plan.emit(domain.ProgressEvent{
+	if err := events.emit(domain.ProgressEvent{
 		Stage: domain.StageRename, Directory: plan.preview.Directory, Total: len(items),
 	}); err != nil {
 		return err
@@ -118,7 +118,7 @@ func (plan *Plan) tag(ctx context.Context, result *ExecutionResult) error {
 		}
 		return nil
 	}, func(index, completed int) error {
-		return plan.emit(domain.ProgressEvent{
+		return events.emit(domain.ProgressEvent{
 			Stage: domain.StageWrite, Directory: plan.preview.Directory, Path: items[index].TargetPath,
 			Current: completed, Total: len(items),
 		})
@@ -132,4 +132,13 @@ func (plan *Plan) tag(ctx context.Context, result *ExecutionResult) error {
 		}
 	}
 	return err
+}
+
+func (events EventSink) emit(event domain.ProgressEvent) error {
+	if events != nil {
+		if err := events(event); err != nil {
+			return fmt.Errorf("emit %s progress: %w", event.Stage, err)
+		}
+	}
+	return nil
 }

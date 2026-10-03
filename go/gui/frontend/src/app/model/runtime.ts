@@ -1,24 +1,16 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 
-import { useNotificationsStore, useOperationsStore, useSettingsStore } from '../../entities/session'
-import { useWorkspaceStore } from '../../features/workspace'
+import { useWriteOperationsStore, useSettingsStore } from '../../entities/session'
 import { getApi, isFixtureMode } from '../../shared/api'
-import { t } from '../../shared/i18n'
 
 export const useAppRuntime = () => {
-  const operations = useOperationsStore()
+  const operations = useWriteOperationsStore()
   const settings = useSettingsStore()
-  const workspace = useWorkspaceStore()
-  const notifications = useNotificationsStore()
   const disposers: Array<() => void> = []
 
   onMounted(async () => {
     const api = await getApi()
-    disposers.push(
-      api.onProgress(operations.receiveProgress),
-      api.onComplete(operations.receiveComplete),
-      api.onFailure(operations.receiveFailure),
-    )
+    disposers.push(api.onProgress(operations.receiveProgress))
     await settings.load()
     if (
       import.meta.env.DEV &&
@@ -29,16 +21,6 @@ export const useAppRuntime = () => {
     ) {
       const { initializeProgressMock } = await import('../layout/ProgressPanel')
       await initializeProgressMock()
-    }
-    if (!isFixtureMode) {
-      try {
-        const directory = await api.getStartupDirectory()
-        if (directory && !workspace.directory) {
-          await workspace.scan(directory)
-        }
-      } catch (error) {
-        notifications.error(t('notifications.loadStartupDirectoryFailed'), error)
-      }
     }
   })
 

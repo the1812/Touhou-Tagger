@@ -7,13 +7,13 @@ import { defineComponent } from 'vue'
 import { useBatchStore } from '../../../features/batch'
 import { t } from '../../../shared/i18n'
 import { WorkspaceTitle } from '../../../shared/ui'
-import { BatchJobTable } from './BatchJobTable'
+import { BatchEntryTable } from './BatchEntryTable'
 
 export const BatchScanSection = defineComponent({
   name: 'BatchScanSection',
   setup() {
     const batch = useBatchStore()
-    const { depth, preview, scanning, canChangeDirectory, canEditJobs } = storeToRefs(batch)
+    const { depth, preview, scanning, canChangeDirectory, canEditEntries } = storeToRefs(batch)
 
     return () => {
       const currentPreview = preview.value
@@ -64,13 +64,13 @@ export const BatchScanSection = defineComponent({
               <div class="text-base font-medium">{t('batch.scanning')}</div>
             </div>
           ) : (
-            <BatchJobTable
-              jobs={currentPreview?.jobs ?? []}
+            <BatchEntryTable
+              entries={currentPreview?.entries ?? []}
               editable
-              disabled={!canEditJobs.value}
+              disabled={!canEditEntries.value}
               resolving={batch.isResolving}
-              onResolve={(jobId, candidateId) => batch.resolveCandidate(jobId, candidateId)}
-              onRetry={jobId => batch.loadJob(jobId)}
+              onResolve={(entryId, candidateId) => batch.resolveCandidate(entryId, candidateId)}
+              onRetry={entryId => batch.loadEntry(entryId)}
             />
           )}
         </div>

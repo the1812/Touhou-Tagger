@@ -80,14 +80,14 @@ func TestLocalMetadataDoesNotRequireSearchableAlbumSource(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(preview.Jobs) != 1 || preview.Jobs[0].Readiness != "pending" {
+	if len(preview.Entries) != 1 || preview.Entries[0].Readiness != "pending" {
 		t.Fatalf("ScanBatch() = %#v", preview)
 	}
-	job, err := backend.Batch.LoadBatchJob(context.Background(), preview.BatchID, preview.Jobs[0].ID)
+	entry, err := backend.Batch.LoadBatchEntry(context.Background(), preview.BatchID, preview.Entries[0].ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if job.Source != "local-json" || job.Readiness != "ready" {
-		t.Fatalf("LoadBatchJob() = %#v", job)
+	if entry.Source != "local-json" || entry.Readiness != "ready" {
+		t.Fatalf("LoadBatchEntry() = %#v", entry)
 	}
 }

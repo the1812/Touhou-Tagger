@@ -98,16 +98,16 @@ type PlanOptions struct {
 }
 
 type PlanPreview struct {
-	PlanID    string            `json:"planId"`
-	Revision  int               `json:"revision"`
-	Directory string            `json:"directory"`
-	Album     AlbumMetadata     `json:"album"`
-	Source    string            `json:"source"`
-	Cover     CoverPreview      `json:"cover"`
-	Items     []PlanItemPreview `json:"items"`
-	Issues    []StateIssue      `json:"issues"`
-	Options   PlanOptions       `json:"options"`
-	CanCommit bool              `json:"canCommit"`
+	PlanID     string            `json:"planId"`
+	Revision   int               `json:"revision"`
+	Directory  string            `json:"directory"`
+	Album      AlbumMetadata     `json:"album"`
+	Source     string            `json:"source"`
+	Cover      CoverPreview      `json:"cover"`
+	Items      []PlanItemPreview `json:"items"`
+	Issues     []StateIssue      `json:"issues"`
+	Options    PlanOptions       `json:"options"`
+	CanExecute bool              `json:"canExecute"`
 }
 
 type AlbumMetadataPatch struct {
@@ -129,17 +129,12 @@ type TrackMetadataPatch struct {
 
 type PlanPatch struct {
 	PlanID    string               `json:"planId"`
-	Revision  int                  `json:"revision"`
 	Album     *AlbumMetadataPatch  `json:"album,omitempty"`
 	Tracks    []TrackMetadataPatch `json:"tracks,omitempty"`
 	SaveCover *bool                `json:"saveCover,omitempty"`
 }
 
-type OperationStart struct {
-	OperationID string `json:"operationId"`
-}
-
-type OperationProgress struct {
+type WriteOperationProgress struct {
 	OperationID string `json:"operationId"`
 	Kind        string `json:"kind"`
 	Stage       string `json:"stage"`
@@ -151,7 +146,7 @@ type OperationProgress struct {
 	Cancellable bool   `json:"cancellable"`
 }
 
-type OperationResult struct {
+type WriteOperationResult struct {
 	Plan        *PlanPreview `json:"plan,omitempty"`
 	OperationID string       `json:"operationId"`
 	Kind        string       `json:"kind"`
@@ -165,17 +160,7 @@ type OperationResult struct {
 	Message     string       `json:"message"`
 }
 
-type OperationFailure struct {
-	Plan            *PlanPreview `json:"plan,omitempty"`
-	Error           *ErrorInfo   `json:"error,omitempty"`
-	OperationID     string       `json:"operationId"`
-	Kind            string       `json:"kind"`
-	Message         string       `json:"message"`
-	Details         string       `json:"details,omitempty"`
-	PlanInvalidated bool         `json:"planInvalidated"`
-}
-
-type BatchJobPreview struct {
+type BatchEntryPreview struct {
 	ID                  string           `json:"id"`
 	RelativePath        string           `json:"relativePath"`
 	InferredAlbumName   string           `json:"inferredAlbumName"`
@@ -189,24 +174,24 @@ type BatchJobPreview struct {
 }
 
 type BatchPreview struct {
-	BatchID       string            `json:"batchId"`
-	RootDirectory string            `json:"rootDirectory"`
-	Depth         int               `json:"depth"`
-	Jobs          []BatchJobPreview `json:"jobs"`
+	BatchID       string              `json:"batchId"`
+	RootDirectory string              `json:"rootDirectory"`
+	Depth         int                 `json:"depth"`
+	Entries       []BatchEntryPreview `json:"entries"`
 }
 
 type BatchRunResult struct {
-	OperationID string            `json:"operationId"`
-	Kind        string            `json:"kind"`
-	Succeeded   int               `json:"succeeded"`
-	Failed      int               `json:"failed"`
-	Renamed     int               `json:"renamed"`
-	CoversSaved int               `json:"coversSaved"`
-	LRCFiles    int               `json:"lrcFiles"`
-	DurationMS  int64             `json:"durationMs"`
-	Cancelled   bool              `json:"cancelled"`
-	Message     string            `json:"message"`
-	Jobs        []BatchJobPreview `json:"jobs"`
+	OperationID string              `json:"operationId"`
+	Kind        string              `json:"kind"`
+	Succeeded   int                 `json:"succeeded"`
+	Failed      int                 `json:"failed"`
+	Renamed     int                 `json:"renamed"`
+	CoversSaved int                 `json:"coversSaved"`
+	LRCFiles    int                 `json:"lrcFiles"`
+	DurationMS  int64               `json:"durationMs"`
+	Cancelled   bool                `json:"cancelled"`
+	Message     string              `json:"message"`
+	Entries     []BatchEntryPreview `json:"entries"`
 }
 
 type Settings struct {

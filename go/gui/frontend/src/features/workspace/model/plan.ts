@@ -26,11 +26,11 @@ export const useWorkspacePlan = (state: {
     ]
     return issues.filter(issue => issue.severity === 'error')
   })
-  const canCommit = computed(
-    () => Boolean(state.plan.value?.canCommit) && !state.stalePlan.value && !state.isBusy.value,
+  const canExecute = computed(
+    () => Boolean(state.plan.value?.canExecute) && !state.stalePlan.value && !state.isBusy.value,
   )
 
-  const updatePlan = async (patch: Omit<PlanPatch, 'planId' | 'revision'>) => {
+  const updatePlan = async (patch: Omit<PlanPatch, 'planId'>) => {
     const current = state.plan.value
     if (!current || state.isBusy.value || state.stalePlan.value) {
       return false
@@ -41,7 +41,6 @@ export const useWorkspacePlan = (state: {
         await getApi()
       ).updatePlan({
         planId: current.planId,
-        revision: current.revision,
         ...patch,
       })
       state.plan.value = next
@@ -64,5 +63,5 @@ export const useWorkspacePlan = (state: {
     }
   }
 
-  return { blockingIssues, canCommit, updatePlan }
+  return { blockingIssues, canExecute, updatePlan }
 }

@@ -186,6 +186,6 @@ export const createPlan = (
       compressCover: false,
       lrcFiles: 0,
     },
-    canCommit: true,
+    canExecute: true,
   }
 }

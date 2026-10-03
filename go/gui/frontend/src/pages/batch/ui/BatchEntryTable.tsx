@@ -5,95 +5,96 @@ import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { defineComponent, type PropType } from 'vue'
 
-import type { BatchJobPreview } from '../../../shared/api'
+import type { BatchEntryPreview } from '../../../shared/api'
 import { batchMatchText, batchStatusInfo, issueText } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
 import { cx } from '../../../shared/lib'
 import { CandidateOption, TruncatedText } from '../../../shared/ui'
-import { candidateOptions } from '../lib/batchJobDisplay'
+import { candidateOptions } from '../lib/batchEntryDisplay'
 
-export const BatchJobTable = defineComponent({
-  name: 'BatchJobTable',
+export const BatchEntryTable = defineComponent({
+  name: 'BatchEntryTable',
   props: {
-    jobs: {
-      type: Array as PropType<BatchJobPreview[]>,
+    entries: {
+      type: Array as PropType<BatchEntryPreview[]>,
       required: true,
     },
     editable: Boolean,
     disabled: Boolean,
     resolving: {
-      type: Function as PropType<(jobId: string) => boolean>,
+      type: Function as PropType<(entryId: string) => boolean>,
       required: true,
     },
   },
   emits: {
-    resolve: (jobId: string, candidateId: string) => Boolean(jobId && candidateId),
-    retry: (jobId: string) => Boolean(jobId),
+    resolve: (entryId: string, candidateId: string) => Boolean(entryId && candidateId),
+    retry: (entryId: string) => Boolean(entryId),
   },
   setup(props, { emit }) {
     const bodySlot =
-      (render: (job: BatchJobPreview) => unknown) =>
-      ({ data }: { data: BatchJobPreview }) =>
+      (render: (entry: BatchEntryPreview) => unknown) =>
+      ({ data }: { data: BatchEntryPreview }) =>
         render(data)
-    const rowClass = (job: BatchJobPreview) => {
-      const hasError = job.readiness === 'blocked' || job.outcome === 'failed'
+    const rowClass = (entry: BatchEntryPreview) => {
+      const hasError = entry.readiness === 'blocked' || entry.outcome === 'failed'
       return cx(
         'h-[46px]',
         hasError && 'bg-red-50/60 dark:bg-red-950/30',
-        job.readiness === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
+        entry.readiness === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
       )
     }
-    const matchCell = (job: BatchJobPreview) => {
-      const loading = props.resolving(job.id)
+    const matchCell = (entry: BatchEntryPreview) => {
+      const loading = props.resolving(entry.id)
       if (!props.editable) {
-        return <TruncatedText class="block">{batchMatchText(job, loading)}</TruncatedText>
+        return <TruncatedText class="block">{batchMatchText(entry, loading)}</TruncatedText>
       }
-      if (loading || job.readiness === 'pending') {
-        return <div class="text-muted-color">{batchMatchText(job, loading)}</div>
+      if (loading || entry.readiness === 'pending') {
+        return <div class="text-muted-color">{batchMatchText(entry, loading)}</div>
       }
-      const blockedWithoutAlternatives = job.readiness === 'blocked' && job.candidates.length <= 1
+      const blockedWithoutAlternatives =
+        entry.readiness === 'blocked' && entry.candidates.length <= 1
       const canReload =
         blockedWithoutAlternatives ||
-        job.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
+        entry.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
       if (canReload) {
         return (
           <div class="flex items-center justify-between gap-2">
             <TruncatedText class="block text-red-600 dark:text-red-300">
-              {batchMatchText(job, loading)}
+              {batchMatchText(entry, loading)}
             </TruncatedText>
             <Button
               label={t('common.retry')}
               size="small"
               severity="danger"
               text
-              loading={props.resolving(job.id)}
+              loading={props.resolving(entry.id)}
               disabled={props.disabled}
-              onClick={() => emit('retry', job.id)}
+              onClick={() => emit('retry', entry.id)}
             />
           </div>
         )
       }
-      if (job.readiness === 'skipped' || job.candidates.length === 0) {
-        return <div class="text-muted-color">{batchMatchText(job, loading)}</div>
+      if (entry.readiness === 'skipped' || entry.candidates.length === 0) {
+        return <div class="text-muted-color">{batchMatchText(entry, loading)}</div>
       }
       if (
-        job.candidates.length > 1 ||
-        job.candidates.some(candidate => !candidate.exactMatch) ||
-        job.readiness === 'needs-candidate'
+        entry.candidates.length > 1 ||
+        entry.candidates.some(candidate => !candidate.exactMatch) ||
+        entry.readiness === 'needs-candidate'
       ) {
         return (
           <Select
             size="small"
-            modelValue={job.selectedCandidateId}
+            modelValue={entry.selectedCandidateId}
             {...{
-              'onUpdate:modelValue': (value: unknown) => emit('resolve', job.id, String(value)),
+              'onUpdate:modelValue': (value: unknown) => emit('resolve', entry.id, String(value)),
             }}
-            options={candidateOptions(job)}
+            options={candidateOptions(entry)}
             optionLabel="label"
             optionValue="value"
             placeholder={t('batch.selectAlbum')}
             fluid
-            loading={props.resolving(job.id)}
+            loading={props.resolving(entry.id)}
             disabled={props.disabled}
             overlayClass="[&_.p-select-option]:p-0!"
             v-slots={{
@@ -104,11 +105,11 @@ export const BatchJobTable = defineComponent({
           />
         )
       }
-      return <TruncatedText class="block">{batchMatchText(job, loading)}</TruncatedText>
+      return <TruncatedText class="block">{batchMatchText(entry, loading)}</TruncatedText>
     }
     return () => (
       <DataTable
-        value={props.jobs}
+        value={props.entries}
         dataKey="id"
         scrollable
         scrollHeight="flex"
@@ -116,7 +117,7 @@ export const BatchJobTable = defineComponent({
         tableClass="w-full min-w-[720px] table-fixed"
         class="compact-data-table"
         rowClass={rowClass}
-        virtualScrollerOptions={props.jobs.length > 100 ? { itemSize: 46 } : undefined}
+        virtualScrollerOptions={props.entries.length > 100 ? { itemSize: 46 } : undefined}
         v-slots={{
           empty: () => <div class="p-8 text-center text-muted-color">{t('batch.empty')}</div>,
         }}
@@ -128,9 +129,9 @@ export const BatchJobTable = defineComponent({
           headerClass={['compact-table-cell', 'w-[24%]'].join(' ')}
           bodyClass={['compact-table-cell', 'w-[24%]'].join(' ')}
           v-slots={{
-            body: bodySlot(job => (
-              <TruncatedText class="block" tooltip={job.relativePath}>
-                {job.relativePath}
+            body: bodySlot(entry => (
+              <TruncatedText class="block" tooltip={entry.relativePath}>
+                {entry.relativePath}
               </TruncatedText>
             )),
           }}
@@ -158,12 +159,12 @@ export const BatchJobTable = defineComponent({
           headerClass={['compact-table-cell', 'w-28'].join(' ')}
           bodyClass={['compact-table-cell', 'w-28'].join(' ')}
           v-slots={{
-            body: bodySlot(job => {
-              const status = batchStatusInfo(job, props.resolving(job.id))
+            body: bodySlot(entry => {
+              const status = batchStatusInfo(entry, props.resolving(entry.id))
               const tag = (
                 <Tag class="font-normal!" value={status.label} severity={status.severity} />
               )
-              const details = job.issues.map(issueText).join('；')
+              const details = entry.issues.map(issueText).join('；')
               return details ? (
                 <TruncatedText class="inline-flex" tooltip={details}>
                   {tag}

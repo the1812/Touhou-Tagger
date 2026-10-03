@@ -31,16 +31,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("initialize image pipeline: %v", err)
 	}
-	factory, sources, err := runtimeOptions(codec)
-	if err != nil {
-		log.Fatalf("initialize GUI runtime: %v", err)
-	}
+	factory, sources := runtimeOptions(codec)
 	backend := bridge.NewBackend(bridge.BackendOptions{
-		Context:          context.Background(),
-		Config:           storedConfig,
-		Factory:          factory,
-		Sources:          sources,
-		StartupDirectory: startupDirectory(),
+		Context: context.Background(),
+		Config:  storedConfig,
+		Factory: factory,
+		Sources: sources,
 	})
 	staticAssets := application.AssetFileServerFS(assets)
 	savedWindowState, err := loadWindowState()

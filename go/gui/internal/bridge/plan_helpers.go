@@ -8,18 +8,6 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
-func canCommit(session *planSession) bool {
-	if session.plan == nil || session.committing {
-		return false
-	}
-	for _, issue := range session.issues {
-		if issue.Severity == "error" {
-			return false
-		}
-	}
-	return true
-}
-
 func applyAlbumPatch(metadata []domain.Metadata, patch AlbumMetadataPatch) {
 	for index := range metadata {
 		item := &metadata[index]
@@ -120,19 +108,4 @@ func cloneMetadata(metadata []domain.Metadata) []domain.Metadata {
 		result[index] = item.Clone()
 	}
 	return result
-}
-
-func (session *planSession) coverOutput() (*coreapp.CoverOutput, error) {
-	if !session.saveCover || len(session.cover) == 0 {
-		return nil, nil
-	}
-	path := session.scan.CoverPath
-	if path == "" {
-		var err error
-		path, err = coreapp.CoverPath(session.scan.Directory, session.cover)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &coreapp.CoverOutput{Path: path, Data: session.cover, Replace: session.scan.CoverPath != ""}, nil
 }

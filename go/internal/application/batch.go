@@ -22,7 +22,7 @@ func (service *Service) ScanBatch(
 	ctx context.Context,
 	directory string,
 	depth int,
-) ([]domain.BatchJob, error) {
+) ([]domain.BatchScanEntry, error) {
 	if depth < 1 {
 		return nil, fmt.Errorf("batch depth must be at least 1")
 	}
@@ -34,11 +34,11 @@ func (service *Service) ScanBatch(
 	if err != nil {
 		return nil, err
 	}
-	jobs := make([]domain.BatchJob, 0, len(directories))
+	entries := make([]domain.BatchScanEntry, 0, len(directories))
 	for _, albumDirectory := range directories {
 		scan, err := service.ScanAlbum(ctx, albumDirectory)
 		if err != nil {
-			jobs = append(jobs, domain.BatchJob{
+			entries = append(entries, domain.BatchScanEntry{
 				Directory: albumDirectory,
 				Name:      filepath.Base(albumDirectory),
 				PreflightErr: fmt.Errorf(
@@ -48,7 +48,7 @@ func (service *Service) ScanBatch(
 			continue
 		}
 		if len(scan.AudioFiles) == 0 {
-			jobs = append(jobs, domain.BatchJob{
+			entries = append(entries, domain.BatchScanEntry{
 				Directory: albumDirectory,
 				Name:      filepath.Base(albumDirectory),
 				Ignored:   true,
@@ -57,45 +57,45 @@ func (service *Service) ScanBatch(
 		}
 		name, err := DefaultAlbumName(albumDirectory)
 		if err != nil {
-			jobs = append(jobs, domain.BatchJob{
+			entries = append(entries, domain.BatchScanEntry{
 				Directory:    albumDirectory,
 				Name:         filepath.Base(albumDirectory),
 				PreflightErr: err,
 			})
 			continue
 		}
-		jobs = append(jobs, domain.BatchJob{
+		entries = append(entries, domain.BatchScanEntry{
 			Directory:  albumDirectory,
 			Name:       name,
 			AudioCount: len(scan.AudioFiles),
 		})
 	}
-	return jobs, nil
+	return entries, nil
 }
 
 func (service *Service) RunBatch(
 	ctx context.Context,
-	jobs []domain.BatchJob,
-	run func(context.Context, domain.BatchJob) error,
+	entries []domain.BatchScanEntry,
+	run func(context.Context, domain.BatchScanEntry) error,
 ) []domain.BatchResult {
-	results := make([]domain.BatchResult, 0, len(jobs))
-	for _, job := range jobs {
+	results := make([]domain.BatchResult, 0, len(entries))
+	for _, entry := range entries {
 		if err := ctx.Err(); err != nil {
-			results = append(results, domain.BatchResult{Job: job, Err: err})
+			results = append(results, domain.BatchResult{Entry: entry, Err: err})
 			break
 		}
-		if job.PreflightErr != nil {
-			results = append(results, domain.BatchResult{Job: job, Err: job.PreflightErr})
+		if entry.PreflightErr != nil {
+			results = append(results, domain.BatchResult{Entry: entry, Err: entry.PreflightErr})
 			continue
 		}
-		if job.Ignored {
-			results = append(results, domain.BatchResult{Job: job})
+		if entry.Ignored {
+			results = append(results, domain.BatchResult{Entry: entry})
 			continue
 		}
 		started := time.Now()
-		err := run(ctx, job)
+		err := run(ctx, entry)
 		results = append(results, domain.BatchResult{
-			Job: job, Duration: time.Since(started), Err: err,
+			Entry: entry, Duration: time.Since(started), Err: err,
 		})
 	}
 	return results

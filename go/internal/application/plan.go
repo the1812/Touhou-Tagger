@@ -31,7 +31,6 @@ type PlanPreview struct {
 }
 
 type Plan struct {
-	Events  EventSink
 	preview PlanPreview
 	options PlanOptions
 	config  domain.MetadataConfig
@@ -85,7 +84,7 @@ func (service *Service) CreatePlan(
 		return nil, err
 	}
 	return &Plan{
-		Events: service.Events, preview: preview, options: options, config: value,
+		preview: preview, options: options, config: value,
 		writers: maps.Clone(service.Writers), files: files,
 	}, nil
 }
@@ -109,15 +108,6 @@ func (plan *Plan) checkFiles() error {
 		}
 		if !matches {
 			return fmt.Errorf("file changed since preview: %q", path)
-		}
-	}
-	return nil
-}
-
-func (plan *Plan) emit(event domain.ProgressEvent) error {
-	if plan.Events != nil {
-		if err := plan.Events(event); err != nil {
-			return fmt.Errorf("emit %s progress: %w", event.Stage, err)
 		}
 	}
 	return nil

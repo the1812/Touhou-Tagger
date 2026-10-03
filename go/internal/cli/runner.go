@@ -44,17 +44,17 @@ func (runner *Runner) runDirectories(ctx context.Context, run func(context.Conte
 	if err != nil {
 		return err
 	}
-	jobs, err := service.ScanBatch(ctx, runner.options.Batch, runner.options.BatchDepth)
+	entries, err := service.ScanBatch(ctx, runner.options.Batch, runner.options.BatchDepth)
 	if err != nil {
 		return err
 	}
-	results := service.RunBatch(ctx, jobs, func(ctx context.Context, job domain.BatchJob) error {
-		return run(ctx, job.Directory, true)
+	results := service.RunBatch(ctx, entries, func(ctx context.Context, entry domain.BatchScanEntry) error {
+		return run(ctx, entry.Directory, true)
 	})
 	var failures []error
 	for _, result := range results {
 		if result.Err != nil {
-			failures = append(failures, fmt.Errorf("%s: %w", result.Job.Directory, result.Err))
+			failures = append(failures, fmt.Errorf("%s: %w", result.Entry.Directory, result.Err))
 		}
 	}
 	if len(failures) > 0 {

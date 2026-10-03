@@ -16,10 +16,6 @@ export const fixtureApi: GUIApi = {
     return clone(capabilities)
   },
 
-  getStartupDirectory() {
-    return Promise.resolve('')
-  },
-
   async revealDirectory() {
     await wait()
   },
@@ -50,15 +46,5 @@ export const fixtureApi: GUIApi = {
   onProgress(handler) {
     fixtureState.progressHandlers.add(handler)
     return () => fixtureState.progressHandlers.delete(handler)
-  },
-
-  onComplete(handler) {
-    fixtureState.completeHandlers.add(handler)
-    return () => fixtureState.completeHandlers.delete(handler)
-  },
-
-  onFailure(handler) {
-    fixtureState.failureHandlers.add(handler)
-    return () => fixtureState.failureHandlers.delete(handler)
   },
 }

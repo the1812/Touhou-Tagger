@@ -28,7 +28,7 @@ type PlanItem struct {
 	Metadata   Metadata
 }
 
-type BatchJob struct {
+type BatchScanEntry struct {
 	Directory    string
 	Name         string
 	AudioCount   int
@@ -37,7 +37,7 @@ type BatchJob struct {
 }
 
 type BatchResult struct {
-	Job      BatchJob
+	Entry    BatchScanEntry
 	Duration time.Duration
 	Err      error
 }

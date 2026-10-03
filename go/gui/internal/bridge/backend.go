@@ -13,11 +13,10 @@ import (
 type ServiceFactory func(domain.MetadataConfig, coreapp.EventSink) (*coreapp.Service, error)
 
 type BackendOptions struct {
-	Context          context.Context
-	Config           domain.MetadataConfig
-	Factory          ServiceFactory
-	Sources          []SourceOption
-	StartupDirectory string
+	Context context.Context
+	Config  domain.MetadataConfig
+	Factory ServiceFactory
+	Sources []SourceOption
 }
 
 type Backend struct {
@@ -29,7 +28,7 @@ type Backend struct {
 	plans   *planStore
 	catalog *candidateCatalog
 	desktop *desktopService
-	ops     *operationManager
+	ops     *writeOperationManager
 }
 
 type runtimeState struct {
@@ -44,7 +43,7 @@ func NewBackend(options BackendOptions) *Backend {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	operations := newOperationManager(ctx)
+	operations := newWriteOperationManager(ctx)
 	runtime := &runtimeState{
 		config:  options.Config,
 		factory: options.Factory,
@@ -61,12 +60,11 @@ func NewBackend(options BackendOptions) *Backend {
 		ops:     operations,
 	}
 	workspace := &WorkspaceService{
-		runtime:          runtime,
-		planner:          planner,
-		catalog:          catalog,
-		desktop:          desktop,
-		ops:              operations,
-		startupDirectory: options.StartupDirectory,
+		runtime: runtime,
+		planner: planner,
+		catalog: catalog,
+		desktop: desktop,
+		ops:     operations,
 	}
 	batch := &BatchService{
 		runtime:   runtime,

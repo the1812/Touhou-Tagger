@@ -3,21 +3,21 @@ import { computed, ref, shallowRef } from 'vue'
 
 import {
   useNotificationsStore,
-  useOperationsStore,
+  useWriteOperationsStore,
   useSettingsStore,
 } from '../../../entities/session'
 import {
   getApi,
   type BatchPreview,
   type BatchRunResult,
-  type OperationFailure,
+  type WriteOperationFailure,
 } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
-import { useBatchJobs } from './jobs'
+import { useBatchEntries } from './entries'
 
 export type BatchCompletion =
   | { kind: 'result'; result: BatchRunResult }
-  | { kind: 'failure'; failure: OperationFailure }
+  | { kind: 'failure'; failure: WriteOperationFailure }
 
 type BatchActivity = 'selecting' | 'scanning'
 
@@ -28,7 +28,7 @@ export const useBatchStore = defineStore('batch', () => {
   const activity = ref<BatchActivity>()
   const completion = ref<BatchCompletion>()
   const notifications = useNotificationsStore()
-  const operations = useOperationsStore()
+  const operations = useWriteOperationsStore()
   const settings = useSettingsStore()
   const selecting = computed(() => activity.value === 'selecting')
   const scanning = computed(() => activity.value === 'scanning')
@@ -37,22 +37,23 @@ export const useBatchStore = defineStore('batch', () => {
   )
   const isWriting = computed(() => operations.activeKind === 'batch')
   const writeLocked = computed(() => operations.isActive)
-  const jobs = useBatchJobs({ preview, activity, writeLocked })
-  const { resolvingCount } = jobs
+  const entries = useBatchEntries({ preview, activity, writeLocked })
+  const { resolvingCount } = entries
   const readyCount = computed(
-    () => preview.value?.jobs.filter(job => job.readiness === 'ready').length ?? 0,
+    () => preview.value?.entries.filter(entry => entry.readiness === 'ready').length ?? 0,
   )
-  const skippedCount = computed(() => (preview.value?.jobs.length ?? 0) - readyCount.value)
+  const skippedCount = computed(() => (preview.value?.entries.length ?? 0) - readyCount.value)
   const retryableCount = computed(
     () =>
-      preview.value?.jobs.filter(job => job.readiness === 'ready' && job.outcome === 'failed')
-        .length ?? 0,
+      preview.value?.entries.filter(
+        entry => entry.readiness === 'ready' && entry.outcome === 'failed',
+      ).length ?? 0,
   )
   const isBusy = computed(
     () => activity.value !== undefined || writeLocked.value || resolvingCount.value > 0,
   )
   const canChangeDirectory = computed(() => !isBusy.value)
-  const canEditJobs = computed(() => activity.value === undefined && !writeLocked.value)
+  const canEditEntries = computed(() => activity.value === undefined && !writeLocked.value)
   const canRun = computed(
     () =>
       Boolean(preview.value) &&
@@ -66,7 +67,7 @@ export const useBatchStore = defineStore('batch', () => {
     const batchId = preview.value?.batchId
     preview.value = undefined
     completion.value = undefined
-    jobs.clear()
+    entries.clear()
     if (batchId) {
       try {
         await (await getApi()).discardBatch(batchId)
@@ -86,7 +87,9 @@ export const useBatchStore = defineStore('batch', () => {
       const next = await (await getApi()).scanBatch(directory.value, depth.value, defaultSource())
       preview.value = next
       activity.value = undefined
-      void jobs.loadJobs(next.jobs.filter(job => job.readiness === 'pending').map(job => job.id))
+      void entries.loadEntries(
+        next.entries.filter(entry => entry.readiness === 'pending').map(entry => entry.id),
+      )
     } catch (error) {
       notifications.error(t('notifications.scanBatchFailed'), error)
     } finally {
@@ -124,14 +127,12 @@ export const useBatchStore = defineStore('batch', () => {
   }
   const complete = (result: BatchRunResult) => {
     if (preview.value) {
-      preview.value = { ...preview.value, jobs: result.jobs }
+      preview.value = { ...preview.value, entries: result.entries }
     }
     completion.value = { kind: 'result', result }
   }
-  const fail = (failure: OperationFailure) => {
-    if (failure.kind === 'batch') {
-      completion.value = { kind: 'failure', failure }
-    }
+  const fail = (failure: WriteOperationFailure) => {
+    completion.value = { kind: 'failure', failure }
   }
   const run = async (failedOnly = false) => {
     const current = preview.value
@@ -141,17 +142,16 @@ export const useBatchStore = defineStore('batch', () => {
     completion.value = undefined
     await operations.run({
       kind: 'batch',
-      reserve: () => getApi().then(api => api.runBatch(current.batchId, failedOnly)),
-      start: id => getApi().then(api => api.startBatch(id)),
+      execute: id => getApi().then(api => api.executeBatch(current.batchId, failedOnly, id)),
       cancel: id => getApi().then(api => api.cancelBatch(id)),
-      initial: started => ({
-        operationId: started.operationId,
+      initial: operationId => ({
+        operationId,
         kind: 'batch',
         stage: 'preparing',
         current: 0,
         total: failedOnly ? retryableCount.value : readyCount.value,
         message: t('notifications.preparingBatchWrite'),
-        cancellable: true,
+        cancellable: false,
       }),
       complete,
       failure: fail,
@@ -183,14 +183,14 @@ export const useBatchStore = defineStore('batch', () => {
     resolvingCount,
     canRun,
     canChangeDirectory,
-    canEditJobs,
+    canEditEntries,
     isBusy,
     setDepth,
     selectDirectory,
     scan,
-    loadJob: jobs.loadJob,
-    resolveCandidate: jobs.resolveCandidate,
-    isResolving: jobs.isResolving,
+    loadEntry: entries.loadEntry,
+    resolveCandidate: entries.resolveCandidate,
+    isResolving: entries.isResolving,
     run,
     cancel: operations.cancel,
     reveal,
