@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@primeuix/themes": "2.0.3",
-    "@wailsio/runtime": "3.0.0-alpha.97",
+    "@wailsio/runtime": "3.0.0-beta.27",
     "lucide-vue-next": "0.577.0",
     "pinia": "3.0.4",
     "primevue": "4.5.5",

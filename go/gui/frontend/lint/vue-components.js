@@ -1,4 +1,6 @@
-const onePerFile = {
+import { definePlugin, defineRule } from 'vite-plus/lint/plugins'
+
+const onePerFile = defineRule({
   meta: {
     messages: { extraComponent: 'Each file may define only one Vue component.' },
   },
@@ -20,9 +22,9 @@ const onePerFile = {
       },
     }
   },
-}
+})
 
-export default {
+export default definePlugin({
   meta: { name: 'vue-components' },
   rules: { 'one-per-file': onePerFile },
-}
+})
