@@ -33,6 +33,7 @@
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "build": "tsc",
+    "version:sync": "node scripts/sync-version.mjs",
     "build:go": "pnpm run build:go-cli && pnpm run build:go-gui",
     "build:go-cli": "cd go && go build -trimpath -o ./bin/thtag.exe ./cmd/thtag",
     "build:go-gui": "cd go/gui && go tool wails3 task build",
