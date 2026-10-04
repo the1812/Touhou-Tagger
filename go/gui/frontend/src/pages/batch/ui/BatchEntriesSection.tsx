@@ -17,7 +17,7 @@ export const BatchEntriesSection = defineComponent({
     return () => {
       const currentPreview = preview.value
       return (
-        <div class="workspace-section grid min-h-[390px] content-start gap-3">
+        <div class="workspace-section grid content-start gap-3">
           <div class="workspace-heading">
             <WorkspaceTitle class="mt-1">{t('batch.scanHeading')}</WorkspaceTitle>
             {mode.value === 'directoryScan' ? (
