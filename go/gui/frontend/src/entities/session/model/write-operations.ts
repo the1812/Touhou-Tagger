@@ -3,6 +3,7 @@ import { computed, shallowRef } from 'vue'
 
 import {
   errorInfo,
+  getApi,
   type WriteOperationFailure,
   type WriteOperationKind,
   type WriteOperationProgress,
@@ -27,15 +28,35 @@ interface ActiveWriteOperation {
   cancel(operationId: string): Promise<void>
 }
 
+type ActiveOperation = ActiveWriteOperation | { kind: 'dump'; action: 'extract' | 'saveAs' }
+
 export const useWriteOperationsStore = defineStore('write-operations', () => {
-  const active = shallowRef<ActiveWriteOperation>()
+  const active = shallowRef<ActiveOperation>()
   const notifications = useNotificationsStore()
-  const operation = computed(() => active.value?.progress)
+  const writeOperation = computed(() => (active.value?.kind === 'dump' ? undefined : active.value))
+  const operation = computed(() => writeOperation.value?.progress)
   const activeKind = computed(() => active.value?.kind)
   const isActive = computed(() => active.value !== undefined)
+  const isWriting = computed(() => writeOperation.value !== undefined)
+  const dumpAction = computed(() =>
+    active.value?.kind === 'dump' ? active.value.action : undefined,
+  )
+
+  const dumpMetadata = async (directory: string, saveAs: boolean) => {
+    active.value = { kind: 'dump', action: saveAs ? 'saveAs' : 'extract' }
+    try {
+      const api = await getApi()
+      const path = await api.selectDumpOutput(directory, saveAs)
+      if (path) {
+        return await api.dumpMetadata(directory, path)
+      }
+    } finally {
+      active.value = undefined
+    }
+  }
 
   const cancel = async () => {
-    const current = active.value
+    const current = writeOperation.value
     if (!current?.progress.cancellable) {
       return
     }
@@ -52,7 +73,7 @@ export const useWriteOperationsStore = defineStore('write-operations', () => {
   const run = async <Result extends WriteOperationResult>(
     config: WriteOperationRunConfig<Result>,
   ) => {
-    if (active.value) {
+    if (isActive.value) {
       return
     }
     const operationId = crypto.randomUUID()
@@ -80,10 +101,21 @@ export const useWriteOperationsStore = defineStore('write-operations', () => {
   }
 
   const receiveProgress = (progress: WriteOperationProgress) => {
-    if (active.value?.operationId === progress.operationId) {
-      active.value = { ...active.value, progress }
+    const current = writeOperation.value
+    if (current?.operationId === progress.operationId) {
+      active.value = { ...current, progress }
     }
   }
 
-  return { operation, activeKind, isActive, run, cancel, receiveProgress }
+  return {
+    operation,
+    activeKind,
+    isActive,
+    isWriting,
+    dumpAction,
+    dumpMetadata,
+    run,
+    cancel,
+    receiveProgress,
+  }
 })

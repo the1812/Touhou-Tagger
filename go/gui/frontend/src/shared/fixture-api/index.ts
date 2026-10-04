@@ -1,6 +1,7 @@
 import type { GUIApi } from '../api/types'
 import { fixtureBatchApi } from './batch'
 import { capabilities, defaultSettings } from './data'
+import { fixtureDumpApi } from './dump'
 import { clone, fixtureState, wait } from './state'
 import { fixtureWorkspaceApi } from './workspace'
 
@@ -10,6 +11,7 @@ export { progressMock, progressMockKind } from './progress'
 export const fixtureApi: GUIApi = {
   ...fixtureWorkspaceApi,
   ...fixtureBatchApi,
+  ...fixtureDumpApi,
   setDarkMode: async () => {},
   async getCapabilities() {
     await wait()

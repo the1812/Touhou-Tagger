@@ -1,8 +1,9 @@
-import { FilePenLine, ListChecks } from 'lucide-vue-next'
+import { Download, FilePenLine, ListChecks } from 'lucide-vue-next'
 
 export const workspaceNavigationItems = [
   { path: '/tagging', name: 'tagging', titleKey: 'navigation.tagging', icon: FilePenLine },
   { path: '/batch', name: 'batch', titleKey: 'navigation.batch', icon: ListChecks },
+  { path: '/dump', name: 'dump', titleKey: 'navigation.dump', icon: Download },
 ] as const
 
 export const settingsNavigationItem = {

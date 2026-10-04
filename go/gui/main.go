@@ -85,6 +85,7 @@ func main() {
 	app.RegisterService(application.NewServiceWithOptions(backend.Batch, serviceOptions))
 	app.RegisterService(application.NewServiceWithOptions(backend.Settings, serviceOptions))
 	app.RegisterService(application.NewServiceWithOptions(backend.Appearance, serviceOptions))
+	app.RegisterService(application.NewServiceWithOptions(backend.Dump, serviceOptions))
 	app.OnShutdown(func() {
 		backend.Close()
 		if err := windowState.save(window); err != nil {

@@ -14,6 +14,7 @@ export const CompletionDialog = defineComponent({
     retryable: Boolean,
     revealable: { type: Boolean, default: true },
     details: String,
+    closeLabel: String,
   },
   emits: { reveal: () => true, retry: () => true, close: () => true },
   setup(props, { emit }) {
@@ -69,7 +70,11 @@ export const CompletionDialog = defineComponent({
                   {{ icon: () => <RotateCcw /> }}
                 </Button>
               )}
-              <Button label={t('common.complete')} onClick={() => emit('close')} autofocus />
+              <Button
+                label={props.closeLabel ?? t('common.complete')}
+                onClick={() => emit('close')}
+                autofocus
+              />
             </div>
           ),
         }}

@@ -23,7 +23,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const settings = useSettingsStore()
 
   const isWriting = computed(() => operations.activeKind === 'workspace')
-  const isBusy = computed(() => activity.value !== undefined || operations.isActive)
+  const isBusy = computed(() => activity.value !== undefined || operations.isWriting)
   const canChangeDirectory = computed(() => !isBusy.value)
   const defaultSource = () => settings.saved?.source ?? 'thb-wiki'
   const discardPlan = async () => {
@@ -67,11 +67,12 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     activity,
     isBusy,
   })
+  const canExecute = computed(() => planEditor.canExecute.value && !operations.isActive)
   const writer = useWorkspaceWriting({
     plan,
     stalePlan,
     directory,
-    canExecute: planEditor.canExecute,
+    canExecute,
   })
 
   const preparePlan = async (sourceOverride = source.value) => {
@@ -165,7 +166,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     canPrepare,
     canChangeDirectory,
     blockingIssues: planEditor.blockingIssues,
-    canExecute: planEditor.canExecute,
+    canExecute,
     search: searchSession.search,
     preparePlan,
     scan,

@@ -11,6 +11,8 @@ import type {
   PlanPreview,
   MetadataConfig,
   WorkspaceSummary,
+  DumpSummary,
+  DumpResult,
 } from './types'
 
 export interface SettingsApi {
@@ -61,4 +63,15 @@ export interface WriteOperationEventsApi {
   onProgress(handler: (progress: WriteOperationProgress) => void): () => void
 }
 
-export type GUIApi = SettingsApi & WorkspaceApi & DesktopApi & BatchApi & WriteOperationEventsApi
+export interface DumpApi {
+  scanDump(directory: string): Promise<DumpSummary>
+  selectDumpOutput(directory: string, saveAs: boolean): Promise<string>
+  dumpMetadata(directory: string, path: string): Promise<DumpResult>
+}
+
+export type GUIApi = SettingsApi &
+  WorkspaceApi &
+  DesktopApi &
+  BatchApi &
+  WriteOperationEventsApi &
+  DumpApi

@@ -7,6 +7,7 @@ import { defineComponent, onBeforeUnmount, onMounted, ref, watch, computed } fro
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { useBatchStore } from '../../features/batch'
+import { DumpCompletionDialog, useDumpStore } from '../../features/dump'
 import { useWorkspaceStore } from '../../features/workspace'
 import { getApi } from '../../shared/api'
 import { t } from '../../shared/i18n'
@@ -23,11 +24,19 @@ export const AppShell = defineComponent({
     const commands = usePageCommandRegistry()
     const workspace = useWorkspaceStore()
     const batch = useBatchStore()
-    const canDrop = computed(() =>
-      route.name === 'tagging'
-        ? workspace.canChangeDirectory
-        : route.name === 'batch' && batch.canChangeDirectory,
-    )
+    const dump = useDumpStore()
+    const canDrop = computed(() => {
+      switch (route.name) {
+        case 'tagging':
+          return workspace.canChangeDirectory
+        case 'batch':
+          return batch.canChangeDirectory
+        case 'dump':
+          return dump.canChangeDirectory
+        default:
+          return false
+      }
+    })
     let disposeDrop: (() => void) | undefined
     let unmounted = false
     const clearDrop = (event: DragEvent) => {
@@ -172,6 +181,7 @@ export const AppShell = defineComponent({
           <div id="page-action-bar" class="empty:hidden" />
         </div>
         <ToastHost />
+        <DumpCompletionDialog />
       </>
     )
   },

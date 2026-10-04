@@ -2,6 +2,7 @@ import { Events } from '@wailsio/runtime'
 
 import {
   AppearanceService,
+  DumpService,
   BatchService,
   SettingsService,
   WorkspaceService,
@@ -21,6 +22,9 @@ import type {
 } from './types'
 
 export const nativeApi: GUIApi = {
+  scanDump: directory => DumpService.Scan(directory),
+  selectDumpOutput: (directory, saveAs) => DumpService.SelectOutput(directory, saveAs),
+  dumpMetadata: (directory, path) => DumpService.Extract(directory, path),
   setDarkMode: dark => AppearanceService.SetDarkMode(dark),
   getCapabilities: async () => (await SettingsService.GetCapabilities()) as Capabilities,
   onDirectoriesDrop: handler =>

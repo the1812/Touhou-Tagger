@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { navigationItems } from './navigation'
 
 const components = {
+  dump: () => import('../../pages/dump').then(({ DumpPage }) => DumpPage),
   tagging: () => import('../../pages/tagging').then(({ TaggingPage }) => TaggingPage),
   batch: () => import('../../pages/batch').then(({ BatchPage }) => BatchPage),
   settings: () => import('../../pages/settings').then(({ SettingsPage }) => SettingsPage),

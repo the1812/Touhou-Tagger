@@ -29,7 +29,19 @@
     "primary": "主导航",
     "tagging": "写入",
     "batch": "批量写入",
+    "dump": "提取",
     "settings": "设置"
+  },
+  "dump": {
+    "selectDirectory": "选择要提取标签的专辑目录",
+    "extract": "提取",
+    "saveAs": "另存为",
+    "coverHint": "内嵌封面也将一并提取",
+    "noAudio": "目录中没有支持的 MP3 或 FLAC 文件。",
+    "scanFailed": "扫描专辑失败",
+    "complete": "已提取 {count} 首曲目的标签",
+    "failed": "提取标签失败",
+    "close": "关闭"
   },
   "theme": {
     "system": "跟随系统",

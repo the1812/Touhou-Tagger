@@ -21,7 +21,7 @@ export const useBatchStore = defineStore('batch', () => {
   const operations = useWriteOperationsStore()
   const settings = useSettingsStore()
   const notifications = useNotificationsStore()
-  const writeLocked = computed(() => operations.isActive)
+  const writeLocked = computed(() => operations.isWriting)
   const directoryScan = useBatchSession(writeLocked)
   const manualSelection = useBatchSession(writeLocked)
   const current = computed(() => (mode.value === 'directoryScan' ? directoryScan : manualSelection))
@@ -53,7 +53,7 @@ export const useBatchStore = defineStore('batch', () => {
   const skippedCount = computed(() => (preview.value?.entries.length ?? 0) - readyCount.value)
   const retryableCount = computed(() => current.value.retryableCount.value)
   const isBusy = computed(() => directoryScan.isBusy.value || manualSelection.isBusy.value)
-  const canRun = computed(() => readyCount.value > 0 && !isBusy.value)
+  const canRun = computed(() => readyCount.value > 0 && !isBusy.value && !operations.isActive)
 
   const selectDirectory = (target?: string) =>
     mode.value === 'directoryScan'

@@ -24,6 +24,7 @@ type Backend struct {
 	Batch      *BatchService
 	Settings   *SettingsService
 	Appearance *AppearanceService
+	Dump       *DumpService
 
 	plans   *planStore
 	catalog *candidateCatalog
@@ -82,6 +83,7 @@ func NewBackend(options BackendOptions) *Backend {
 		Batch:      batch,
 		Settings:   settings,
 		Appearance: appearance,
+		Dump:       &DumpService{runtime: runtime, desktop: desktop, ops: operations},
 		plans:      plans,
 		catalog:    catalog,
 		desktop:    desktop,
