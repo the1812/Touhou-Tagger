@@ -1,15 +1,24 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { errorInfo, errorMessage } from '../../../shared/api'
+import {
+  errorInfo,
+  errorMessage,
+  issueText,
+  resultTitle,
+  type WriteOperationResult,
+} from '../../../shared/api'
+import { t } from '../../../shared/i18n'
 
 export interface ProcessNotification {
   id: number
-  severity: 'success' | 'info' | 'error'
+  severity: 'success' | 'info' | 'warn' | 'error'
   summary: string
   detail: string
   diagnostics?: string
   sticky: boolean
+  directory?: string
+  retry?: { disabled(): boolean; run(): void }
 }
 
 export const useNotificationsStore = defineStore('notifications', () => {
@@ -20,14 +29,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const error = (
     summary: string,
     errorValue: unknown,
-    options: { sticky?: boolean; diagnostics?: string } = {},
+    options: Partial<
+      Pick<ProcessNotification, 'sticky' | 'diagnostics' | 'directory' | 'retry'>
+    > = {},
   ) => {
     const failure = errorInfo(errorValue)
     const detail = errorMessage(failure)
     const key = `${summary}:${detail}`
     const now = Date.now()
 
-    if (now - (recent.get(key) ?? 0) < 2500) {
+    if (!options.retry && now - (recent.get(key) ?? 0) < 2500) {
       return
     }
 
@@ -41,10 +52,12 @@ export const useNotificationsStore = defineStore('notifications', () => {
       detail,
       diagnostics: options.diagnostics ?? failure.details,
       sticky: options.sticky ?? false,
+      directory: options.directory,
+      retry: options.retry,
     }
   }
 
-  const success = (summary: string, detail: string) => {
+  const success = (summary: string, detail: string, directory?: string) => {
     const id = nextId.value
     nextId.value += 1
     latest.value = {
@@ -53,6 +66,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       summary,
       detail,
       sticky: false,
+      directory,
     }
   }
 
@@ -68,5 +82,42 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
-  return { latest, error, success, info }
+  const complete = (
+    result: WriteOperationResult,
+    directory?: string,
+    retry?: ProcessNotification['retry'],
+  ) => {
+    const diagnostics =
+      result.kind === 'batch'
+        ? result.entries
+            .filter(entry => entry.outcome === 'failed')
+            .map(
+              entry =>
+                `${entry.relativePath || entry.directory}: ${entry.issues.map(issueText).join('；')}`,
+            )
+            .join('\n')
+        : undefined
+    const detail =
+      result.kind === 'batch' && result.failed > 0
+        ? t('notifications.batchCompletedWithFailuresDetail', { count: result.failed })
+        : ''
+    const severity = (() => {
+      if (result.failed > 0) {
+        return 'warn'
+      }
+      return result.cancelled ? 'info' : 'success'
+    })()
+    latest.value = {
+      id: nextId.value++,
+      severity,
+      summary: resultTitle(result),
+      detail,
+      diagnostics,
+      sticky: false,
+      directory,
+      retry,
+    }
+  }
+
+  return { latest, error, success, info, complete }
 })

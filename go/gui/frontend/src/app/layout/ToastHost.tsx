@@ -1,4 +1,4 @@
-import { Check, Copy, Info, TriangleAlert, X } from 'lucide-vue-next'
+import { Check, Copy, ExternalLink, Info, RotateCcw, TriangleAlert, X } from 'lucide-vue-next'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import type { ToastMessageOptions } from 'primevue/toast'
@@ -6,6 +6,7 @@ import { useToast } from 'primevue/usetoast'
 import { defineComponent, watch } from 'vue'
 
 import { type ProcessNotification, useNotificationsStore } from '../../entities/session'
+import { getApi } from '../../shared/api'
 import { t } from '../../shared/i18n'
 
 interface ToastSlotMessage extends ToastMessageOptions {
@@ -24,7 +25,8 @@ export const ToastHost = defineComponent({
         if (!notification) {
           return
         }
-        const life = notification.severity === 'error' ? 7000 : 3500
+        const life =
+          notification.severity === 'error' || notification.severity === 'warn' ? 7000 : 3500
         const message: ToastMessageOptions & { data: ProcessNotification } = {
           group: 'process',
           severity: notification.severity,
@@ -36,7 +38,7 @@ export const ToastHost = defineComponent({
         }
         toast.add(message)
       },
-      { deep: true },
+      { flush: 'sync' },
     )
 
     const copyDetails = async (details: string) => {
@@ -47,8 +49,22 @@ export const ToastHost = defineComponent({
       }
     }
 
+    const revealDirectory = async (directory: string) => {
+      try {
+        await (await getApi()).revealDirectory(directory)
+      } catch (error) {
+        notifications.error(t('notifications.revealDirectoryFailed'), error)
+      }
+    }
+
     return () => (
-      <Toast group="process" position="top-right">
+      <Toast
+        group="process"
+        position="top-right"
+        // PrimeVue requires hover callbacks to pause and resume its timer.
+        onMouseEnter={() => undefined}
+        onMouseLeave={() => undefined}
+      >
         {{
           container: ({
             message,
@@ -58,6 +74,8 @@ export const ToastHost = defineComponent({
             closeCallback: () => void
           }) => {
             const diagnostics = message.data?.diagnostics
+            const directory = message.data?.directory
+            const retry = message.data?.retry
             const icons: Partial<Record<string, typeof Check>> = { success: Check, info: Info }
             const Icon = icons[message.severity ?? ''] ?? TriangleAlert
             return (
@@ -83,9 +101,23 @@ export const ToastHost = defineComponent({
                   <X class="size-[20px]" />
                 </Button>
                 <div class="col-start-2 col-end-4 grid min-w-0 gap-1">
-                  <div class="wrap-anywhere whitespace-pre-wrap text-(--p-toast-detail-color) text-(length:--p-toast-detail-font-size) font-(--p-toast-detail-font-weight) leading-[1.45]">
-                    {message.detail}
-                  </div>
+                  {message.detail && (
+                    <div class="wrap-anywhere whitespace-pre-wrap text-(--p-toast-detail-color) text-(length:--p-toast-detail-font-size) font-(--p-toast-detail-font-weight) leading-[1.45]">
+                      {message.detail}
+                    </div>
+                  )}
+                  {directory && (
+                    <Button
+                      label={t('common.revealDirectory')}
+                      size="small"
+                      severity="secondary"
+                      text
+                      class="-ml-2 mt-1 justify-self-start"
+                      onClick={() => void revealDirectory(directory)}
+                    >
+                      {{ icon: () => <ExternalLink /> }}
+                    </Button>
+                  )}
                   {diagnostics && (
                     <Button
                       label={t('common.copyDetails')}
@@ -96,6 +128,22 @@ export const ToastHost = defineComponent({
                       onClick={() => void copyDetails(diagnostics)}
                     >
                       {{ icon: () => <Copy /> }}
+                    </Button>
+                  )}
+                  {retry && (
+                    <Button
+                      label={t('operation.retryFailedOnly')}
+                      size="small"
+                      severity="secondary"
+                      text
+                      class="-ml-2 mt-1 justify-self-start"
+                      disabled={retry.disabled()}
+                      onClick={() => {
+                        closeCallback()
+                        retry.run()
+                      }}
+                    >
+                      {{ icon: () => <RotateCcw /> }}
                     </Button>
                   )}
                 </div>

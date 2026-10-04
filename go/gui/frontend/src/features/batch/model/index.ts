@@ -12,7 +12,6 @@ import { useBatchDirectoryScan } from './directoryScan'
 import { useBatchManualSelection } from './manualSelection'
 import { useBatchSession } from './session'
 
-export type { BatchCompletion } from './session'
 export type BatchMode = 'directoryScan' | 'manualSelection'
 
 export const useBatchStore = defineStore('batch', () => {
@@ -34,7 +33,6 @@ export const useBatchStore = defineStore('batch', () => {
       current.value.preview.value = value
     },
   })
-  const completion = computed(() => current.value.completion.value)
   const selecting = computed(() => current.value.activity.value === 'selecting')
   const scanning = computed(() => current.value.activity.value === 'scanning')
   const isWriting = computed(() => operations.activeKind === 'batch')
@@ -101,14 +99,23 @@ export const useBatchStore = defineStore('batch', () => {
   }
   const refresh = () =>
     mode.value === 'directoryScan' ? scanActions.scan() : selectionActions.refresh()
-  const run = async (failedOnly = false) => {
-    const session = current.value
+  const run = async (failedOnly = false, session = current.value) => {
     const batch = session.preview.value
     const count = failedOnly ? session.retryableCount.value : session.readyCount.value
     if (!batch || isBusy.value || count === 0) {
       return
     }
-    session.completion.value = undefined
+    const directory = session === directoryScan ? scanActions.directory.value : undefined
+    const retry = {
+      disabled: () =>
+        session.preview.value?.batchId !== batch.batchId ||
+        session.retryableCount.value === 0 ||
+        isBusy.value ||
+        operations.isActive,
+      run: () => {
+        void run(true, session)
+      },
+    }
     await operations.run({
       kind: 'batch',
       execute: id => getApi().then(api => api.executeBatch(batch.batchId, failedOnly, id)),
@@ -124,10 +131,18 @@ export const useBatchStore = defineStore('batch', () => {
       }),
       complete: result => {
         session.preview.value = { ...batch, entries: result.entries }
-        session.completion.value = { kind: 'result', result }
+        notifications.complete(
+          result,
+          directory,
+          session.retryableCount.value > 0 ? retry : undefined,
+        )
       },
       failure: failure => {
-        session.completion.value = { kind: 'failure', failure }
+        notifications.error(t('notifications.batchWriteFailed'), failure.error ?? failure, {
+          diagnostics: failure.details,
+          directory,
+          retry: session.retryableCount.value > 0 ? retry : undefined,
+        })
       },
     })
   }
@@ -148,7 +163,6 @@ export const useBatchStore = defineStore('batch', () => {
     directory: scanActions.directory,
     depth: scanActions.depth,
     preview,
-    completion,
     selecting,
     scanning,
     operation,
@@ -178,8 +192,5 @@ export const useBatchStore = defineStore('batch', () => {
     run,
     cancel: operations.cancel,
     reveal,
-    closeCompletion: () => {
-      current.value.completion.value = undefined
-    },
   }
 })

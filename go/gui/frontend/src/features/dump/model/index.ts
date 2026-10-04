@@ -2,21 +2,12 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 
 import { useNotificationsStore, useWriteOperationsStore } from '../../../entities/session'
-import {
-  errorInfo,
-  getApi,
-  type DumpResult,
-  type DumpSummary,
-  type ErrorInfo,
-} from '../../../shared/api'
+import { getApi, type DumpSummary } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
-
-type DumpCompletion = { kind: 'result'; result: DumpResult } | { kind: 'failure'; error: ErrorInfo }
 
 export const useDumpStore = defineStore('dump', () => {
   const summary = shallowRef<DumpSummary>()
   const activity = ref<'selecting' | 'scanning'>()
-  const completion = shallowRef<DumpCompletion>()
   const operations = useWriteOperationsStore()
   const notifications = useNotificationsStore()
   const saveAction = computed(() => operations.dumpAction)
@@ -63,24 +54,17 @@ export const useDumpStore = defineStore('dump', () => {
     if (!canExtract.value) {
       return
     }
-    completion.value = undefined
     try {
       const result = await operations.dumpMetadata(directory, saveAs)
       if (result) {
-        completion.value = { kind: 'result', result }
+        notifications.success(
+          t('dump.complete', { count: result.audioCount }),
+          '',
+          result.directory,
+        )
       }
     } catch (error) {
-      completion.value = { kind: 'failure', error: errorInfo(error) }
-    }
-  }
-  const reveal = async () => {
-    if (completion.value?.kind !== 'result') {
-      return
-    }
-    try {
-      await (await getApi()).revealDirectory(completion.value.result.directory)
-    } catch (error) {
-      notifications.error(t('notifications.revealDirectoryFailed'), error)
+      notifications.error(t('dump.failed'), error)
     }
   }
 
@@ -88,15 +72,10 @@ export const useDumpStore = defineStore('dump', () => {
     summary,
     activity,
     saveAction,
-    completion,
     canChangeDirectory,
     canExtract,
     scan,
     selectDirectory,
     extract,
-    reveal,
-    closeCompletion: () => {
-      completion.value = undefined
-    },
   }
 })

@@ -1,14 +1,7 @@
 import type { GUIApi } from './types'
 
 export * from './types'
-export {
-  batchMatchText,
-  batchStatusInfo,
-  failureTitle,
-  issueText,
-  progressText,
-  resultTitle,
-} from './display'
+export { batchMatchText, batchStatusInfo, issueText, progressText, resultTitle } from './display'
 export { errorInfo, errorMessage } from './errorMessage'
 
 const fixtureRequested =

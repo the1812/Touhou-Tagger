@@ -2,7 +2,6 @@ import { t } from '../i18n'
 import { errorMessage } from './errorMessage'
 import type {
   BatchEntryPreview,
-  WriteOperationFailure,
   WriteOperationProgress,
   WriteOperationResult,
   StateIssue,
@@ -70,9 +69,6 @@ export const resultTitle = (result: WriteOperationResult) => {
     ? t('backend.result.batchComplete', { succeeded: result.succeeded, failed: result.failed })
     : t('backend.result.writeComplete', { count: result.succeeded })
 }
-
-export const failureTitle = (failure: WriteOperationFailure) =>
-  failure.error ? errorMessage(failure.error) : failure.message
 
 export const batchStatusInfo = (entry: BatchEntryPreview, loading: boolean) => {
   if (loading || entry.readiness === 'pending') {

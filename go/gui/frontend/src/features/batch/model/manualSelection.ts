@@ -22,7 +22,6 @@ export const useBatchManualSelection = (session: BatchSession, defaultSource: ()
       session.preview.value = current
         ? await api.addBatchDirectories(current.batchId, directories)
         : await api.createBatchFromDirectories(directories, defaultSource())
-      session.completion.value = undefined
       session.activity.value = undefined
       await session.loadPending()
     } catch (error) {
@@ -39,7 +38,6 @@ export const useBatchManualSelection = (session: BatchSession, defaultSource: ()
     session.activity.value = 'updating'
     try {
       session.preview.value = await (await getApi()).removeBatchEntry(current.batchId, entryId)
-      session.completion.value = undefined
     } catch (error) {
       notifications.error(t('notifications.removeBatchEntryFailed'), error)
     } finally {
@@ -50,7 +48,6 @@ export const useBatchManualSelection = (session: BatchSession, defaultSource: ()
     if (session.isBusy.value) {
       return
     }
-    session.completion.value = undefined
     await session.entries.loadEntries(session.preview.value?.entries.map(entry => entry.id) ?? [])
   }
   return { addDirectories, removeEntry, refresh }

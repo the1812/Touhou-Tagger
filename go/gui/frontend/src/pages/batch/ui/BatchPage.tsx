@@ -6,10 +6,9 @@ import { defineComponent } from 'vue'
 import { Translation } from 'vue-i18n'
 
 import { useBatchStore } from '../../../features/batch'
-import { failureTitle, issueText, resultTitle } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
 import { usePageCommands, useDelayedBusy } from '../../../shared/lib'
-import { CompletionDialog, PageActionBar } from '../../../shared/ui'
+import { PageActionBar } from '../../../shared/ui'
 import { BatchDirectoryHeader } from './BatchDirectoryHeader'
 import { BatchDirectoryPicker } from './BatchDirectoryPicker'
 import { BatchEntriesSection } from './BatchEntriesSection'
@@ -26,10 +25,8 @@ export const BatchPage = defineComponent({
       scanning,
       operation,
       isWriting,
-      completion,
       readyCount,
       skippedCount,
-      retryableCount,
       canRun,
     } = storeToRefs(batch)
 
@@ -50,16 +47,6 @@ export const BatchPage = defineComponent({
         mode.value === 'directoryScan' ? Boolean(directory.value) : Boolean(preview.value)
       const currentPreview = preview.value
       const currentOperation = operation.value
-      const currentCompletion = completion.value
-      const result = currentCompletion?.kind === 'result' ? currentCompletion.result : undefined
-      const failure = currentCompletion?.kind === 'failure' ? currentCompletion.failure : undefined
-      let title = ''
-      if (currentCompletion) {
-        title =
-          currentCompletion.kind === 'failure'
-            ? failureTitle(currentCompletion.failure)
-            : resultTitle(currentCompletion.result)
-      }
 
       return (
         <div class="workspace-sections round-icon-buttons grid min-h-full content-start gap-0">
@@ -154,27 +141,6 @@ export const BatchPage = defineComponent({
                   />
                 )}
               </>
-
-              <CompletionDialog
-                visible={Boolean(currentCompletion)}
-                title={title}
-                warning={Boolean(failure || result?.failed || result?.cancelled)}
-                details={
-                  failure?.details ??
-                  result?.entries
-                    .filter(entry => entry.outcome === 'failed')
-                    .map(
-                      entry =>
-                        `${entry.relativePath || entry.directory}: ${entry.issues.map(issueText).join('；')}`,
-                    )
-                    .join('\n')
-                }
-                revealable={mode.value === 'directoryScan'}
-                retryable={retryableCount.value > 0}
-                onReveal={() => batch.reveal()}
-                onRetry={() => batch.run(true)}
-                onClose={batch.closeCompletion}
-              />
             </>
           )}
         </div>

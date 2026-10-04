@@ -1,2 +1,2 @@
 export { useBatchStore } from './model'
-export type { BatchCompletion, BatchMode } from './model'
+export type { BatchMode } from './model'

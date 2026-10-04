@@ -7,7 +7,7 @@ import { defineComponent, onBeforeUnmount, onMounted, ref, watch, computed } fro
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { useBatchStore } from '../../features/batch'
-import { DumpCompletionDialog, useDumpStore } from '../../features/dump'
+import { useDumpStore } from '../../features/dump'
 import { useWorkspaceStore } from '../../features/workspace'
 import { getApi } from '../../shared/api'
 import { t } from '../../shared/i18n'
@@ -181,7 +181,6 @@ export const AppShell = defineComponent({
           <div id="page-action-bar" class="empty:hidden" />
         </div>
         <ToastHost />
-        <DumpCompletionDialog />
       </>
     )
   },

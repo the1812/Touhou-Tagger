@@ -2,9 +2,8 @@ import { storeToRefs } from 'pinia'
 import { defineComponent } from 'vue'
 
 import { useWorkspaceStore } from '../../../features/workspace'
-import { failureTitle, resultTitle } from '../../../shared/api'
 import { usePageCommands } from '../../../shared/lib'
-import { CompletionDialog, DirectoryPickerEmptyState } from '../../../shared/ui'
+import { DirectoryPickerEmptyState } from '../../../shared/ui'
 import { TaggingPlanSkeleton } from './TaggingPlanSkeleton'
 import { TaggingPlanStep } from './TaggingPlanStep'
 import { TaggingSearchStep } from './TaggingSearchStep'
@@ -14,7 +13,7 @@ export const TaggingPage = defineComponent({
   name: 'TaggingPage',
   setup() {
     const workspace = useWorkspaceStore()
-    const { activity, completion, summary } = storeToRefs(workspace)
+    const { activity, summary } = storeToRefs(workspace)
 
     usePageCommands({
       openDirectory: directories => {
@@ -41,20 +40,7 @@ export const TaggingPage = defineComponent({
     })
 
     return () => {
-      const currentCompletion = completion.value
       const loadingAlbum = activity.value === 'opening'
-      const { title, warning } = (() => {
-        if (!currentCompletion) {
-          return { title: '', warning: false }
-        }
-        if (currentCompletion.kind === 'failure') {
-          return { title: failureTitle(currentCompletion.failure), warning: true }
-        }
-        return {
-          title: resultTitle(currentCompletion.result),
-          warning: Boolean(currentCompletion.result.cancelled || currentCompletion.result.failed),
-        }
-      })()
 
       return (
         <div class="round-icon-buttons flex min-h-full flex-col">
@@ -76,19 +62,6 @@ export const TaggingPage = defineComponent({
                   <TaggingPlanStep />
                 </>
               )}
-
-              <CompletionDialog
-                visible={Boolean(currentCompletion)}
-                title={title}
-                warning={warning}
-                details={
-                  currentCompletion?.kind === 'failure'
-                    ? currentCompletion.failure.details
-                    : undefined
-                }
-                onReveal={() => workspace.reveal()}
-                onClose={workspace.closeCompletion}
-              />
             </div>
           )}
         </div>

@@ -1,23 +1,13 @@
 import { computed, ref, shallowRef, type Ref } from 'vue'
 
-import {
-  getApi,
-  type BatchPreview,
-  type BatchRunResult,
-  type WriteOperationFailure,
-} from '../../../shared/api'
+import { getApi, type BatchPreview } from '../../../shared/api'
 import { useBatchEntries } from './entries'
-
-export type BatchCompletion =
-  | { kind: 'result'; result: BatchRunResult }
-  | { kind: 'failure'; failure: WriteOperationFailure }
 
 export type BatchActivity = 'selecting' | 'scanning' | 'updating'
 
 export const useBatchSession = (writeLocked: Readonly<Ref<boolean>>) => {
   const preview = shallowRef<BatchPreview>()
   const activity = ref<BatchActivity>()
-  const completion = shallowRef<BatchCompletion>()
   const entries = useBatchEntries({ preview, activity, writeLocked })
   const isBusy = computed(
     () => Boolean(activity.value) || writeLocked.value || entries.resolvingCount.value > 0,
@@ -42,13 +32,11 @@ export const useBatchSession = (writeLocked: Readonly<Ref<boolean>>) => {
       await (await getApi()).discardBatch(preview.value.batchId)
     }
     preview.value = undefined
-    completion.value = undefined
     entries.clear()
   }
   return {
     preview,
     activity,
-    completion,
     entries,
     isBusy,
     readyCount,

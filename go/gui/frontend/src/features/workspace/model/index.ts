@@ -97,7 +97,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       query.value = ''
       source.value = defaultSource()
       clearSearch()
-      writer.closeCompletion()
       const next = await (await getApi()).scanWorkspace(targetDirectory)
       directory.value = next.directory
       summary.value = next

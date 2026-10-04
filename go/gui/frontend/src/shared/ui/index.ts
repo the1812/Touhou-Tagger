@@ -1,6 +1,5 @@
 export { CandidateCover } from './CandidateCover'
 export { CandidateOption } from './CandidateOption'
-export { CompletionDialog } from './CompletionDialog'
 export { CoverPlaceholder } from './CoverPlaceholder'
 export { DirectoryPickerEmptyState } from './DirectoryPickerEmptyState'
 export { FieldLabel } from './FieldLabel'
