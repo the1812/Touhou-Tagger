@@ -26,7 +26,7 @@ func (service *BatchService) SelectBatchDirectory(title string) (string, error) 
 	return service.desktop.selectDirectory(title, batchDirectory)
 }
 
-func (service *BatchService) ScanBatch(
+func (service *BatchService) ScanBatchDirectories(
 	ctx context.Context,
 	directory string,
 	depth int,
@@ -47,23 +47,23 @@ func (service *BatchService) ScanBatch(
 	if err != nil {
 		return BatchPreview{}, fmt.Errorf("解析批量写入目录: %w", err)
 	}
+	return service.createSession(entries, root, sourceName), nil
+}
+
+func (service *BatchService) createSession(entries []domain.BatchScanEntry, root, sourceName string) BatchPreview {
 	session := &batchSession{
 		id:      newID("batch"),
 		root:    root,
-		depth:   depth,
+		source:  sourceName,
 		entries: make([]*batchEntry, 0, len(entries)),
 	}
 	for _, discovered := range entries {
 		session.entries = append(session.entries, newBatchEntry(discovered, sourceName, session.id, service.planner))
 	}
 	service.mu.Lock()
-	for id, previous := range service.sessions {
-		delete(service.sessions, id)
-		service.planner.discardOwner(previous.id)
-	}
 	service.sessions[session.id] = session
 	service.mu.Unlock()
-	return session.preview(), nil
+	return session.preview()
 }
 
 func (service *BatchService) LoadBatchEntry(ctx context.Context, batchID, entryID string) (BatchEntryPreview, error) {

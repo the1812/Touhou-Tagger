@@ -1,29 +1,26 @@
-import { Pencil, Play } from 'lucide-vue-next'
+import { Pencil } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { defineComponent } from 'vue'
-import { Translation } from 'vue-i18n'
 
 import { useWorkspaceStore } from '../../../features/workspace'
 import type { PlanItemPreview } from '../../../shared/api'
 import { issueText } from '../../../shared/api'
 import { sourceLabel, t } from '../../../shared/i18n'
-import { useDelayedBusy } from '../../../shared/lib'
-import { Message, PageActionBar, WorkspaceTitle } from '../../../shared/ui'
+import { Message, WorkspaceTitle } from '../../../shared/ui'
 import { usePlanEditor } from '../model/usePlanEditor'
 import { AlbumMetadataDialog } from './AlbumMetadataDialog'
 import { CoverPreview } from './CoverPreview'
 import { PlanTable } from './PlanTable'
+import { TaggingPlanActionBar } from './TaggingPlanActionBar'
 import { TrackMetadataDialog } from './TrackMetadataDialog'
 
 export const TaggingPlanStep = defineComponent({
   name: 'TaggingPlanStep',
   setup() {
     const workspace = useWorkspaceStore()
-    const { plan, summary, stalePlan, isWriting, isBusy, blockingIssues, canExecute } =
-      storeToRefs(workspace)
-    const showSpinner = useDelayedBusy(() => isWriting.value)
+    const { plan, summary, stalePlan, isBusy } = storeToRefs(workspace)
     const editor = usePlanEditor(workspace)
     const openTrack = (item: PlanItemPreview) => {
       if (!isBusy.value && !stalePlan.value) {
@@ -38,8 +35,6 @@ export const TaggingPlanStep = defineComponent({
       }
 
       const stale = stalePlan.value
-      const idleAction = stale ? 'tagging.rescan' : 'common.start'
-      const cannotExecute = !stale && !canExecute.value
       return (
         <>
           <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
@@ -120,55 +115,7 @@ export const TaggingPlanStep = defineComponent({
             />
           </div>
 
-          <PageActionBar>
-            <div class="text-sm text-muted-color">
-              <Translation
-                keypath="tagging.plan.writeFiles"
-                scope="global"
-                v-slots={{
-                  count: () => (
-                    <div class="inline text-color">{currentPlan.options.writeFiles}</div>
-                  ),
-                }}
-              />
-              {currentPlan.options.saveCover &&
-                (summary.value?.localCover.exists
-                  ? t('tagging.plan.overwriteCoverSuffix')
-                  : t('tagging.plan.saveOriginalCoverSuffix'))}
-            </div>
-            <div class="flex items-center gap-2">
-              {!summary.value?.hasMetadataJson && (
-                <Button
-                  label={t('common.previous')}
-                  severity="secondary"
-                  text
-                  disabled={isBusy.value || stale}
-                  onClick={() => void workspace.backToSearch()}
-                />
-              )}
-              <div
-                class="inline-flex"
-                v-tooltip={{
-                  value: t('tagging.plan.blockingIssues', {
-                    count: blockingIssues.value.length,
-                  }),
-                  disabled: blockingIssues.value.length === 0,
-                }}
-              >
-                <Button
-                  class="min-w-28"
-                  label={t(isWriting.value ? 'operation.writing' : idleAction)}
-                  loading={showSpinner.value}
-                  disabled={isBusy.value || cannotExecute}
-                  onClick={() =>
-                    void (stale ? workspace.scan(workspace.directory) : workspace.execute())
-                  }
-                >
-                  {{ icon: () => <Play /> }}
-                </Button>
-              </div>
-            </div>
-          </PageActionBar>
+          <TaggingPlanActionBar />
 
           <TrackMetadataDialog
             visible={editor.kind.value === 'track'}

@@ -1,0 +1,61 @@
+import { computed, ref, shallowRef, type Ref } from 'vue'
+
+import {
+  getApi,
+  type BatchPreview,
+  type BatchRunResult,
+  type WriteOperationFailure,
+} from '../../../shared/api'
+import { useBatchEntries } from './entries'
+
+export type BatchCompletion =
+  | { kind: 'result'; result: BatchRunResult }
+  | { kind: 'failure'; failure: WriteOperationFailure }
+
+export type BatchActivity = 'selecting' | 'scanning' | 'updating'
+
+export const useBatchSession = (writeLocked: Readonly<Ref<boolean>>) => {
+  const preview = shallowRef<BatchPreview>()
+  const activity = ref<BatchActivity>()
+  const completion = shallowRef<BatchCompletion>()
+  const entries = useBatchEntries({ preview, activity, writeLocked })
+  const isBusy = computed(
+    () => Boolean(activity.value) || writeLocked.value || entries.resolvingCount.value > 0,
+  )
+  const readyCount = computed(
+    () => preview.value?.entries.filter(entry => entry.readiness === 'ready').length ?? 0,
+  )
+  const retryableCount = computed(
+    () =>
+      preview.value?.entries.filter(
+        entry => entry.readiness === 'ready' && entry.outcome === 'failed',
+      ).length ?? 0,
+  )
+  const loadPending = () =>
+    entries.loadEntries(
+      preview.value?.entries
+        .filter(entry => entry.readiness === 'pending')
+        .map(entry => entry.id) ?? [],
+    )
+  const discard = async () => {
+    if (preview.value) {
+      await (await getApi()).discardBatch(preview.value.batchId)
+    }
+    preview.value = undefined
+    completion.value = undefined
+    entries.clear()
+  }
+  return {
+    preview,
+    activity,
+    completion,
+    entries,
+    isBusy,
+    readyCount,
+    retryableCount,
+    loadPending,
+    discard,
+  }
+}
+
+export type BatchSession = ReturnType<typeof useBatchSession>

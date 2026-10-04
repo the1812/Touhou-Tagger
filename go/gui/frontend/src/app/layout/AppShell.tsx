@@ -79,9 +79,9 @@ export const AppShell = defineComponent({
       window.addEventListener('keydown', onKeydown)
       const api = await getApi()
       if (!unmounted) {
-        disposeDrop = api.onDirectoryDrop(directory => {
+        disposeDrop = api.onDirectoriesDrop(directories => {
           if (canDrop.value) {
-            commands.run('openDirectory', directory)
+            commands.run('openDirectory', directories)
           }
         })
       }

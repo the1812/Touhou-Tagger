@@ -34,6 +34,10 @@ func (service *Service) ScanBatch(
 	if err != nil {
 		return nil, err
 	}
+	return service.PrepareBatchEntries(ctx, directories), nil
+}
+
+func (service *Service) PrepareBatchEntries(ctx context.Context, directories []string) []domain.BatchScanEntry {
 	entries := make([]domain.BatchScanEntry, 0, len(directories))
 	for _, albumDirectory := range directories {
 		scan, err := service.ScanAlbum(ctx, albumDirectory)
@@ -70,7 +74,7 @@ func (service *Service) ScanBatch(
 			AudioCount: len(scan.AudioFiles),
 		})
 	}
-	return entries, nil
+	return entries
 }
 
 func (service *Service) RunBatch(

@@ -3,10 +3,11 @@ import { computed, shallowRef, type Ref, type ShallowRef } from 'vue'
 import { useNotificationsStore } from '../../../entities/session'
 import { getApi, type BatchEntryPreview, type BatchPreview } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
+import type { BatchActivity } from './session'
 
 export const useBatchEntries = (state: {
   preview: ShallowRef<BatchPreview | undefined>
-  activity: Readonly<Ref<'selecting' | 'scanning' | undefined>>
+  activity: Readonly<Ref<BatchActivity | undefined>>
   writeLocked: Readonly<Ref<boolean>>
 }) => {
   const resolving = shallowRef(new Set<string>())

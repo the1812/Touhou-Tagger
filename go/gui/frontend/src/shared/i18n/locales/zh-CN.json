@@ -83,6 +83,8 @@
     "resetSettingsFailed": "恢复默认设置失败",
     "discardBatchFailed": "无法清除上次的扫描结果",
     "loadAlbumFailed": "加载专辑失败",
+    "addBatchDirectoriesFailed": "添加文件夹失败",
+    "removeBatchEntryFailed": "移除专辑失败",
     "scanBatchFailed": "批量扫描失败",
     "selectBatchDirectoryFailed": "无法选择批量写入根目录",
     "updateBatchCandidateFailed": "无法更新专辑搜索结果",
@@ -218,6 +220,12 @@
     }
   },
   "batch": {
+    "directoryScan": "目录扫描",
+    "manualSelection": "手动选择",
+    "selectDirectoriesDialog": "选择要写入的专辑文件夹",
+    "addDirectories": "添加文件夹",
+    "removeEntry": "移除",
+    "selectionEmpty": "尚未添加文件夹",
     "writeSelection": "，将写入 {ready} 个，跳过 {skipped} 个",
     "selectDirectoryDialog": "选择批量写入的根目录",
     "directoryFallback": "批量写入目录",
@@ -250,6 +258,7 @@
     "selectAlbum": "选择专辑",
     "empty": "没有匹配的目录，请尝试调整扫描的目录层级",
     "columns": {
+      "actions": "操作",
       "directory": "专辑目录",
       "album": "专辑名称",
       "match": "匹配结果",

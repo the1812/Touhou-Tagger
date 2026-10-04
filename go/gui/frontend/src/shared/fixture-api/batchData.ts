@@ -3,11 +3,12 @@ import noCoverFixture from '../../../../../../fixtures/thb-wiki/albums/no-cover/
 import singleDiscFixture from '../../../../../../fixtures/thb-wiki/albums/single-disc/expected.json'
 import type { BatchEntryPreview } from '../api/types'
 import { t } from '../i18n'
-import { candidates } from './data'
+import { candidates, batchDirectory } from './data'
 
 export const batchEntries = (): BatchEntryPreview[] => [
   {
     id: 'fixture-entry-single',
+    directory: `${batchDirectory}/${singleDiscFixture.album.album}`,
     relativePath: singleDiscFixture.album.album,
     inferredAlbumName: singleDiscFixture.album.album,
     source: 'thb-wiki',
@@ -19,6 +20,7 @@ export const batchEntries = (): BatchEntryPreview[] => [
   },
   {
     id: 'fixture-entry-multiple',
+    directory: `${batchDirectory}/${multipleDiscFixture.album.album}`,
     relativePath: multipleDiscFixture.album.album,
     inferredAlbumName: multipleDiscFixture.album.album,
     source: 'thb-wiki',
@@ -35,6 +37,7 @@ export const batchEntries = (): BatchEntryPreview[] => [
   },
   {
     id: 'fixture-entry-no-cover',
+    directory: `${batchDirectory}/${noCoverFixture.album.album}`,
     relativePath: noCoverFixture.album.album,
     inferredAlbumName: noCoverFixture.album.album,
     source: 'thb-wiki',

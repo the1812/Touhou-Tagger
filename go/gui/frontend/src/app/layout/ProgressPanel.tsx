@@ -40,8 +40,10 @@ export const initializeProgressMock = async () => {
       await router.replace('/batch')
       const api = await getApi()
       const batch = useBatchStore()
+      batch.mode = 'directoryScan'
+      batch.choosingMode = false
       batch.directory = batchDirectory
-      const preview = await api.scanBatch(batchDirectory, batch.depth, 'thb-wiki')
+      const preview = await api.scanBatchDirectories(batchDirectory, batch.depth, 'thb-wiki')
       for (const entry of preview.entries) {
         const loaded = await api.loadBatchEntry(preview.batchId, entry.id)
         Object.assign(

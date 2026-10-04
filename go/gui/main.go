@@ -64,14 +64,16 @@ func main() {
 	})
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()
-		if len(files) != 1 {
+		if len(files) == 0 {
 			return
 		}
-		info, err := os.Stat(files[0])
-		if err != nil || !info.IsDir() {
-			return
+		for _, file := range files {
+			info, err := os.Stat(file)
+			if err != nil || !info.IsDir() {
+				return
+			}
 		}
-		app.Event.Emit("gui:directory-dropped", files[0])
+		app.Event.Emit("gui:directories-dropped", files)
 	})
 	if savedWindowState.Maximised {
 		window.Maximise()

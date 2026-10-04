@@ -1,6 +1,10 @@
-import type { WriteOperationProgress, WriteOperationResult } from '../api/types'
-import { batchEntries } from './batchData'
-import { batchDirectory, createPlan, defaultSettings } from './data'
+import type {
+  BatchPreview,
+  BatchEntryPreview,
+  WriteOperationProgress,
+  WriteOperationResult,
+} from '../api/types'
+import { createPlan, defaultSettings } from './data'
 import { attachProgressMock, progressMock, progressMockKind } from './progress'
 
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
@@ -16,12 +20,9 @@ export const fixtureState = {
   settings: clone(defaultSettings),
   activeCandidateId: 'fixture:single-disc',
   activePlan: createPlan('fixture:single-disc'),
-  activeBatch: {
-    batchId: 'fixture-batch',
-    rootDirectory: batchDirectory,
-    depth: 2,
-    entries: batchEntries(),
-  },
+  batches: new Map<string, BatchPreview>(),
+  batchEntries: new Map<string, BatchEntryPreview>(),
+  entrySequence: 0,
 }
 
 export const executeSequence = <Result extends WriteOperationResult>(
@@ -30,6 +31,7 @@ export const executeSequence = <Result extends WriteOperationResult>(
   total: number,
   onDone: () => Result,
   onCancel: () => Result,
+  paths: string[] = [],
 ): Promise<Result> =>
   new Promise((resolve, reject) => {
     if (progressMockKind === kind) {
@@ -47,9 +49,7 @@ export const executeSequence = <Result extends WriteOperationResult>(
           message: '正在准备写入',
           cancellable: true,
         },
-        kind === 'workspace'
-          ? fixtureState.activePlan.items.map(item => item.sourceName)
-          : fixtureState.activeBatch.entries.map(entry => entry.relativePath),
+        kind === 'workspace' ? fixtureState.activePlan.items.map(item => item.sourceName) : paths,
         progress => fixtureState.progressHandlers.forEach(handler => handler(progress)),
         outcome => {
           fixtureState.operationCancel = undefined
@@ -96,9 +96,7 @@ export const executeSequence = <Result extends WriteOperationResult>(
               ? fixtureState.activePlan.items[
                   Math.min(current - 1, fixtureState.activePlan.items.length - 1)
                 ]?.sourceName
-              : fixtureState.activeBatch.entries[
-                  Math.min(current - 1, fixtureState.activeBatch.entries.length - 1)
-                ]?.relativePath,
+              : paths[Math.min(current - 1, paths.length - 1)],
           cancellable: kind === 'batch' || stage === 'preparing',
         }),
       )

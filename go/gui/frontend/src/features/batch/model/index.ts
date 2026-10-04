@@ -1,199 +1,185 @@
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref } from 'vue'
 
 import {
   useNotificationsStore,
   useWriteOperationsStore,
   useSettingsStore,
 } from '../../../entities/session'
-import {
-  getApi,
-  type BatchPreview,
-  type BatchRunResult,
-  type WriteOperationFailure,
-} from '../../../shared/api'
+import { getApi } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
-import { useBatchEntries } from './entries'
+import { useBatchDirectoryScan } from './directoryScan'
+import { useBatchManualSelection } from './manualSelection'
+import { useBatchSession } from './session'
 
-export type BatchCompletion =
-  | { kind: 'result'; result: BatchRunResult }
-  | { kind: 'failure'; failure: WriteOperationFailure }
-
-type BatchActivity = 'selecting' | 'scanning'
+export type { BatchCompletion } from './session'
+export type BatchMode = 'directoryScan' | 'manualSelection'
 
 export const useBatchStore = defineStore('batch', () => {
-  const directory = ref('')
-  const depth = ref(1)
-  const preview = shallowRef<BatchPreview>()
-  const activity = ref<BatchActivity>()
-  const completion = ref<BatchCompletion>()
-  const notifications = useNotificationsStore()
+  const mode = ref<BatchMode>('directoryScan')
+  const choosingMode = ref(true)
   const operations = useWriteOperationsStore()
   const settings = useSettingsStore()
-  const selecting = computed(() => activity.value === 'selecting')
-  const scanning = computed(() => activity.value === 'scanning')
-  const operation = computed(() =>
-    operations.activeKind === 'batch' ? operations.operation : undefined,
-  )
-  const isWriting = computed(() => operations.activeKind === 'batch')
+  const notifications = useNotificationsStore()
   const writeLocked = computed(() => operations.isActive)
-  const entries = useBatchEntries({ preview, activity, writeLocked })
-  const { resolvingCount } = entries
-  const readyCount = computed(
-    () => preview.value?.entries.filter(entry => entry.readiness === 'ready').length ?? 0,
-  )
-  const skippedCount = computed(() => (preview.value?.entries.length ?? 0) - readyCount.value)
-  const retryableCount = computed(
-    () =>
-      preview.value?.entries.filter(
-        entry => entry.readiness === 'ready' && entry.outcome === 'failed',
-      ).length ?? 0,
-  )
-  const isBusy = computed(
-    () => activity.value !== undefined || writeLocked.value || resolvingCount.value > 0,
-  )
-  const canChangeDirectory = computed(() => !isBusy.value)
-  const canEditEntries = computed(() => activity.value === undefined && !writeLocked.value)
-  const canRun = computed(
-    () =>
-      Boolean(preview.value) &&
-      depth.value === preview.value?.depth &&
-      readyCount.value > 0 &&
-      !isBusy.value,
-  )
+  const directoryScan = useBatchSession(writeLocked)
+  const manualSelection = useBatchSession(writeLocked)
+  const current = computed(() => (mode.value === 'directoryScan' ? directoryScan : manualSelection))
   const defaultSource = () => settings.saved?.source ?? 'thb-wiki'
+  const scanActions = useBatchDirectoryScan(directoryScan, defaultSource)
+  const selectionActions = useBatchManualSelection(manualSelection, defaultSource)
+  const preview = computed({
+    get: () => current.value.preview.value,
+    set: value => {
+      current.value.preview.value = value
+    },
+  })
+  const completion = computed(() => current.value.completion.value)
+  const selecting = computed(() => current.value.activity.value === 'selecting')
+  const scanning = computed(() => current.value.activity.value === 'scanning')
+  const isWriting = computed(() => operations.activeKind === 'batch')
+  const operation = computed(() => (isWriting.value ? operations.operation : undefined))
+  const canChangeDirectory = computed(() => !current.value.isBusy.value)
+  const canEditEntries = computed(
+    () => !scanning.value && current.value.activity.value !== 'updating' && !writeLocked.value,
+  )
+  const canRemoveEntries = computed(
+    () => canEditEntries.value && current.value.entries.resolvingCount.value === 0,
+  )
+  const canSwitchMode = computed(
+    () => !writeLocked.value && !directoryScan.activity.value && !manualSelection.activity.value,
+  )
+  const readyCount = computed(() => current.value.readyCount.value)
+  const skippedCount = computed(() => (preview.value?.entries.length ?? 0) - readyCount.value)
+  const retryableCount = computed(() => current.value.retryableCount.value)
+  const isBusy = computed(() => directoryScan.isBusy.value || manualSelection.isBusy.value)
+  const canRun = computed(() => readyCount.value > 0 && !isBusy.value)
 
-  const discardCurrentPreview = async () => {
-    const batchId = preview.value?.batchId
-    preview.value = undefined
-    completion.value = undefined
-    entries.clear()
-    if (batchId) {
-      try {
-        await (await getApi()).discardBatch(batchId)
-      } catch (error) {
-        notifications.error(t('notifications.discardBatchFailed'), error)
-      }
-    }
-  }
-  const scan = async () => {
-    if (!directory.value || isBusy.value) {
+  const selectDirectory = (target?: string) =>
+    mode.value === 'directoryScan'
+      ? scanActions.selectDirectory(target)
+      : selectionActions.addDirectories(target ? [target] : undefined)
+  const chooseMode = async (value: BatchMode) => {
+    if (!canSwitchMode.value) {
       return
     }
-    activity.value = 'scanning'
-    try {
-      await discardCurrentPreview()
-
-      const next = await (await getApi()).scanBatch(directory.value, depth.value, defaultSource())
-      preview.value = next
-      activity.value = undefined
-      void entries.loadEntries(
-        next.entries.filter(entry => entry.readiness === 'pending').map(entry => entry.id),
-      )
-    } catch (error) {
-      notifications.error(t('notifications.scanBatchFailed'), error)
-    } finally {
-      activity.value = undefined
+    mode.value = value
+    choosingMode.value = false
+    if (!current.value.preview.value) {
+      await selectDirectory()
     }
   }
-  const setDepth = async (value: number | null) => {
-    if (value === null || value === depth.value || isBusy.value) {
+  const backToSelection = () => {
+    if (canSwitchMode.value) {
+      choosingMode.value = true
+    }
+  }
+  const openDirectories = async (directories?: string[]) => {
+    if (!directories) {
+      if (choosingMode.value) {
+        await chooseMode(mode.value)
+      } else {
+        await selectDirectory()
+      }
       return
     }
-    depth.value = value
-    await scan()
-  }
-  const selectDirectory = async (target?: string) => {
-    if (!canChangeDirectory.value) {
+    if (directories.length === 0 || !canSwitchMode.value) {
       return
     }
-    activity.value = 'selecting'
-    try {
-      const selected =
-        target ?? (await (await getApi()).selectBatchDirectory(t('batch.selectDirectoryDialog')))
-      if (selected) {
-        await discardCurrentPreview()
-
-        directory.value = selected
-      }
-      activity.value = undefined
-      if (selected) {
-        await scan()
-      }
-    } catch (error) {
-      activity.value = undefined
-      notifications.error(t('notifications.selectBatchDirectoryFailed'), error)
+    const targetMode = directories.length === 1 ? 'directoryScan' : 'manualSelection'
+    const session = targetMode === 'directoryScan' ? directoryScan : manualSelection
+    if (session.isBusy.value) {
+      return
+    }
+    mode.value = targetMode
+    choosingMode.value = false
+    if (targetMode === 'directoryScan') {
+      await scanActions.selectDirectory(directories[0])
+    } else {
+      await selectionActions.addDirectories(directories)
     }
   }
-  const complete = (result: BatchRunResult) => {
-    if (preview.value) {
-      preview.value = { ...preview.value, entries: result.entries }
-    }
-    completion.value = { kind: 'result', result }
-  }
-  const fail = (failure: WriteOperationFailure) => {
-    completion.value = { kind: 'failure', failure }
-  }
+  const refresh = () =>
+    mode.value === 'directoryScan' ? scanActions.scan() : selectionActions.refresh()
   const run = async (failedOnly = false) => {
-    const current = preview.value
-    if (!current || isBusy.value || (failedOnly ? !retryableCount.value : !canRun.value)) {
+    const session = current.value
+    const batch = session.preview.value
+    const count = failedOnly ? session.retryableCount.value : session.readyCount.value
+    if (!batch || isBusy.value || count === 0) {
       return
     }
-    completion.value = undefined
+    session.completion.value = undefined
     await operations.run({
       kind: 'batch',
-      execute: id => getApi().then(api => api.executeBatch(current.batchId, failedOnly, id)),
+      execute: id => getApi().then(api => api.executeBatch(batch.batchId, failedOnly, id)),
       cancel: id => getApi().then(api => api.cancelBatch(id)),
       initial: operationId => ({
         operationId,
         kind: 'batch',
         stage: 'preparing',
         current: 0,
-        total: failedOnly ? retryableCount.value : readyCount.value,
+        total: count,
         message: t('notifications.preparingBatchWrite'),
         cancellable: false,
       }),
-      complete,
-      failure: fail,
+      complete: result => {
+        session.preview.value = { ...batch, entries: result.entries }
+        session.completion.value = { kind: 'result', result }
+      },
+      failure: failure => {
+        session.completion.value = { kind: 'failure', failure }
+      },
     })
   }
-  const reveal = async () => {
-    if (!directory.value) {
+  const reveal = async (directory = scanActions.directory.value) => {
+    if (!directory) {
       return
     }
     try {
-      await (await getApi()).revealDirectory(directory.value)
+      await (await getApi()).revealDirectory(directory)
     } catch (error) {
       notifications.error(t('notifications.revealDirectoryFailed'), error)
     }
   }
 
   return {
-    directory,
-    depth,
+    mode,
+    choosingMode,
+    directory: scanActions.directory,
+    depth: scanActions.depth,
     preview,
+    completion,
     selecting,
     scanning,
     operation,
     isWriting,
-    completion,
+    isBusy,
+    readyCount,
     skippedCount,
     retryableCount,
-    readyCount,
-    resolvingCount,
     canRun,
     canChangeDirectory,
     canEditEntries,
-    isBusy,
-    setDepth,
+    canRemoveEntries,
+    canSwitchMode,
+    chooseMode,
+    backToSelection,
+    openDirectories,
     selectDirectory,
-    scan,
-    loadEntry: entries.loadEntry,
-    resolveCandidate: entries.resolveCandidate,
-    isResolving: entries.isResolving,
+    refresh,
+    scan: scanActions.scan,
+    setDepth: scanActions.setDepth,
+    addDirectories: selectionActions.addDirectories,
+    removeEntry: selectionActions.removeEntry,
+    loadEntry: (entryId: string) => current.value.entries.loadEntry(entryId),
+    resolveCandidate: (entryId: string, candidateId: string) =>
+      current.value.entries.resolveCandidate(entryId, candidateId),
+    isResolving: (entryId: string) => current.value.entries.isResolving(entryId),
     run,
     cancel: operations.cancel,
     reveal,
-    closeCompletion: () => (completion.value = undefined),
+    closeCompletion: () => {
+      current.value.completion.value = undefined
+    },
   }
 })

@@ -146,6 +146,7 @@ type WriteOperationResult struct {
 
 type BatchEntryPreview struct {
 	ID                  string           `json:"id"`
+	Directory           string           `json:"directory"`
 	RelativePath        string           `json:"relativePath"`
 	InferredAlbumName   string           `json:"inferredAlbumName"`
 	Source              string           `json:"source"`
@@ -158,10 +159,8 @@ type BatchEntryPreview struct {
 }
 
 type BatchPreview struct {
-	BatchID       string              `json:"batchId"`
-	RootDirectory string              `json:"rootDirectory"`
-	Depth         int                 `json:"depth"`
-	Entries       []BatchEntryPreview `json:"entries"`
+	BatchID string              `json:"batchId"`
+	Entries []BatchEntryPreview `json:"entries"`
 }
 
 type BatchRunResult struct {

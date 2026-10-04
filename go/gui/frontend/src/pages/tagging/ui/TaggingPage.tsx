@@ -17,7 +17,12 @@ export const TaggingPage = defineComponent({
     const { activity, completion, summary } = storeToRefs(workspace)
 
     usePageCommands({
-      openDirectory: directory => workspace.selectDirectory(directory),
+      openDirectory: directories => {
+        if (directories && directories.length !== 1) {
+          return false
+        }
+        return workspace.selectDirectory(directories?.[0])
+      },
       refresh: () => {
         if (!workspace.directory) {
           return false

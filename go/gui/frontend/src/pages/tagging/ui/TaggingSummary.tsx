@@ -36,13 +36,13 @@ export const TaggingSummary = defineComponent({
             currentSummary && (
               <>
                 <div class="workspace-heading">
-                  <div>
+                  <div class="flex flex-col gap-1.5">
                     <WorkspaceTitle>
                       {currentSummary.inferredAlbumName || t('tagging.unnamedAlbum')}
                     </WorkspaceTitle>
                     <TruncatedText
                       tooltip={currentSummary.directory}
-                      class={['mt-1.5 max-w-[min(760px,65vw)]', 'text-base text-muted-color']}
+                      class={['max-w-[min(760px,65vw)]', 'text-base text-muted-color']}
                     >
                       {currentSummary.directory}
                     </TruncatedText>

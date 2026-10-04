@@ -3,6 +3,11 @@ import Aura from '@primeuix/themes/aura'
 
 export const TouhouTaggerPreset = definePreset(Aura, {
   components: {
+    button: {
+      root: {
+        iconOnlyWidth: '34px',
+      },
+    },
     image: {
       toolbar: {
         background: 'rgba(0, 0, 0, 0.75)',

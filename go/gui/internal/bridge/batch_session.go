@@ -3,13 +3,13 @@ package bridge
 type batchSession struct {
 	id      string
 	root    string
-	depth   int
+	source  string
 	entries []*batchEntry
 }
 
 func (session *batchSession) preview() BatchPreview {
 	return BatchPreview{
-		BatchID: session.id, RootDirectory: session.root, Depth: session.depth,
+		BatchID: session.id,
 		Entries: session.entryPreviews(),
 	}
 }

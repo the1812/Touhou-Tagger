@@ -76,7 +76,7 @@ func TestLocalMetadataDoesNotRequireSearchableAlbumSource(t *testing.T) {
 	if plan.Options.LRCFiles != 0 {
 		t.Fatalf("disabled lyrics produced %d LRC preview outputs", plan.Options.LRCFiles)
 	}
-	preview, err := backend.Batch.ScanBatch(context.Background(), root, 1, domain.DefaultMetadataSource)
+	preview, err := backend.Batch.ScanBatchDirectories(context.Background(), root, 1, domain.DefaultMetadataSource)
 	if err != nil {
 		t.Fatal(err)
 	}

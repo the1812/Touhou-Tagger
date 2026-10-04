@@ -1,6 +1,7 @@
-import type { BatchApi, BatchEntryPreview, BatchRunResult } from '../api/types'
+import type { BatchApi, BatchPreview, BatchEntryPreview, BatchRunResult } from '../api/types'
 import { t } from '../i18n'
 import { batchEntries } from './batchData'
+import { appendFixtureDirectories, createFixtureBatch } from './batchSessions'
 import { batchDirectory, createPlan } from './data'
 import { clone, executeSequence, fixtureState, wait } from './state'
 
@@ -9,42 +10,48 @@ export const fixtureBatchApi: BatchApi = {
     await wait()
     return batchDirectory
   },
-
-  async scanBatch(directory, depth) {
+  async selectMultipleDirectories() {
+    await wait()
+    return batchEntries().map(entry => entry.directory)
+  },
+  async scanBatchDirectories(directory) {
     await wait(220)
-    fixtureState.batchSequence += 1
-    fixtureState.activeBatch = {
-      batchId: `fixture-batch-${String(fixtureState.batchSequence)}`,
-      rootDirectory: directory,
-      depth,
-      entries: batchEntries().map(entry =>
-        entry.readiness === 'skipped'
-          ? entry
-          : {
-              ...entry,
-              readiness: 'pending',
-              issues: [],
-              candidates: [],
-              selectedCandidateId: undefined,
-            },
-      ),
-    }
-    return clone(fixtureState.activeBatch)
+    return createFixtureBatch(
+      batchEntries().map(entry => `${directory}/${entry.relativePath}`),
+      directory,
+    )
+  },
+  async createBatchFromDirectories(directories) {
+    await wait(220)
+    return createFixtureBatch(directories)
+  },
+  async addBatchDirectories(batchId, directories) {
+    await wait()
+    const batch = fixtureState.batches.get(batchId) as BatchPreview
+    appendFixtureDirectories(batch, directories)
+    return clone(batch)
+  },
+  async removeBatchEntry(batchId, entryId) {
+    await wait()
+    const batch = fixtureState.batches.get(batchId) as BatchPreview
+    batch.entries = batch.entries.filter(entry => entry.id !== entryId)
+    fixtureState.batchEntries.delete(entryId)
+    return clone(batch)
   },
 
-  async loadBatchEntry(_batchId, entryId) {
+  async loadBatchEntry(batchId, entryId) {
     await wait(240)
-    const loaded = batchEntries().find(entry => entry.id === entryId) as BatchEntryPreview
-    const index = fixtureState.activeBatch.entries.findIndex(entry => entry.id === entryId)
-    fixtureState.activeBatch.entries[index] = loaded
+    const loaded = clone(fixtureState.batchEntries.get(entryId) as BatchEntryPreview)
+    const batch = fixtureState.batches.get(batchId) as BatchPreview
+    const index = batch.entries.findIndex(entry => entry.id === entryId)
+    batch.entries[index] = loaded
     return clone(loaded)
   },
 
-  async resolveBatchCandidate(_batchId, entryId, candidateId) {
+  async resolveBatchCandidate(batchId, entryId, candidateId) {
     await wait(120)
-    const entry = fixtureState.activeBatch.entries.find(
-      item => item.id === entryId,
-    ) as BatchEntryPreview
+    const batch = fixtureState.batches.get(batchId) as BatchPreview
+    const entry = batch.entries.find(item => item.id === entryId) as BatchEntryPreview
     entry.selectedCandidateId = candidateId
     const plan = createPlan(candidateId)
     entry.readiness =
@@ -63,18 +70,21 @@ export const fixtureBatchApi: BatchApi = {
     return clone(entry)
   },
 
-  async discardBatch() {
+  async discardBatch(batchId) {
     await wait()
+    fixtureState.batches
+      .get(batchId)
+      ?.entries.forEach(entry => fixtureState.batchEntries.delete(entry.id))
+    fixtureState.batches.delete(batchId)
   },
 
-  executeBatch(_batchId, failedOnly, operationId) {
+  executeBatch(batchId, failedOnly, operationId) {
+    const batch = fixtureState.batches.get(batchId) as BatchPreview
     const entries = failedOnly
-      ? fixtureState.activeBatch.entries.filter(
-          entry => entry.readiness === 'ready' && entry.outcome === 'failed',
-        )
-      : fixtureState.activeBatch.entries.filter(entry => entry.readiness === 'ready')
+      ? batch.entries.filter(entry => entry.readiness === 'ready' && entry.outcome === 'failed')
+      : batch.entries.filter(entry => entry.readiness === 'ready')
     const cancelledResult = () => {
-      fixtureState.activeBatch.entries = fixtureState.activeBatch.entries.map(entry =>
+      batch.entries = batch.entries.map(entry =>
         entries.some(selected => selected.id === entry.id)
           ? { ...entry, outcome: 'cancelled' }
           : entry,
@@ -90,7 +100,7 @@ export const fixtureBatchApi: BatchApi = {
         durationMs: 320,
         cancelled: true,
         message: '已停止写入后续专辑。',
-        entries: clone(fixtureState.activeBatch.entries),
+        entries: clone(batch.entries),
       }
     }
     return executeSequence<BatchRunResult>(
@@ -98,7 +108,7 @@ export const fixtureBatchApi: BatchApi = {
       'batch',
       Math.max(entries.length, 1),
       () => {
-        fixtureState.activeBatch.entries = fixtureState.activeBatch.entries.map(entry => ({
+        batch.entries = batch.entries.map(entry => ({
           ...entry,
           outcome: entries.some(selected => selected.id === entry.id) ? 'succeeded' : entry.outcome,
         }))
@@ -113,10 +123,11 @@ export const fixtureBatchApi: BatchApi = {
           durationMs: 2830,
           cancelled: false,
           message: '批量写入完成。',
-          entries: clone(fixtureState.activeBatch.entries),
+          entries: clone(batch.entries),
         }
       },
       cancelledResult,
+      entries.map(entry => entry.relativePath || entry.directory),
     )
   },
 

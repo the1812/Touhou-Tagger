@@ -23,8 +23,8 @@ import type {
 export const nativeApi: GUIApi = {
   setDarkMode: dark => AppearanceService.SetDarkMode(dark),
   getCapabilities: async () => (await SettingsService.GetCapabilities()) as Capabilities,
-  onDirectoryDrop: handler =>
-    Events.On('gui:directory-dropped', event => handler(event.data as string)),
+  onDirectoriesDrop: handler =>
+    Events.On('gui:directories-dropped', event => handler(event.data as string[])),
   selectAlbumDirectory: title => WorkspaceService.SelectAlbumDirectory(title),
   scanWorkspace: async directory =>
     (await WorkspaceService.ScanWorkspace(directory)) as WorkspaceSummary,
@@ -48,8 +48,16 @@ export const nativeApi: GUIApi = {
   },
   revealDirectory: directory => WorkspaceService.RevealDirectory(directory),
   selectBatchDirectory: title => BatchService.SelectBatchDirectory(title),
-  scanBatch: async (directory, depth, source) =>
-    (await BatchService.ScanBatch(directory, depth, source)) as BatchPreview,
+  scanBatchDirectories: async (directory, depth, source) =>
+    (await BatchService.ScanBatchDirectories(directory, depth, source)) as BatchPreview,
+  selectMultipleDirectories: async title =>
+    (await BatchService.SelectMultipleDirectories(title)) ?? [],
+  createBatchFromDirectories: async (directories, source) =>
+    (await BatchService.CreateBatchFromDirectories(directories, source)) as BatchPreview,
+  addBatchDirectories: async (batchId, directories) =>
+    (await BatchService.AddBatchDirectories(batchId, directories)) as BatchPreview,
+  removeBatchEntry: async (batchId, entryId) =>
+    (await BatchService.RemoveBatchEntry(batchId, entryId)) as BatchPreview,
   loadBatchEntry: async (batchId, entryId) =>
     (await BatchService.LoadBatchEntry(batchId, entryId)) as BatchEntryPreview,
   resolveBatchCandidate: async (batchId, entryId, candidateId) =>

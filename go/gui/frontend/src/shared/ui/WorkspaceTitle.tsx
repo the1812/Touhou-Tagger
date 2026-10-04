@@ -5,7 +5,7 @@ export const WorkspaceTitle = defineComponent({
   inheritAttrs: false,
   setup(_, { attrs, slots }) {
     return () => (
-      <div {...attrs} class={['mt-1 text-lg font-medium', attrs.class]}>
+      <div {...attrs} class={['text-lg font-medium', attrs.class]}>
         {slots.default?.()}
       </div>
     )

@@ -57,6 +57,10 @@
 }
 
 @utility primevue-defaults {
+  & .p-button-icon-only {
+    @apply shrink-0;
+  }
+
   & .p-image-mask.p-overlay-mask-enter-active .p-image-toolbar {
     animation: image-toolbar-enter var(--p-mask-transition-duration);
   }

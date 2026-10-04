@@ -146,14 +146,18 @@ export const TaggingSearchStep = defineComponent({
             )}
           </div>
 
-          <PageActionBar end>
-            <Button
-              label={t('common.next')}
-              disabled={!canPrepare.value}
-              loading={activity.value === 'preparing'}
-              onClick={() => void workspace.preparePlan()}
-            />
-          </PageActionBar>
+          <PageActionBar
+            v-slots={{
+              action: () => (
+                <Button
+                  label={t('common.next')}
+                  disabled={!canPrepare.value}
+                  loading={activity.value === 'preparing'}
+                  onClick={() => void workspace.preparePlan()}
+                />
+              ),
+            }}
+          />
         </>
       )
     }

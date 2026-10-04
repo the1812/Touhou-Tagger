@@ -12,6 +12,7 @@ export const CompletionDialog = defineComponent({
     title: { type: String, required: true },
     warning: Boolean,
     retryable: Boolean,
+    revealable: { type: Boolean, default: true },
     details: String,
   },
   emits: { reveal: () => true, retry: () => true, close: () => true },
@@ -48,14 +49,16 @@ export const CompletionDialog = defineComponent({
             ) : null,
           footer: () => (
             <div class="flex flex-wrap justify-end gap-2">
-              <Button
-                label={t('common.revealDirectory')}
-                severity="secondary"
-                outlined
-                onClick={() => emit('reveal')}
-              >
-                {{ icon: () => <ExternalLink /> }}
-              </Button>
+              {props.revealable && (
+                <Button
+                  label={t('common.revealDirectory')}
+                  severity="secondary"
+                  outlined
+                  onClick={() => emit('reveal')}
+                >
+                  {{ icon: () => <ExternalLink /> }}
+                </Button>
+              )}
               {props.retryable && (
                 <Button
                   label={t('operation.retryFailedOnly')}

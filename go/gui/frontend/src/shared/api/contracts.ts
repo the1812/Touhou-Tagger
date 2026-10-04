@@ -34,14 +34,18 @@ export interface WorkspaceApi {
 }
 
 export interface DesktopApi {
-  onDirectoryDrop(handler: (directory: string) => void): () => void
+  onDirectoriesDrop(handler: (directories: string[]) => void): () => void
   revealDirectory(directory: string): Promise<void>
   setDarkMode(dark: boolean): Promise<void>
 }
 
 export interface BatchApi {
   selectBatchDirectory(title: string): Promise<string>
-  scanBatch(directory: string, depth: number, source: string): Promise<BatchPreview>
+  scanBatchDirectories(directory: string, depth: number, source: string): Promise<BatchPreview>
+  selectMultipleDirectories(title: string): Promise<string[]>
+  createBatchFromDirectories(directories: string[], source: string): Promise<BatchPreview>
+  addBatchDirectories(batchId: string, directories: string[]): Promise<BatchPreview>
+  removeBatchEntry(batchId: string, entryId: string): Promise<BatchPreview>
   loadBatchEntry(batchId: string, entryId: string): Promise<BatchEntryPreview>
   resolveBatchCandidate(
     batchId: string,

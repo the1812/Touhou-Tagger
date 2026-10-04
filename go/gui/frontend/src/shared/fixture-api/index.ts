@@ -37,10 +37,10 @@ export const fixtureApi: GUIApi = {
     return clone(fixtureState.settings)
   },
 
-  onDirectoryDrop(handler) {
-    const listener = (event: Event) => handler((event as CustomEvent<string>).detail)
-    window.addEventListener('fixture:directory-drop', listener)
-    return () => window.removeEventListener('fixture:directory-drop', listener)
+  onDirectoriesDrop(handler) {
+    const listener = (event: Event) => handler((event as CustomEvent<string[]>).detail)
+    window.addEventListener('fixture:directories-drop', listener)
+    return () => window.removeEventListener('fixture:directories-drop', listener)
   },
 
   onProgress(handler) {

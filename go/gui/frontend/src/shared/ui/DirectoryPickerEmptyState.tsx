@@ -11,7 +11,6 @@ export const DirectoryPickerEmptyState = defineComponent({
   props: {
     loading: Boolean,
     disabled: Boolean,
-    label: String,
   },
   emits: {
     select: () => true,
@@ -22,16 +21,18 @@ export const DirectoryPickerEmptyState = defineComponent({
         {slots.default?.() ?? (
           <>
             <div class="app-welcome-logo" style={{ backgroundImage: `url("${logo}")` }} />
-            <Button
-              class="w-48"
-              label={props.label || t('common.selectDirectory')}
-              size="large"
-              loading={props.loading}
-              disabled={props.disabled}
-              onClick={() => emit('select')}
-            >
-              {{ icon: () => <FolderOpen /> }}
-            </Button>
+            {slots.actions?.() ?? (
+              <Button
+                class="w-48"
+                label={t('common.selectDirectory')}
+                size="large"
+                loading={props.loading}
+                disabled={props.disabled}
+                onClick={() => emit('select')}
+              >
+                {{ icon: () => <FolderOpen /> }}
+              </Button>
+            )}
             <div class="flex items-center gap-1 text-sm text-surface-500 dark:text-surface-400">
               <div class="app-kbd">Ctrl</div> + <div class="app-kbd">O</div>
             </div>

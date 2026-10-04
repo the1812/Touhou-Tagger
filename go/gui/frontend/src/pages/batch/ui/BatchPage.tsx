@@ -9,18 +9,20 @@ import { useBatchStore } from '../../../features/batch'
 import { failureTitle, issueText, resultTitle } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
 import { usePageCommands, useDelayedBusy } from '../../../shared/lib'
-import { CompletionDialog, DirectoryPickerEmptyState, PageActionBar } from '../../../shared/ui'
+import { CompletionDialog, PageActionBar } from '../../../shared/ui'
 import { BatchDirectoryHeader } from './BatchDirectoryHeader'
-import { BatchScanSection } from './BatchScanSection'
+import { BatchDirectoryPicker } from './BatchDirectoryPicker'
+import { BatchEntriesSection } from './BatchEntriesSection'
 
 export const BatchPage = defineComponent({
   name: 'BatchPage',
   setup() {
     const batch = useBatchStore()
     const {
+      mode,
+      choosingMode,
       directory,
       preview,
-      selecting,
       scanning,
       operation,
       isWriting,
@@ -33,18 +35,19 @@ export const BatchPage = defineComponent({
 
     const showSpinner = useDelayedBusy(() => isWriting.value)
     usePageCommands({
-      openDirectory: target => batch.selectDirectory(target),
+      openDirectory: directories => batch.openDirectories(directories),
       refresh: () => {
-        if (!directory.value) {
+        if (choosingMode.value || !preview.value) {
           return false
         }
-        void batch.scan()
+        void batch.refresh()
         return true
       },
     })
 
     return () => {
-      const currentDirectory = directory.value
+      const hasInput =
+        mode.value === 'directoryScan' ? Boolean(directory.value) : Boolean(preview.value)
       const currentPreview = preview.value
       const currentOperation = operation.value
       const currentCompletion = completion.value
@@ -60,58 +63,73 @@ export const BatchPage = defineComponent({
 
       return (
         <div class="workspace-sections round-icon-buttons grid min-h-full content-start gap-0">
-          {!currentDirectory ? (
-            <DirectoryPickerEmptyState
-              loading={selecting.value}
-              disabled={!batch.canChangeDirectory}
-              onSelect={() => batch.selectDirectory()}
-            />
+          {choosingMode.value || !hasInput ? (
+            <BatchDirectoryPicker />
           ) : (
             <>
-              <BatchDirectoryHeader />
+              {mode.value === 'directoryScan' && <BatchDirectoryHeader />}
 
               <>
-                <BatchScanSection />
+                <BatchEntriesSection />
 
-                {currentPreview && !scanning.value && (
-                  <PageActionBar>
-                    <div class="shrink-0 text-sm text-muted-color">
-                      <Translation
-                        keypath="batch.albumCount"
-                        scope="global"
-                        v-slots={{
-                          count: () => (
-                            <div class="inline text-color">{currentPreview.entries.length}</div>
-                          ),
-                        }}
-                      />
-                      {skippedCount.value > 0 && (
-                        <div class="inline">
-                          {t('batch.writeSelection', {
-                            ready: readyCount.value,
-                            skipped: skippedCount.value,
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    <div class="flex min-w-0 items-center gap-3">
-                      {isWriting.value ? (
-                        <>
-                          <div class="flex items-center gap-2 text-sm text-muted-color">
-                            <ProgressSpinner
-                              class={['size-4! m-0!', { invisible: !showSpinner.value }]}
-                              strokeWidth="4"
-                            />
-                            <div>
-                              {t('operation.writing')}
-                              {currentOperation && (
-                                <div class="inline tabular-nums">
-                                  {' '}
-                                  · {currentOperation.current} / {currentOperation.total}
-                                </div>
-                              )}
-                            </div>
+                {!scanning.value && (
+                  <PageActionBar
+                    v-slots={{
+                      status: () => (
+                        <div class="flex flex-wrap items-center gap-3">
+                          <div>
+                            {currentPreview && (
+                              <Translation
+                                keypath="batch.albumCount"
+                                scope="global"
+                                v-slots={{
+                                  count: () => (
+                                    <div class="inline text-color">
+                                      {currentPreview.entries.length}
+                                    </div>
+                                  ),
+                                }}
+                              />
+                            )}
+                            {skippedCount.value > 0 && (
+                              <div class="inline">
+                                {t('batch.writeSelection', {
+                                  ready: readyCount.value,
+                                  skipped: skippedCount.value,
+                                })}
+                              </div>
+                            )}
                           </div>
+                          {isWriting.value && (
+                            <div class="flex items-center gap-2 text-sm text-muted-color">
+                              <ProgressSpinner
+                                class={['size-4! m-0!', { invisible: !showSpinner.value }]}
+                                strokeWidth="4"
+                              />
+                              <div>
+                                {t('operation.writing')}
+                                {currentOperation && (
+                                  <div class="inline tabular-nums">
+                                    {' '}
+                                    · {currentOperation.current} / {currentOperation.total}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ),
+                      secondaryAction: () => (
+                        <Button
+                          label={t('common.previous')}
+                          severity="secondary"
+                          text
+                          disabled={!batch.canSwitchMode}
+                          onClick={batch.backToSelection}
+                        />
+                      ),
+                      action: () =>
+                        isWriting.value ? (
                           <Button
                             label={t('operation.cancel')}
                             class="min-w-28"
@@ -122,19 +140,18 @@ export const BatchPage = defineComponent({
                           >
                             {{ icon: () => <Ban /> }}
                           </Button>
-                        </>
-                      ) : (
-                        <Button
-                          label={t('common.start')}
-                          class="min-w-28"
-                          disabled={!canRun.value}
-                          onClick={() => void batch.run(false)}
-                        >
-                          {{ icon: () => <Play /> }}
-                        </Button>
-                      )}
-                    </div>
-                  </PageActionBar>
+                        ) : (
+                          <Button
+                            label={t('common.start')}
+                            class="min-w-28"
+                            disabled={!canRun.value}
+                            onClick={() => void batch.run(false)}
+                          >
+                            {{ icon: () => <Play /> }}
+                          </Button>
+                        ),
+                    }}
+                  />
                 )}
               </>
 
@@ -147,10 +164,12 @@ export const BatchPage = defineComponent({
                   result?.entries
                     .filter(entry => entry.outcome === 'failed')
                     .map(
-                      entry => `${entry.relativePath}: ${entry.issues.map(issueText).join('；')}`,
+                      entry =>
+                        `${entry.relativePath || entry.directory}: ${entry.issues.map(issueText).join('；')}`,
                     )
                     .join('\n')
                 }
+                revealable={mode.value === 'directoryScan'}
                 retryable={retryableCount.value > 0}
                 onReveal={() => batch.reveal()}
                 onRetry={() => batch.run(true)}

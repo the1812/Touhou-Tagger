@@ -161,9 +161,12 @@ func (entry *batchEntry) chooseCandidate(ctx context.Context, candidateID string
 }
 
 func (entry *batchEntry) preview(root string) BatchEntryPreview {
-	relative, err := filepath.Rel(root, entry.directory)
-	if err != nil {
-		relative = filepath.Base(entry.directory)
+	relative := ""
+	if root != "" {
+		path, err := filepath.Rel(root, entry.directory)
+		if err == nil {
+			relative = path
+		}
 	}
 	status := entry.status
 	canRun := entry.canRun()
@@ -174,6 +177,7 @@ func (entry *batchEntry) preview(root string) BatchEntryPreview {
 	readiness, outcome := batchEntryState(status, canRun)
 	return BatchEntryPreview{
 		ID:                  entry.id,
+		Directory:           entry.directory,
 		RelativePath:        relative,
 		InferredAlbumName:   entry.inferredAlbumName,
 		Source:              entry.source,

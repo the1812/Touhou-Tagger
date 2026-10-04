@@ -1,16 +1,15 @@
-import Button from 'primevue/button'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
-import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { defineComponent, type PropType } from 'vue'
 
 import type { BatchEntryPreview } from '../../../shared/api'
-import { batchMatchText, batchStatusInfo, issueText } from '../../../shared/api'
+import { batchStatusInfo, issueText } from '../../../shared/api'
 import { t } from '../../../shared/i18n'
 import { cx } from '../../../shared/lib'
-import { CandidateOption, TruncatedText } from '../../../shared/ui'
-import { candidateOptions } from '../lib/batchEntryDisplay'
+import { TruncatedText } from '../../../shared/ui'
+import { BatchEntryActions } from './BatchEntryActions'
+import { BatchEntryMatch } from './BatchEntryMatch'
 
 export const BatchEntryTable = defineComponent({
   name: 'BatchEntryTable',
@@ -20,6 +19,8 @@ export const BatchEntryTable = defineComponent({
       required: true,
     },
     editable: Boolean,
+    removable: Boolean,
+    removeDisabled: Boolean,
     disabled: Boolean,
     resolving: {
       type: Function as PropType<(entryId: string) => boolean>,
@@ -27,6 +28,8 @@ export const BatchEntryTable = defineComponent({
     },
   },
   emits: {
+    remove: (entryId: string) => Boolean(entryId),
+    reveal: (directory: string) => Boolean(directory),
     resolve: (entryId: string, candidateId: string) => Boolean(entryId && candidateId),
     retry: (entryId: string) => Boolean(entryId),
   },
@@ -43,70 +46,6 @@ export const BatchEntryTable = defineComponent({
         entry.readiness === 'needs-candidate' && 'bg-amber-50/60 dark:bg-amber-950/30',
       )
     }
-    const matchCell = (entry: BatchEntryPreview) => {
-      const loading = props.resolving(entry.id)
-      if (!props.editable) {
-        return <TruncatedText class="block">{batchMatchText(entry, loading)}</TruncatedText>
-      }
-      if (loading || entry.readiness === 'pending') {
-        return <div class="text-muted-color">{batchMatchText(entry, loading)}</div>
-      }
-      const blockedWithoutAlternatives =
-        entry.readiness === 'blocked' && entry.candidates.length <= 1
-      const canReload =
-        blockedWithoutAlternatives ||
-        entry.issues.some(issue => issue.code === 'scan-failed' || issue.code === 'load-failed')
-      if (canReload) {
-        return (
-          <div class="flex items-center justify-between gap-2">
-            <TruncatedText class="block text-red-600 dark:text-red-300">
-              {batchMatchText(entry, loading)}
-            </TruncatedText>
-            <Button
-              label={t('common.retry')}
-              size="small"
-              severity="danger"
-              text
-              loading={props.resolving(entry.id)}
-              disabled={props.disabled}
-              onClick={() => emit('retry', entry.id)}
-            />
-          </div>
-        )
-      }
-      if (entry.readiness === 'skipped' || entry.candidates.length === 0) {
-        return <div class="text-muted-color">{batchMatchText(entry, loading)}</div>
-      }
-      if (
-        entry.candidates.length > 1 ||
-        entry.candidates.some(candidate => !candidate.exactMatch) ||
-        entry.readiness === 'needs-candidate'
-      ) {
-        return (
-          <Select
-            size="small"
-            modelValue={entry.selectedCandidateId}
-            {...{
-              'onUpdate:modelValue': (value: unknown) => emit('resolve', entry.id, String(value)),
-            }}
-            options={candidateOptions(entry)}
-            optionLabel="label"
-            optionValue="value"
-            placeholder={t('batch.selectAlbum')}
-            fluid
-            loading={props.resolving(entry.id)}
-            disabled={props.disabled}
-            overlayClass="[&_.p-select-option]:p-0!"
-            v-slots={{
-              option: ({ option }: { option: ReturnType<typeof candidateOptions>[number] }) => (
-                <CandidateOption candidate={option.candidate} />
-              ),
-            }}
-          />
-        )
-      }
-      return <TruncatedText class="block">{batchMatchText(entry, loading)}</TruncatedText>
-    }
     return () => (
       <DataTable
         value={props.entries}
@@ -114,12 +53,16 @@ export const BatchEntryTable = defineComponent({
         scrollable
         scrollHeight="flex"
         showGridlines
-        tableClass="w-full min-w-[720px] table-fixed"
+        tableClass="w-full min-w-[720px] table-auto"
         class="compact-data-table"
         rowClass={rowClass}
         virtualScrollerOptions={props.entries.length > 100 ? { itemSize: 46 } : undefined}
         v-slots={{
-          empty: () => <div class="p-8 text-center text-muted-color">{t('batch.empty')}</div>,
+          empty: () => (
+            <div class="p-8 text-center text-muted-color">
+              {t(props.removable ? 'batch.selectionEmpty' : 'batch.empty')}
+            </div>
+          ),
         }}
       >
         <Column
@@ -127,11 +70,11 @@ export const BatchEntryTable = defineComponent({
           header={t('batch.columns.directory')}
           frozen
           headerClass={['compact-table-cell', 'w-[24%]'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-[24%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[24%] max-w-0'].join(' ')}
           v-slots={{
             body: bodySlot(entry => (
-              <TruncatedText class="block" tooltip={entry.relativePath}>
-                {entry.relativePath}
+              <TruncatedText class="block" tooltip={entry.directory}>
+                {entry.relativePath || entry.directory}
               </TruncatedText>
             )),
           }}
@@ -140,13 +83,24 @@ export const BatchEntryTable = defineComponent({
           field="inferredAlbumName"
           header={t('batch.columns.album')}
           headerClass={['compact-table-cell', 'w-[24%]'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-[24%]'].join(' ')}
+          bodyClass={['compact-table-cell', 'w-[24%] max-w-0'].join(' ')}
         />
         <Column
           header={t('batch.columns.match')}
           headerClass={['compact-table-cell', 'w-[34%]'].join(' ')}
-          bodyClass={['compact-table-cell', 'w-[34%]', 'py-1!'].join(' ')}
-          v-slots={{ body: bodySlot(matchCell) }}
+          bodyClass={['compact-table-cell', 'w-[34%] max-w-0', 'py-1!'].join(' ')}
+          v-slots={{
+            body: bodySlot(entry => (
+              <BatchEntryMatch
+                entry={entry}
+                editable={props.editable}
+                disabled={props.disabled}
+                loading={props.resolving(entry.id)}
+                onResolve={(entryId, candidateId) => emit('resolve', entryId, candidateId)}
+                onRetry={entryId => emit('retry', entryId)}
+              />
+            )),
+          }}
         />
         <Column
           field="audioCount"
@@ -175,6 +129,22 @@ export const BatchEntryTable = defineComponent({
             }),
           }}
         />
+        {props.removable && (
+          <Column
+            header={t('batch.columns.actions')}
+            headerClass="compact-table-cell w-px"
+            bodyClass="compact-table-cell w-px px-1.5! py-1!"
+            v-slots={{
+              body: bodySlot(entry => (
+                <BatchEntryActions
+                  disabled={props.removeDisabled}
+                  onReveal={() => emit('reveal', entry.directory)}
+                  onRemove={() => emit('remove', entry.id)}
+                />
+              )),
+            }}
+          />
+        )}
       </DataTable>
     )
   },

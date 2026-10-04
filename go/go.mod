@@ -12,6 +12,7 @@ require (
 	github.com/go-flac/flacvorbis v0.2.0
 	github.com/go-flac/go-flac v1.0.0
 	github.com/go-resty/resty/v2 v2.17.2
+	github.com/ncruces/zenity v0.10.15
 	github.com/spf13/cobra v1.10.2
 	github.com/tailscale/hujson v0.0.0-20260302212456-ecc657c15afd
 	github.com/tetratelabs/wazero v1.12.0
@@ -19,7 +20,7 @@ require (
 	golang.org/x/image v0.44.0
 	golang.org/x/net v0.56.0
 	golang.org/x/sync v0.22.0
-	golang.org/x/sys v0.46.0
+	golang.org/x/sys v0.47.0
 	golang.org/x/text v0.40.0
 )
 
@@ -38,6 +39,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
+	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/alecthomas/chroma/v2 v2.23.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -68,6 +70,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dchest/jsmin v1.0.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -100,6 +103,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jchv/go-winloader v0.0.0-20250406163304-c1995be93bd1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/josephspurrier/goversioninfo v1.7.0 // indirect
 	github.com/kevinburke/ssh_config v1.4.0 // indirect
 	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -129,6 +133,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pterm/pterm v0.12.82 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
+	github.com/randall77/makefat v0.0.0-20260406194835-1b91746796b7 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rjeczalik/notify v0.9.3 // indirect
 	github.com/sajari/fuzzy v1.0.0 // indirect
