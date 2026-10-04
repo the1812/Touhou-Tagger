@@ -1,4 +1,4 @@
-import { Check, Copy, ExternalLink, Info, RotateCcw, TriangleAlert, X } from 'lucide-vue-next'
+import { Check, Copy, ExternalLink, Info, RotateCcw, TriangleAlert, X } from '@lucide/vue'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import type { ToastMessageOptions } from 'primevue/toast'

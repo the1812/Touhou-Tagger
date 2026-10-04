@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'

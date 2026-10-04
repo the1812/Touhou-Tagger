@@ -1,4 +1,4 @@
-import { ExternalLink, FolderOpen } from 'lucide-vue-next'
+import { ExternalLink, FolderOpen } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import { computed, defineComponent } from 'vue'

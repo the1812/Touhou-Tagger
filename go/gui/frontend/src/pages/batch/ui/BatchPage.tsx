@@ -1,4 +1,4 @@
-import { Ban, Play } from 'lucide-vue-next'
+import { Ban, Play } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ProgressSpinner from 'primevue/progressspinner'

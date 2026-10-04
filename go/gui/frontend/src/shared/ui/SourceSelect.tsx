@@ -1,4 +1,4 @@
-import { FileJson } from 'lucide-vue-next'
+import { FileJson } from '@lucide/vue'
 import Image from 'primevue/image'
 import Select, { type SelectProps } from 'primevue/select'
 import { defineComponent, type PropType } from 'vue'

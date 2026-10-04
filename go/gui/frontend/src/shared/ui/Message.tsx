@@ -1,4 +1,4 @@
-import { CircleX, TriangleAlert } from 'lucide-vue-next'
+import { CircleX, TriangleAlert } from '@lucide/vue'
 import PrimeMessage, { type MessageProps } from 'primevue/message'
 import { defineComponent, type PropType } from 'vue'
 

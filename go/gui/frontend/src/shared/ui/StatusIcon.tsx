@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-vue-next'
+import type { LucideIcon } from '@lucide/vue'
 import { defineComponent, type PropType } from 'vue'
 
 export const StatusIcon = defineComponent({

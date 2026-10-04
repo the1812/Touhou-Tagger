@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-vue-next'
+import { Pencil } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'

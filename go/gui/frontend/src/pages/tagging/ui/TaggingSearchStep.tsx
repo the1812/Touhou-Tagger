@@ -1,4 +1,4 @@
-import { Search } from 'lucide-vue-next'
+import { Search } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'

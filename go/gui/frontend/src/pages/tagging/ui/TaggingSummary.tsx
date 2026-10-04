@@ -6,7 +6,7 @@ import {
   FolderOpen,
   Image as ImageIcon,
   RefreshCw,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'

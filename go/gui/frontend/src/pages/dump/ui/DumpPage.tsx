@@ -1,4 +1,4 @@
-import { Download, FileAudio, FolderOpen, Image as ImageIcon } from 'lucide-vue-next'
+import { Download, FileAudio, FolderOpen, Image as ImageIcon } from '@lucide/vue'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 

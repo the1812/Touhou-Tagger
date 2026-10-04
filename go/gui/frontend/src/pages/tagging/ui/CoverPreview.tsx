@@ -1,4 +1,4 @@
-import { Maximize2 } from 'lucide-vue-next'
+import { Maximize2 } from '@lucide/vue'
 import Image from 'primevue/image'
 import { computed, defineComponent, type PropType } from 'vue'
 

@@ -1,4 +1,4 @@
-import { X } from 'lucide-vue-next'
+import { X } from '@lucide/vue'
 import AutoComplete from 'primevue/autocomplete'
 import { defineComponent, type PropType } from 'vue'
 

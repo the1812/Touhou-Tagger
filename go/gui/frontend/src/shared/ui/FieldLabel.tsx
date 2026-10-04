@@ -1,4 +1,4 @@
-import { Info } from 'lucide-vue-next'
+import { Info } from '@lucide/vue'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 

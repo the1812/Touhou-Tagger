@@ -1,4 +1,4 @@
-import { Monitor, Moon, Settings, Sun } from 'lucide-vue-next'
+import { Monitor, Moon, Settings, Sun } from '@lucide/vue'
 import Button from 'primevue/button'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'

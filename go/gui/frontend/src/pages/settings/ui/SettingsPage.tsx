@@ -1,4 +1,4 @@
-import { RotateCcw } from 'lucide-vue-next'
+import { RotateCcw } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'

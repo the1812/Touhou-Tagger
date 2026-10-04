@@ -1,4 +1,4 @@
-import { Play } from 'lucide-vue-next'
+import { Play } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'

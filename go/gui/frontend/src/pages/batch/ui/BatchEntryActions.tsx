@@ -1,4 +1,4 @@
-import { ExternalLink, Trash2 } from 'lucide-vue-next'
+import { ExternalLink, Trash2 } from '@lucide/vue'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 

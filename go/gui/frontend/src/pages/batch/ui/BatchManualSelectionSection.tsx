@@ -1,4 +1,4 @@
-import { FolderPlus } from 'lucide-vue-next'
+import { FolderPlus } from '@lucide/vue'
 import Button from 'primevue/button'
 import { defineComponent } from 'vue'
 

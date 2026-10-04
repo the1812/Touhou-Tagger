@@ -1,4 +1,4 @@
-import { Image as ImageIcon } from 'lucide-vue-next'
+import { Image as ImageIcon } from '@lucide/vue'
 import { defineComponent, render } from 'vue'
 
 import { t } from '../i18n'
