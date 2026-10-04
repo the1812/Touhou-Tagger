@@ -1,0 +1,70 @@
+name: WinGet Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published stable release tag
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      WINGET_TOKEN:
+        description: Classic GitHub PAT with public_repo scope for WinGet submissions
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: winget-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  manifests:
+    name: Generate and Validate WinGet Manifests
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - name: Set up WinGet
+        shell: pwsh
+        run: |
+          Install-Module -Name Microsoft.WinGet.Client -Scope CurrentUser -Force -Repository PSGallery
+          Repair-WinGetPackageManager -AllUsers -Latest
+          "$env:LOCALAPPDATA/Microsoft/WindowsApps" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Generate manifests from published executables
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: ./go/packaging/winget/generate.ps1 -Tag $env:RELEASE_TAG
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: winget-manifests
+          path: go/bin/winget/manifests/
+          if-no-files-found: error
+
+  submit:
+    name: Submit WinGet PRs
+    needs: manifests
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: winget-manifests
+          path: manifests
+      - name: Download WingetCreate
+        shell: pwsh
+        run: Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+      - name: Submit CLI and GUI manifests
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: ./go/packaging/winget/submit.ps1 -Tag $env:RELEASE_TAG

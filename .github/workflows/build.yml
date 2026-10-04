@@ -14,6 +14,8 @@ jobs:
     runs-on: windows-2025
     env:
       CGO_ENABLED: '0'
+      GOOS: windows
+      GOARCH: amd64
     steps:
       - uses: actions/checkout@v7.0.0
       - uses: actions/setup-go@v6.5.0
@@ -78,7 +80,7 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem -LiteralPath release-assets -Filter *.exe | ForEach-Object {
-            gh release upload $env:RELEASE_TAG $_.FullName --clobber
+            gh release upload $env:RELEASE_TAG $_.FullName
             if ($LASTEXITCODE -ne 0) {
               throw "Failed to upload release asset $($_.Name)."
             }
@@ -86,3 +88,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+  winget:
+    name: Publish WinGet Manifests
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    needs: publish-release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/winget.yml
+    with:
+      tag: ${{ github.event.release.tag_name }}
+    secrets:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}

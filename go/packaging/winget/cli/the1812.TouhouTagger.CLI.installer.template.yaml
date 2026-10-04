@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.28.0.schema.json
+
+PackageIdentifier: the1812.TouhouTagger.CLI
+PackageVersion: '@VERSION@'
+Platform:
+  - Windows.Desktop
+MinimumOSVersion: 10.0.19044.0
+InstallerType: portable
+UnsupportedOSArchitectures:
+  - x86
+  - arm
+  - arm64
+ReleaseDate: '@RELEASE_DATE@'
+Commands:
+  - thtag
+Installers:
+  - Architecture: x64
+    InstallerUrl: '@INSTALLER_URL@'
+    InstallerSha256: '@SHA256@'
+ManifestType: installer
+ManifestVersion: 1.28.0
