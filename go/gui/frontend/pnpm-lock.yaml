@@ -27,8 +27,8 @@ importers:
         specifier: 2.0.3
         version: 2.0.3
       '@wailsio/runtime':
-        specifier: 3.0.0-beta.27
-        version: 3.0.0-beta.27
+        specifier: 3.0.0-alpha.97
+        version: 3.0.0-alpha.97
       monaco-editor:
         specifier: 0.57.0
         version: 0.57.0
@@ -947,8 +947,8 @@ packages:
   '@vue/shared@3.5.41':
     resolution: {integrity: sha512-IOnwSCma8j+9xJT6b8H0dEYidC80NsYmNMlZxRsukYcSoGaDBohog5hDxzeUXdFeGWFA++vWvxqOmrr96VlqMA==}
 
-  '@wailsio/runtime@3.0.0-beta.27':
-    resolution: {integrity: sha512-QUXfpr04hXzQa/yGavoJTP1UAwpGzvwysoKGwdMIEmyHgwSHtF+k4MfHbV0olRdw0+nbDQtcBM/SkKqb8tvQsw==}
+  '@wailsio/runtime@3.0.0-alpha.97':
+    resolution: {integrity: sha512-alvEG6B0YqW7AcBcNaUWNMD9q8JWqx5AO6BPOZpijBeq4ZjhQxSom3jvvq8Z1mWSMKPEjSvlFirKIh9NLI3ajA==}
 
   '@yuku-codegen/binding-android-arm64@0.9.5':
     resolution: {integrity: sha512-jrOY5WM+AaAqkv51fHP1x28ifto4WgcZVzodLUyMU1jMWn5Sq+VciRdk/n8E0Ey5w4p4cWWE+m5GfXWOYh7Kzw==}
@@ -2712,7 +2712,7 @@ snapshots:
 
   '@vue/shared@3.5.41': {}
 
-  '@wailsio/runtime@3.0.0-beta.27': {}
+  '@wailsio/runtime@3.0.0-alpha.97': {}
 
   '@yuku-codegen/binding-android-arm64@0.9.5':
     optional: true
