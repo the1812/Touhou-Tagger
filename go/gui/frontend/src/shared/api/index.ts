@@ -13,8 +13,9 @@ let apiPromise: Promise<GUIApi> | undefined
 export const isFixtureMode = import.meta.env.DEV && fixtureRequested
 
 export const getApi = (): Promise<GUIApi> => {
-  apiPromise ??= isFixtureMode
-    ? import('../fixture-api').then(({ fixtureApi }) => fixtureApi)
-    : import('./native').then(({ nativeApi }) => nativeApi)
+  apiPromise ??=
+    import.meta.env.DEV && isFixtureMode
+      ? import('../fixture-api').then(({ fixtureApi }) => fixtureApi)
+      : import('./native').then(({ nativeApi }) => nativeApi)
   return apiPromise
 }

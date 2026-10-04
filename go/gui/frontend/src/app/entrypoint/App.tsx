@@ -17,7 +17,7 @@ export const App = defineComponent({
     providePageCommandRegistry()
     useAppRuntime()
     return () =>
-      showProgressMock ? (
+      ProgressMockLoader && showProgressMock ? (
         <div class="flex h-screen flex-col">
           <div class="min-h-0 flex-1 overflow-hidden [&>.grid]:h-full">
             <AppShell />

@@ -15,10 +15,16 @@
     "build": "pnpm run check && vp build --mode production"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@codemirror/view": "^6.43.13",
     "@lucide/vue": "1.51.0",
     "@primeuix/themes": "2.0.3",
     "@wailsio/runtime": "3.0.0-alpha.97",
-    "monaco-editor": "0.57.0",
     "pinia": "3.0.4",
     "primevue": "4.5.5",
     "tailwind-merge": "3.6.0",

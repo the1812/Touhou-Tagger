@@ -1,13 +1,29 @@
-import 'monaco-editor/features/register.all.js'
-import { editor } from 'monaco-editor/editor/editor.api.js'
-import EditorWorker from 'monaco-editor/editor/editor.worker.js?worker'
-import 'monaco-editor/language/json/monaco.contribution.js'
-import JsonWorker from 'monaco-editor/language/json/json.worker.js?worker'
+import { defaultKeymap } from '@codemirror/commands'
+import { json } from '@codemirror/lang-json'
+import {
+  bracketMatching,
+  defaultHighlightStyle,
+  foldGutter,
+  foldKeymap,
+  syntaxHighlighting,
+} from '@codemirror/language'
+import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
+import { Compartment, EditorState } from '@codemirror/state'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { drawSelection, EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-globalThis.MonacoEnvironment = {
-  getWorker: (_id, label) => (label === 'json' ? new JsonWorker() : new EditorWorker()),
-}
+const previewTheme = EditorView.theme({
+  '&': {
+    height: '100%',
+    backgroundColor: 'var(--p-content-background)',
+    color: 'var(--p-text-color)',
+  },
+  '.cm-scroller': { overflow: 'auto', fontSize: '14px' },
+  '.cm-content': { padding: '12px 0' },
+  '.cm-gutters': { backgroundColor: 'var(--p-content-background)', border: 'none' },
+  '&.cm-focused': { outline: 'none' },
+})
 
 export const DumpPreview = defineComponent({
   name: 'DumpPreview',
@@ -16,27 +32,33 @@ export const DumpPreview = defineComponent({
   },
   setup(props) {
     const container = ref<HTMLDivElement>()
-    let instance: editor.IStandaloneCodeEditor | undefined
-    const updateTheme = () => {
-      editor.setTheme(document.documentElement.classList.contains('app-dark') ? 'vs-dark' : 'vs')
-    }
-    const themeObserver = new MutationObserver(updateTheme)
+    const theme = new Compartment()
+    const currentTheme = () =>
+      document.documentElement.classList.contains('app-dark') ? oneDark : []
+    let instance: EditorView | undefined
+    const themeObserver = new MutationObserver(() => {
+      instance?.dispatch({ effects: theme.reconfigure(currentTheme()) })
+    })
     onMounted(() => {
-      instance = editor.create(container.value as HTMLDivElement, {
-        value: props.value,
-        language: 'json',
-        readOnly: true,
-        domReadOnly: true,
-        automaticLayout: true,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        fontSize: 14,
-        tabSize: 2,
-        padding: { top: 12, bottom: 12 },
-        contextmenu: false,
-        renderLineHighlight: 'none',
+      instance = new EditorView({
+        parent: container.value,
+        doc: props.value,
+        extensions: [
+          EditorState.readOnly.of(true),
+          EditorState.tabSize.of(2),
+          lineNumbers(),
+          foldGutter(),
+          drawSelection(),
+          bracketMatching(),
+          highlightSelectionMatches(),
+          search({ top: true }),
+          keymap.of([...defaultKeymap, ...searchKeymap, ...foldKeymap]),
+          json(),
+          syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+          previewTheme,
+          theme.of(currentTheme()),
+        ],
       })
-      updateTheme()
       themeObserver.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['class'],
@@ -44,14 +66,14 @@ export const DumpPreview = defineComponent({
     })
     watch(
       () => props.value,
-      value => instance?.setValue(value),
+      value => {
+        instance?.dispatch({ changes: { from: 0, to: instance.state.doc.length, insert: value } })
+      },
     )
     onBeforeUnmount(() => {
       themeObserver.disconnect()
-      const model = instance?.getModel()
-      instance?.dispose()
-      model?.dispose()
+      instance?.destroy()
     })
-    return () => <div ref={container} class="min-h-0 flex-1 overflow-hidden" />
+    return () => <div ref={container} class="min-h-0 min-w-0 flex-1 overflow-hidden" />
   },
 })
