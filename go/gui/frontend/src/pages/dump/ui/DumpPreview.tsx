@@ -19,7 +19,12 @@ const previewTheme = EditorView.theme({
     backgroundColor: 'var(--p-content-background)',
     color: 'var(--p-text-color)',
   },
-  '.cm-scroller': { overflow: 'auto', fontSize: '14px' },
+  '.cm-scroller': {
+    overflow: 'auto',
+    overscrollBehavior: 'none',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '14px',
+  },
   '.cm-content': { padding: '12px 0' },
   '.cm-gutters': { backgroundColor: 'var(--p-content-background)', border: 'none' },
   '&.cm-focused': { outline: 'none' },
