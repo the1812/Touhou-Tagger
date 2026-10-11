@@ -33,9 +33,12 @@ jobs:
       - name: Set up WinGet
         shell: pwsh
         run: |
+          Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
           Install-Module -Name Microsoft.WinGet.Client -Scope CurrentUser -Force -Repository PSGallery
-          Repair-WinGetPackageManager -AllUsers -Latest
+          Repair-WinGetPackageManager -Latest -Force
           "$env:LOCALAPPDATA/Microsoft/WindowsApps" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          winget --version
+          if ($LASTEXITCODE -ne 0) { throw 'WinGet initialization failed.' }
       - name: Generate manifests from published executables
         shell: pwsh
         env:
