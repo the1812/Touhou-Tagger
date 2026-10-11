@@ -11,7 +11,8 @@ import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/sea
 import { Compartment, EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { drawSelection, EditorView, keymap, lineNumbers } from '@codemirror/view'
-import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ChevronDown, ChevronRight } from '@lucide/vue'
+import { defineComponent, onBeforeUnmount, onMounted, ref, render, watch } from 'vue'
 
 const previewTheme = EditorView.theme({
   '&': {
@@ -27,6 +28,12 @@ const previewTheme = EditorView.theme({
   },
   '.cm-content': { padding: '12px 0' },
   '.cm-gutters': { backgroundColor: 'var(--p-content-background)', border: 'none' },
+  '.cm-foldGutter .cm-gutterElement': {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
   '&.cm-focused': { outline: 'none' },
 })
 
@@ -52,7 +59,16 @@ export const DumpPreview = defineComponent({
           EditorState.readOnly.of(true),
           EditorState.tabSize.of(2),
           lineNumbers(),
-          foldGutter(),
+          foldGutter({
+            markerDOM: open => {
+              const host = document.createElement('div')
+              host.title = open ? 'Fold line' : 'Unfold line'
+              render(open ? <ChevronDown /> : <ChevronRight />, host)
+              const marker = host.cloneNode(true) as HTMLDivElement
+              render(null, host)
+              return marker
+            },
+          }),
           drawSelection(),
           bracketMatching(),
           highlightSelectionMatches(),
