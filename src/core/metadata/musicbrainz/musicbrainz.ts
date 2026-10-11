@@ -65,6 +65,10 @@ const creditNames = (relations: Relation[], role: string) => [
 ]
 
 export class MusicBrainz extends MetadataSource {
+  async resolveAlbumName(query: string) {
+    return (await this.search(query)).map(candidate => candidate.id)
+  }
+
   async search(query: string) {
     const phrase = `"${query.replace(/["\\]/g, '\\$&')}"`
     const { data } = await api.get<{ releases: Release[] }>('/release', {
@@ -94,7 +98,11 @@ export class MusicBrainz extends MetadataSource {
     }))
   }
 
-  async getMetadata(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
+  getMetadata(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
+    return this.getMetadataById(id, options)
+  }
+
+  async getMetadataById(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
     const { data: release } = await api.get<Release>(`/release/${encodeURIComponent(id)}`, {
       ...getHttpRequestOptions(this.config),
       params: {

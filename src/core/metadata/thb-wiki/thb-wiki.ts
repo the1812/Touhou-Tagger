@@ -24,6 +24,14 @@ export class ThbWiki extends MetadataSource {
   }
 
   async search(albumName: string) {
+    const names = await this.searchAlbumNames(albumName)
+    return loadSearchDetails(names, this.host, this.config)
+  }
+  async resolveAlbumName(albumName: string) {
+    const names = await this.searchAlbumNames(albumName)
+    return names[0] === albumName ? names[0] : names
+  }
+  private async searchAlbumNames(albumName: string) {
     const url = `https://${
       this.host
     }/api.php?action=opensearch&format=json&formatversion=2&search=${encodeURIComponent(
@@ -35,8 +43,7 @@ export class ThbWiki extends MetadataSource {
     })
     if (response.status === 200 && Array.isArray(response.data)) {
       const [, names] = response.data
-      const filteredNames = names.filter(it => !it.startsWith('歌词:'))
-      return loadSearchDetails(filteredNames, this.host, this.config)
+      return names.filter(it => !it.startsWith('歌词:'))
     }
     return []
   }
@@ -139,7 +146,10 @@ export class ThbWiki extends MetadataSource {
     return metadatas
   }
 
-  async getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
+  getMetadata(albumName: string, options: MetadataFetchOptions = {}) {
+    return this.getMetadataById(albumName, options)
+  }
+  async getMetadataById(albumName: string, options: MetadataFetchOptions = {}) {
     const url = `https://${this.host}/api.php?action=parse&format=json&formatversion=2&page=${encodeURIComponent(
       albumName,
     )}&prop=text`

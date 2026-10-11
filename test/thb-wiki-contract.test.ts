@@ -70,7 +70,7 @@ describe('THBWiki album contracts', () => {
       const source = new ThbWiki('fixture.invalid')
       source.config = metadataConfig()
 
-      const actual = await source.getMetadata(name)
+      const actual = await source.getMetadataById(name)
       const hasCover = actual.every(metadata => Boolean(metadata.coverImage))
       const metadata = actual.map(({ coverImage, ...track }) => withoutUndefined(track as Metadata))
       const expected = contract.tracks.map(track => ({ ...contract.album, ...track }))

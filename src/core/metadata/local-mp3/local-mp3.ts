@@ -15,6 +15,9 @@ const dirFilter = async <Result = string>(
   return (await readdir(path, { withFileTypes: true })).filter(predicate).map(it => mapper(it.name))
 }
 export class LocalMp3 extends MetadataSource {
+  async resolveAlbumName(localSource: string) {
+    return resolvePath(localSource)
+  }
   async search(localSource: string) {
     const path = await resolvePath(localSource)
     return [{ id: path, name: path }]
@@ -32,7 +35,10 @@ export class LocalMp3 extends MetadataSource {
     }
     return [await dirFilter(path, mp3Filter, name => join(path, name))]
   }
-  async getMetadata(fullPath: string, options: MetadataFetchOptions = {}) {
+  getMetadata(fullPath: string, options: MetadataFetchOptions = {}) {
+    return this.getMetadataById(fullPath, options)
+  }
+  async getMetadataById(fullPath: string, options: MetadataFetchOptions = {}) {
     const discs = await this.getMultipleDiscFiles(fullPath)
     const metadatas = discs.flatMap((discFiles, index) => {
       const discNumber = (index + 1).toString()

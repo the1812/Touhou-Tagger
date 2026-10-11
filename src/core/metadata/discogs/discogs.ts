@@ -76,6 +76,10 @@ const creditNames = (credits: Artist[], roles: string[]) => [
 ]
 
 export class Discogs extends MetadataSource {
+  async resolveAlbumName(query: string) {
+    return (await this.search(query)).map(candidate => candidate.id)
+  }
+
   async search(query: string) {
     const { data } = await api.get<{ results: SearchItem[] }>('/database/search', {
       ...getHttpRequestOptions(this.config),
@@ -103,7 +107,11 @@ export class Discogs extends MetadataSource {
     })
   }
 
-  async getMetadata(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
+  getMetadata(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
+    return this.getMetadataById(id, options)
+  }
+
+  async getMetadataById(id: string, options: MetadataFetchOptions = {}): Promise<Metadata[]> {
     const { data: release } = await api.get<Release>(
       `/releases/${encodeURIComponent(id)}`,
       getHttpRequestOptions(this.config),

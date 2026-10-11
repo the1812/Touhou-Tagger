@@ -17,6 +17,10 @@ export interface MetadataFetchOptions {
 export abstract class MetadataSource {
   declare config: MetadataConfig
   static readonly MaxSearchCount = 20
+  /** @deprecated 请使用 {@link MetadataSource.search}. */
+  abstract resolveAlbumName(albumName: string): Promise<string[] | string>
+  /** @deprecated 请使用 {@link MetadataSource.getMetadataById}. */
+  abstract getMetadata(albumName: string, options?: MetadataFetchOptions): Promise<Metadata[]>
   abstract search(query: string): Promise<AlbumCandidate[]>
-  abstract getMetadata(id: string, options?: MetadataFetchOptions): Promise<Metadata[]>
+  abstract getMetadataById(id: string, options?: MetadataFetchOptions): Promise<Metadata[]>
 }

@@ -23,11 +23,17 @@ export class LocalJson extends MetadataSource {
   async simplify(metadatas: Metadata[]) {
     return simplifyMetadataInfo({ metadatas })
   }
+  async resolveAlbumName(localSource: string) {
+    return resolvePath(localSource)
+  }
   async search(localSource: string) {
     const path = await resolvePath(localSource)
     return [{ id: path, name: path }]
   }
-  async getMetadata(fullPath: string, options: MetadataFetchOptions = {}) {
+  getMetadata(fullPath: string, options: MetadataFetchOptions = {}) {
+    return this.getMetadataById(fullPath, options)
+  }
+  async getMetadataById(fullPath: string, options: MetadataFetchOptions = {}) {
     const jsonMetadata = JSON.parse(await readFile(fullPath, { encoding: 'utf8' })) as Metadata[]
     const metadata = await this.normalize(jsonMetadata, options.cover)
     return metadata

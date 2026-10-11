@@ -50,14 +50,14 @@ export class CliTagger extends CliCommandBase {
       cover: await this.getLocalCover(),
     })
   }
-  async downloadMetadata(album: string, cover?: Buffer) {
+  async downloadMetadata(albumId: string, cover?: Buffer) {
     const { sourceMappings } = await import('../core/metadata/source-mappings.js')
     const metadataSource = sourceMappings[this.options.source]
     if (!metadataSource) {
       throw new Error(`未找到与'${this.options.source}'相关联的数据源.`)
     }
     metadataSource.config = this.metadataConfig
-    return metadataSource.getMetadata(album, { cover })
+    return metadataSource.getMetadataById(albumId, { cover })
   }
   async withRetry<T>(action: () => Promise<T>) {
     let retryCount = 0
