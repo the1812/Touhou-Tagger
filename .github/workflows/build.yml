@@ -31,7 +31,7 @@ jobs:
           $version = if ($env:RELEASE_TAG) { $env:RELEASE_TAG } else { git describe --tags --always }
           $commit = git rev-parse --short HEAD
           $date = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-          go build -trimpath -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" -o ./bin/thtag.exe ./cmd/thtag
+          go build -trimpath -ldflags "-s -w -X main.version=$version -X main.commit=$commit -X main.date=$date" -o ./bin/thtag.exe ./cmd/thtag
       - uses: actions/upload-artifact@v7.0.1
         with:
           path: go/bin/thtag.exe
