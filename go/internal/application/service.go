@@ -16,11 +16,12 @@ import (
 type EventSink func(domain.ProgressEvent) error
 
 type Service struct {
-	Sources source.Registry
-	Readers tagio.Readers
-	Writers tagio.Writers
-	Config  domain.MetadataConfig
-	Events  EventSink
+	Sources        source.Registry
+	Readers        tagio.Readers
+	Writers        tagio.Writers
+	CoverProcessor tagio.CoverProcessor
+	Config         domain.MetadataConfig
+	Events         EventSink
 }
 
 type AlbumMetadata struct {

@@ -18,9 +18,7 @@ import (
 
 type Reader struct{}
 
-type Writer struct {
-	CoverProcessor tagio.CoverProcessor
-}
+type Writer struct{}
 
 // https://github.com/n10v/id3v2/issues/86
 type id3v23CommentFrame struct {
@@ -208,10 +206,7 @@ func (writer Writer) Write(
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	cover, err := tagio.ProcessCover(ctx, writer.CoverProcessor, metadata.CoverImage, config)
-	if err != nil {
-		return fmt.Errorf("prepare ID3 cover for %q: %w", path, err)
-	}
+	cover := metadata.CoverImage
 	tag, err := openTag(path)
 	if err != nil {
 		return fmt.Errorf("open ID3 tag %q: %w", path, err)

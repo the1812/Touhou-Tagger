@@ -21,9 +21,7 @@ import (
 
 type Reader struct{}
 
-type Writer struct {
-	CoverProcessor tagio.CoverProcessor
-}
+type Writer struct{}
 
 func (Reader) Read(
 	ctx context.Context,
@@ -140,10 +138,7 @@ func (writer Writer) Write(
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	cover, err := tagio.ProcessCover(ctx, writer.CoverProcessor, metadata.CoverImage, config)
-	if err != nil {
-		return fmt.Errorf("prepare FLAC cover for %q: %w", path, err)
-	}
+	cover := metadata.CoverImage
 	target, err := os.OpenFile(path, os.O_RDWR, 0)
 	if err != nil {
 		return err

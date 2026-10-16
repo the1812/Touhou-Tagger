@@ -78,6 +78,8 @@ func (terminal *terminal) reportProgress(event domain.ProgressEvent, debug bool)
 		message = fmt.Sprintf("获取元数据: %s", event.Message)
 	case domain.StagePlan:
 		message = fmt.Sprintf("写入计划: %d 首曲目", event.Total)
+	case domain.StageCompress:
+		message = fmt.Sprintf("正在压缩封面: %s", event.Path)
 	case domain.StageWrite:
 		action := "写入标签"
 		if event.Message == "read metadata" {

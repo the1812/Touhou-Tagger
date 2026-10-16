@@ -20,7 +20,10 @@ export const attachProgressMock = (
   progressMock.update = patch => {
     const operation = { ...(progressMock.operation.value as WriteOperationProgress), ...patch }
     operation.path = paths[Math.max(0, Math.min(operation.current - 1, paths.length - 1))]
-    operation.cancellable = operation.kind === 'batch' || operation.stage === 'preparing'
+    operation.cancellable =
+      operation.kind === 'batch' ||
+      operation.stage === 'preparing' ||
+      operation.stage === 'compressing'
     progressMock.operation.value = operation
     emit(operation)
   }

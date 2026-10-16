@@ -32,6 +32,7 @@ export type WriteOperationKind = 'workspace' | 'batch'
 
 export type WriteOperationStage =
   | 'preparing'
+  | 'compressing'
   | 'writing'
   | 'renaming'
   | 'complete'

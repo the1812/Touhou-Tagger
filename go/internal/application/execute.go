@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
@@ -65,7 +66,7 @@ func (plan *Plan) Execute(ctx context.Context, events EventSink) (ExecutionResul
 }
 
 func (plan *Plan) tag(ctx context.Context, result *ExecutionResult, events EventSink) error {
-	items := plan.preview.Items
+	items := slices.Clone(plan.preview.Items)
 	if len(items) == 0 {
 		return fmt.Errorf("write plan for %q is empty", plan.preview.Directory)
 	}
@@ -73,6 +74,9 @@ func (plan *Plan) tag(ctx context.Context, result *ExecutionResult, events Event
 		if _, exists := plan.writers[item.Format]; !exists {
 			return fmt.Errorf("%w: no tag writer registered for %s file %q", domain.ErrUnsupportedFormat, item.Format, item.SourcePath)
 		}
+	}
+	if err := plan.prepareCovers(ctx, items, events); err != nil {
+		return err
 	}
 	if err := events.emit(domain.ProgressEvent{
 		Stage: domain.StageRename, Directory: plan.preview.Directory, Total: len(items),
@@ -128,6 +132,35 @@ func (plan *Plan) tag(ctx context.Context, result *ExecutionResult, events Event
 		}
 	}
 	return err
+}
+
+func (plan *Plan) prepareCovers(ctx context.Context, items []domain.PlanItem, events EventSink) error {
+	if plan.config.CoverCompressSize <= 0 {
+		return nil
+	}
+	threshold := int64(plan.config.CoverCompressSize * 1024 * 1024)
+	for index := range items {
+		item := &items[index]
+		if int64(len(item.Metadata.CoverImage)) <= threshold {
+			continue
+		}
+		if plan.coverProcessor == nil {
+			return fmt.Errorf("cover exceeds compression threshold but image codec is unavailable")
+		}
+		if err := events.emit(domain.ProgressEvent{
+			Stage: domain.StageCompress, Directory: plan.preview.Directory, Path: item.SourcePath,
+		}); err != nil {
+			return err
+		}
+		cover, err := plan.coverProcessor.Compress(ctx, item.Metadata.CoverImage, domain.CoverOptions{
+			MaxDimension: plan.config.CoverCompressResolution,
+		})
+		if err != nil {
+			return fmt.Errorf("compress cover for %q: %w", item.SourcePath, err)
+		}
+		item.Metadata.CoverImage = cover
+	}
+	return ctx.Err()
 }
 
 func (events EventSink) emit(event domain.ProgressEvent) error {

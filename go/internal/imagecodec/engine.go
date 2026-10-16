@@ -100,7 +100,7 @@ func (e *Engine) initialize(ctx context.Context, poolSize int) error {
 		extism.Manifest{Wasm: []extism.Wasm{extism.WasmData{Data: imagecodecWASM}}},
 		extism.PluginConfig{
 			EnableWasi:    true,
-			RuntimeConfig: wazero.NewRuntimeConfigCompiler().WithCloseOnContextDone(true),
+			RuntimeConfig: wazero.NewRuntimeConfigCompiler(),
 		}, nil)
 	if err != nil {
 		return fmt.Errorf("compile imagecodec.wasm: %w", err)
@@ -172,7 +172,7 @@ func (e *Engine) Compress(
 		e.storeCover(digest, options.MaxDimension, output)
 	}
 	releaseErr := e.release(ctx, slot.instance, broken)
-	if err = errors.Join(runErr, releaseErr); err != nil {
+	if err = errors.Join(runErr, releaseErr, context.Cause(ctx)); err != nil {
 		return nil, err
 	}
 	return output, nil

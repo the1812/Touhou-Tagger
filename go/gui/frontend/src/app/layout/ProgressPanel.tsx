@@ -63,6 +63,7 @@ export const ProgressMockPanel = defineComponent({
   setup() {
     const stages: { label: string; value: WriteOperationStage }[] = [
       { label: '准备', value: 'preparing' },
+      { label: '压缩封面', value: 'compressing' },
       { label: '重命名', value: 'renaming' },
       { label: '写入标签', value: 'writing' },
     ]

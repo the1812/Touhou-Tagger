@@ -70,16 +70,17 @@ func NewService(options Options) (*application.Service, error) {
 		}
 	}
 	return &application.Service{
-		Config:  runtimeConfig,
-		Events:  options.Events,
-		Sources: sources,
+		Config:         runtimeConfig,
+		Events:         options.Events,
+		CoverProcessor: options.CoverProcessor,
+		Sources:        sources,
 		Readers: tagio.Readers{
 			domain.FormatMP3:  id3tag.Reader{},
 			domain.FormatFLAC: flactag.Reader{},
 		},
 		Writers: tagio.Writers{
-			domain.FormatMP3:  id3tag.Writer{CoverProcessor: options.CoverProcessor},
-			domain.FormatFLAC: flactag.Writer{CoverProcessor: options.CoverProcessor},
+			domain.FormatMP3:  id3tag.Writer{},
+			domain.FormatFLAC: flactag.Writer{},
 		},
 	}, nil
 }

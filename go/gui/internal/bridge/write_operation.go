@@ -120,6 +120,8 @@ func writeOperationMessageID(stage domain.EventStage) string {
 		return "fetch"
 	case domain.StagePlan:
 		return "plan"
+	case domain.StageCompress:
+		return "compress"
 	case domain.StageWrite:
 		return "write"
 	case domain.StageRename:
@@ -135,6 +137,8 @@ func writeOperationStage(stage domain.EventStage) string {
 	switch stage {
 	case domain.StageScan, domain.StageSearch, domain.StageFetch, domain.StagePlan:
 		return "preparing"
+	case domain.StageCompress:
+		return "compressing"
 	case domain.StageWrite:
 		return "writing"
 	case domain.StageRename:
@@ -156,6 +160,8 @@ func writeOperationMessage(event domain.ProgressEvent) string {
 		return "正在获取专辑元数据"
 	case domain.StagePlan:
 		return "正在准备写入内容"
+	case domain.StageCompress:
+		return "正在压缩封面"
 	case domain.StageWrite:
 		return fmt.Sprintf("正在写入 %d / %d", event.Current, event.Total)
 	case domain.StageRename:

@@ -35,6 +35,7 @@ export const progressText = (progress: WriteOperationProgress) => {
     search: 'backend.progress.searching',
     fetch: 'backend.progress.fetching',
     plan: 'backend.progress.preparing',
+    compress: 'backend.progress.compressing',
     write: 'backend.progress.writing',
     rename: 'backend.progress.renaming',
     complete: 'backend.progress.complete',
@@ -51,6 +52,7 @@ export const progressText = (progress: WriteOperationProgress) => {
   }
   const stageKeys: Partial<Record<WriteOperationProgress['stage'], string>> = {
     preparing: 'backend.progress.preparing',
+    compressing: 'backend.progress.compressing',
     writing: 'backend.progress.writing',
     renaming: 'backend.progress.renaming',
     complete: 'backend.progress.complete',

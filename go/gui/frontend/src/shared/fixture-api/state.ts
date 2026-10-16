@@ -73,8 +73,8 @@ export const executeSequence = <Result extends WriteOperationResult>(
     }
     const stages: WriteOperationProgress['stage'][] =
       kind === 'workspace'
-        ? ['preparing', 'renaming', 'writing', 'writing', 'writing']
-        : ['preparing', 'writing', 'writing', 'writing', 'writing']
+        ? ['preparing', 'compressing', 'renaming', 'writing', 'writing']
+        : ['preparing', 'compressing', 'writing', 'writing', 'writing']
     let index = 0
     const timer = window.setInterval(() => {
       const stage = stages[index]
@@ -97,7 +97,7 @@ export const executeSequence = <Result extends WriteOperationResult>(
                   Math.min(current - 1, fixtureState.activePlan.items.length - 1)
                 ]?.sourceName
               : paths[Math.min(current - 1, paths.length - 1)],
-          cancellable: kind === 'batch' || stage === 'preparing',
+          cancellable: kind === 'batch' || stage === 'preparing' || stage === 'compressing',
         }),
       )
       index += 1

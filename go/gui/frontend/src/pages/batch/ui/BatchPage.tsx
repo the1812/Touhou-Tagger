@@ -47,6 +47,7 @@ export const BatchPage = defineComponent({
         mode.value === 'directoryScan' ? Boolean(directory.value) : Boolean(preview.value)
       const currentPreview = preview.value
       const currentOperation = operation.value
+      const compressing = currentOperation?.stage === 'compressing'
 
       return (
         <div class="workspace-sections round-icon-buttons grid min-h-full content-start gap-0">
@@ -94,8 +95,8 @@ export const BatchPage = defineComponent({
                                 strokeWidth="4"
                               />
                               <div>
-                                {t('operation.writing')}
-                                {currentOperation && (
+                                {compressing ? t('operation.compressing') : t('operation.writing')}
+                                {currentOperation && !compressing && (
                                   <div class="inline tabular-nums">
                                     {' '}
                                     · {currentOperation.current} / {currentOperation.total}

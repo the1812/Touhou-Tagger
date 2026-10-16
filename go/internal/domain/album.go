@@ -49,6 +49,7 @@ const (
 	StageSearch   EventStage = "search"
 	StageFetch    EventStage = "fetch"
 	StagePlan     EventStage = "plan"
+	StageCompress EventStage = "compress"
 	StageWrite    EventStage = "write"
 	StageRename   EventStage = "rename"
 	StageComplete EventStage = "complete"

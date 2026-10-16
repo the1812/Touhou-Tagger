@@ -32,8 +32,8 @@ func callCodec(
 		binary.LittleEndian.PutUint32(input[index*4:], uint32(value))
 	}
 	copy(input[headerSize:], rgba)
-	exit, output, err := plugin.CallWithContext(ctx, function, input)
-	if err = errors.Join(err, context.Cause(ctx)); err != nil {
+	exit, output, err := plugin.CallWithContext(context.WithoutCancel(ctx), function, input)
+	if err != nil {
 		return nil, fmt.Errorf("execute imagecodec.wasm %s: %w", function, err), true
 	}
 	if exit != 0 {

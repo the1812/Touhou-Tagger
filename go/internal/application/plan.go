@@ -30,10 +30,11 @@ type PlanPreview struct {
 }
 
 type Plan struct {
-	preview PlanPreview
-	options PlanOptions
-	config  domain.MetadataConfig
-	writers tagio.Writers
+	preview        PlanPreview
+	options        PlanOptions
+	config         domain.MetadataConfig
+	writers        tagio.Writers
+	coverProcessor tagio.CoverProcessor
 }
 
 func (service *Service) CreatePlan(
@@ -75,7 +76,7 @@ func (service *Service) CreatePlan(
 	}
 	return &Plan{
 		preview: preview, options: options, config: value,
-		writers: maps.Clone(service.Writers),
+		writers: maps.Clone(service.Writers), coverProcessor: service.CoverProcessor,
 	}, nil
 }
 

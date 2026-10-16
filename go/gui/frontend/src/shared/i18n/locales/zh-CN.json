@@ -66,6 +66,7 @@
   },
   "operation": {
     "preparing": "准备写入",
+    "compressing": "正在压缩封面",
     "writing": "正在写入",
     "renaming": "重命名",
     "complete": "完成",
@@ -324,6 +325,7 @@
       "searching": "正在搜索专辑",
       "fetching": "正在获取专辑元数据",
       "preparing": "正在准备写入",
+      "compressing": "正在压缩封面",
       "writing": "正在写入 {current} / {total}",
       "renaming": "正在重命名文件",
       "complete": "写入完成",
