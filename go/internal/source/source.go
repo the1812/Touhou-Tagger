@@ -8,8 +8,12 @@ import (
 
 const MaxSearchCount = 20
 
+type SearchOptions struct {
+	IncludeThumbnails bool
+}
+
 type MetadataSource interface {
-	SearchCandidates(context.Context, string) ([]domain.AlbumCandidate, error)
+	SearchCandidates(context.Context, string, SearchOptions) ([]domain.AlbumCandidate, error)
 	GetMetadata(context.Context, string, []byte) ([]domain.Metadata, error)
 }
 

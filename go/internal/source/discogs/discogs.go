@@ -71,7 +71,7 @@ func New(client *http.Client) *Source {
 	return &Source{client: api, images: source.NewHTTPClient(client)}
 }
 
-func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
+func (provider *Source) SearchCandidates(ctx context.Context, query string, options source.SearchOptions) ([]domain.AlbumCandidate, error) {
 	var result struct {
 		Results []struct {
 			ID         int      `json:"id"`
@@ -99,10 +99,13 @@ func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]d
 			}
 		}
 		id := strconv.Itoa(item.ID)
-		candidates = append(candidates, domain.AlbumCandidate{
+		candidate := domain.AlbumCandidate{
 			ID: id, Name: title, Source: "discogs", Artists: labels,
-			ThumbnailURL: item.CoverImage,
-		})
+		}
+		if options.IncludeThumbnails {
+			candidate.ThumbnailURL = item.CoverImage
+		}
+		candidates = append(candidates, candidate)
 	}
 	return candidates, nil
 }

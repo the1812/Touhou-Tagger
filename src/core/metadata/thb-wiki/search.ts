@@ -3,7 +3,7 @@ import axios from 'axios'
 import type { MetadataConfig } from '../../core-config.js'
 import { getHttpRequestOptions } from '../../http.js'
 import { albumArtistsAltNames } from '../alt-names.js'
-import type { AlbumCandidate } from '../metadata-source.js'
+import type { AlbumCandidate, MetadataSearchOptions } from '../metadata-source.js'
 
 interface SearchDetails {
   results: Partial<Record<string, { printouts: Partial<Record<string, { fulltext: string }[]>> }>>
@@ -18,6 +18,7 @@ export const loadSearchDetails = async (
   names: string[],
   host: string,
   config: MetadataConfig,
+  options: MetadataSearchOptions,
 ): Promise<AlbumCandidate[]> => {
   if (names.length === 0) {
     return []
@@ -32,9 +33,10 @@ export const loadSearchDetails = async (
     }
     return data.query
   }
+  const fields = options.includeThumbnails ? '|?制作方|?封面图片' : '|?制作方'
   const details = await queryWiki<SearchDetails>({
     action: 'ask',
-    query: `${names.map(name => `[[${name}]]`).join(' OR ')}|?制作方|?封面图片|limit=${String(names.length)}`,
+    query: `${names.map(name => `[[${name}]]`).join(' OR ')}${fields}|limit=${String(names.length)}`,
   })
   const candidates = names.map(name => {
     const printouts = details.results[name]?.printouts
@@ -47,6 +49,9 @@ export const loadSearchDetails = async (
         ) ?? [],
     }
   })
+  if (!options.includeThumbnails) {
+    return candidates
+  }
   const files = new Map(
     names.map(name => [name, details.results[name]?.printouts['封面图片']?.[0]?.fulltext]),
   )

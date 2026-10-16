@@ -3,7 +3,7 @@ import { parseHTML } from 'linkedom'
 
 import { getHttpRequestOptions } from '../../http.js'
 import { albumArtistsAltNames } from '../alt-names.js'
-import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
+import { MetadataFetchOptions, MetadataSearchOptions, MetadataSource } from '../metadata-source.js'
 import { Metadata } from '../metadata.js'
 import { loadSearchDetails } from './search.js'
 import { parseTrackRow } from './thb-wiki-track.js'
@@ -23,9 +23,9 @@ export class ThbWiki extends MetadataSource {
     super()
   }
 
-  async search(albumName: string) {
+  async search(albumName: string, options: MetadataSearchOptions = { includeThumbnails: true }) {
     const names = await this.searchAlbumNames(albumName)
-    return loadSearchDetails(names, this.host, this.config)
+    return loadSearchDetails(names, this.host, this.config, options)
   }
   async resolveAlbumName(albumName: string) {
     const names = await this.searchAlbumNames(albumName)

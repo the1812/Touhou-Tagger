@@ -50,6 +50,7 @@ func (wiki *Source) SetLyricsCache(cache *LyricsCache) {
 func (wiki *Source) SearchCandidates(
 	ctx context.Context,
 	query string,
+	options source.SearchOptions,
 ) ([]domain.AlbumCandidate, error) {
 	endpoint := wiki.apiEndpoint()
 	parameters := endpoint.Query()
@@ -82,7 +83,7 @@ func (wiki *Source) SearchCandidates(
 		})
 	}
 	if len(candidates) > 0 {
-		if err := wiki.loadSearchDetails(ctx, candidates); err != nil {
+		if err := wiki.loadSearchDetails(ctx, candidates, options); err != nil {
 			return nil, err
 		}
 	}

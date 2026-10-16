@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	sourceapi "github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 func TestSearchAndFetch(t *testing.T) {
@@ -33,7 +35,7 @@ func TestSearchAndFetch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidates, err := source.SearchCandidates(context.Background(), "Test Album")
+	candidates, err := source.SearchCandidates(context.Background(), "Test Album", sourceapi.SearchOptions{IncludeThumbnails: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestHTTPFailureIsExplicit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := source.SearchCandidates(context.Background(), "album"); err == nil {
+	if _, err := source.SearchCandidates(context.Background(), "album", sourceapi.SearchOptions{IncludeThumbnails: true}); err == nil {
 		t.Fatal("expected HTTP status error")
 	}
 }

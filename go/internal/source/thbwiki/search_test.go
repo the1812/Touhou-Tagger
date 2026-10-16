@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 func TestSearchFiltersLyricEntries(t *testing.T) {
@@ -42,7 +43,7 @@ func TestSearchFiltersLyricEntries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidates, err := wiki.SearchCandidates(context.Background(), "Album")
+	candidates, err := wiki.SearchCandidates(context.Background(), "Album", source.SearchOptions{IncludeThumbnails: true})
 	if err != nil {
 		t.Fatal(err)
 	}

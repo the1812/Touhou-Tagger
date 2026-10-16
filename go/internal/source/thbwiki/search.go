@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 type searchAPIError struct {
@@ -13,7 +14,7 @@ type searchAPIError struct {
 	Info string `json:"info"`
 }
 
-func (wiki *Source) loadSearchDetails(ctx context.Context, candidates []domain.AlbumCandidate) error {
+func (wiki *Source) loadSearchDetails(ctx context.Context, candidates []domain.AlbumCandidate, options source.SearchOptions) error {
 	conditions := make([]string, len(candidates))
 	for index, candidate := range candidates {
 		conditions[index] = "[[" + candidate.ID + "]]"
@@ -28,9 +29,13 @@ func (wiki *Source) loadSearchDetails(ctx context.Context, candidates []domain.A
 		} `json:"query"`
 		Error *searchAPIError `json:"error"`
 	}
+	fields := "|?制作方"
+	if options.IncludeThumbnails {
+		fields += "|?封面图片"
+	}
 	if _, err := wiki.client.R().SetContext(ctx).SetQueryParams(map[string]string{
 		"action": "ask", "format": "json",
-		"query": strings.Join(conditions, " OR ") + "|?制作方|?封面图片|limit=" + fmt.Sprint(len(candidates)),
+		"query": strings.Join(conditions, " OR ") + fields + "|limit=" + fmt.Sprint(len(candidates)),
 	}).SetResult(&details).ForceContentType("application/json").Get(wiki.apiEndpoint().String()); err != nil {
 		return fmt.Errorf("query THBWiki search details: %w", err)
 	}
@@ -49,7 +54,7 @@ func (wiki *Source) loadSearchDetails(ctx context.Context, candidates []domain.A
 			}
 			candidate.Artists = append(candidate.Artists, name)
 		}
-		if covers := printouts["封面图片"]; len(covers) > 0 {
+		if covers := printouts["封面图片"]; options.IncludeThumbnails && len(covers) > 0 {
 			files[candidate.ID] = covers[0].Fulltext
 			titles = append(titles, covers[0].Fulltext)
 		}

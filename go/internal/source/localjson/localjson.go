@@ -10,6 +10,7 @@ import (
 
 	"github.com/tailscale/hujson"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
+	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 type Source struct{}
@@ -17,6 +18,7 @@ type Source struct{}
 func (Source) SearchCandidates(
 	ctx context.Context,
 	query string,
+	_ source.SearchOptions,
 ) ([]domain.AlbumCandidate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err

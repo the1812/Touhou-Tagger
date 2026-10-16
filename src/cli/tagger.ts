@@ -153,7 +153,7 @@ export class CliTagger extends CliCommandBase {
       if (localJson !== undefined && localJson.length > 0) {
         return [{ id: '', name: localJson[0].album }]
       }
-      return metadataSource.search(album)
+      return metadataSource.search(album, { includeThumbnails: false })
     }).catch((error: unknown) => {
       handleError(error)
       return [] as AlbumCandidate[]

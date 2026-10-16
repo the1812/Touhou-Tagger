@@ -1,7 +1,11 @@
 import axios from 'axios'
 
 import { createRateLimitedClient, getHttpRequestOptions } from '../../http.js'
-import { MetadataSource, type MetadataFetchOptions } from '../metadata-source.js'
+import {
+  MetadataSource,
+  type MetadataFetchOptions,
+  type MetadataSearchOptions,
+} from '../metadata-source.js'
 import type { Metadata } from '../metadata.js'
 import { expandMetadataInfo } from '../normalize/normalize.js'
 
@@ -76,7 +80,7 @@ export class Discogs extends MetadataSource {
     return (await this.search(query)).map(candidate => candidate.id)
   }
 
-  async search(query: string) {
+  async search(query: string, options: MetadataSearchOptions = { includeThumbnails: true }) {
     const { data } = await api.get<{ results: SearchItem[] }>('/database/search', {
       ...getHttpRequestOptions(this.config),
       params: { q: query, type: 'release', format: 'CD', per_page: MetadataSource.MaxSearchCount },
@@ -88,7 +92,7 @@ export class Discogs extends MetadataSource {
         id: String(release.id),
         name: separator < 0 ? release.title : release.title.slice(separator + 3),
         artists: labels,
-        thumbnailUrl: release.cover_image || undefined,
+        thumbnailUrl: options.includeThumbnails ? release.cover_image || undefined : undefined,
       }
     })
   }

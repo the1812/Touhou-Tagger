@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import { defaultUserAgent } from '../../http.js'
-import { MetadataFetchOptions, MetadataSource } from '../metadata-source.js'
+import { MetadataFetchOptions, MetadataSearchOptions, MetadataSource } from '../metadata-source.js'
 import type { AlbumMetadata, Metadata } from '../metadata.js'
 import { expandMetadataInfo } from '../normalize/normalize.js'
 
@@ -44,7 +44,7 @@ interface DoujinMetaAlbumDetail {
 export class DoujinMeta extends MetadataSource {
   private readonly albumIds = new Map<string, string>()
 
-  async search(albumName: string) {
+  async search(albumName: string, options: MetadataSearchOptions = { includeThumbnails: true }) {
     const { data } = await doujinMetaApi.get<DoujinMetaSearchResult>('/api/albums', {
       params: { keyword: albumName, limit: MetadataSource.MaxSearchCount },
     })
@@ -52,9 +52,10 @@ export class DoujinMeta extends MetadataSource {
     return data.items.slice(0, MetadataSource.MaxSearchCount).map(item => ({
       id: item.id,
       name: item.album,
-      thumbnailUrl: item.links.cover
-        ? new URL(item.links.cover, doujinMetaApi.defaults.baseURL).href
-        : undefined,
+      thumbnailUrl:
+        options.includeThumbnails && item.links.cover
+          ? new URL(item.links.cover, doujinMetaApi.defaults.baseURL).href
+          : undefined,
     }))
   }
 

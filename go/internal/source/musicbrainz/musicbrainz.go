@@ -80,7 +80,7 @@ func New(client *http.Client) *Source {
 	return &Source{client: api, images: source.NewHTTPClient(client)}
 }
 
-func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]domain.AlbumCandidate, error) {
+func (provider *Source) SearchCandidates(ctx context.Context, query string, options source.SearchOptions) ([]domain.AlbumCandidate, error) {
 	phrase := `"` + strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(query) + `"`
 	var result struct {
 		Releases []release `json:"releases"`
@@ -92,10 +92,13 @@ func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]d
 	}
 	candidates := make([]domain.AlbumCandidate, 0, len(result.Releases))
 	for _, item := range result.Releases {
-		candidates = append(candidates, domain.AlbumCandidate{
+		candidate := domain.AlbumCandidate{
 			ID: item.ID, Name: item.Title, Source: "music-brainz", Artists: artistNames(item.ArtistCredit),
-			ThumbnailURL: "https://coverartarchive.org/release/" + url.PathEscape(item.ID) + "/front-500",
-		})
+		}
+		if options.IncludeThumbnails {
+			candidate.ThumbnailURL = "https://coverartarchive.org/release/" + url.PathEscape(item.ID) + "/front-500"
+		}
+		candidates = append(candidates, candidate)
 	}
 	return candidates, nil
 }

@@ -53,6 +53,7 @@ func New(client *http.Client, base string) (*Source, error) {
 func (sourceClient *Source) SearchCandidates(
 	ctx context.Context,
 	query string,
+	options source.SearchOptions,
 ) ([]domain.AlbumCandidate, error) {
 	endpoint := sourceClient.baseURL.ResolveReference(&url.URL{
 		Path:     "/api/albums",
@@ -73,7 +74,7 @@ func (sourceClient *Source) SearchCandidates(
 			Name:   item.Album,
 			Source: "doujin-meta",
 		}
-		if item.Links.Cover != "" {
+		if options.IncludeThumbnails && item.Links.Cover != "" {
 			coverURL, err := sourceClient.baseURL.Parse(item.Links.Cover)
 			if err != nil {
 				return nil, fmt.Errorf("resolve Doujin Meta cover URL: %w", err)

@@ -1,7 +1,11 @@
 import axios from 'axios'
 
 import { createRateLimitedClient, getHttpRequestOptions } from '../../http.js'
-import { MetadataSource, type MetadataFetchOptions } from '../metadata-source.js'
+import {
+  MetadataSource,
+  type MetadataFetchOptions,
+  type MetadataSearchOptions,
+} from '../metadata-source.js'
 import type { Metadata } from '../metadata.js'
 import { expandMetadataInfo } from '../normalize/normalize.js'
 
@@ -66,7 +70,7 @@ export class MusicBrainz extends MetadataSource {
     return (await this.search(query)).map(candidate => candidate.id)
   }
 
-  async search(query: string) {
+  async search(query: string, options: MetadataSearchOptions = { includeThumbnails: true }) {
     const phrase = `"${query.replace(/["\\]/g, '\\$&')}"`
     const { data } = await api.get<{ releases: Release[] }>('/release', {
       ...getHttpRequestOptions(this.config),
@@ -80,7 +84,9 @@ export class MusicBrainz extends MetadataSource {
       id: release.id,
       name: release.title,
       artists: artistNames(release['artist-credit']),
-      thumbnailUrl: `https://coverartarchive.org/release/${encodeURIComponent(release.id)}/front-500`,
+      thumbnailUrl: options.includeThumbnails
+        ? `https://coverartarchive.org/release/${encodeURIComponent(release.id)}/front-500`
+        : undefined,
     }))
   }
 
