@@ -54,7 +54,6 @@ type AlbumCandidate struct {
 	ThumbnailURL string   `json:"thumbnailUrl,omitempty"`
 	Year         string   `json:"year,omitempty"`
 	ExactMatch   bool     `json:"exactMatch"`
-	Description  string   `json:"description,omitempty"`
 }
 
 type AlbumMetadata struct {
@@ -125,8 +124,6 @@ type WriteOperationProgress struct {
 	Current     int    `json:"current"`
 	Total       int    `json:"total"`
 	Path        string `json:"path,omitempty"`
-	Message     string `json:"message"`
-	MessageID   string `json:"messageId,omitempty"`
 	Cancellable bool   `json:"cancellable"`
 }
 

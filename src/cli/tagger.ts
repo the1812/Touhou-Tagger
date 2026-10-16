@@ -180,7 +180,7 @@ export class CliTagger extends CliCommandBase {
         searchResult
           .map(
             (it, index) =>
-              `${String(index + 1)}\t${[it.name, it.description].filter(Boolean).join(' · ')}`,
+              `${String(index + 1)}\t${it.name}${it.artists?.length ? ` (${it.artists.join(' / ')})` : ''}`,
           )
           .join('\n'),
       )

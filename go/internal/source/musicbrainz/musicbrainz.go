@@ -50,13 +50,11 @@ type recording struct {
 }
 
 type release struct {
-	ID             string         `json:"id"`
-	Title          string         `json:"title"`
-	Date           string         `json:"date"`
-	Country        string         `json:"country"`
-	Disambiguation string         `json:"disambiguation"`
-	ArtistCredit   []artistCredit `json:"artist-credit"`
-	LabelInfo      []struct {
+	ID           string         `json:"id"`
+	Title        string         `json:"title"`
+	Date         string         `json:"date"`
+	ArtistCredit []artistCredit `json:"artist-credit"`
+	LabelInfo    []struct {
 		CatalogNumber string `json:"catalog-number"`
 	} `json:"label-info"`
 	Genres          []artist `json:"genres"`
@@ -64,8 +62,7 @@ type release struct {
 		Front bool `json:"front"`
 	} `json:"cover-art-archive"`
 	Media []struct {
-		Position int    `json:"position"`
-		Format   string `json:"format"`
+		Position int `json:"position"`
 		Tracks   []struct {
 			Position     int            `json:"position"`
 			Title        string         `json:"title"`
@@ -95,17 +92,8 @@ func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]d
 	}
 	candidates := make([]domain.AlbumCandidate, 0, len(result.Releases))
 	for _, item := range result.Releases {
-		var formats []string
-		for _, medium := range item.Media {
-			if medium.Format != "" && !slices.Contains(formats, medium.Format) {
-				formats = append(formats, medium.Format)
-			}
-		}
-		artists := artistNames(item.ArtistCredit)
-		parts := []string{strings.Join(artists, " / "), item.Date, catalogNumbers(item), item.Country, strings.Join(formats, " / "), item.Disambiguation, item.ID}
-		parts = slices.DeleteFunc(parts, func(value string) bool { return value == "" })
 		candidates = append(candidates, domain.AlbumCandidate{
-			ID: item.ID, Name: item.Title, Source: "music-brainz", Artists: artists, Description: strings.Join(parts, " · "),
+			ID: item.ID, Name: item.Title, Source: "music-brainz", Artists: artistNames(item.ArtistCredit),
 			ThumbnailURL: "https://coverartarchive.org/release/" + url.PathEscape(item.ID) + "/front-500",
 		})
 	}

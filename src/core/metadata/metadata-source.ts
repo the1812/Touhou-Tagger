@@ -6,7 +6,6 @@ export interface AlbumCandidate {
   name: string
   artists?: string[]
   thumbnailUrl?: string
-  description?: string
 }
 
 export interface MetadataFetchOptions {

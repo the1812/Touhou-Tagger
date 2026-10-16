@@ -96,8 +96,6 @@ func (manager *writeOperationManager) progress(operationID string, event domain.
 		Stage:       writeOperationStage(event.Stage),
 		Current:     event.Current,
 		Total:       event.Total,
-		Message:     writeOperationMessage(event),
-		MessageID:   writeOperationMessageID(event.Stage),
 		Cancellable: item.cancellable,
 	}
 	if event.Path != "" {
@@ -107,29 +105,6 @@ func (manager *writeOperationManager) progress(operationID string, event domain.
 	manager.mu.Unlock()
 	if emitter != nil {
 		emitter(writeOperationProgressEvent, progress)
-	}
-}
-
-func writeOperationMessageID(stage domain.EventStage) string {
-	switch stage {
-	case domain.StageScan:
-		return ""
-	case domain.StageSearch:
-		return "search"
-	case domain.StageFetch:
-		return "fetch"
-	case domain.StagePlan:
-		return "plan"
-	case domain.StageCompress:
-		return "compress"
-	case domain.StageWrite:
-		return "write"
-	case domain.StageRename:
-		return "rename"
-	case domain.StageComplete:
-		return "complete"
-	default:
-		return ""
 	}
 }
 
@@ -147,29 +122,6 @@ func writeOperationStage(stage domain.EventStage) string {
 		return "complete"
 	default:
 		return "preparing"
-	}
-}
-
-func writeOperationMessage(event domain.ProgressEvent) string {
-	switch event.Stage {
-	case domain.StageScan:
-		return event.Message
-	case domain.StageSearch:
-		return "正在搜索专辑"
-	case domain.StageFetch:
-		return "正在获取专辑元数据"
-	case domain.StagePlan:
-		return "正在准备写入内容"
-	case domain.StageCompress:
-		return "正在压缩封面"
-	case domain.StageWrite:
-		return fmt.Sprintf("正在写入 %d / %d", event.Current, event.Total)
-	case domain.StageRename:
-		return "正在重命名文件"
-	case domain.StageComplete:
-		return "写入完成"
-	default:
-		return event.Message
 	}
 }
 

@@ -28,15 +28,12 @@ interface Release {
   id: string
   title: string
   date?: string
-  country?: string
-  disambiguation?: string
   'artist-credit'?: ArtistCredit[]
   'label-info'?: { 'catalog-number'?: string }[]
   genres?: { name: string }[]
   'cover-art-archive'?: { front: boolean }
   media?: {
     position: number
-    format?: string
     tracks?: {
       position: number
       title: string
@@ -84,17 +81,6 @@ export class MusicBrainz extends MetadataSource {
       name: release.title,
       artists: artistNames(release['artist-credit']),
       thumbnailUrl: `https://coverartarchive.org/release/${encodeURIComponent(release.id)}/front-500`,
-      description: [
-        artistNames(release['artist-credit']).join(' / '),
-        release.date,
-        catalogNumbers(release),
-        release.country,
-        [...new Set(release.media?.map(medium => medium.format).filter(Boolean))].join(' / '),
-        release.disambiguation,
-        release.id,
-      ]
-        .filter(Boolean)
-        .join(' · '),
     }))
   }
 

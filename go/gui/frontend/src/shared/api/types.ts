@@ -46,8 +46,6 @@ export interface WriteOperationProgress {
   current: number
   total: number
   path?: string
-  message: string
-  messageId?: string
   cancellable: boolean
 }
 

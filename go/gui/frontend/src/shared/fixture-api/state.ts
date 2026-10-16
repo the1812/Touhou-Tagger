@@ -46,7 +46,6 @@ export const executeSequence = <Result extends WriteOperationResult>(
           stage: 'preparing',
           current: 0,
           total,
-          message: '正在准备写入',
           cancellable: true,
         },
         kind === 'workspace' ? fixtureState.activePlan.items.map(item => item.sourceName) : paths,
@@ -79,10 +78,6 @@ export const executeSequence = <Result extends WriteOperationResult>(
     const timer = window.setInterval(() => {
       const stage = stages[index]
       const current = Math.min(total, Math.ceil(((index + 1) / stages.length) * total))
-      let message = `正在处理 ${String(current)} / ${String(total)}`
-      if (stage === 'renaming') {
-        message = '正在重命名'
-      }
       fixtureState.progressHandlers.forEach(handler =>
         handler({
           operationId,
@@ -90,7 +85,6 @@ export const executeSequence = <Result extends WriteOperationResult>(
           stage,
           current,
           total,
-          message,
           path:
             kind === 'workspace'
               ? fixtureState.activePlan.items[

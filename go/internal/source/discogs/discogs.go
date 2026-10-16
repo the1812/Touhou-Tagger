@@ -76,10 +76,6 @@ func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]d
 		Results []struct {
 			ID         int      `json:"id"`
 			Title      string   `json:"title"`
-			Year       string   `json:"year"`
-			Country    string   `json:"country"`
-			Catno      string   `json:"catno"`
-			Format     []string `json:"format"`
 			Label      []string `json:"label"`
 			CoverImage string   `json:"cover_image"`
 		} `json:"results"`
@@ -103,10 +99,8 @@ func (provider *Source) SearchCandidates(ctx context.Context, query string) ([]d
 			}
 		}
 		id := strconv.Itoa(item.ID)
-		parts := []string{strings.Join(labels, " / "), item.Year, item.Catno, item.Country, strings.Join(item.Format, " / "), id}
-		parts = slices.DeleteFunc(parts, func(value string) bool { return value == "" })
 		candidates = append(candidates, domain.AlbumCandidate{
-			ID: id, Name: title, Source: "discogs", Artists: labels, Description: strings.Join(parts, " · "),
+			ID: id, Name: title, Source: "discogs", Artists: labels,
 			ThumbnailURL: item.CoverImage,
 		})
 	}

@@ -37,10 +37,6 @@ interface SearchItem {
   label?: string[]
   id: number
   title: string
-  year?: string
-  country?: string
-  catno?: string
-  format?: string[]
 }
 
 const entityName = (name: string) => name.replace(/ \(\d+\)$/, '')
@@ -93,16 +89,6 @@ export class Discogs extends MetadataSource {
         name: separator < 0 ? release.title : release.title.slice(separator + 3),
         artists: labels,
         thumbnailUrl: release.cover_image || undefined,
-        description: [
-          labels.join(' / '),
-          release.year,
-          release.catno,
-          release.country,
-          release.format?.join(' / '),
-          String(release.id),
-        ]
-          .filter(Boolean)
-          .join(' · '),
       }
     })
   }

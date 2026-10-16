@@ -99,7 +99,7 @@ export const BatchPage = defineComponent({
                                 {currentOperation && !compressing && (
                                   <div class="inline tabular-nums">
                                     {' '}
-                                    · {currentOperation.current} / {currentOperation.total}
+                                    {currentOperation.current} / {currentOperation.total}
                                   </div>
                                 )}
                               </div>

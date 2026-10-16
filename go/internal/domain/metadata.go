@@ -52,7 +52,6 @@ type AlbumCandidate struct {
 	Source       string   `json:"source"`
 	Artists      []string `json:"artists,omitempty"`
 	ThumbnailURL string   `json:"thumbnailUrl,omitempty"`
-	Description  string   `json:"description,omitempty"`
 }
 
 func MatchingAlbumCandidate(candidates []AlbumCandidate, query string) *AlbumCandidate {

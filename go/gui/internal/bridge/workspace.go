@@ -138,7 +138,6 @@ func candidateToDTO(candidate domain.AlbumCandidate, query string) AlbumCandidat
 		Artists:      dtoSlice(candidate.Artists),
 		ThumbnailURL: candidate.ThumbnailURL,
 		ExactMatch:   candidate.MatchesName(query),
-		Description:  candidate.Description,
 	}
 }
 
@@ -149,7 +148,6 @@ func dtoToCandidate(candidate AlbumCandidate) domain.AlbumCandidate {
 		Source:       candidate.Source,
 		Artists:      slices.Clone(candidate.Artists),
 		ThumbnailURL: candidate.ThumbnailURL,
-		Description:  candidate.Description,
 	}
 }
 

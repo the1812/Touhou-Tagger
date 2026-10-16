@@ -126,7 +126,6 @@ export const useBatchStore = defineStore('batch', () => {
         stage: 'preparing',
         current: 0,
         total: count,
-        message: t('notifications.preparingBatchWrite'),
         cancellable: false,
       }),
       complete: result => {

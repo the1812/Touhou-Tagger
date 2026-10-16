@@ -69,11 +69,7 @@ export const ProgressMockPanel = defineComponent({
     ]
     const stageModel = computed({
       get: () => progressMock.operation.value?.stage,
-      set: (stage: WriteOperationStage) =>
-        progressMock.update({
-          stage,
-          message: stages.find(item => item.value === stage)?.label ?? stage,
-        }),
+      set: (stage: WriteOperationStage) => progressMock.update({ stage }),
     })
     const currentModel = computed({
       get: () => progressMock.operation.value?.current ?? 0,
@@ -94,7 +90,7 @@ export const ProgressMockPanel = defineComponent({
       } else {
         const next = stages.at(stages.findIndex(stage => stage.value === operation.stage) + 1)
         if (next) {
-          progressMock.update({ stage: next.value, current: 0, message: next.label })
+          progressMock.update({ stage: next.value, current: 0 })
         } else {
           progressMock.finish('success')
         }

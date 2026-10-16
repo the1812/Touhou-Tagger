@@ -1,11 +1,6 @@
 import { t } from '../i18n'
 import { errorMessage } from './errorMessage'
-import type {
-  BatchEntryPreview,
-  WriteOperationProgress,
-  WriteOperationResult,
-  StateIssue,
-} from './types'
+import type { BatchEntryPreview, WriteOperationResult, StateIssue } from './types'
 
 const issueKeys: Record<string, string> = {
   'no-audio': 'backend.issue.noAudio',
@@ -29,39 +24,6 @@ export const issueText = (issue: StateIssue) =>
   issue.error
     ? errorMessage(issue.error)
     : issue.message || t(issueKeys[issue.code] ?? 'backend.issue.generic')
-
-export const progressText = (progress: WriteOperationProgress) => {
-  const keys: Record<string, string> = {
-    search: 'backend.progress.searching',
-    fetch: 'backend.progress.fetching',
-    plan: 'backend.progress.preparing',
-    compress: 'backend.progress.compressing',
-    write: 'backend.progress.writing',
-    rename: 'backend.progress.renaming',
-    complete: 'backend.progress.complete',
-  }
-  const messageKey = progress.messageId && keys[progress.messageId]
-  if (messageKey) {
-    return t(messageKey, { current: progress.current, total: progress.total })
-  }
-  if (progress.kind === 'batch' && progress.stage === 'preparing') {
-    return t('backend.progress.batchAlbum', {
-      current: progress.current,
-      total: progress.total,
-    })
-  }
-  const stageKeys: Partial<Record<WriteOperationProgress['stage'], string>> = {
-    preparing: 'backend.progress.preparing',
-    compressing: 'backend.progress.compressing',
-    writing: 'backend.progress.writing',
-    renaming: 'backend.progress.renaming',
-    complete: 'backend.progress.complete',
-  }
-  const stageKey = stageKeys[progress.stage]
-  return stageKey
-    ? t(stageKey, { current: progress.current, total: progress.total })
-    : progress.message
-}
 
 export const resultTitle = (result: WriteOperationResult) => {
   if (result.cancelled) {

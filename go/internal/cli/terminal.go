@@ -35,8 +35,8 @@ func (terminal *terminal) selectCandidate(
 	}
 	for index, candidate := range candidates {
 		label := candidate.Name
-		if candidate.Description != "" {
-			label += " · " + candidate.Description
+		if len(candidate.Artists) > 0 {
+			label += " (" + strings.Join(candidate.Artists, " / ") + ")"
 		}
 		if _, err := fmt.Fprintf(terminal.output, "%d\t%s\n", index+1, label); err != nil {
 			return domain.AlbumCandidate{}, false, err

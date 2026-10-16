@@ -53,7 +53,6 @@ export const useWorkspaceWriting = (state: {
         stage: 'preparing',
         current: 0,
         total: current.items.length,
-        message: t('notifications.preparingWrite'),
         cancellable: false,
       }),
       complete,

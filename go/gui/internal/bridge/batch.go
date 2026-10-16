@@ -147,7 +147,6 @@ func (service *BatchService) executeBatch(
 			Current:     index,
 			Total:       len(selected),
 			Path:        filepath.Base(directory),
-			Message:     fmt.Sprintf("正在处理专辑 %d / %d", index+1, len(selected)),
 		})
 		executionResult, executionErr := entry.execute(ctx, operationID,
 			service.batchEventSink(operationID, index, len(selected), directory))
@@ -166,7 +165,6 @@ func (service *BatchService) executeBatch(
 				index+1,
 				len(selected),
 				directory,
-				fmt.Sprintf("专辑 %d / %d 处理失败", index+1, len(selected)),
 			)
 			continue
 		}
@@ -179,7 +177,6 @@ func (service *BatchService) executeBatch(
 			index+1,
 			len(selected),
 			directory,
-			fmt.Sprintf("已完成专辑 %d / %d", index+1, len(selected)),
 		)
 	}
 	result.DurationMS = time.Since(started).Milliseconds()
@@ -202,22 +199,12 @@ func (service *BatchService) batchEventSink(
 		if event.Stage == domain.StageComplete {
 			return nil
 		}
-		message := writeOperationMessage(event)
-		if event.Stage == domain.StageWrite && event.Path != "" {
-			message += " · " + filepath.Base(event.Path)
-		}
 		service.ops.emitProgress(WriteOperationProgress{
 			OperationID: operationID,
 			Stage:       writeOperationStage(event.Stage),
 			Current:     completed,
 			Total:       total,
 			Path:        filepath.Base(directory),
-			Message: fmt.Sprintf(
-				"专辑 %d / %d · %s",
-				completed+1,
-				total,
-				message,
-			),
 		})
 		return nil
 	}
@@ -228,7 +215,6 @@ func (service *BatchService) emitBatchAlbumProgress(
 	current int,
 	total int,
 	directory string,
-	message string,
 ) {
 	service.ops.emitProgress(WriteOperationProgress{
 		OperationID: operationID,
@@ -236,6 +222,5 @@ func (service *BatchService) emitBatchAlbumProgress(
 		Current:     current,
 		Total:       total,
 		Path:        filepath.Base(directory),
-		Message:     message,
 	})
 }

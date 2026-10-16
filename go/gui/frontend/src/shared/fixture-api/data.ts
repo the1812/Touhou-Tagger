@@ -71,7 +71,6 @@ const fixtureCandidate = (
   thumbnailUrl: fixture.cover ? coverUrl : undefined,
   year: fixture.album.year,
   exactMatch,
-  description: `${String(fixture.tracks.length)} 首曲目 · ${fixture.album.genres.join('、')}`,
 })
 
 export const candidates = [
@@ -93,7 +92,6 @@ for (const source of ['music-brainz', 'discogs']) {
       ...fixtureCandidate(singleDiscFixture, id, false),
       source,
       thumbnailUrl: metadataSources[source]?.supportsSearchCover ? coverUrl : undefined,
-      description: `${singleDiscFixture.album.albumArtists.join(' / ')} · ${edition === 'original' ? '2017' : '2020'} · ${singleDiscFixture.album.albumOrder} · CD · ${id}`,
     })
     fixtureByCandidate.set(id, singleDiscFixture)
   }
