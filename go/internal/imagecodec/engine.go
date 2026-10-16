@@ -169,6 +169,9 @@ func (e *Engine) Compress(
 		qualityForSize(len(data)),
 	)
 	if runErr == nil {
+		if len(output) >= len(data) {
+			output = data
+		}
 		e.storeCover(digest, options.MaxDimension, output)
 	}
 	releaseErr := e.release(ctx, slot.instance, broken)

@@ -57,7 +57,7 @@ export const compressImage = async (buffer: Buffer | CompressedBuffer, resolutio
         },
       })
       const resultBuffer = Buffer.from(result.mozjpeg.binary) as CompressedBuffer
-      return resultBuffer
+      return resultBuffer.length < buffer.length ? resultBuffer : buffer
     })()
   }
   return cached[CompressedData]
