@@ -33,7 +33,7 @@ export const PlanTable = defineComponent({
         'h-12',
         props.disabled
           ? 'cursor-default'
-          : 'cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-950',
+          : 'cursor-pointer hover:bg-(--p-datatable-row-hover-background)',
         hasError && 'bg-red-50 hover:bg-red-50 dark:bg-red-950/50 dark:hover:bg-red-950/50',
         hasWarning &&
           'bg-amber-50 hover:bg-amber-50 dark:bg-amber-950/50 dark:hover:bg-amber-950/50',

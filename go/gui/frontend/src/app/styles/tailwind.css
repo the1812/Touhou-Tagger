@@ -24,10 +24,10 @@
   --color-app-header: var(--p-surface-0);
   --color-app-header-dark: var(--p-surface-900);
   --color-app-content: var(--p-surface-50);
-  --color-app-content-dark: #0d0c11;
+  --color-app-content-dark: var(--p-surface-950);
   --color-app-footer: var(--p-surface-0);
   --color-app-footer-dark: var(--p-surface-900);
-  --color-app-hover-dark: #211e29;
+  --color-app-hover-dark: var(--p-content-hover-background);
   --spacing-app-header: 3.5rem;
   --spacing-app-page-x: 1.25rem;
   --spacing-app-page-y: 1.25rem;
