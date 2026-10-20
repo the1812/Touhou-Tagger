@@ -8,6 +8,7 @@ import { onBeforeRouteLeave } from 'vue-router'
 
 import { useSettingsStore } from '../../../entities/session'
 import { t } from '../../../shared/i18n'
+import { PageActionBar } from '../../../shared/ui'
 import { SettingsCover } from './SettingsCover'
 import { SettingsGeneral } from './SettingsGeneral'
 import { SettingsLyrics } from './SettingsLyrics'
@@ -67,32 +68,30 @@ export const SettingsPage = defineComponent({
             <SettingsPageSkeleton />
           ) : (
             <div class="h-full min-h-0 overflow-auto">
-              <div class="w-full max-w-app-settings px-app-page-x">
+              <div class="settings-sections">
                 <SettingsGeneral />
                 <SettingsCover />
                 <SettingsLyrics />
               </div>
+            </div>
+          )}
 
-              <div
-                class={[
-                  'flex w-full items-center justify-start border-t py-4',
-                  'border-surface-200 px-app-page-x dark:border-surface-700',
-                ]}
-              >
+          <PageActionBar
+            v-slots={{
+              leftAction: () => (
                 <Button
                   label={t('settings.reset.trigger')}
                   type="button"
-                  size="small"
                   severity="secondary"
                   outlined
-                  disabled={saving.value}
+                  disabled={loading.value || !currentDraft || saving.value}
                   onClick={confirmReset}
                 >
                   {{ icon: () => <RotateCcw /> }}
                 </Button>
-              </div>
-            </div>
-          )}
+              ),
+            }}
+          />
 
           <ConfirmDialog group="settings-leave" />
           <ConfirmDialog group="settings-reset" />

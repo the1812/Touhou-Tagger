@@ -37,8 +37,8 @@ export const TaggingPlanStep = defineComponent({
       const stale = stalePlan.value
       return (
         <>
-          <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)] gap-4">
-            <div class="grid w-app-cover content-start gap-3">
+          <div class="workspace-section grid w-full grid-cols-[var(--spacing-app-cover)_minmax(300px,1fr)_auto] items-start gap-5">
+            <div class="flex w-app-cover flex-col gap-3">
               <CoverPreview cover={currentPlan.cover} />
               {currentPlan.options.canSaveCover && (
                 <div class="flex items-center justify-center gap-3">
@@ -57,24 +57,11 @@ export const TaggingPlanStep = defineComponent({
                 </div>
               )}
             </div>
-            <div class="grid content-start gap-4">
-              <div class="workspace-heading">
-                <WorkspaceTitle class="text-xl">{currentPlan.album.title}</WorkspaceTitle>
-                <Button
-                  label={t('tagging.plan.editAlbum')}
-                  severity="secondary"
-                  outlined
-                  disabled={isBusy.value || stale}
-                  onClick={() => {
-                    editor.openAlbum()
-                  }}
-                >
-                  {{ icon: () => <Pencil /> }}
-                </Button>
-              </div>
+            <div class="flex min-w-0 flex-col gap-4 pt-2.5">
+              <WorkspaceTitle class="text-xl">{currentPlan.album.title}</WorkspaceTitle>
               <div
                 class={[
-                  'grid gap-2 [&>.metadata-row]:grid [&>.metadata-row]:grid-cols-[4rem_minmax(0,1fr)]',
+                  'flex flex-col gap-2 [&>.metadata-row]:grid [&>.metadata-row]:grid-cols-[4rem_minmax(0,1fr)]',
                   '[&>.metadata-row]:text-base [&>.metadata-row]:text-muted-color',
                 ]}
               >
@@ -100,9 +87,20 @@ export const TaggingPlanStep = defineComponent({
                 </div>
               </div>
             </div>
+            <Button
+              label={t('tagging.plan.editAlbum')}
+              severity="secondary"
+              outlined
+              disabled={isBusy.value || stale}
+              onClick={() => {
+                editor.openAlbum()
+              }}
+            >
+              {{ icon: () => <Pencil /> }}
+            </Button>
           </div>
 
-          <div class="workspace-section grid w-full content-start gap-4">
+          <div class="workspace-section flex w-full flex-col gap-4">
             {currentPlan.issues.map(issue => (
               <Message key={issue.code} severity={issue.severity === 'error' ? 'error' : 'warn'}>
                 {issueText(issue)}

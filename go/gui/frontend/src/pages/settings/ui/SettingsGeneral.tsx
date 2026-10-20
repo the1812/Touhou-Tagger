@@ -22,7 +22,7 @@ export const SettingsGeneral = defineComponent({
       }
       return (
         <FormSection title={t('settings.general')}>
-          <div class="grid justify-items-start gap-y-3.5">
+          <div class="flex flex-col items-start gap-3.5">
             <FormField variant="settings" error={errors.value.source}>
               <FieldLabel for="settings-defaultSource" help={t('settings.defaultSourceHelp')}>
                 {t('settings.defaultSource')}

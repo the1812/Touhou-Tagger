@@ -10,7 +10,7 @@ export const FormSection = defineComponent({
     return () => {
       const hasTitle = slots.title || props.title
       return (
-        <div {...attrs} class={['grid gap-4 py-app-section-y', attrs.class]}>
+        <div {...attrs} class={['flex min-w-0 flex-col gap-4', attrs.class]}>
           {hasTitle && <div class="text-base font-medium">{slots.title?.() ?? props.title}</div>}
           {slots.default?.()}
         </div>

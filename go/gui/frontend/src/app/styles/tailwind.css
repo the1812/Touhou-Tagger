@@ -35,7 +35,6 @@
   --spacing-app-cover: 13.5rem;
   --container-app-field: 24rem;
   --container-app-dialog-min: 28rem;
-  --container-app-settings: 70rem;
 }
 
 @utility app-root {
@@ -161,6 +160,15 @@
 
 @utility workspace-heading {
   @apply flex items-start justify-between gap-6;
+}
+
+@utility settings-sections {
+  @apply flex h-full w-full flex-col flex-wrap content-start items-start gap-x-app-page-x gap-y-8 px-app-page-x py-app-page-y;
+
+  & > * {
+    flex: 0 0 auto;
+    width: min(100%, var(--container-app-field));
+  }
 }
 
 @utility compact-data-table {

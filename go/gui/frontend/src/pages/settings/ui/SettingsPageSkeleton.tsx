@@ -5,7 +5,7 @@ export const SettingsPageSkeleton = defineComponent({
   name: 'SettingsPageSkeleton',
   setup() {
     return () => (
-      <div class={['grid h-full w-full max-w-app-settings gap-4', 'px-app-page-x py-app-page-y']}>
+      <div class="settings-sections">
         <Skeleton height="10rem" />
         <Skeleton height="8rem" />
         <Skeleton height="12rem" />

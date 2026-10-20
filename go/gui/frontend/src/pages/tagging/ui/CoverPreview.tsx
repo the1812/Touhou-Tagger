@@ -32,7 +32,7 @@ export const CoverPreview = defineComponent({
     })
 
     return () => (
-      <div class="grid w-app-cover min-w-0 gap-2">
+      <div class="flex w-app-cover min-w-0 flex-col gap-2">
         {props.cover.url ? (
           <div class="flex size-app-cover items-center justify-center">
             <Image

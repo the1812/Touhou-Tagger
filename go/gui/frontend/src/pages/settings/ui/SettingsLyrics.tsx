@@ -44,7 +44,7 @@ export const SettingsLyrics = defineComponent({
       }
       return (
         <FormSection title={t('settings.lyrics')}>
-          <div class="grid justify-items-start gap-y-3.5">
+          <div class="flex flex-col items-start gap-3.5">
             <FormField variant="settings">
               <FieldLabel
                 for="settings-outputDestination"
@@ -74,7 +74,6 @@ export const SettingsLyrics = defineComponent({
                 optionValue="value"
                 size="small"
                 fluid
-                disabled={lyricDestination.value === 'none'}
               />
             </FormField>
             <FormField variant="settings" error={errors.value['lyric.translationSeparator']}>
@@ -89,23 +88,19 @@ export const SettingsLyrics = defineComponent({
                 v-model={currentDraft.lyric.translationSeparator}
                 size="small"
                 fluid
-                disabled={lyricDestination.value === 'none'}
                 invalid={Boolean(errors.value['lyric.translationSeparator'])}
               />
             </FormField>
-            <FormField variant="settings" class="min-w-0 justify-items-start">
-              <FieldLabel
-                for="settings-preserveTimeline"
-                emphasis={false}
-                help={t('settings.preserveTimelineHelp')}
-              >
+            <FormField variant="settings">
+              <FieldLabel for="settings-preserveTimeline" help={t('settings.preserveTimelineHelp')}>
                 {t('settings.preserveTimeline')}
               </FieldLabel>
-              <ToggleSwitch
-                inputId="settings-preserveTimeline"
-                v-model={currentDraft.lyric.time}
-                disabled={lyricDestination.value === 'none'}
-              />
+              <div class="flex h-[calc(1lh+var(--p-form-field-sm-padding-y)*2+2px)] items-center">
+                <ToggleSwitch
+                  inputId="settings-preserveTimeline"
+                  v-model={currentDraft.lyric.time}
+                />
+              </div>
             </FormField>
             <FormField variant="settings" error={errors.value['lyric.maxCacheSize']}>
               <FieldLabel for="settings-lyricCacheSize" help={t('settings.lyricCacheSizeHelp')}>
@@ -120,7 +115,6 @@ export const SettingsLyrics = defineComponent({
                 showButtons
                 size="small"
                 fluid
-                disabled={lyricDestination.value === 'none'}
                 invalid={Boolean(errors.value['lyric.maxCacheSize'])}
               />
             </FormField>

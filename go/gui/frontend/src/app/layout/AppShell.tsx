@@ -130,7 +130,7 @@ export const AppShell = defineComponent({
                 </TabList>
               </Tabs>
             </div>
-            <div class="flex shrink-0 items-center gap-1.5">
+            <div class="flex shrink-0 items-center gap-1.5 -mr-[calc((var(--p-button-icon-only-width)-var(--p-icon-size))/2)]">
               <Button
                 text
                 rounded

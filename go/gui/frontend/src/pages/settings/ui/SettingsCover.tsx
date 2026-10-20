@@ -17,7 +17,7 @@ export const SettingsCover = defineComponent({
       }
       return (
         <FormSection title={t('settings.cover')}>
-          <div class="grid justify-items-start gap-y-3.5">
+          <div class="flex flex-col items-start gap-3.5">
             <FormField variant="settings" error={errors.value.coverCompressSize}>
               <FieldLabel for="settings-coverThreshold" help={t('settings.coverThresholdHelp')}>
                 {t('settings.coverThreshold')}
