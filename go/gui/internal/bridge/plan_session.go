@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -21,8 +21,8 @@ type planSession struct {
 	defaultSource string
 	scan          domain.AlbumScan
 	metadata      []domain.Metadata
-	plan          *coreapp.Plan
-	service       *coreapp.Service
+	plan          *application.Plan
+	service       *application.Service
 	candidate     domain.AlbumCandidate
 	cover         []byte
 	coverSource   string
@@ -30,7 +30,7 @@ type planSession struct {
 	issues        []StateIssue
 }
 
-func newPlanSession(ctx context.Context, album coreapp.Album, applicationService *coreapp.Service, candidate domain.AlbumCandidate, data coreapp.AlbumMetadata, defaultSource, owner string) *planSession {
+func newPlanSession(ctx context.Context, album application.Album, applicationService *application.Service, candidate domain.AlbumCandidate, data application.AlbumMetadata, defaultSource, owner string) *planSession {
 	session := &planSession{
 		id:            newID("plan"),
 		owner:         owner,
@@ -95,7 +95,7 @@ func (session *planSession) refresh(ctx context.Context) PlanPreview {
 func (session *planSession) execute(
 	ctx context.Context,
 	operationID string,
-	events coreapp.EventSink,
+	events application.EventSink,
 ) (result WriteOperationResult, reusable bool, err error) {
 	started := time.Now()
 	defer func() {
@@ -144,7 +144,7 @@ func (session *planSession) execute(
 
 func (session *planSession) rebuild(ctx context.Context) {
 	session.issues = session.issues[:0]
-	options := coreapp.PlanOptions{
+	options := application.PlanOptions{
 		Candidate: session.candidate, DefaultAlbumName: session.albumName, DefaultSource: session.defaultSource,
 	}
 	cover, err := session.coverOutput()
@@ -189,7 +189,7 @@ func (session *planSession) rebuild(ctx context.Context) {
 }
 
 func (session *planSession) previewLocked() PlanPreview {
-	preview := coreapp.PlanPreview{}
+	preview := application.PlanPreview{}
 	if session.plan != nil {
 		preview = session.plan.Preview()
 	}
@@ -255,7 +255,7 @@ func (session *planSession) previewLocked() PlanPreview {
 	}
 	lrcFiles := 0
 	for _, output := range preview.Outputs {
-		if output.Kind == coreapp.OutputLRC {
+		if output.Kind == application.OutputLRC {
 			lrcFiles++
 		}
 	}
@@ -324,19 +324,19 @@ func (session *planSession) canExecuteLocked() bool {
 	return true
 }
 
-func (session *planSession) coverOutput() (*coreapp.CoverOutput, error) {
+func (session *planSession) coverOutput() (*application.CoverOutput, error) {
 	if !session.saveCover || len(session.cover) == 0 {
 		return nil, nil
 	}
 	path := session.scan.CoverPath
 	if path == "" {
 		var err error
-		path, err = coreapp.CoverPath(session.scan.Directory, session.cover)
+		path, err = application.CoverPath(session.scan.Directory, session.cover)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return &coreapp.CoverOutput{Path: path, Data: session.cover, Replace: session.scan.CoverPath != ""}, nil
+	return &application.CoverOutput{Path: path, Data: session.cover, Replace: session.scan.CoverPath != ""}, nil
 }
 
 func (session *planSession) preview() PlanPreview {

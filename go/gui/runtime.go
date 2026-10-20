@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/the1812/Touhou-Tagger/go/gui/internal/bridge"
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/bootstrap"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/tagio"
@@ -13,8 +13,8 @@ func runtimeOptions(
 ) (bridge.ServiceFactory, []bridge.SourceOption) {
 	factory := func(
 		config domain.MetadataConfig,
-		events coreapp.EventSink,
-	) (*coreapp.Service, error) {
+		events application.EventSink,
+	) (*application.Service, error) {
 		return bootstrap.NewService(bootstrap.Options{
 			Config:         config,
 			Events:         events,

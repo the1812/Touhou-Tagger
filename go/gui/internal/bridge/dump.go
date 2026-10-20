@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
@@ -30,7 +30,7 @@ type DumpResult struct {
 }
 
 func (service *DumpService) Scan(ctx context.Context, directory string) (DumpSummary, error) {
-	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
+	album, err := application.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
 	if err != nil {
 		return DumpSummary{}, err
 	}
@@ -67,7 +67,7 @@ func (service *DumpService) Extract(directory, path string) (DumpResult, error) 
 		return DumpResult{}, err
 	}
 	defer finish()
-	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
+	album, err := application.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
 	if err != nil {
 		return DumpResult{}, err
 	}
@@ -75,7 +75,7 @@ func (service *DumpService) Extract(directory, path string) (DumpResult, error) 
 	if err != nil {
 		return DumpResult{}, err
 	}
-	metadata, err := applicationService.DumpMetadata(ctx, album.Scan, coreapp.DumpOptions{OutputPath: path, Cover: true})
+	metadata, err := applicationService.DumpMetadata(ctx, album.Scan, application.DumpOptions{OutputPath: path, Cover: true})
 	if err != nil {
 		return DumpResult{}, err
 	}

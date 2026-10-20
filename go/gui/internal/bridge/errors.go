@@ -11,7 +11,7 @@ import (
 	"os"
 	"syscall"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
@@ -41,7 +41,7 @@ func DescribeError(err error) ErrorInfo {
 	info := ErrorInfo{Code: "unknown", Message: err.Error(), Details: err.Error()}
 	var mismatch *domain.TrackCountMismatchError
 	var conflict *domain.FileConflictError
-	var output *coreapp.PlanOutputConflictError
+	var output *application.PlanOutputConflictError
 	var status *source.HTTPStatusError
 	var parse *domain.ParseError
 	var certificate *tls.CertificateVerificationError
@@ -61,9 +61,9 @@ func DescribeError(err error) ErrorInfo {
 		if conflict.OtherPath != "" {
 			info.Code = "targetConflict"
 		}
-	case errors.As(err, &output) && output.Kind == coreapp.OutputConflictExists:
+	case errors.As(err, &output) && output.Kind == application.OutputConflictExists:
 		info.Code = "targetExists"
-	case errors.As(err, &output) && output.Kind == coreapp.OutputConflictDuplicate:
+	case errors.As(err, &output) && output.Kind == application.OutputConflictDuplicate:
 		info.Code = "targetConflict"
 	case errors.Is(err, source.ErrNotAlbum):
 		info.Code = "notAlbum"

@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
@@ -30,7 +30,7 @@ func (service *WorkspaceService) ScanWorkspace(
 	ctx context.Context,
 	directory string,
 ) (WorkspaceSummary, error) {
-	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
+	album, err := application.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: service.runtime.getConfig()})
 	if err != nil {
 		return WorkspaceSummary{}, err
 	}
@@ -79,7 +79,7 @@ func (service *WorkspaceService) SearchAlbums(
 	if err != nil {
 		return nil, err
 	}
-	applicationService, err := service.runtime.albumService(coreapp.Album{Options: resolved}, sourceName)
+	applicationService, err := service.runtime.albumService(application.Album{Options: resolved}, sourceName)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/gui/internal/bridge"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/imagecodec"
-	"github.com/wailsapp/wails/v3/pkg/application"
+	wails "github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
@@ -38,31 +38,31 @@ func main() {
 		Factory: factory,
 		Sources: sources,
 	})
-	staticAssets := application.AssetFileServerFS(assets)
+	staticAssets := wails.AssetFileServerFS(assets)
 	savedWindowState, err := loadWindowState()
 	if err != nil {
 		log.Printf("load GUI state: %v", err)
 	}
 
-	app := application.New(application.Options{
+	app := wails.New(wails.Options{
 		Name:        "Touhou Tagger",
 		Description: "Touhou Tagger",
-		Assets: application.AssetOptions{
+		Assets: wails.AssetOptions{
 			Handler: backend.AssetHandler(staticAssets),
 		},
 	})
 
-	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
+	window := app.Window.NewWithOptions(wails.WebviewWindowOptions{
 		Title:            "Touhou Tagger",
 		EnableFileDrop:   true,
 		Width:            savedWindowState.Width,
 		Height:           savedWindowState.Height,
 		MinWidth:         minimumWindowWidth,
 		MinHeight:        minimumWindowHeight,
-		BackgroundColour: application.NewRGB(248, 245, 241),
+		BackgroundColour: wails.NewRGB(248, 245, 241),
 		URL:              "/",
 	})
-	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
+	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *wails.WindowEvent) {
 		files := event.Context().DroppedFiles()
 		if len(files) == 0 {
 			return
@@ -80,12 +80,12 @@ func main() {
 	}
 	windowState := newWindowStateTracker(savedWindowState, window)
 	backend.Attach(app, window)
-	serviceOptions := application.ServiceOptions{MarshalError: bridge.MarshalError}
-	app.RegisterService(application.NewServiceWithOptions(backend.Workspace, serviceOptions))
-	app.RegisterService(application.NewServiceWithOptions(backend.Batch, serviceOptions))
-	app.RegisterService(application.NewServiceWithOptions(backend.Settings, serviceOptions))
-	app.RegisterService(application.NewServiceWithOptions(backend.Appearance, serviceOptions))
-	app.RegisterService(application.NewServiceWithOptions(backend.Dump, serviceOptions))
+	serviceOptions := wails.ServiceOptions{MarshalError: bridge.MarshalError}
+	app.RegisterService(wails.NewServiceWithOptions(backend.Workspace, serviceOptions))
+	app.RegisterService(wails.NewServiceWithOptions(backend.Batch, serviceOptions))
+	app.RegisterService(wails.NewServiceWithOptions(backend.Settings, serviceOptions))
+	app.RegisterService(wails.NewServiceWithOptions(backend.Appearance, serviceOptions))
+	app.RegisterService(wails.NewServiceWithOptions(backend.Dump, serviceOptions))
 	app.OnShutdown(func() {
 		backend.Close()
 		if err := windowState.save(window); err != nil {

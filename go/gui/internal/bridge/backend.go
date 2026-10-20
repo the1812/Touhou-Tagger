@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	wails "github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type ServiceFactory func(domain.MetadataConfig, coreapp.EventSink) (*coreapp.Service, error)
+type ServiceFactory func(domain.MetadataConfig, application.EventSink) (*application.Service, error)
 
 type BackendOptions struct {
 	Context context.Context
@@ -104,14 +104,14 @@ func (backend *Backend) Close() {
 	backend.catalog.clear()
 }
 
-func (runtime *runtimeState) service(events coreapp.EventSink) (*coreapp.Service, error) {
+func (runtime *runtimeState) service(events application.EventSink) (*application.Service, error) {
 	return runtime.serviceWithConfig(runtime.getConfig(), events)
 }
 
 func (runtime *runtimeState) serviceWithConfig(
 	config domain.MetadataConfig,
-	events coreapp.EventSink,
-) (*coreapp.Service, error) {
+	events application.EventSink,
+) (*application.Service, error) {
 	service, err := runtime.factory(config, events)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (runtime *runtimeState) serviceWithConfig(
 	return service, nil
 }
 
-func (runtime *runtimeState) albumService(album coreapp.Album, sourceName string) (*coreapp.Service, error) {
+func (runtime *runtimeState) albumService(album application.Album, sourceName string) (*application.Service, error) {
 	value := album.Options.Metadata
 	if sourceName != "" && album.Scan.MetadataPath == "" {
 		value.Source = sourceName

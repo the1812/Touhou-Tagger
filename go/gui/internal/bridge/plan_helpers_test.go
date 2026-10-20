@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 )
 
 func TestInspectPlanOutputsAllowsExistingLRC(t *testing.T) {
 	directory := t.TempDir()
-	output := coreapp.PlanOutput{Kind: coreapp.OutputLRC, Path: filepath.Join(directory, "01 Track.lrc"), ItemIndex: 0}
+	output := application.PlanOutput{Kind: application.OutputLRC, Path: filepath.Join(directory, "01 Track.lrc"), ItemIndex: 0}
 	if err := os.WriteFile(output.Path, []byte("existing"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	issues := inspectPlanOutputs(coreapp.InspectPlanOutputs([]coreapp.PlanOutput{output}))
+	issues := inspectPlanOutputs(application.InspectPlanOutputs([]application.PlanOutput{output}))
 	if len(issues) != 0 {
 		t.Fatalf("inspectPlanOutputs() issues = %#v", issues)
 	}
@@ -32,8 +32,8 @@ func TestInspectPlanOutputsAllowsSelectedCoverOverwrite(t *testing.T) {
 	if err := os.WriteFile(coverPath, cover, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	issues := inspectPlanOutputs(coreapp.InspectPlanOutputs([]coreapp.PlanOutput{{
-		Kind: coreapp.OutputCover, Path: coverPath, ItemIndex: -1, Replace: true,
+	issues := inspectPlanOutputs(application.InspectPlanOutputs([]application.PlanOutput{{
+		Kind: application.OutputCover, Path: coverPath, ItemIndex: -1, Replace: true,
 	}}))
 	if len(issues) != 0 {
 		t.Fatalf("inspectPlanOutputs() issues = %#v", issues)

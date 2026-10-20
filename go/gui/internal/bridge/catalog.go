@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
 
@@ -21,7 +21,7 @@ func newCandidateCatalog() *candidateCatalog {
 
 func (catalog *candidateCatalog) search(
 	ctx context.Context,
-	applicationService *coreapp.Service,
+	applicationService *application.Service,
 	owner string,
 	query string,
 	replace bool,
@@ -30,7 +30,7 @@ func (catalog *candidateCatalog) search(
 	if query == "" {
 		return nil, fmt.Errorf("专辑名称不能为空")
 	}
-	candidates, err := applicationService.SearchCandidates(ctx, query, applicationService.Config.Source, coreapp.SearchOptions{IncludeThumbnails: true})
+	candidates, err := applicationService.SearchCandidates(ctx, query, applicationService.Config.Source, application.SearchOptions{IncludeThumbnails: true})
 	if err != nil {
 		return nil, err
 	}

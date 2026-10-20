@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
-	"github.com/wailsapp/wails/v3/pkg/application"
+	wails "github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
@@ -55,9 +55,9 @@ func loadWindowState() (windowState, error) {
 	return result, nil
 }
 
-func newWindowStateTracker(state windowState, window *application.WebviewWindow) *windowStateTracker {
+func newWindowStateTracker(state windowState, window *wails.WebviewWindow) *windowStateTracker {
 	tracker := &windowStateTracker{state: state}
-	window.OnWindowEvent(events.Common.WindowDidResize, func(_ *application.WindowEvent) {
+	window.OnWindowEvent(events.Common.WindowDidResize, func(_ *wails.WindowEvent) {
 		if window.IsMaximised() || window.IsMinimised() {
 			return
 		}
@@ -73,7 +73,7 @@ func newWindowStateTracker(state windowState, window *application.WebviewWindow)
 	return tracker
 }
 
-func (tracker *windowStateTracker) save(window *application.WebviewWindow) (resultErr error) {
+func (tracker *windowStateTracker) save(window *wails.WebviewWindow) (resultErr error) {
 	tracker.mu.Lock()
 	state := tracker.state
 	tracker.mu.Unlock()

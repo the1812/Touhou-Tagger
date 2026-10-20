@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 	"github.com/the1812/Touhou-Tagger/go/internal/source"
@@ -41,8 +41,8 @@ func TestLocalMetadataDoesNotRequireSearchableAlbumSource(t *testing.T) {
 	storedConfig.LyricEnabled = false
 	backend := NewBackend(BackendOptions{
 		Config: storedConfig,
-		Factory: func(value domain.MetadataConfig, events coreapp.EventSink) (*coreapp.Service, error) {
-			return &coreapp.Service{
+		Factory: func(value domain.MetadataConfig, events application.EventSink) (*application.Service, error) {
+			return &application.Service{
 				Config: config.RuntimeMetadata(value),
 				Events: events,
 				Sources: source.Registry{

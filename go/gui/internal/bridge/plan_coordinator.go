@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
+	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
 )
@@ -35,7 +35,7 @@ func (service *planCoordinator) prepareOwnedPlan(
 ) (*planSession, error) {
 	base := service.runtime.getConfig()
 	base.Source = defaultSource
-	album, err := coreapp.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: base})
+	album, err := application.OpenAlbum(ctx, directory, config.RuntimeAlbumOptions{Metadata: base})
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +48,8 @@ func (service *planCoordinator) prepareOwnedPlan(
 
 func (service *planCoordinator) prepareAlbumPlan(
 	ctx context.Context,
-	album coreapp.Album,
-	applicationService *coreapp.Service,
+	album application.Album,
+	applicationService *application.Service,
 	candidateID string,
 	defaultSource string,
 	owner string,
