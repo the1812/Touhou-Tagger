@@ -7,7 +7,6 @@ import (
 	"github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/config"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
-	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 func (runner *Runner) runTag(ctx context.Context) error {
@@ -53,7 +52,7 @@ func (runner *Runner) tagDirectory(
 	}
 	candidate := domain.AlbumCandidate{ID: scan.MetadataPath, Name: albumName, Source: "local-json"}
 	if scan.MetadataPath == "" {
-		candidates, err := service.SearchCandidates(ctx, albumName, options.Metadata.Source, source.SearchOptions{})
+		candidates, err := service.SearchCandidates(ctx, albumName, options.Metadata.Source, application.SearchOptions{})
 		if err != nil {
 			return err
 		}

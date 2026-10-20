@@ -30,6 +30,10 @@ type AlbumMetadata struct {
 	CoverSource string
 }
 
+type SearchOptions struct {
+	IncludeThumbnails bool
+}
+
 func (service *Service) ScanAlbum(
 	ctx context.Context,
 	directory string,
@@ -44,7 +48,7 @@ func (service *Service) SearchCandidates(
 	ctx context.Context,
 	query string,
 	sourceName string,
-	options source.SearchOptions,
+	options SearchOptions,
 ) ([]domain.AlbumCandidate, error) {
 	metadataSource, exists := service.Sources[sourceName]
 	if !exists {
@@ -54,7 +58,9 @@ func (service *Service) SearchCandidates(
 		return nil, err
 	}
 	return withRetry(ctx, service.Config, func(attemptContext context.Context) ([]domain.AlbumCandidate, error) {
-		return metadataSource.SearchCandidates(attemptContext, query, options)
+		return metadataSource.SearchCandidates(attemptContext, query, source.SearchOptions{
+			IncludeThumbnails: options.IncludeThumbnails,
+		})
 	})
 }
 

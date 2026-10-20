@@ -8,7 +8,6 @@ import (
 
 	coreapp "github.com/the1812/Touhou-Tagger/go/internal/application"
 	"github.com/the1812/Touhou-Tagger/go/internal/domain"
-	"github.com/the1812/Touhou-Tagger/go/internal/source"
 )
 
 type candidateCatalog struct {
@@ -31,7 +30,7 @@ func (catalog *candidateCatalog) search(
 	if query == "" {
 		return nil, fmt.Errorf("专辑名称不能为空")
 	}
-	candidates, err := applicationService.SearchCandidates(ctx, query, applicationService.Config.Source, source.SearchOptions{IncludeThumbnails: true})
+	candidates, err := applicationService.SearchCandidates(ctx, query, applicationService.Config.Source, coreapp.SearchOptions{IncludeThumbnails: true})
 	if err != nil {
 		return nil, err
 	}
